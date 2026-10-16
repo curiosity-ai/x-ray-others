@@ -18,7 +18,8 @@ native code (SkiaSharp, HarfBuzz), it ships as a separate optional package.
 | `X-Ray.Psd.Skia` | [`XRay.Psd/`](XRay.Psd/) | Optional SkiaSharp interop for X-Ray.Psd (SKBitmap/SKImage, Skia encoders). | MIT |
 | `X-Ray.Psd.Text` | [`XRay.Psd/`](XRay.Psd/) | Optional re-rendering of type layers from the text model (SkiaSharp + HarfBuzz). | MIT |
 | `X-Ray.Email` | [`XRay.Email/`](XRay.Email/) | Outlook MSG, EML/MIME and CFB: read, write and convert between MSG and EML. No dependencies. | MIT |
-| `X-Ray.PS` | [`XRay.PS/`](XRay.PS/) | PostScript, EPS and XPS: interpret, inspect and convert to PDF and raster images. | MIT |
+| `X-Ray.PS` | [`XRay.PS/`](XRay.PS/) | PostScript, EPS and XPS: interpret, inspect, edit and convert to PDF and raster images. Core is pure managed. | MIT AND OFL-1.1 AND Bitstream-Vera |
+| `X-Ray.PS.Skia` | [`XRay.PS/`](XRay.PS/) | Optional SkiaSharp raster writer for X-Ray.PS (anti-aliased output, XPS opacity masks). | MIT |
 | `X-Ray.OneNote` | [`XRay.OneNote/`](XRay.OneNote/) | OneNote section files (.one): pages, outlines, rich text, images, tables, attachments, tags, page history; PDF export. No dependencies. | MIT |
 
 Install one with `dotnet add package X-Ray.Psd` (and so on), or install the whole family with

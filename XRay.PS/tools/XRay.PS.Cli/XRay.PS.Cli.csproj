@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>psconvert</AssemblyName>
+    <RootNamespace>XRay.PS.Cli</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/XRay.PS/XRay.PS.csproj" />
+    <ProjectReference Include="../../src/XRay.PS.Skia/XRay.PS.Skia.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The Skia native library for running the CLI on Linux (no fontconfig dependency). -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.153.1" />
+  </ItemGroup>
+</Project>
