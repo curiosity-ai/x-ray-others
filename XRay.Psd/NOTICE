@@ -1,0 +1,23 @@
+XRay.Psd (NuGet packages X-Ray.Psd, X-Ray.Psd.Skia and X-Ray.Psd.Text)
+Copyright (c) 2026 Seth A. Robinson and contributors. Licensed under the MIT License (see LICENSE).
+A C# port of the PSD engine of Patchy (https://github.com/theolivenbaum/Patchy), published by
+Curiosity GmbH as part of the X-Ray family (https://github.com/curiosity-ai/x-ray).
+
+This folder includes third-party material:
+
+tests/XRay.Psd.Text.Tests/Fonts/LiberationSans-Regular.ttf
+  Liberation Sans, licensed under the SIL Open Font License 1.1;
+  the full text is in tests/XRay.Psd.Text.Tests/Fonts/LiberationSans-OFL.txt.
+
+The tests also read fixtures that are not in this repository, from the psd/ folder of
+https://github.com/curiosity-ai/test_documents, which carries their licenses:
+
+psd/
+  Patchy's PSD test fixtures (.reference/test-fixtures/psd), MIT License,
+  copyright (c) 2026 Seth A. Robinson; see psd/LICENSE and psd/README.md there.
+
+psd/psd-tools/
+  Test files from psd-tools (https://github.com/psd-tools/psd-tools),
+  commit 605ee1284952c18c649ba60ebe73df4dabca9fbb, tests/psd_files/.
+  Copyright (c) 2019 Kota Yamaguchi. Licensed under the MIT License;
+  the full text is in psd/psd-tools/LICENSE there.

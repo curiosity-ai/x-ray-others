@@ -1,0 +1,4 @@
+# Pack output (dotnet pack -o artifacts) and test runner results; bin/, obj/, test-output/
+# and local-test-fixtures/ are ignored by the x-ray-others root .gitignore.
+artifacts/
+TestResults/
