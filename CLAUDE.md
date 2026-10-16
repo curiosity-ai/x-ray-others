@@ -15,6 +15,7 @@ the rules there (provenance, reference implementations, parity checks) are speci
 |---|---|---|
 | `XRay.Psd/` | `X-Ray.Psd`, `X-Ray.Psd.Skia`, `X-Ray.Psd.Text` | Moved from theolivenbaum/Patchy (C# port of a C++/Qt editor; the C++ reference stays in that repository's `.reference/`) |
 | `XRay.Email/` | `X-Ray.Email` | Derived from an MIT-licensed open-source C# MSG/EML toolkit |
+| `XRay.Ics/` | `X-Ray.Ics` | Written from RFC 5545 for this family; checked against Python `icalendar` and `dateutil` on 434 fixtures |
 | `XRay.PS/` | `X-Ray.PS` | Ported from an MIT-licensed open-source Python PostScript/XPS library |
 | `XRay.OneNote/` | `X-Ray.OneNote` | Ported from an MIT-licensed open-source Python OneNote reader |
 | `.devops/` | one `build-x-ray-<name>-nuget.yml` per package folder | |

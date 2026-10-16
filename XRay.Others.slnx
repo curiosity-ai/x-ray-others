@@ -32,6 +32,12 @@
   <Folder Name="/XRay.Email/tools/">
     <Project Path="XRay.Email/tools/XRay.Email.CorpusGen/XRay.Email.CorpusGen.csproj" />
   </Folder>
+  <Folder Name="/XRay.Ics/src/">
+    <Project Path="XRay.Ics/src/XRay.Ics/XRay.Ics.csproj" />
+  </Folder>
+  <Folder Name="/XRay.Ics/tests/">
+    <Project Path="XRay.Ics/tests/XRay.Ics.Tests/XRay.Ics.Tests.csproj" />
+  </Folder>
   <Folder Name="/XRay.PS/src/">
     <Project Path="XRay.PS/src/XRay.PS.Skia/XRay.PS.Skia.csproj" />
     <Project Path="XRay.PS/src/XRay.PS/XRay.PS.csproj" />
