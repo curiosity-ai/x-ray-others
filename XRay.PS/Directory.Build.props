@@ -1,0 +1,18 @@
+<Project>
+  <!-- The x-ray-others root props (target framework, nullable, Curiosity GmbH package metadata,
+       icon, Source Link and symbols) come first; this file adds what is specific to XRay.PS. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <WarningLevel>9999</WarningLevel>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <!-- NuGet packaging. Only the library under src/ opts in with IsPackable. The code is a port of
+       an MIT-licensed Python PostScript/XPS library and stays under its MIT license (LICENSE). -->
+  <PropertyGroup>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/curiosity-ai/x-ray-others/tree/main/XRay.PS</PackageProjectUrl>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/XRay.Email/XRay.Email.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/XRay.Email.Tests/XRay.Email.Tests.csproj" />
+  </Folder>
+  <Folder Name="/examples/">
+    <Project Path="examples/CreateMsgAndEml/CreateMsgAndEml.csproj" />
+    <Project Path="examples/MsgReaderDump/MsgReaderDump.csproj" />
+    <Project Path="examples/MsgSummary/MsgSummary.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/XRay.Email.CorpusGen/XRay.Email.CorpusGen.csproj" />
+  </Folder>
+</Solution>

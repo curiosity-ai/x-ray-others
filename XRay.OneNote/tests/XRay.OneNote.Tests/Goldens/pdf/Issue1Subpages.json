@@ -1,0 +1,17 @@
+{
+ "page_count": 2,
+ "pages": [
+  {
+   "image_count": 0,
+   "index": 0,
+   "links": [],
+   "text": "Page1\nDienstag, 20. Januar 2026\n15:50\nContent1"
+  },
+  {
+   "image_count": 0,
+   "index": 1,
+   "links": [],
+   "text": "Subpage2\nDienstag, 20. Januar 2026\n15:50\nContent2"
+  }
+ ]
+}

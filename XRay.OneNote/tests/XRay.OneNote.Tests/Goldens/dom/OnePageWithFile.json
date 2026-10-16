@@ -1,0 +1,162 @@
+{
+ "display_name": "OnePageWithFile",
+ "file_format": "OneNote2010",
+ "fixture": "OnePageWithFile.one",
+ "history": [
+  {
+   "count": 0,
+   "current_is_page": true,
+   "versions": []
+  }
+ ],
+ "pages": [
+  {
+   "author": "Дмитрий",
+   "children": [
+    {
+     "date": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1049,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "10 апреля 2015 г."
+       }
+      ],
+      "tags": [],
+      "text": "10 апреля 2015 г.",
+      "type": "RichText"
+     },
+     "text": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1033,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "tyty"
+       }
+      ],
+      "tags": [],
+      "text": "tyty",
+      "type": "RichText"
+     },
+     "time": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1049,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "19:01"
+       }
+      ],
+      "tags": [],
+      "text": "19:01",
+      "type": "RichText"
+     },
+     "type": "Title"
+    },
+    {
+     "children": [
+      {
+       "children": [
+        {
+         "bytes_len": 474222,
+         "file_name": "TestOneNoteSaveAsTiffByFormat.tiff",
+         "sha256": "552dc6d94b8df272e4b9d2f4bc870f47e59d8fabb0fafa35c7b413a54097d31d",
+         "tags": [],
+         "type": "AttachedFile"
+        }
+       ],
+       "number_list": null,
+       "type": "OutlineElement"
+      }
+     ],
+     "horizontal_offset": 1.0,
+     "max_width": 15.0,
+     "type": "Outline",
+     "vertical_offset": 2.4000000953674316
+    }
+   ],
+   "creation_time": null,
+   "has_title": true,
+   "last_modified_time": "2015-04-10T16:07:49Z",
+   "level": 1,
+   "type": "Page"
+  }
+ ]
+}

@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/XRay.PS/XRay.PS.csproj" />
+    <Project Path="src/XRay.PS.Skia/XRay.PS.Skia.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/XRay.PS.Tests/XRay.PS.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/XRay.PS.Cli/XRay.PS.Cli.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+*.cs text
+*.csproj text
+*.props text
+*.slnx text
+*.md text
+*.json text
+
+*.psd binary -eol
+*.psb binary -eol
+*.png binary -eol
+*.jpg binary -eol
+*.bmp binary -eol
+*.ttf binary -eol
+*.otf binary -eol

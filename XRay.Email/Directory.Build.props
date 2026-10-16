@@ -1,0 +1,4 @@
+<Project>
+  <!-- XRay.Email: everything shared comes from the x-ray-others root. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+</Project>

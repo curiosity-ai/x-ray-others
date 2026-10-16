@@ -1,0 +1,377 @@
+{
+ "display_name": "Issue1Subpages",
+ "file_format": "OneNote2010",
+ "fixture": "Issue1Subpages.one",
+ "history": [
+  {
+   "count": 0,
+   "current_is_page": true,
+   "versions": []
+  },
+  {
+   "count": 0,
+   "current_is_page": true,
+   "versions": []
+  }
+ ],
+ "pages": [
+  {
+   "author": "Andreas Doebber",
+   "children": [
+    {
+     "date": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1031,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "Dienstag, 20. Januar 2026"
+       }
+      ],
+      "tags": [],
+      "text": "Dienstag, 20. Januar 2026",
+      "type": "RichText"
+     },
+     "text": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1031,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "Page1"
+       }
+      ],
+      "tags": [],
+      "text": "Page1",
+      "type": "RichText"
+     },
+     "time": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1031,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "15:50"
+       }
+      ],
+      "tags": [],
+      "text": "15:50",
+      "type": "RichText"
+     },
+     "type": "Title"
+    },
+    {
+     "children": [
+      {
+       "children": [
+        {
+         "alignment": null,
+         "paragraph_style": {
+          "bold": false,
+          "font_color": null,
+          "font_name": null,
+          "font_size": null,
+          "highlight": null,
+          "italic": false,
+          "strikethrough": false,
+          "subscript": false,
+          "superscript": false,
+          "underline": false
+         },
+         "runs": [
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": null,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1031,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": "Content1"
+          }
+         ],
+         "tags": [],
+         "text": "Content1",
+         "type": "RichText"
+        }
+       ],
+       "number_list": null,
+       "type": "OutlineElement"
+      }
+     ],
+     "horizontal_offset": 1.0,
+     "max_width": 15.0,
+     "type": "Outline",
+     "vertical_offset": 2.4000000953674316
+    }
+   ],
+   "creation_time": null,
+   "has_title": true,
+   "last_modified_time": "2026-01-20T14:50:43Z",
+   "level": 1,
+   "type": "Page"
+  },
+  {
+   "author": "Andreas Doebber",
+   "children": [
+    {
+     "date": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1031,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "Dienstag, 20. Januar 2026"
+       }
+      ],
+      "tags": [],
+      "text": "Dienstag, 20. Januar 2026",
+      "type": "RichText"
+     },
+     "text": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1031,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "Subpage2"
+       }
+      ],
+      "tags": [],
+      "text": "Subpage2",
+      "type": "RichText"
+     },
+     "time": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1031,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "15:50"
+       }
+      ],
+      "tags": [],
+      "text": "15:50",
+      "type": "RichText"
+     },
+     "type": "Title"
+    },
+    {
+     "children": [
+      {
+       "children": [
+        {
+         "alignment": null,
+         "paragraph_style": {
+          "bold": false,
+          "font_color": null,
+          "font_name": null,
+          "font_size": null,
+          "highlight": null,
+          "italic": false,
+          "strikethrough": false,
+          "subscript": false,
+          "superscript": false,
+          "underline": false
+         },
+         "runs": [
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": null,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1031,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": "Content2"
+          }
+         ],
+         "tags": [],
+         "text": "Content2",
+         "type": "RichText"
+        }
+       ],
+       "number_list": null,
+       "type": "OutlineElement"
+      }
+     ],
+     "horizontal_offset": 1.0,
+     "max_width": 15.0,
+     "type": "Outline",
+     "vertical_offset": 2.4000000953674316
+    }
+   ],
+   "creation_time": null,
+   "has_title": true,
+   "last_modified_time": "2026-01-20T14:51:01Z",
+   "level": 2,
+   "type": "Page"
+  }
+ ]
+}

@@ -1,0 +1,19 @@
+X-Ray.PS bundles and derives from the following third-party material. The project's own code is
+a port of an MIT-licensed open-source Python PostScript/XPS library; its licence is in LICENSE.
+
+Fonts and profiles embedded in the assembly (src/XRay.PS/Resources/)
+  Liberation Serif (Regular, Bold, Italic, BoldItalic): SIL Open Font License 1.1,
+    Copyright (c) 2012 Red Hat, Inc., Reserved Font Name Liberation; digitized data
+    copyright (c) 2010 Google Corporation.
+  DjVu Dingbats (djVuDingbats.ttf, version 2.33): Copyright (c) 2003 Bitstream, Inc. and
+    (c) 2006 Tavmjong Bah (Arev glyphs), under the Bitstream Vera font licence; DejaVu changes
+    are in the public domain. The font may be bundled and redistributed with this notice but not
+    sold on its own.
+  sRGB_IEC61966-2-1_black_scaled.icc: the freely redistributable sRGB profile.
+
+Algorithms
+  The raster pipeline reproduces the behaviour of well-known libraries so that output matches the
+  original: baseline JPEG decoding follows libjpeg's integer IDCT and fancy upsampling, TIFF fax
+  (CCITT) decoding follows libtiff's semantics, and polygon, line, ellipse and resampling
+  routines follow Pillow's C implementations (HPND licence). These are reimplementations of the
+  documented algorithms, not copies of the libraries.

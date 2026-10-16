@@ -1,0 +1,20 @@
+<Project>
+  <!-- The x-ray-others root props (target framework, nullable, Curiosity GmbH package metadata,
+       icon, Source Link and symbols) come first; this file adds what is specific to XRay.Psd. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <WarningLevel>9999</WarningLevel>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <!-- NuGet packaging. Only the three libraries under src/ opt in with IsPackable. The code is
+       Patchy's PSD engine, ported to C#, and stays under its MIT license and copyright. -->
+  <PropertyGroup>
+    <Copyright>Copyright (c) 2026 Seth A. Robinson and contributors</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/curiosity-ai/x-ray-others/tree/main/XRay.Psd</PackageProjectUrl>
+  </PropertyGroup>
+</Project>

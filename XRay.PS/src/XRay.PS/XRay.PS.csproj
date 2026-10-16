@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XRay.PS</RootNamespace>
+    <AssemblyName>XRay.PS</AssemblyName>
+    <Description>Pure managed PostScript, EPS and XPS reader for .NET: a PostScript interpreter, an XPS reader and writer, a shared render model, PDF output and raster output (PNG, JPEG, BMP, TIFF) with no native dependencies.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>X-Ray.PS</PackageId>
+    <PackageLicenseExpression>MIT AND OFL-1.1 AND Bitstream-Vera</PackageLicenseExpression>
+    <PackageTags>postscript;ps;eps;xps;pdf;png;render;convert;x-ray</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" Visible="false" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" Visible="false" />
+    <None Include="../../NOTICE" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The original's resources/ folder: Liberation Serif (OFL-1.1), DjVu Dingbats (Bitstream
+         Vera licence) and an sRGB ICC profile. See NOTICE. -->
+    <EmbeddedResource Include="Resources/*.ttf;Resources/*.icc" LogicalName="XRay.PS.Resources.%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="XRay.PS.Tests" />
+    <InternalsVisibleTo Include="XRay.PS.Cli" />
+    <InternalsVisibleTo Include="psconvert" />
+    <InternalsVisibleTo Include="XRay.PS.Skia" />
+  </ItemGroup>
+</Project>

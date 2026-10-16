@@ -1,0 +1,30 @@
+# .NET build output
+**/bin/
+**/obj/
+*.nupkg
+*.snupkg
+/artifacts/
+/local-feed/
+
+# Test output and local-only fixtures
+test-output/
+local-test-fixtures/
+BenchmarkDotNet.Artifacts/
+
+# IDE / editor
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+
+# OS noise
+.DS_Store
+Thumbs.db
+*~
+
+# Python (reference implementations run locally for parity checks)
+__pycache__/
+*.pyc
+.venv/

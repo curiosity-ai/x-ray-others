@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>XRay.Email</AssemblyName>
+    <RootNamespace>XRay.Email</RootNamespace>
+    <Description>Dependency-free .NET library for Outlook MSG files, Compound File Binary (CFB) containers and EML/MIME messages: read, create, edit and convert between MSG and EML. Part of the X-Ray family.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>X-Ray.Email</PackageId>
+    <PackageTags>email;msg;outlook;eml;mime;cfb;compound-file;mapi;x-ray</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/curiosity-ai/x-ray-others/tree/main/XRay.Email</PackageProjectUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" Visible="false" />
+    <!-- MIT asks for the upstream copyright and permission notice to travel with every copy. -->
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="XRay.Email.Tests" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);CA1707;CA1515;CA1861</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" Version="4.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Corpus/email-manifest.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Goldens/html/*.html" CopyToOutputDirectory="PreserveNewest" LinkBase="Goldens/html" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/XRay.Email/XRay.Email.csproj" />
+  </ItemGroup>
+</Project>

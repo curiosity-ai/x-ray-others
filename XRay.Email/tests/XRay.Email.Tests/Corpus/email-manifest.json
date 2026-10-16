@@ -1,0 +1,2376 @@
+{
+ "email/attachment.msg": {
+  "attachments": [
+   {
+    "filename": "loan_proposal.doc",
+    "size": 16896
+   },
+   {
+    "filename": "image001.png",
+    "size": 86993
+   },
+   {
+    "filename": "image002.jpg",
+    "size": 7640
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 1403,
+  "bodyPrefix": "Team,\n\n \n\nThis email and the attachment looks to be a suspicious, please investigate. \n\n \n\nRegards, \n\n \n\nSatya Nagisetti\n\nNetApp (NBLR)\n\n \n\nIT Global Service De",
+  "cc": [],
+  "date": "2020-06-09T07:07:00Z",
+  "format": "msg",
+  "fromAddress": null,
+  "htmlLength": 0,
+  "messageId": "<DM5PR06MB3530CD95FEF722045944E0E385820@DM5PR06MB3530.namprd06.prod.outlook.com>",
+  "subject": "FW: [WARNING: ATTACHMENT(S) MAY CONTAIN MALWARE]Please check all aspects in documents",
+  "to": [
+   "infosec@netapp.com"
+  ]
+ },
+ "email/bad_outlook.msg": {
+  "error": "CfbException",
+  "format": "msg"
+ },
+ "email/fake_email.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 104,
+  "bodyPrefix": "This is a test email to use for unit tests.\n\nImportant points:\n\n   - Roses are red\n   - Violets are blue",
+  "cc": [],
+  "date": "2022-12-16T22:04:16Z",
+  "format": "msg",
+  "fromAddress": "mrobinson@unstructured.io",
+  "htmlLength": 185,
+  "messageId": "<CADc-_xaLB2FeVQ7mNsoX+NJb_7hAJhBKa_zet-rtgPGenj0uVw@mail.gmail.com>",
+  "subject": "Test Email",
+  "to": [
+   "mrobinson@unstructured.io"
+  ]
+ },
+ "email/html_email_multipart.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 97,
+  "bodyPrefix": "Plain text version of the email.\n\nThis is the fallback for email clients that don't support HTML.",
+  "cc": [],
+  "date": "2024-02-20T10:15:00Z",
+  "format": "eml",
+  "fromAddress": "html-sender@example.com",
+  "fromName": null,
+  "htmlLength": 218,
+  "htmlPrefix": "<html><body>\n<h1>HTML Email</h1>\n<p>This is the <em>HTML</em> version with <strong>formatting</strong>.</p>\n<ul>\n<li>Item 1</li>\n<li>Item 2</li>\n</ul>\n<p>Should",
+  "messageId": "<html123@example.com>",
+  "subject": "HTML Email Test",
+  "to": [
+   "html-recipient@example.com"
+  ]
+ },
+ "email/html_only.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": "2024-05-10T16:45:00Z",
+  "format": "eml",
+  "fromAddress": "html-sender@example.com",
+  "fromName": null,
+  "htmlLength": 963,
+  "htmlPrefix": "<html>\n<head>\n    <title>HTML Email</title>\n    <style>\n        body { font-family: Arial, sans-serif; }\n        .header { color: blue; }\n        .content { mar",
+  "messageId": null,
+  "subject": "HTML Only Email",
+  "to": [
+   "html-recipient@example.com"
+  ]
+ },
+ "email/mailgun_pdf_attachment.eml": {
+  "attachments": [
+   {
+    "contentType": "application/pdf",
+    "filename": "test.pdf",
+    "size": 411
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 19,
+  "bodyPrefix": "Test - body content",
+  "cc": [],
+  "date": "2014-06-04T17:50:00Z",
+  "format": "eml",
+  "fromAddress": "test@mailgun.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Test message with PDF attachment",
+  "to": [
+   "recipient@example.com"
+  ]
+ },
+ "email/mimekit/body.1.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 22,
+  "bodyPrefix": "This is the text body.",
+  "cc": [],
+  "date": "2016-01-02T21:42:00Z",
+  "format": "eml",
+  "fromAddress": "mimekit@mimekit.net",
+  "fromName": "MimeKit Unit Tests",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "MimeMessage.TextBody and HtmlBody tests",
+  "to": [
+   "mimekit@mimekit.net"
+  ]
+ },
+ "email/mimekit/body.2.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": "2016-01-02T21:42:00Z",
+  "format": "eml",
+  "fromAddress": "mimekit@mimekit.net",
+  "fromName": "MimeKit Unit Tests",
+  "htmlLength": 41,
+  "htmlPrefix": "<html>This is an <b>html</b> body.</html>",
+  "messageId": null,
+  "subject": "MimeMessage.TextBody and HtmlBody tests",
+  "to": [
+   "mimekit@mimekit.net"
+  ]
+ },
+ "email/mimekit/body.3.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 22,
+  "bodyPrefix": "This is the text body.",
+  "cc": [],
+  "date": "2016-01-02T21:42:00Z",
+  "format": "eml",
+  "fromAddress": "mimekit@mimekit.net",
+  "fromName": "MimeKit Unit Tests",
+  "htmlLength": 41,
+  "htmlPrefix": "<html>This is an <b>html</b> body.</html>",
+  "messageId": null,
+  "subject": "MimeMessage.TextBody and HtmlBody tests",
+  "to": [
+   "mimekit@mimekit.net"
+  ]
+ },
+ "email/mimekit/body.4.eml": {
+  "attachments": [
+   {
+    "contentType": "image/gif",
+    "filename": "empty.gif",
+    "size": 0
+   },
+   {
+    "contentType": "image/jpeg",
+    "filename": "empty.jpg",
+    "size": 0
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": "2016-01-02T21:42:00Z",
+  "format": "eml",
+  "fromAddress": "mimekit@mimekit.net",
+  "fromName": "MimeKit Unit Tests",
+  "htmlLength": 41,
+  "htmlPrefix": "<html>This is an <b>html</b> body.</html>",
+  "messageId": null,
+  "subject": "MimeMessage.TextBody and HtmlBody tests",
+  "to": [
+   "mimekit@mimekit.net"
+  ]
+ },
+ "email/mimekit/body.5.eml": {
+  "attachments": [
+   {
+    "contentType": "image/gif",
+    "filename": "empty.gif",
+    "size": 0
+   },
+   {
+    "contentType": "image/jpeg",
+    "filename": "empty.jpg",
+    "size": 0
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 22,
+  "bodyPrefix": "This is the text body.",
+  "cc": [],
+  "date": "2016-01-02T21:42:00Z",
+  "format": "eml",
+  "fromAddress": "mimekit@mimekit.net",
+  "fromName": "MimeKit Unit Tests",
+  "htmlLength": 41,
+  "htmlPrefix": "<html>This is an <b>html</b> body.</html>",
+  "messageId": null,
+  "subject": "MimeMessage.TextBody and HtmlBody tests",
+  "to": [
+   "mimekit@mimekit.net"
+  ]
+ },
+ "email/mimekit/body.6.eml": {
+  "attachments": [
+   {
+    "contentType": "image/gif",
+    "filename": "empty.gif",
+    "size": 0
+   },
+   {
+    "contentType": "image/jpeg",
+    "filename": "empty.jpg",
+    "size": 0
+   },
+   {
+    "contentType": "text/plain",
+    "filename": "document.txt",
+    "size": 29
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 22,
+  "bodyPrefix": "This is the text body.",
+  "cc": [],
+  "date": "2016-01-02T21:42:00Z",
+  "format": "eml",
+  "fromAddress": "mimekit@mimekit.net",
+  "fromName": "MimeKit Unit Tests",
+  "htmlLength": 41,
+  "htmlPrefix": "<html>This is an <b>html</b> body.</html>",
+  "messageId": null,
+  "subject": "MimeMessage.TextBody and HtmlBody tests",
+  "to": [
+   "mimekit@mimekit.net"
+  ]
+ },
+ "email/mimekit/body.7.eml": {
+  "attachments": [
+   {
+    "contentType": "image/gif",
+    "filename": "empty.gif",
+    "size": 0
+   },
+   {
+    "contentType": "image/jpeg",
+    "filename": "empty.jpg",
+    "size": 0
+   },
+   {
+    "contentType": "text/plain",
+    "filename": "document.txt",
+    "size": 29
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 22,
+  "bodyPrefix": "This is the text body.",
+  "cc": [],
+  "date": "2016-01-02T21:42:00Z",
+  "format": "eml",
+  "fromAddress": "mimekit@mimekit.net",
+  "fromName": "MimeKit Unit Tests",
+  "htmlLength": 41,
+  "htmlPrefix": "<html>This is an <b>html</b> body.</html>",
+  "messageId": null,
+  "subject": "MimeMessage.TextBody and HtmlBody tests",
+  "to": [
+   "mimekit@mimekit.net"
+  ]
+ },
+ "email/mimekit/body.8.eml": {
+  "attachments": [
+   {
+    "contentType": "application/octet-stream",
+    "filename": "attachment.dat",
+    "size": 0
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 22,
+  "bodyPrefix": "This is the text body.",
+  "cc": [],
+  "date": "2016-01-02T21:42:00Z",
+  "format": "eml",
+  "fromAddress": "mimekit@mimekit.net",
+  "fromName": "MimeKit Unit Tests",
+  "htmlLength": 63,
+  "htmlPrefix": "<html>This is some <b>html</b> text but is not the body.</html>",
+  "messageId": null,
+  "subject": "MimeMessage.TextBody and HtmlBody tests",
+  "to": [
+   "mimekit@mimekit.net"
+  ]
+ },
+ "email/mimekit/body.9.eml": {
+  "attachments": [
+   {
+    "contentType": "application/octet-stream",
+    "filename": "attachment.dat",
+    "size": 0
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 44,
+  "bodyPrefix": "This is some plain text but is not the body.",
+  "cc": [],
+  "date": "2016-01-02T21:42:00Z",
+  "format": "eml",
+  "fromAddress": "mimekit@mimekit.net",
+  "fromName": "MimeKit Unit Tests",
+  "htmlLength": 41,
+  "htmlPrefix": "<html>This is an <b>html</b> body.</html>",
+  "messageId": null,
+  "subject": "MimeMessage.TextBody and HtmlBody tests",
+  "to": [
+   "mimekit@mimekit.net"
+  ]
+ },
+ "email/mimekit/bounce.eml": {
+  "attachments": [
+   {
+    "contentType": "message/delivery-status",
+    "filename": null
+   },
+   {
+    "embeddedSubject": "FILE-SRV | FILE-SRV | Ellern Mede | eventlog | Security - Microsoft-Windows-Security-Auditing | Code: '4625' - Type: 'Critical, Error, Warning, , Information, Verbose' - Desc: '' {44565655}",
+    "filename": null
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 1364,
+  "bodyPrefix": "This is the mail system at host https://urldefense.proofpoint.com/v2/url?u=http-3A__hmail.jitbit.com&d=DwICAg&c=euGZstcaTDllvimEN8b7jXrwqOf-v5A_CdpgnVfiiMM&r=xG",
+  "cc": [],
+  "date": "2022-01-26T09:06:48Z",
+  "format": "eml",
+  "fromAddress": "MAILER-DAEMON@hmail.jitbit.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": "<20220126090648.12632412E9@hmail.jitbit.com>",
+  "subject": "Undelivered Mail Returned to Sender",
+  "to": [
+   "helpdesk@netecgc.com"
+  ]
+ },
+ "email/mimekit/delivery-status-multiple-blank-lines.eml": {
+  "attachments": [
+   {
+    "contentType": "message/delivery-status",
+    "filename": null
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 56,
+  "bodyPrefix": "This is human readable text about the bounce information",
+  "cc": [],
+  "date": null,
+  "format": "eml",
+  "fromAddress": null,
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": null,
+  "to": []
+ },
+ "email/mimekit/delivery-status-no-blank-line.eml": {
+  "attachments": [
+   {
+    "contentType": "message/delivery-status",
+    "filename": null
+   },
+   {
+    "embeddedSubject": "unsubscribe",
+    "filename": null
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [
+   "postmaster@mm1.sprynet.com"
+  ],
+  "date": "1996-07-29T09:13:08Z",
+  "format": "eml",
+  "fromAddress": "postmaster@mm1.sprynet.com",
+  "fromName": "The Post Office",
+  "htmlLength": 0,
+  "messageId": "<96Jul29.022158-0700pdt.148226-12799+708@mm1.sprynet.com>",
+  "subject": "email delivery error",
+  "to": []
+ },
+ "email/mimekit/delivery-status.eml": {
+  "attachments": [
+   {
+    "contentType": "message/delivery-status",
+    "filename": null
+   },
+   {
+    "embeddedSubject": "unsubscribe",
+    "filename": null
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [
+   "postmaster@mm1.sprynet.com"
+  ],
+  "date": "1996-07-29T09:13:08Z",
+  "format": "eml",
+  "fromAddress": "postmaster@mm1.sprynet.com",
+  "fromName": "The Post Office",
+  "htmlLength": 0,
+  "messageId": "<96Jul29.022158-0700pdt.148226-12799+708@mm1.sprynet.com>",
+  "subject": "email delivery error",
+  "to": []
+ },
+ "email/mimekit/delivery-status2.eml": {
+  "attachments": [
+   {
+    "contentType": "message/delivery-status",
+    "filename": null
+   },
+   {
+    "embeddedSubject": null,
+    "filename": null
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 246,
+  "bodyPrefix": "This message was created automatically by mail delivery software.\n\nA message that you sent could not be delivered to one or more of its\nrecipients. This is a pe",
+  "cc": [],
+  "date": null,
+  "format": "eml",
+  "fromAddress": null,
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Mail delivery failed: returning message to sender",
+  "to": []
+ },
+ "email/mimekit/disposition-notification.eml": {
+  "attachments": [
+   {
+    "contentType": "message/disposition-notification",
+    "filename": null
+   },
+   {
+    "embeddedSubject": "First draft of report",
+    "filename": null
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 225,
+  "bodyPrefix": "The message sent on 1995 Sep 19 at 13:30:00 (EDT) -0400 to Joe\nRecipient <Joe_Recipient@example.com> with subject \"First draft of\nreport\" has been displayed.  T",
+  "cc": [],
+  "date": "1995-09-20T04:19:00Z",
+  "format": "eml",
+  "fromAddress": "Joe_Recipient@example.com",
+  "fromName": "Joe Recipient",
+  "htmlLength": 0,
+  "messageId": "<199509200019.12345@example.com>",
+  "subject": "Disposition notification",
+  "to": [
+   "Jane_Sender@example.org"
+  ]
+ },
+ "email/mimekit/empty-multipart.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 83,
+  "bodyPrefix": "This part should be on the same level as the multipart/alternative and not a child.",
+  "cc": [],
+  "date": "2013-11-12T14:12:42Z",
+  "format": "eml",
+  "fromAddress": "mimekit@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": "<54AD68C9E3B0184CAC6041320424FD1B5B81E74D@localhost.localdomain>",
+  "subject": "test of empty multipart/alternative",
+  "to": [
+   "mimekit@example.com"
+  ]
+ },
+ "email/mimekit/epilogue.eml": {
+  "attachments": [
+   {
+    "contentType": "application/postscript",
+    "filename": null,
+    "size": 0
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 85,
+  "bodyPrefix": "> NeXTSTEP, NeXTSTEP, NeXTSTEP...\n\nDon't you mean: \"NeXTstep, NeXTSTEP, NEXTSTEP...\"?",
+  "cc": [],
+  "date": "1995-05-07T16:21:03Z",
+  "format": "eml",
+  "fromAddress": "pcu@umich.edu",
+  "fromName": "Peter Urka",
+  "htmlLength": 0,
+  "messageId": "<07May1621030321@urkabox.chem.lsa.umich.edu>",
+  "subject": "Re: The Once and Future OS",
+  "to": []
+ },
+ "email/mimekit/feedback-report.eml": {
+  "attachments": [
+   {
+    "contentType": "message/feedback-report",
+    "filename": null
+   },
+   {
+    "embeddedSubject": "Earn money",
+    "filename": null
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 190,
+  "bodyPrefix": "This is an email abuse report for an email message received from IP\n192.0.2.2 on Thu, 8 Mar 2005 14:00:00 EDT. For more information\nabout this format please see",
+  "cc": [],
+  "date": "2005-03-08T21:40:36Z",
+  "format": "eml",
+  "fromAddress": "abusedesk@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "FW: Earn money",
+  "to": [
+   "abuse@example.net"
+  ]
+ },
+ "email/mimekit/issue1130.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 207,
+  "bodyPrefix": "We should have access, and apparently did a few months ago, but now there is \na \"You do not currently have access to this content.\" at the bottom of the \nrecord",
+  "cc": [],
+  "date": "2025-01-09T15:26:14Z",
+  "format": "eml",
+  "fromAddress": "unit-tests@mimekit.net",
+  "fromName": "MimeKit UnitTests",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Test of text body with format=flowed; delsp=yes",
+  "to": [
+   "unit-tests@mimekit.net"
+  ]
+ },
+ "email/mimekit/issue358.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 12,
+  "bodyPrefix": "Test headers",
+  "cc": [],
+  "date": "2017-11-15T14:16:14Z",
+  "format": "eml",
+  "fromAddress": "jang.abcdef@xyzlinux12345678.it",
+  "fromName": null,
+  "htmlLength": 451,
+  "messageId": "<AM4PR01MB1444B3F21AE7DA9C8128C28FF7290@AM4PR01MB1444.eurprd01.prod.exchangelabs.com>",
+  "subject": "R: R: R: I: FR-selca LA selcaE",
+  "to": [
+   "jang12@linux12.org.new"
+  ]
+ },
+ "email/mimekit/japanese.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 70,
+  "bodyPrefix": "Let's see if both subject and body works fine...\n\n日本語が\n正常に\n送れているか\nテスト.",
+  "cc": [],
+  "date": "2015-07-21T16:02:29Z",
+  "format": "eml",
+  "fromAddress": "x@x.com",
+  "fromName": "Atsushi Eno",
+  "htmlLength": 0,
+  "messageId": "<55AE6D15.4010805@veritas-vos-liberabit.com>",
+  "subject": "日本語メールテスト (testing Japanese emails)",
+  "to": [
+   "x@x.com"
+  ]
+ },
+ "email/mimekit/missing-subtype.eml": {
+  "attachments": [
+   {
+    "contentType": "application-x-gzip",
+    "filename": "document.xml.gz",
+    "size": 15
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": "2015-12-29T13:06:17Z",
+  "format": "eml",
+  "fromAddress": "someone@somewhere.com",
+  "fromName": "someone",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Test of an invalid mime-type",
+  "to": [
+   "someone.else@somewhere.else.com"
+  ]
+ },
+ "email/mimekit/multipart-digest.eml": {
+  "attachments": [
+   {
+    "embeddedSubject": "submsg",
+    "filename": null
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": "2007-03-24T21:00:00Z",
+  "format": "eml",
+  "fromAddress": "user@domain.org",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": null,
+  "to": []
+ },
+ "email/mimekit/multipart-related-mhtml.eml": {
+  "attachments": [
+   {
+    "contentType": "image/png",
+    "filename": null,
+    "size": 889
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": null,
+  "format": "eml",
+  "fromAddress": null,
+  "fromName": null,
+  "htmlLength": 713,
+  "htmlPrefix": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xh",
+  "messageId": null,
+  "subject": null,
+  "to": []
+ },
+ "email/mimekit/rfc2060.eml": {
+  "attachments": [
+   {
+    "contentType": "application/octet-stream",
+    "filename": null,
+    "size": 33
+   },
+   {
+    "embeddedSubject": "This part specifier should be: 3",
+    "filename": null
+   },
+   {
+    "contentType": "image/gif",
+    "filename": null,
+    "size": 35
+   },
+   {
+    "embeddedSubject": "This part specifier should be: 4.2",
+    "filename": null
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 32,
+  "bodyPrefix": "This part specifier should be: 1",
+  "cc": [],
+  "date": null,
+  "format": "eml",
+  "fromAddress": "me@myself.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Sample message structure for IMAP part specifiers",
+  "to": [
+   "me@myself.com"
+  ]
+ },
+ "email/mimekit/simple-embedded-message.eml": {
+  "attachments": [
+   {
+    "embeddedSubject": "embedded message",
+    "filename": null
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 25,
+  "bodyPrefix": "This is the message body.",
+  "cc": [],
+  "date": "2013-11-12T14:12:42Z",
+  "format": "eml",
+  "fromAddress": "mimekit@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": "<54AD68C9E3B0184CAC6041320424FD1B5B81E74D@localhost.localdomain>",
+  "subject": "test of simple embedded message/rfc822 part",
+  "to": [
+   "mimekit@example.com"
+  ]
+ },
+ "email/mimekit/simple-multipart.eml": {
+  "attachments": [
+   {
+    "contentType": "application/octet-stream",
+    "filename": "attachment.txt",
+    "size": 38
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 25,
+  "bodyPrefix": "This is the message body.",
+  "cc": [],
+  "date": "2013-11-12T14:12:42Z",
+  "format": "eml",
+  "fromAddress": "mimekit@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": "<54AD68C9E3B0184CAC6041320424FD1B5B81E74D@localhost.localdomain>",
+  "subject": "this is a simple multipart message",
+  "to": [
+   "mimekit@example.com"
+  ]
+ },
+ "email/mimekit/stack-overflow.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 13,
+  "bodyPrefix": "\nMessage Body",
+  "cc": [],
+  "date": "2017-11-03T20:00:00Z",
+  "format": "eml",
+  "fromAddress": "test@test.com",
+  "fromName": "test",
+  "htmlLength": 0,
+  "messageId": "<aasfasdfasdfa@bb>",
+  "subject": "Message Subject",
+  "to": [
+   "test@test.com"
+  ]
+ },
+ "email/msg_with_attachments_alt.msg": {
+  "attachments": [
+   {
+    "filename": "canvas.png",
+    "size": 259345
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": null,
+  "format": "msg",
+  "fromAddress": "peterpan@neverland.com",
+  "htmlLength": 17,
+  "messageId": null,
+  "subject": "This is the subject",
+  "to": [
+   "crocodile@neverland.com"
+  ],
+  "validationIssues": true
+ },
+ "email/msg_with_png_attachment.msg": {
+  "attachments": [
+   {
+    "filename": "canvas.png",
+    "size": 259345
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": null,
+  "format": "msg",
+  "fromAddress": "peterpan@neverland.com",
+  "htmlLength": 17,
+  "messageId": null,
+  "subject": "This is the subject",
+  "to": [
+   "crocodile@neverland.com"
+  ],
+  "validationIssues": true
+ },
+ "email/msgreader/EmailWith2Attachments.msg": {
+  "attachments": [
+   {
+    "filename": "Installatie handleiding.docx",
+    "size": 104629
+   },
+   {
+    "filename": "Installatiehandleiding S&I Agro.xlsx",
+    "size": 76951
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 389,
+  "bodyPrefix": " \n\n \n\nMet vriendelijke groet,\n\n \n\nAchmea | IT | DC Generiek | DCG Build Archiefdiensten\n\n \n\nKees van Spelde\n\nSoftware engineer / Specialist ECM / Security Coörd",
+  "cc": [],
+  "date": "2019-12-02T08:44:21Z",
+  "format": "msg",
+  "fromAddress": "kees.van.spelde@achmea.nl",
+  "htmlLength": 0,
+  "messageId": "<AM7P189MB07920EE2DBDD12A2C694C81CBF430@AM7P189MB0792.EURP189.PROD.OUTLOOK.COM>",
+  "subject": "E-mail with 2 attachments",
+  "to": [
+   "kees.van.spelde@achmea.nl"
+  ]
+ },
+ "email/msgreader/EmailWithAttachments.msg": {
+  "attachments": [
+   {
+    "filename": "peterpan.jpg",
+    "size": 39150
+   },
+   {
+    "filename": "tinkerbell.jpg",
+    "size": 49353
+   }
+  ],
+  "bcc": [
+   "wendy@neverland.com"
+  ],
+  "bodyLength": 20,
+  "bodyPrefix": "Hello Neverland text",
+  "cc": [
+   "tinkerbel@neverland.com"
+  ],
+  "date": null,
+  "format": "msg",
+  "fromAddress": "peterpan@neverland.com",
+  "htmlLength": 159,
+  "messageId": null,
+  "subject": "This is the subject",
+  "to": [
+   "crocodile@neverland.com"
+  ],
+  "validationIssues": true
+ },
+ "email/msgreader/EmailWithISO_8859_1_From.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": "2025-01-28T10:28:01Z",
+  "format": "eml",
+  "fromAddress": "some@example.com",
+  "fromName": "Some ßtring",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Test",
+  "to": [
+   "some@example.com"
+  ]
+ },
+ "email/msgreader/EmailWithInnerMailAndAttachments.msg": {
+  "attachments": [
+   {
+    "filename": "OUTER 1.pdf",
+    "size": 15832
+   },
+   {
+    "filename": "OUTER 2.pdf",
+    "size": 16042
+   },
+   {
+    "embeddedSubject": "Inner mail",
+    "filename": null
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 10,
+  "bodyPrefix": "Outer mail",
+  "cc": [],
+  "date": "2023-02-15T05:46:05Z",
+  "format": "msg",
+  "fromAddress": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Outer mail",
+  "to": []
+ },
+ "email/msgreader/EmailWithMsgAttachment.msg": {
+  "attachments": [
+   {
+    "embeddedSubject": "Msg Attachment Test",
+    "filename": "Msg Attachment Test"
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": "2025-07-22T12:15:10Z",
+  "format": "msg",
+  "fromAddress": "d.triendl@cp-solutions.at",
+  "htmlLength": 0,
+  "messageId": "<DU2P193MB2002A84BC32A6456B725A3CBB35CA@DU2P193MB2002.EURP193.PROD.OUTLOOK.COM>",
+  "subject": "FW: Msg Attachment Test",
+  "to": [
+   "d.triendl@cp-solutions.at"
+  ]
+ },
+ "email/msgreader/EmailWithMultilineSubject.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 14,
+  "bodyPrefix": "This is a test",
+  "cc": [],
+  "date": "2025-10-02T14:45:48Z",
+  "format": "eml",
+  "fromAddress": "noreply@abc.def",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "One Two Three Four Five Six Seven Eight Nine Ten Eleven Twelve Thirteen Fourteen Fifteen",
+  "to": [
+   "mctesterson1g@abc.def"
+  ]
+ },
+ "email/msgreader/EmailWithReactions.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 7,
+  "bodyPrefix": "Testing",
+  "cc": [],
+  "date": "2023-10-05T17:03:19Z",
+  "format": "msg",
+  "fromAddress": "test1@readreceipts.onmicrosoft.com",
+  "htmlLength": 0,
+  "messageId": "<DM6PR00MB08605781165559EA09B15B23D4CAA@DM6PR00MB0860.namprd00.prod.outlook.com>",
+  "subject": "Test read receipts",
+  "to": [
+   "test2@readreceipts.onmicrosoft.com"
+  ]
+ },
+ "email/msgreader/EmailWithSpecialCharsInSubject.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 72,
+  "bodyPrefix": "Testing .msg subject encoding\n\n________________________\n\nJulie Clarebots",
+  "cc": [],
+  "date": "2024-03-27T09:14:49Z",
+  "format": "msg",
+  "fromAddress": "Julie.Clarebots@qbere.com",
+  "htmlLength": 0,
+  "messageId": "<CY5PR02MB8965DFCBCFAFD12DCFEB7465F6342@CY5PR02MB8965.namprd02.prod.outlook.com>",
+  "subject": "Un sujet bien défini Àéroport mañana être ouïe électricité così próxima à Ô",
+  "to": [
+   "Julie.Clarebots@qbere.com"
+  ]
+ },
+ "email/msgreader/EmailWithSpecialCharsInSubject_2.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 51,
+  "bodyPrefix": "Voilà\n\n \n\n________________________\n\nJulie Clarebots",
+  "cc": [],
+  "date": "2024-03-29T14:16:36Z",
+  "format": "msg",
+  "fromAddress": "Julie.Clarebots@qbere.com",
+  "htmlLength": 0,
+  "messageId": "<CY5PR02MB89659E356D21CAB1C59C5B90F63A2@CY5PR02MB8965.namprd02.prod.outlook.com>",
+  "subject": "Un sujet très bien défini",
+  "to": [
+   "Julie.Clarebots@qbere.com"
+  ]
+ },
+ "email/msgreader/EmailWithUnknownContentDispositionParam.eml": {
+  "attachments": [
+   {
+    "contentType": "application/octet-stream",
+    "filename": "test.txt",
+    "size": 4
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 16,
+  "bodyPrefix": "Test email body.",
+  "cc": [],
+  "date": null,
+  "format": "eml",
+  "fromAddress": "sender@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Test unknown Content-Disposition parameter",
+  "to": [
+   "recipient@example.com"
+  ]
+ },
+ "email/msgreader/HtmlSampleEmail.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 12380,
+  "bodyPrefix": "BOOK ONE: 1805\n\n \n\n \n\n \n\n \n\n \n\nCHAPTER I\n\n \n\n“Well, Prince, so Genoa and Lucca are now just family estates of the\n\nBuonapartes. But I warn you, if you don’t tel",
+  "cc": [],
+  "date": "2017-10-23T07:31:03Z",
+  "format": "msg",
+  "fromAddress": "Chris.Wilson@leeds.gov.uk",
+  "htmlLength": 0,
+  "messageId": "<6BA412B7BBD2FD42861293C22F31BF8F1AEC9B57@pifmbx04.Leeds.gov.uk>",
+  "subject": "HtmlSampleEmail",
+  "to": [
+   "Chris.Wilson@leeds.gov.uk"
+  ]
+ },
+ "email/msgreader/HtmlSampleEmailWithAttachment.msg": {
+  "attachments": [
+   {
+    "filename": "SampleAttachment.pdf",
+    "size": 169480
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 671,
+  "bodyPrefix": "This is a sample HTML email with an attachment\n\n \n\n________________________________\n\nChris Wilson\nLead Developer, eServices\nCorporate ICT\nLeeds City Council \n\nT",
+  "cc": [],
+  "date": "2017-10-23T09:05:25Z",
+  "format": "msg",
+  "fromAddress": "Chris.Wilson@leeds.gov.uk",
+  "htmlLength": 0,
+  "messageId": "<6BA412B7BBD2FD42861293C22F31BF8F1AECAC13@pifmbx04.Leeds.gov.uk>",
+  "subject": "HtmlSampleEmailWithAttachment",
+  "to": [
+   "Chris.Wilson@leeds.gov.uk"
+  ]
+ },
+ "email/msgreader/IssueSample.eml": {
+  "attachments": [
+   {
+    "contentType": "text/html",
+    "filename": "Sanitized.htm",
+    "size": 225
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 185,
+  "bodyPrefix": "Attn: Mr Test Vendor\n\nThis is a CC of notice sent to - TEST ORG, NATIONAL ASSOCIATION\n\nGreetings,\n\nPlease find attached notice from Cooperatieve test1234, U.A.,",
+  "cc": [],
+  "date": "2025-09-04T21:14:47Z",
+  "format": "eml",
+  "fromAddress": "TestNotices@test1234.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": "<18341942.17066.1757020487580@pcyv170055.test1234.com>",
+  "subject": "CC 2 of TEST BANK, NATIONAL ASSOCIATION",
+  "to": [
+   "12345678900@test789.com"
+  ]
+ },
+ "email/msgreader/IssueSample_working_base64.eml": {
+  "attachments": [
+   {
+    "contentType": "application/octet-stream",
+    "filename": "Sanitized.htm",
+    "size": 225
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 185,
+  "bodyPrefix": "Attn: Mr Test Vendor\n\nThis is a CC of notice sent to - TEST ORG, NATIONAL ASSOCIATION\n\nGreetings,\n\nPlease find attached notice from Cooperatieve test1234, U.A.,",
+  "cc": [],
+  "date": "2025-09-04T21:14:47Z",
+  "format": "eml",
+  "fromAddress": "TestNotices@test1234.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": "<18341942.17066.1757020487580@pcyv170055.test1234.com>",
+  "subject": "CC 2 of TEST BANK, NATIONAL ASSOCIATION",
+  "to": [
+   "12345678900@test789.com"
+  ]
+ },
+ "email/msgreader/RtfSampleEmail.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 12090,
+  "bodyPrefix": "BOOK ONE: 1805\n\n\n\n\n\nCHAPTER I\n\n“Well, Prince, so Genoa and Lucca are now just family estates of the\nBuonapartes. But I warn you, if you don’t tell me that this ",
+  "cc": [],
+  "date": "2017-10-23T07:31:09Z",
+  "format": "msg",
+  "fromAddress": "Chris.Wilson@leeds.gov.uk",
+  "htmlLength": 0,
+  "messageId": "<6BA412B7BBD2FD42861293C22F31BF8F1AECAB67@pifmbx04.Leeds.gov.uk>",
+  "subject": "RtfSampleEmail",
+  "to": [
+   "Chris.Wilson@leeds.gov.uk"
+  ]
+ },
+ "email/msgreader/RtfSampleEmailWithAttachment.msg": {
+  "attachments": [
+   {
+    "filename": "SampleAttachment.pdf",
+    "size": 169480
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 665,
+  "bodyPrefix": "This is a sample RTF email with an attachment \n\n________________________________\nChris Wilson\nLead Developer, eServices\nCorporate ICT\nLeeds City Council \nTel: 0",
+  "cc": [],
+  "date": "2017-10-23T09:05:23Z",
+  "format": "msg",
+  "fromAddress": "Chris.Wilson@leeds.gov.uk",
+  "htmlLength": 0,
+  "messageId": "<6BA412B7BBD2FD42861293C22F31BF8F1AECABFB@pifmbx04.Leeds.gov.uk>",
+  "subject": "RtfSampleEmailWithAttachment",
+  "to": [
+   "Chris.Wilson@leeds.gov.uk"
+  ]
+ },
+ "email/msgreader/RtfWithShortRussianString.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 58,
+  "bodyPrefix": "ввести  «Имя пользователя» (email) и  «Пароль» (password).",
+  "cc": [],
+  "date": "2023-10-04T13:28:39Z",
+  "format": "msg",
+  "fromAddress": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": null,
+  "to": []
+ },
+ "email/msgreader/TestWithAttachmentsAndInlines.eml": {
+  "attachments": [
+   {
+    "contentType": "image/png",
+    "filename": "Outlook-facebook.png",
+    "size": 1725
+   },
+   {
+    "contentType": "text/plain",
+    "filename": "attachment1f.txt",
+    "size": 18
+   },
+   {
+    "contentType": "text/plain",
+    "filename": "attachment2f.txt",
+    "size": 18
+   },
+   {
+    "contentType": "text/plain",
+    "filename": null,
+    "size": 18
+   },
+   {
+    "contentType": "text/plain",
+    "filename": "attachment4f.txt",
+    "size": 18
+   },
+   {
+    "embeddedSubject": null,
+    "filename": null
+   },
+   {
+    "embeddedSubject": null,
+    "filename": null
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 512,
+  "bodyPrefix": "Test email ********************************************************\n\n[facebook]<https://che01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.facebook.c",
+  "cc": [
+   "Peter.Mueller@domain.ch"
+  ],
+  "date": "2025-02-07T09:44:18Z",
+  "format": "eml",
+  "fromAddress": "Peter.Mueller@domain.ch",
+  "fromName": "Müller Peter",
+  "htmlLength": 1681,
+  "htmlPrefix": "<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=Windows-1252\">\n<style type=\"text/css\" style=\"display:none;\"> P {margin-top:0;margin-bo",
+  "messageId": "<GVAP278MB0198D05D58CEAFAF320C57649EF12@GVAP278MB0198.CHEP278.PROD.OUTLOOK.COM>",
+  "subject": "Object - subject",
+  "to": [
+   "Peter.Mueller@domain.ch"
+  ]
+ },
+ "email/msgreader/TestWithInlineHavingContentDisposition.eml": {
+  "attachments": [
+   {
+    "contentType": "image/png",
+    "filename": "Outlook-facebook.png",
+    "size": 1725
+   },
+   {
+    "contentType": "text/plain",
+    "filename": "attachment.txt",
+    "size": 18
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 512,
+  "bodyPrefix": "Test email ********************************************************\n\n[facebook]<https://che01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.facebook.c",
+  "cc": [
+   "Peter.Mueller@domain.ch"
+  ],
+  "date": "2025-02-13T13:33:36Z",
+  "format": "eml",
+  "fromAddress": "Peter.Mueller@domain.ch",
+  "fromName": "Brüller Peter",
+  "htmlLength": 1679,
+  "htmlPrefix": "<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">\n<style type=\"text/css\" style=\"display:none;\"> P {margin-top:0;margin-bott",
+  "messageId": "<GVAP278MB0198D05D58CEAFAF320C57649EF12@GVAP278MB0198.CHEP278.PROD.OUTLOOK.COM>",
+  "subject": "Sujet %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",
+  "to": [
+   "Peter.Mueller@domain.ch"
+  ]
+ },
+ "email/msgreader/TestWithInlineHavingNoContentDisposition.eml": {
+  "attachments": [
+   {
+    "contentType": "image/png",
+    "filename": "Outlook-facebook.png",
+    "size": 1725
+   },
+   {
+    "contentType": "text/plain",
+    "filename": "attachment.txt",
+    "size": 18
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 536,
+  "bodyPrefix": "Test ***************************************\n\n\nYann Brülhart, ICT Software Engineer (externe)\n\n[facebook]<https://che01.safelinks.protection.outlook.com/?url=ht",
+  "cc": [
+   "Peter.Bruelhart@domain.ch"
+  ],
+  "date": "2025-02-17T05:45:24Z",
+  "format": "eml",
+  "fromAddress": "Peter.Bruelhart@domain.ch",
+  "fromName": "Müller Peter",
+  "htmlLength": 1710,
+  "htmlPrefix": "<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">\n<style type=\"text/css\" style=\"display:none;\"> P {margin-top:0;margin-bott",
+  "messageId": null,
+  "subject": "Sujet %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",
+  "to": [
+   "Peter.Bruelhart@domain.ch"
+  ]
+ },
+ "email/msgreader/TestWithInlineHavingWindows1252Fields.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 68,
+  "bodyPrefix": "Test email *********************************************************",
+  "cc": [
+   "Peter.Mueller@domain.ch"
+  ],
+  "date": "2025-02-07T09:44:18Z",
+  "format": "eml",
+  "fromAddress": "Peter.Mueller@domain.ch",
+  "fromName": "Müller Peter",
+  "htmlLength": 452,
+  "htmlPrefix": "<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=Windows-1252\">\n<style type=\"text/css\" style=\"display:none;\"> P {margin-top:0;margin-bo",
+  "messageId": "<GVAP278MB0198D05D58CEAFAF320C57649EF12@GVAP278MB0198.CHEP278.PROD.OUTLOOK.COM>",
+  "subject": "Object - subject",
+  "to": [
+   "Peter.Mueller@domain.ch"
+  ]
+ },
+ "email/msgreader/TxtSampleEmail.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 12042,
+  "bodyPrefix": "BOOK ONE: 1805\n\n\n\n\n\nCHAPTER I\n\n“Well, Prince, so Genoa and Lucca are now just family estates of the\nBuonapartes. But I warn you, if you don’t tell me that this ",
+  "cc": [],
+  "date": "2017-10-23T07:31:28Z",
+  "format": "msg",
+  "fromAddress": "Chris.Wilson@leeds.gov.uk",
+  "htmlLength": 0,
+  "messageId": "<6BA412B7BBD2FD42861293C22F31BF8F1AECAB77@pifmbx04.Leeds.gov.uk>",
+  "subject": "TxtSampleEmail",
+  "to": [
+   "Chris.Wilson@leeds.gov.uk"
+  ]
+ },
+ "email/msgreader/TxtSampleEmailWithAttachment.msg": {
+  "attachments": [
+   {
+    "filename": "SampleAttachment.pdf",
+    "size": 169480
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 228,
+  "bodyPrefix": "This is a sample plain text email with an attachment\n\n________________________________\nChris Wilson\nLead Developer, eServices\nCorporate ICT\nLeeds City Council \n",
+  "cc": [],
+  "date": "2017-10-23T09:05:24Z",
+  "format": "msg",
+  "fromAddress": "Chris.Wilson@leeds.gov.uk",
+  "htmlLength": 0,
+  "messageId": "<6BA412B7BBD2FD42861293C22F31BF8F1AECAC05@pifmbx04.Leeds.gov.uk>",
+  "subject": "TxtSampleEmailWithAttachment",
+  "to": [
+   "Chris.Wilson@leeds.gov.uk"
+  ]
+ },
+ "email/msgreader/UTF-8_Test.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 28,
+  "bodyPrefix": "メッセージです。通常通りパースされることを確認済みです。",
+  "cc": [],
+  "date": "2024-01-30T05:36:06Z",
+  "format": "eml",
+  "fromAddress": "system@example.com",
+  "fromName": "設備予約systemシステム",
+  "htmlLength": 0,
+  "messageId": "<CACTNHvGekM218d+AXHwkbEA3j=ZgXj6_LExgB_qNx_nykbdF7g@mail.gmail.com>",
+  "subject": "【要確認】●普通自転車（ノーパンクタイヤ） 再予約通知 2023/11/29 12:00 - 13:00",
+  "to": [
+   "test@example.com"
+  ]
+ },
+ "email/msgreader/sender_not_found_from_exchange.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 1456,
+  "bodyPrefix": " \n\n \n\nCordialement\n\n \n\nMyriam VAREME\n\nDSI\n\nPort : 07 56 37 37 00\n\n🌈♻️\n\n <https://arcencielrecyclage.fr/> \n\n \n\nDe : Cathy GRIMONET <commercial@arcencielrecyclage",
+  "cc": [],
+  "date": "2026-03-31T08:01:00Z",
+  "format": "msg",
+  "fromAddress": null,
+  "htmlLength": 0,
+  "messageId": "<PR1P264MB18884D8E3E17B8F1B7FCF12AA753A@PR1P264MB1888.FRAP264.PROD.OUTLOOK.COM>",
+  "subject": "TR: CHANTIER ST CHEF",
+  "to": [
+   "support@mobifactory.fr"
+  ],
+  "validationIssues": true
+ },
+ "email/multipart_email.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 109,
+  "bodyPrefix": "This is the plain text version of the email.\nIt has multiple lines and some formatting.\n\nBest regards,\nSender",
+  "cc": [],
+  "date": "2024-03-15T14:30:00Z",
+  "format": "eml",
+  "fromAddress": "sender@example.com",
+  "fromName": null,
+  "htmlLength": 327,
+  "htmlPrefix": "<html>\n<head>\n    <title>HTML Email</title>\n</head>\n<body>\n    <h1>HTML Version</h1>\n    <p>This is the <strong>HTML</strong> version with <em>formatting</em>.<",
+  "messageId": null,
+  "subject": "Multipart Email Test",
+  "to": [
+   "recipient@example.com"
+  ]
+ },
+ "email/plain_text_only.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 120,
+  "bodyPrefix": "This is a simple plain text email without any attachments.\n\nIt contains multiple lines of text.\n\nBest regards,\nTest User",
+  "cc": [],
+  "date": "2024-01-01T12:00:00Z",
+  "format": "eml",
+  "fromAddress": "test@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": "<simple123@example.com>",
+  "subject": "Simple Plain Text Email",
+  "to": [
+   "recipient@example.com"
+  ]
+ },
+ "email/sample_email.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 95,
+  "bodyPrefix": "This is a test email with some content.\nIt has multiple lines of text.\n\nBest regards,\nTest User",
+  "cc": [],
+  "date": "2024-01-01T12:00:00Z",
+  "format": "eml",
+  "fromAddress": "sender@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Test Email Subject",
+  "to": [
+   "recipient@example.com"
+  ]
+ },
+ "email/simple_msg.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": null,
+  "format": "msg",
+  "fromAddress": "peterpan@neverland.com",
+  "htmlLength": 17,
+  "messageId": null,
+  "subject": "This is the subject",
+  "to": [
+   "crocodile@neverland.com"
+  ],
+  "validationIssues": true
+ },
+ "email/simple_msg_alt.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": null,
+  "format": "msg",
+  "fromAddress": "peterpan@neverland.com",
+  "htmlLength": 17,
+  "messageId": null,
+  "subject": "This is the subject",
+  "to": [
+   "crocodile@neverland.com"
+  ],
+  "validationIssues": true
+ },
+ "email/test_email.msg": {
+  "attachments": [
+   {
+    "embeddedSubject": "1 Days Left—35% off cloud space, upgrade now!",
+    "filename": null
+   },
+   {
+    "filename": "milky-way-2695569_960_720.jpg",
+    "size": 222169
+   },
+   {
+    "filename": "Test Email.msg",
+    "size": 413184
+   }
+  ],
+  "bcc": [
+   "marirs@aol.in",
+   "marirs@outlook.com",
+   "marirs@outlook.in"
+  ],
+  "bodyLength": 15,
+  "bodyPrefix": "Test Email\n \n--",
+  "cc": [
+   "marirs@aol.in",
+   "marirs@outlook.in"
+  ],
+  "date": "2021-01-05T03:00:32Z",
+  "format": "msg",
+  "fromAddress": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Test Email",
+  "to": [
+   "marirs@gmail.com"
+  ]
+ },
+ "email/unicode.msg": {
+  "attachments": [
+   {
+    "filename": "import OleFileIO.tif",
+    "size": 969674
+   },
+   {
+    "filename": "raised value error.tif",
+    "size": 1033142
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 104,
+  "bodyPrefix": "This is a test email to experiment with the MS Outlook MSG Extractor\n\n\n-- \n\n\nKind regards\n\n\n\n\nBrian Zhou",
+  "cc": [
+   "brizhou@gmail.com"
+  ],
+  "date": "2013-11-18T08:26:29Z",
+  "format": "msg",
+  "fromAddress": "brizhou@gmail.com",
+  "htmlLength": 0,
+  "messageId": "<CADtJ4eNjQSkGcBtVteCiTF+YFG89+AcHxK3QZ=-Mt48xygkvdQ@mail.gmail.com>",
+  "subject": "Test for TIF files",
+  "to": [
+   "brianzhou@me.com"
+  ]
+ },
+ "email/xray-email/address-groups-and-comments.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 27,
+  "bodyPrefix": "Address parsing edge cases.",
+  "cc": [
+   "alice@example.com",
+   "bob@example.com",
+   "carol@example.com"
+  ],
+  "date": "2024-01-16T16:16:16Z",
+  "format": "eml",
+  "fromAddress": "john.smith@example.com",
+  "fromName": "Smith, John \"JJ\"",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Groups, comments and quoted names",
+  "to": []
+ },
+ "email/xray-email/alternative-text-html.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 29,
+  "bodyPrefix": "Plain version of the message.",
+  "cc": [],
+  "date": "2024-01-04T13:30:00Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": "Example, Alice",
+  "htmlLength": 68,
+  "htmlPrefix": "<html><body><p>HTML version of the <b>message</b>.</p></body></html>",
+  "messageId": "<alternative@example.com>",
+  "subject": "Alternative text and HTML",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/base64-utf8-body.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 46,
+  "bodyPrefix": "Grüße aus Köln! Ελληνικά, русский, 日本語, עברית.",
+  "cc": [],
+  "date": "2024-01-08T08:08:08Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Base64 UTF-8 body",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/binary-transfer-encoding.eml": {
+  "attachments": [
+   {
+    "contentType": "application/octet-stream",
+    "filename": "raw.dat",
+    "size": 10
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 66,
+  "bodyPrefix": "An attachment sent with Content-Transfer-Encoding: binary follows.",
+  "cc": [],
+  "date": "2024-01-24T08:00:00Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Binary transfer encoding",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/calendar-invite.eml": {
+  "attachments": [
+   {
+    "contentType": "text/calendar",
+    "filename": null,
+    "size": 284
+   },
+   {
+    "contentType": "application/ics",
+    "filename": "invite.ics",
+    "size": 286
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 67,
+  "bodyPrefix": "You are invited to the planning meeting on 20 January at 10:00 UTC.",
+  "cc": [],
+  "date": "2024-01-17T17:17:17Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": "Alice",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Invitation: Planning meeting",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/case-insensitive-headers.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 23,
+  "bodyPrefix": "Upper case everywhere ✓",
+  "cc": [],
+  "date": "2024-01-25T09:00:00Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": "Alice",
+  "htmlLength": 28,
+  "htmlPrefix": "<p>Upper case everywhere</p>",
+  "messageId": null,
+  "subject": "Header names in odd case",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/gb2312-html.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": "2024-01-12T04:12:12Z",
+  "format": "eml",
+  "fromAddress": "wang@example.cn",
+  "fromName": "王小明",
+  "htmlLength": 47,
+  "htmlPrefix": "<html><body><p>你好，这是一封简体中文邮件。</p></body></html>",
+  "messageId": null,
+  "subject": "中文测试",
+  "to": [
+   "li@example.cn"
+  ]
+ },
+ "email/xray-email/headers-iso-8859-1-q.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 25,
+  "bodyPrefix": "Schöne Grüße aus München.",
+  "cc": [],
+  "date": "2024-01-10T09:10:10Z",
+  "format": "eml",
+  "fromAddress": "joerg@example.de",
+  "fromName": "Jörg Müller",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Über die Grüße und Süßes",
+  "to": [
+   "francois@example.fr"
+  ]
+ },
+ "email/xray-email/headers-only.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 0,
+  "cc": [],
+  "date": "2024-01-22T22:22:22Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Headers only, no body",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/headers-utf8-split-words.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 16,
+  "bodyPrefix": "本文はUTF-8の8ビットです。",
+  "cc": [],
+  "date": "2024-01-09T00:09:09Z",
+  "format": "eml",
+  "fromAddress": "taro@example.jp",
+  "fromName": "山田 太郎",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "日本語のテスト件名です",
+  "to": [
+   "john@example.com",
+   "zoe@example.com"
+  ]
+ },
+ "email/xray-email/inline-text-attachment.eml": {
+  "attachments": [
+   {
+    "contentType": "text/plain",
+    "filename": "log.txt",
+    "size": 36
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 10,
+  "bodyPrefix": "Main body.",
+  "cc": [],
+  "date": "2024-01-26T10:00:00Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Inline text part with a file name",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/iso-2022-jp.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 13,
+  "bodyPrefix": "明日の会議は十時からです。",
+  "cc": [],
+  "date": "2024-01-13T04:13:13Z",
+  "format": "eml",
+  "fromAddress": "suzuki@example.jp",
+  "fromName": "鈴木",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "会議の件",
+  "to": [
+   "tanaka@example.jp"
+  ]
+ },
+ "email/xray-email/koi8r-body-and-subject.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 43,
+  "bodyPrefix": "Привет, мир! Это письмо в кодировке KOI8-R.",
+  "cc": [],
+  "date": "2024-01-11T08:11:11Z",
+  "format": "eml",
+  "fromAddress": "ivan@example.ru",
+  "fromName": "Иван Петров",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Тестовое письмо",
+  "to": [
+   "olga@example.ru"
+  ]
+ },
+ "email/xray-email/long-folded-subject.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 13,
+  "bodyPrefix": "Folding test.",
+  "cc": [],
+  "date": "2024-01-21T21:21:21Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "This subject is long enough that it was folded across\tseveral lines by the sending mail client, using a tab  and then spaces",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/mbox-from-line.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 63,
+  "bodyPrefix": "The first line of this file is an mbox separator, not a header.",
+  "cc": [],
+  "date": "2024-01-23T23:23:23Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": "Alice",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Message saved from an mbox file",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/mixed-with-attachments.eml": {
+  "attachments": [
+   {
+    "contentType": "application/pdf",
+    "filename": "report.pdf",
+    "size": 125
+   },
+   {
+    "contentType": "text/csv",
+    "filename": "data.csv",
+    "size": 25
+   },
+   {
+    "contentType": "application/octet-stream",
+    "filename": "all-bytes.bin",
+    "size": 256
+   }
+  ],
+  "bcc": [
+   "archive@example.com"
+  ],
+  "bodyLength": 45,
+  "bodyPrefix": "Please find the report and the data attached.",
+  "cc": [
+   "dave@example.com"
+  ],
+  "date": "2024-01-05T12:00:00Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": "Alice",
+  "htmlLength": 0,
+  "messageId": "<mixed@example.com>",
+  "subject": "Report with attachments",
+  "to": [
+   "bob@example.com",
+   "carol@example.com"
+  ]
+ },
+ "email/xray-email/msg/address-groups-and-comments.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 27,
+  "bodyPrefix": "Address parsing edge cases.",
+  "cc": [
+   "alice@example.com",
+   "bob@example.com",
+   "carol@example.com"
+  ],
+  "date": "2024-01-16T16:16:16Z",
+  "format": "msg",
+  "fromAddress": "john.smith@example.com",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Groups, comments and quoted names",
+  "to": []
+ },
+ "email/xray-email/msg/alternative-text-html.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 29,
+  "bodyPrefix": "Plain version of the message.",
+  "cc": [],
+  "date": "2024-01-04T13:30:00Z",
+  "format": "msg",
+  "fromAddress": "alice@example.com",
+  "htmlLength": 68,
+  "messageId": "<alternative@example.com>",
+  "subject": "Alternative text and HTML",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/msg/ansi-codepage-1251.msg": {
+  "attachments": [
+   {
+    "filename": "отчёт.txt",
+    "size": 22
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 31,
+  "bodyPrefix": "Добрый день! Отчёт во вложении.",
+  "cc": [],
+  "date": "2024-02-01T09:30:00Z",
+  "format": "msg",
+  "fromAddress": "ivan@example.ru",
+  "htmlLength": 0,
+  "messageId": "<ansi-1251@example.ru>",
+  "subject": "Отчёт за квартал",
+  "to": [
+   "olga@example.ru"
+  ]
+ },
+ "email/xray-email/msg/calendar-invite.msg": {
+  "attachments": [
+   {
+    "filename": null,
+    "size": 284
+   },
+   {
+    "filename": "invite.ics",
+    "size": 286
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 67,
+  "bodyPrefix": "You are invited to the planning meeting on 20 January at 10:00 UTC.",
+  "cc": [],
+  "date": "2024-01-17T17:17:17Z",
+  "format": "msg",
+  "fromAddress": "alice@example.com",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Invitation: Planning meeting",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/msg/cfb-version-4.msg": {
+  "attachments": [
+   {
+    "filename": "pattern.bin",
+    "size": 70000
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 36,
+  "bodyPrefix": "This message uses 4096-byte sectors.",
+  "cc": [],
+  "date": "2024-02-02T10:00:00Z",
+  "format": "msg",
+  "fromAddress": "alice@example.com",
+  "htmlLength": 0,
+  "messageId": "<cfb-v4@example.com>",
+  "subject": "CFB version 4 container",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/msg/headers-utf8-split-words.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 16,
+  "bodyPrefix": "本文はUTF-8の8ビットです。",
+  "cc": [],
+  "date": "2024-01-09T00:09:09Z",
+  "format": "msg",
+  "fromAddress": "taro@example.jp",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "日本語のテスト件名です",
+  "to": [
+   "john@example.com",
+   "zoe@example.com"
+  ]
+ },
+ "email/xray-email/msg/koi8r-body-and-subject.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 43,
+  "bodyPrefix": "Привет, мир! Это письмо в кодировке KOI8-R.",
+  "cc": [],
+  "date": "2024-01-11T08:11:11Z",
+  "format": "msg",
+  "fromAddress": "ivan@example.ru",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Тестовое письмо",
+  "to": [
+   "olga@example.ru"
+  ]
+ },
+ "email/xray-email/msg/mixed-with-attachments.msg": {
+  "attachments": [
+   {
+    "filename": "report.pdf",
+    "size": 125
+   },
+   {
+    "filename": "data.csv",
+    "size": 25
+   },
+   {
+    "filename": "all-bytes.bin",
+    "size": 256
+   }
+  ],
+  "bcc": [
+   "archive@example.com"
+  ],
+  "bodyLength": 45,
+  "bodyPrefix": "Please find the report and the data attached.",
+  "cc": [
+   "dave@example.com"
+  ],
+  "date": "2024-01-05T12:00:00Z",
+  "format": "msg",
+  "fromAddress": "alice@example.com",
+  "htmlLength": 0,
+  "messageId": "<mixed@example.com>",
+  "subject": "Report with attachments",
+  "to": [
+   "bob@example.com",
+   "carol@example.com"
+  ]
+ },
+ "email/xray-email/msg/nested-embedded-messages.msg": {
+  "attachments": [
+   {
+    "embeddedSubject": "Level 1",
+    "filename": "level1.msg"
+   },
+   {
+    "filename": "outer.txt",
+    "size": 16
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 46,
+  "bodyPrefix": "Outer message with a message inside a message.",
+  "cc": [],
+  "date": null,
+  "format": "msg",
+  "fromAddress": "top@example.com",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Nested embedded messages",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/msg/nested-rfc822.msg": {
+  "attachments": [
+   {
+    "embeddedSubject": "Original message",
+    "filename": "original.eml"
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 29,
+  "bodyPrefix": "Forwarding the message below.",
+  "cc": [],
+  "date": "2024-01-02T09:00:00Z",
+  "format": "msg",
+  "fromAddress": "alice@example.com",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Fwd: Original message",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/msg/plain-ascii.msg": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 75,
+  "bodyPrefix": "Hello Bob,\n\nThis is a plain text message with nothing unusual in it.\n\nAlice",
+  "cc": [],
+  "date": "2024-01-02T03:04:05Z",
+  "format": "msg",
+  "fromAddress": "alice@example.com",
+  "htmlLength": 0,
+  "messageId": "<plain-ascii@example.com>",
+  "subject": "Plain ASCII message",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/msg/recipients-and-properties.msg": {
+  "attachments": [],
+  "bcc": [
+   "bcc1@example.com"
+  ],
+  "bodyLength": 31,
+  "bodyPrefix": "Plain body of the rich message.",
+  "cc": [
+   "cc1@example.com"
+  ],
+  "date": "2024-02-03T11:00:00Z",
+  "format": "msg",
+  "fromAddress": "build.agent@example.com",
+  "htmlLength": 70,
+  "messageId": "<rich@example.com>",
+  "subject": "Recipients, headers and properties",
+  "to": [
+   "to1@example.com",
+   "to2@example.com",
+   "to3@example.com",
+   "to4@example.com",
+   "to5@example.com"
+  ]
+ },
+ "email/xray-email/msg/related-inline-image.msg": {
+  "attachments": [
+   {
+    "filename": "logo.png",
+    "size": 66
+   },
+   {
+    "filename": "notes.txt",
+    "size": 15
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 28,
+  "bodyPrefix": "Text part of the newsletter.",
+  "cc": [],
+  "date": "2024-01-06T09:15:00Z",
+  "format": "msg",
+  "fromAddress": "alice@example.com",
+  "htmlLength": 81,
+  "messageId": null,
+  "subject": "Newsletter with an inline image",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/msg/rfc2231-filenames.msg": {
+  "attachments": [
+   {
+    "filename": "résumé.pdf",
+    "size": 125
+   },
+   {
+    "filename": "長いファイル名.txt",
+    "size": 34
+   },
+   {
+    "filename": "übersicht.png",
+    "size": 66
+   },
+   {
+    "filename": "plain; with \"quotes\".txt",
+    "size": 28
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 38,
+  "bodyPrefix": "Four attachments with non-ASCII names.",
+  "cc": [],
+  "date": "2024-01-15T15:15:15Z",
+  "format": "msg",
+  "fromAddress": "alice@example.com",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Attachment names in every encoding",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/multipart-missing-close.eml": {
+  "attachments": [
+   {
+    "contentType": "text/plain",
+    "filename": null,
+    "size": 66
+   },
+   {
+    "contentType": "text/plain",
+    "filename": "tail.txt",
+    "size": 44
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 58,
+  "bodyPrefix": "First part; its boundary line carries trailing whitespace.",
+  "cc": [],
+  "date": "2024-01-20T20:20:20Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Multipart without a closing boundary",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/nested-rfc822.eml": {
+  "attachments": [
+   {
+    "embeddedSubject": "Original message",
+    "filename": "original.eml"
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 29,
+  "bodyPrefix": "Forwarding the message below.",
+  "cc": [],
+  "date": "2024-01-02T09:00:00Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": "Alice",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Fwd: Original message",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/no-mime-latin1-body.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 46,
+  "bodyPrefix": "Undeclared 8-bit Latin-1 text: déjà vu, naïve.",
+  "cc": [],
+  "date": "2024-01-18T18:18:18Z",
+  "format": "eml",
+  "fromAddress": "legacy@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "No MIME headers",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/obsolete-date.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 71,
+  "bodyPrefix": "Two-digit year, no day of week, no seconds, a named zone and a comment.",
+  "cc": [],
+  "date": "1999-01-05T18:04:00Z",
+  "format": "eml",
+  "fromAddress": "old@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Obsolete date syntax",
+  "to": [
+   "new@example.com"
+  ]
+ },
+ "email/xray-email/plain-ascii.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 75,
+  "bodyPrefix": "Hello Bob,\n\nThis is a plain text message with nothing unusual in it.\n\nAlice",
+  "cc": [],
+  "date": "2024-01-02T03:04:05Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": "Alice Example",
+  "htmlLength": 0,
+  "messageId": "<plain-ascii@example.com>",
+  "subject": "Plain ASCII message",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/plain-lf-line-endings.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 78,
+  "bodyPrefix": "Every line of this message ends in a bare LF,\nas files saved on Unix often do.",
+  "cc": [],
+  "date": "2024-01-03T09:00:00Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Bare LF line endings",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/qp-utf8-body.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 172,
+  "bodyPrefix": "Café crème brûlée, naïve façade.   \nThis line is long enough that the encoder had to break it with a soft line break, which the decoder must remove.\nEuro sign: ",
+  "cc": [],
+  "date": "2024-01-07T07:07:07Z",
+  "format": "eml",
+  "fromAddress": "rene@example.com",
+  "fromName": "René",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Quoted-printable UTF-8 body",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/raw-utf8-headers.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 39,
+  "bodyPrefix": "Body in raw UTF-8: ça marche très bien.",
+  "cc": [],
+  "date": "2024-01-14T14:14:14Z",
+  "format": "eml",
+  "fromAddress": "zoe@example.com",
+  "fromName": "Zoë Ångström",
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Raw UTF-8 headers (RFC 6532): ça marche",
+  "to": [
+   "unal@example.com"
+  ]
+ },
+ "email/xray-email/related-inline-image.eml": {
+  "attachments": [
+   {
+    "contentType": "image/png",
+    "filename": "logo.png",
+    "size": 66
+   },
+   {
+    "contentType": "text/plain",
+    "filename": "notes.txt",
+    "size": 15
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 28,
+  "bodyPrefix": "Text part of the newsletter.",
+  "cc": [],
+  "date": "2024-01-06T09:15:00Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": "Alice",
+  "htmlLength": 81,
+  "htmlPrefix": "<html><body><p>Look:</p><img src=\"cid:logo@example.com\" alt=\"logo\"></body></html>",
+  "messageId": null,
+  "subject": "Newsletter with an inline image",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/rfc2231-filenames.eml": {
+  "attachments": [
+   {
+    "contentType": "application/pdf",
+    "filename": "résumé.pdf",
+    "size": 125
+   },
+   {
+    "contentType": "text/plain",
+    "filename": "長いファイル名.txt",
+    "size": 34
+   },
+   {
+    "contentType": "image/png",
+    "filename": "übersicht.png",
+    "size": 66
+   },
+   {
+    "contentType": "text/plain",
+    "filename": "plain; with \"quotes\".txt",
+    "size": 28
+   }
+  ],
+  "bcc": [],
+  "bodyLength": 38,
+  "bodyPrefix": "Four attachments with non-ASCII names.",
+  "cc": [],
+  "date": "2024-01-15T15:15:15Z",
+  "format": "eml",
+  "fromAddress": "alice@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Attachment names in every encoding",
+  "to": [
+   "bob@example.com"
+  ]
+ },
+ "email/xray-email/windows-1251-qp.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 12,
+  "bodyPrefix": "Добрый день.",
+  "cc": [],
+  "date": "2024-01-11T09:00:00Z",
+  "format": "eml",
+  "fromAddress": "sergey@example.ru",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Привет",
+  "to": [
+   "olga@example.ru"
+  ]
+ },
+ "email/xray-email/windows-1252-smart-quotes.eml": {
+  "attachments": [],
+  "bcc": [],
+  "bodyLength": 43,
+  "bodyPrefix": "“Quoted” text – with an en dash and € euro.",
+  "cc": [],
+  "date": "2024-01-19T19:19:19Z",
+  "format": "eml",
+  "fromAddress": "writer@example.com",
+  "fromName": null,
+  "htmlLength": 0,
+  "messageId": null,
+  "subject": "Smart quotes in Windows-1252",
+  "to": [
+   "editor@example.com"
+  ]
+ }
+}

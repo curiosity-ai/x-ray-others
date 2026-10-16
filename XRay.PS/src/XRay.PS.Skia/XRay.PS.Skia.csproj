@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XRay.PS.Skia</RootNamespace>
+    <AssemblyName>XRay.PS.Skia</AssemblyName>
+    <Description>SkiaSharp raster writer for X-Ray.PS: anti-aliased PostScript, EPS and XPS rendering with gradients, opacity, image brushes and font rasterization, matching the default output of the library X-Ray.PS was ported from.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>X-Ray.PS.Skia</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>postscript;ps;eps;xps;skiasharp;skia;png;render;x-ray</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="4.153.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../XRay.PS/XRay.PS.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="XRay.PS.Tests" />
+  </ItemGroup>
+</Project>
