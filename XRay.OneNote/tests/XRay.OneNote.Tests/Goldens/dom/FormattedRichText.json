@@ -1,0 +1,481 @@
+{
+ "display_name": "FormattedRichText",
+ "file_format": "OneNote2010",
+ "fixture": "FormattedRichText.one",
+ "history": [
+  {
+   "count": 0,
+   "current_is_page": true,
+   "versions": []
+  }
+ ],
+ "pages": [
+  {
+   "author": "Дмитрий",
+   "children": [
+    {
+     "date": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1049,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "14 апреля 2015 г."
+       }
+      ],
+      "tags": [],
+      "text": "14 апреля 2015 г.",
+      "type": "RichText"
+     },
+     "text": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1033,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "One "
+       },
+       {
+        "style": {
+         "bold": false,
+         "font_color": 255,
+         "font_name": null,
+         "font_size": null,
+         "highlight": 16776960,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1033,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "hyperlink"
+       }
+      ],
+      "tags": [],
+      "text": "One hyperlink",
+      "type": "RichText"
+     },
+     "time": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1049,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "13:12"
+       }
+      ],
+      "tags": [],
+      "text": "13:12",
+      "type": "RichText"
+     },
+     "type": "Title"
+    },
+    {
+     "children": [
+      {
+       "children": [
+        {
+         "alignment": null,
+         "paragraph_style": {
+          "bold": false,
+          "font_color": null,
+          "font_name": null,
+          "font_size": null,
+          "highlight": null,
+          "italic": false,
+          "strikethrough": false,
+          "subscript": false,
+          "superscript": false,
+          "underline": false
+         },
+         "runs": [
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": null,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": "This "
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": 2247912,
+            "font_name": null,
+            "font_size": 16.0,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": "is"
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": null,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": " "
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": null,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": true,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": "﷟HYPERLINK \"www.google.com\""
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": null,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": true,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": "hyperlink"
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": null,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": ". "
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": 20.0,
+            "highlight": 65535,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": "This"
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": null,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": " "
+          },
+          {
+           "style": {
+            "bold": true,
+            "font_color": 5287936,
+            "font_name": "Times New Roman",
+            "font_size": 9.0,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": "text"
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": null,
+            "highlight": 16776960,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": " "
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": 192,
+            "font_name": "Arial",
+            "font_size": 14.0,
+            "highlight": 16776960,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": "is "
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": 192,
+            "font_name": "Arial",
+            "font_size": 14.0,
+            "highlight": 16776960,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": true,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": "not"
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": null,
+            "highlight": 16776960,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": " a"
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": null,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": " "
+          },
+          {
+           "style": {
+            "bold": true,
+            "font_color": 6299648,
+            "font_name": null,
+            "font_size": 18.0,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": true
+           },
+           "text": "hyperlink"
+          },
+          {
+           "style": {
+            "bold": false,
+            "font_color": null,
+            "font_name": null,
+            "font_size": null,
+            "highlight": null,
+            "hyperlink_address": null,
+            "is_hyperlink": false,
+            "italic": false,
+            "language": 1033,
+            "strikethrough": false,
+            "subscript": false,
+            "superscript": false,
+            "underline": false
+           },
+           "text": "."
+          }
+         ],
+         "tags": [],
+         "text": "This is ﷟HYPERLINK \"www.google.com\"hyperlink. This text is not a hyperlink.",
+         "type": "RichText"
+        }
+       ],
+       "number_list": null,
+       "type": "OutlineElement"
+      }
+     ],
+     "horizontal_offset": 3.0,
+     "max_width": 13.0,
+     "type": "Outline",
+     "vertical_offset": 2.4000000953674316
+    }
+   ],
+   "creation_time": null,
+   "has_title": true,
+   "last_modified_time": "2015-04-27T13:02:57Z",
+   "level": 1,
+   "type": "Page"
+  }
+ ]
+}

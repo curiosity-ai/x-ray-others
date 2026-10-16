@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XRay.OneNote</RootNamespace>
+    <AssemblyName>XRay.OneNote</AssemblyName>
+    <Description>Pure managed reader for Microsoft OneNote section files (.one) for .NET: parses the MS-ONESTORE revision store and the MS-ONE object model into a document tree (pages, outlines, rich text with formatting runs, images, tables, attached files, note tags, numbered lists, page history) and exports pages to PDF, with no native dependencies. Part of the X-Ray family.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>X-Ray.OneNote</PackageId>
+    <PackageTags>onenote;one;ms-onestore;ms-one;pdf;text-extraction;x-ray</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" Visible="false" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" Visible="false" />
+    <None Include="../../THIRD_PARTY_NOTICES.md" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="XRay.OneNote.Tests" />
+    <InternalsVisibleTo Include="XRay.OneNote.Cli" />
+  </ItemGroup>
+</Project>

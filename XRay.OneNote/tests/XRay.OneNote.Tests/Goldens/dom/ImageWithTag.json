@@ -1,0 +1,189 @@
+{
+ "display_name": "ImageWithTag",
+ "file_format": "OneNote2010",
+ "fixture": "ImageWithTag.one",
+ "history": [
+  {
+   "count": 0,
+   "current_is_page": true,
+   "versions": []
+  }
+ ],
+ "pages": [
+  {
+   "author": "Дмитрий",
+   "children": [
+    {
+     "date": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1049,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "10 апреля 2015 г."
+       }
+      ],
+      "tags": [],
+      "text": "10 апреля 2015 г.",
+      "type": "RichText"
+     },
+     "text": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1033,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "tyty"
+       }
+      ],
+      "tags": [],
+      "text": "tyty",
+      "type": "RichText"
+     },
+     "time": {
+      "alignment": null,
+      "paragraph_style": {
+       "bold": false,
+       "font_color": null,
+       "font_name": null,
+       "font_size": null,
+       "highlight": null,
+       "italic": false,
+       "strikethrough": false,
+       "subscript": false,
+       "superscript": false,
+       "underline": false
+      },
+      "runs": [
+       {
+        "style": {
+         "bold": false,
+         "font_color": null,
+         "font_name": null,
+         "font_size": null,
+         "highlight": null,
+         "hyperlink_address": null,
+         "is_hyperlink": false,
+         "italic": false,
+         "language": 1049,
+         "strikethrough": false,
+         "subscript": false,
+         "superscript": false,
+         "underline": false
+        },
+        "text": "19:01"
+       }
+      ],
+      "tags": [],
+      "text": "19:01",
+      "type": "RichText"
+     },
+     "type": "Title"
+    },
+    {
+     "children": [
+      {
+       "children": [
+        {
+         "alignment": "Left",
+         "alt_text": null,
+         "bytes_len": 2900,
+         "children": [],
+         "file_name": "Безымянный рисунок.png",
+         "height": 0.9166666865348816,
+         "hyperlink_url": null,
+         "original_height": 0.9166666865348816,
+         "original_width": 1.4791666269302368,
+         "sha256": "f77af2b8d667956a2d478871e9d44732473d4740406084e9c5708b8e6f89c722",
+         "tags": [
+          {
+           "completed_time": null,
+           "creation_time": null,
+           "font_color": null,
+           "highlight": null,
+           "icon": 15,
+           "label": "Вопрос",
+           "status": "Open"
+          },
+          {
+           "completed_time": null,
+           "creation_time": null,
+           "font_color": null,
+           "highlight": null,
+           "icon": 3,
+           "label": "Дела",
+           "status": "Open"
+          }
+         ],
+         "type": "Image",
+         "width": 1.4791666269302368
+        }
+       ],
+       "number_list": null,
+       "type": "OutlineElement"
+      }
+     ],
+     "horizontal_offset": 1.0,
+     "max_width": 15.0,
+     "type": "Outline",
+     "vertical_offset": 2.4000000953674316
+    }
+   ],
+   "creation_time": null,
+   "has_title": true,
+   "last_modified_time": "2015-05-27T19:19:28Z",
+   "level": 1,
+   "type": "Page"
+  }
+ ]
+}

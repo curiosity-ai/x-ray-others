@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);CA1707;CA1515;CA1861</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" Version="4.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/XRay.OneNote/XRay.OneNote.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../tools/Shared/*.cs" LinkBase="Shared" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Goldens/**/*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fonts/**/*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

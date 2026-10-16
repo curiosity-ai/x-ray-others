@@ -1,0 +1,78 @@
+{
+ "display_name": "SimpleImageFromSeparateFile",
+ "file_format": "OneNote2010",
+ "fixture": "SimpleImageFromSeparateFile.one",
+ "history": [
+  {
+   "count": 0,
+   "current_is_page": true,
+   "versions": []
+  }
+ ],
+ "pages": [
+  {
+   "author": "Dima",
+   "children": [
+    {
+     "children": [
+      {
+       "children": [
+        {
+         "alignment": "Left",
+         "alt_text": null,
+         "bytes_len": 620888,
+         "children": [],
+         "file_name": "Tulips.jpg",
+         "height": 15.999999046325684,
+         "hyperlink_url": null,
+         "original_height": 15.999999046325684,
+         "original_width": 21.333332061767578,
+         "sha256": "b9352f2565260219db72fc1fc896113a26c85866b69c50d3970c4d9f5cce830a",
+         "tags": [],
+         "type": "Image",
+         "width": 21.333332061767578
+        }
+       ],
+       "number_list": null,
+       "type": "OutlineElement"
+      },
+      {
+       "children": [
+        {
+         "alignment": null,
+         "paragraph_style": {
+          "bold": false,
+          "font_color": null,
+          "font_name": null,
+          "font_size": null,
+          "highlight": null,
+          "italic": false,
+          "strikethrough": false,
+          "subscript": false,
+          "superscript": false,
+          "underline": false
+         },
+         "runs": [],
+         "tags": [],
+         "text": "",
+         "type": "RichText"
+        }
+       ],
+       "number_list": null,
+       "type": "OutlineElement"
+      }
+     ],
+     "horizontal_offset": 1.0,
+     "max_width": 12.125,
+     "type": "Outline",
+     "vertical_offset": 0.8999999761581421
+    }
+   ],
+   "creation_time": null,
+   "has_title": false,
+   "last_modified_time": "2015-08-24T14:34:01Z",
+   "level": 1,
+   "type": "Page"
+  }
+ ]
+}
