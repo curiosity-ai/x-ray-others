@@ -29,10 +29,6 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(IsPackable)' == 'true'">
-    <None Include="$(MSBuildThisFileDirectory)assets/logo.png" Pack="true" PackagePath="/" Visible="false" />
-  </ItemGroup>
-
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true' or '$(TF_BUILD)' == 'true' or '$(CI)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>

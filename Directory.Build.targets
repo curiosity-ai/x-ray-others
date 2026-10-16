@@ -1,0 +1,8 @@
+<Project>
+  <!-- In .targets, not .props: IsPackable is set by the project file, which is evaluated after
+       Directory.Build.props and before this file. A package folder that has its own
+       Directory.Build.targets must import this one. -->
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)assets/logo.png" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+</Project>
