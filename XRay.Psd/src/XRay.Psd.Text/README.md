@@ -1,6 +1,6 @@
 # X-Ray.Psd.Text
 
-Type-layer re-rendering for [X-Ray.Psd](https://www.nuget.org/packages/X-Ray.Psd), the dependency-free PSD/PSB reader and renderer for .NET. It draws Photoshop type layers from their parsed text with HarfBuzz shaping and SkiaSharp glyph rasterization, following Photoshop's layout model for point, box and vertical text, leading, tracking, alignment, the layer transform and Warp Text.
+Type-layer re-rendering for [X-Ray.Psd](https://www.nuget.org/packages/X-Ray.Psd), the dependency-free PSD/PSB reader and renderer for .NET. It draws Photoshop type layers from their parsed text with HarfBuzz shaping and SkiaSharp glyph rasterization, following Photoshop's layout model for point, box, vertical and on-path text, leading, tracking, alignment, the layer transform and Warp Text.
 
 - `TextLayerRasterizer` plugs into `RenderOptions.TextRasterizer`. By default only type layers without stored pixels are drawn; `TextRasterMode.Always` redraws every type layer. Masks, effects, clipping and blend modes apply as usual.
 - `TextLayerRenderer.Render(layer)` draws one layer on its own.

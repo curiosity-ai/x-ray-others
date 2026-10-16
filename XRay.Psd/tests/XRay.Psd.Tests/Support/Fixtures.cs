@@ -72,6 +72,10 @@ internal static class Fixtures
     public static string PsdTools(string relativePath) =>
         Path.Combine(RootDirectory, "psd-tools", relativePath);
 
+    /// <summary>A file from the ag-psd subset (test_documents/psd/ag-psd).</summary>
+    public static string AgPsd(string name) =>
+        Path.Combine(RootDirectory, "ag-psd", name);
+
     /// <summary>
     /// The Photoshop reference capture of a fixture: the .bmp beside it, or the one
     /// capture whose name differs (the Blend If round-trip fixture's render).
