@@ -185,6 +185,7 @@ public sealed partial class XpsRenderer
         var expanded = new List<(double Offset, (double, double, double) Color)>();
         for (int cycle = -cycles; cycle <= cycles; cycle++)
         {
+            Guard.Check();
             IEnumerable<(double Offset, (double R, double G, double B) Color)> seq = stops;
             if (spreadMethod == "reflect" && ((cycle % 2) + 2) % 2 == 1)
                 seq = Enumerable.Reverse(stops).Select(s => (1.0 - s.Offset, s.Color));

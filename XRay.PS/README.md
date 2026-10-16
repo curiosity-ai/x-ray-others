@@ -45,6 +45,37 @@ File.WriteAllBytes("hello.eps", doc.Save());
 File.WriteAllBytes("logo.eps", ImageToEps.ConvertFile("logo.png"));
 ```
 
+### Streams, cancellation, limits and recovery
+
+Every conversion also takes a `CancellationToken` (last parameter) and has overloads that write to
+a stream, so a large PDF never exists as one array:
+
+```csharp
+using var token = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+var options = new PdfSaveOptions
+{
+    JpegQuality = 75,          // re-encode raw 8-bit gray/RGB images as JPEG when that is smaller
+    SuppressErrors = true,     // keep what was drawn, record a warning, go on after the next showpage
+    Limits = new PsInterpreterLimits { MaxOperators = 50_000_000 },
+};
+using var file = File.Create("drawing.pdf");
+PsDocument.FromFile("drawing.ps", token.Token).ToPdf(file, options, token.Token);
+foreach (var warning in options.Warnings)
+    Console.WriteLine($"{warning.Source} {warning.Code}: {warning.Message}");
+
+// XPS: the same, with an optional page limit
+XpsDocument.FromFile("report.xps", token.Token).ToPdf(file, options, maxPages: 50, token.Token);
+
+// One stream per page
+xps.ToImages(new ImageSaveOptions(ImageFormat.Png), page => File.Create($"page{page + 1}.png"), null, token.Token);
+```
+
+PostScript is a programming language, so a hostile file can loop forever or ask for gigabytes.
+The interpreter polls the token, and `PsInterpreterLimits` bound it even without one: executed
+objects (400 million by default), operand stack depth, procedure nesting, source nesting and
+memory. A cancelled call throws `OperationCanceledException` (never turned into a warning); an
+exceeded limit throws `PsResourceLimitError`, which `stopped` does not catch.
+
 Fonts: standard PostScript names resolve to the bundled Liberation Serif and Dingbats fonts or to
 fonts installed on the system. Set `AdditionalFontsFolder` on the save options to add a folder.
 A render model (`BuildRenderModel`) is available for both input kinds.

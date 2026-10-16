@@ -30,25 +30,38 @@ public sealed class XpsDocument
     public static XpsDocument Create(string? title = null) => new(new XpsPackage(), new XpsDocumentBuilder(title), []);
 
     /// <summary>Reads a document from bytes.</summary>
-    public static XpsDocument FromBytes(byte[] data)
+    public static XpsDocument FromBytes(byte[] data) => FromBytes(data, default);
+
+    /// <summary>Reads a document from bytes, observing a cancellation token (checked per package entry and per page).</summary>
+    public static XpsDocument FromBytes(byte[] data, CancellationToken cancellationToken)
     {
-        var package = XpsPackage.FromBytes(data);
+        var package = XpsPackage.FromBytes(data, cancellationToken);
         var builder = new XpsDocumentBuilder();
         var pageParts = new XpsParser(package).FixedPageParts();
         foreach (string part in pageParts)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             builder.Pages.Add(ParseFixedPage(package.Read(part)));
+        }
         return new XpsDocument(package, builder, pageParts.Cast<string?>().ToList());
     }
 
     /// <summary>Reads a document from a file.</summary>
     public static XpsDocument FromFile(string path) => FromBytes(File.ReadAllBytes(path));
 
+    /// <summary>Reads a document from a file, observing a cancellation token.</summary>
+    public static XpsDocument FromFile(string path, CancellationToken cancellationToken) => FromBytes(File.ReadAllBytes(path), cancellationToken);
+
     /// <summary>Reads a document from a stream.</summary>
-    public static XpsDocument FromStream(Stream stream)
+    public static XpsDocument FromStream(Stream stream) => FromStream(stream, default);
+
+    /// <summary>Reads a document from a stream, observing a cancellation token.</summary>
+    public static XpsDocument FromStream(Stream stream, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(stream);
         using var ms = new MemoryStream();
-        stream.CopyTo(ms);
-        return FromBytes(ms.ToArray());
+        stream.CopyToAsync(ms, cancellationToken).GetAwaiter().GetResult();
+        return FromBytes(ms.ToArray(), cancellationToken);
     }
 
     public XpsFixedPage AddPage(double width, double height)
@@ -112,11 +125,37 @@ public sealed class XpsDocument
     /// <summary>Converts to PDF.</summary>
     public byte[] ToPdf(PdfSaveOptions? options = null, int? maxPages = null) => XpsConverter.ToPdf(this, options, maxPages);
 
+    /// <summary>Converts to PDF, observing a cancellation token.</summary>
+    public byte[] ToPdf(PdfSaveOptions? options, int? maxPages, CancellationToken cancellationToken) =>
+        XpsConverter.ToPdf(this, options, maxPages, cancellationToken);
+
+    /// <summary>Converts to PDF and writes it to <paramref name="output"/> without building the
+    /// whole PDF as one array. The stream need not be seekable.</summary>
+    public void ToPdf(Stream output, PdfSaveOptions? options = null, int? maxPages = null, CancellationToken cancellationToken = default) =>
+        XpsConverter.ToPdf(this, output, options, maxPages, cancellationToken);
+
     /// <summary>Converts the first page to an image.</summary>
     public byte[] ToImage(ImageSaveOptions options, int? maxPages = null) => XpsConverter.ToImage(this, options, maxPages);
 
+    /// <summary>Converts the first page to an image, observing a cancellation token.</summary>
+    public byte[] ToImage(ImageSaveOptions options, int? maxPages, CancellationToken cancellationToken) =>
+        XpsConverter.ToImage(this, options, maxPages, cancellationToken);
+
+    /// <summary>Converts the first page to an image and writes it to <paramref name="output"/>.</summary>
+    public void ToImage(ImageSaveOptions options, Stream output, int? maxPages = null, CancellationToken cancellationToken = default) =>
+        XpsConverter.ToImage(this, options, output, maxPages, cancellationToken);
+
     /// <summary>Converts each page to an image.</summary>
     public List<byte[]> ToImages(ImageSaveOptions options, int? maxPages = null) => XpsConverter.ToImages(this, options, maxPages);
+
+    /// <summary>Converts each page to an image, observing a cancellation token.</summary>
+    public List<byte[]> ToImages(ImageSaveOptions options, int? maxPages, CancellationToken cancellationToken) =>
+        XpsConverter.ToImages(this, options, maxPages, cancellationToken);
+
+    /// <summary>Converts each page to an image, taking each page's stream (zero-based index) from
+    /// <paramref name="streamForPage"/>.</summary>
+    public void ToImages(ImageSaveOptions options, Func<int, Stream> streamForPage, int? maxPages = null, CancellationToken cancellationToken = default) =>
+        XpsConverter.ToImages(this, options, streamForPage, maxPages, cancellationToken);
 
     /// <summary>Builds the render model (with the PDF settings when <paramref name="forPdf"/>).</summary>
     public RenderDocument BuildRenderModel(bool forPdf = true, int? maxPages = null) =>

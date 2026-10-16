@@ -23,9 +23,9 @@ public class CorpusSweepTests
             try
             {
                 if (ext == ".xps")
-                    XpsDocument.FromFile(file).ToPdf();
+                    XpsDocument.FromFile(file, TestContext.Current.CancellationToken).ToPdf(null, null, TestContext.Current.CancellationToken);
                 else if (ext is ".ps" or ".eps")
-                    PsDocument.FromFile(file).ToPdf();
+                    PsDocument.FromFile(file, TestContext.Current.CancellationToken).ToPdf(null, TestContext.Current.CancellationToken);
                 else
                     continue;
                 ok++;

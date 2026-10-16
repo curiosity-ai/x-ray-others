@@ -92,6 +92,7 @@ internal static class PngDecoder
             var line = new byte[stride];
             for (int r = 0; r < passHeight; r++)
             {
+                Internal.Guard.Check();
                 if (pos + 1 + stride > raw.Length)
                     throw new InvalidDataException("truncated PNG data");
                 int filter = raw[pos];

@@ -56,7 +56,7 @@ public class DocumentTests
     public void Saving_an_existing_eps_preserves_its_content()
     {
         byte[] data = "%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 10 10\n%%Pages: 1\n%%Page: 1 1\n10 10 moveto\n%%Trailer\n%%EOF\n"u8.ToArray();
-        var doc = PsDocument.FromBytes(data);
+        var doc = PsDocument.FromBytes(data, TestContext.Current.CancellationToken);
         Assert.True(doc.IsEps);
         Assert.NotNull(doc.Dsc);
         string text = Latin1(doc.Save());
@@ -78,8 +78,8 @@ public class DocumentTests
     [Fact]
     public void No_compression_and_document_info()
     {
-        byte[] pdf = PsDocument.FromBytes("%!PS-Adobe-3.0 EPSF-3.0\n%%Title: Sample\n%%Creator: Tool\n"u8.ToArray())
-            .ToPdf(new PdfSaveOptions { NoCompression = true });
+        byte[] pdf = PsDocument.FromBytes("%!PS-Adobe-3.0 EPSF-3.0\n%%Title: Sample\n%%Creator: Tool\n"u8.ToArray(), TestContext.Current.CancellationToken)
+            .ToPdf(new PdfSaveOptions { NoCompression = true }, TestContext.Current.CancellationToken);
         string text = Latin1(pdf);
         Assert.DoesNotContain("/Filter /FlateDecode", text);
         Assert.Contains("/Title (Sample)", text);
@@ -101,7 +101,7 @@ public class DocumentTests
     public void Image_conversion_uses_the_configured_raster_writer()
     {
         var writer = new RecordingWriter();
-        byte[] data = PsDocument.FromBytes("%!PS\n"u8.ToArray()).ToImage(new ImageSaveOptions(ImageFormat.Png) { RasterWriter = writer });
+        byte[] data = PsDocument.FromBytes("%!PS\n"u8.ToArray(), TestContext.Current.CancellationToken).ToImage(new ImageSaveOptions(ImageFormat.Png) { RasterWriter = writer }, TestContext.Current.CancellationToken);
         Assert.Equal("dummy-image"u8.ToArray(), data);
         Assert.NotNull(writer.LastDocument);
     }
@@ -110,14 +110,14 @@ public class DocumentTests
     public void Xmp_can_be_read_replaced_and_removed()
     {
         string path = Corpus.File("ps/xmp/PAGENET-361-1.eps");
-        Assert.Contains("x:xmpmeta", PsDocument.FromFile(path).GetXmp());
+        Assert.Contains("x:xmpmeta", PsDocument.FromFile(path, TestContext.Current.CancellationToken).GetXmp());
 
         const string replacement = "<x:xmpmeta xmlns:x='adobe:ns:meta/'></x:xmpmeta>";
-        var doc = PsDocument.FromFile(path);
+        var doc = PsDocument.FromFile(path, TestContext.Current.CancellationToken);
         doc.SetXmp(replacement);
         Assert.Equal(replacement, Xmp.Extract(doc.Save()));
 
-        doc = PsDocument.FromFile(path);
+        doc = PsDocument.FromFile(path, TestContext.Current.CancellationToken);
         doc.RemoveXmp();
         byte[] saved = doc.Save();
         Assert.Null(Xmp.Extract(saved));
@@ -129,16 +129,16 @@ public class DocumentTests
     [InlineData(true)]
     public void Ps_converts_to_png(bool skia)
     {
-        var doc = PsDocument.FromFile(Corpus.File("ps/integration/minimal.ps"));
-        byte[] data = doc.ToImage(new ImageSaveOptions(ImageFormat.Png, 72) { RasterWriter = skia ? new SkiaRasterWriter() : null });
+        var doc = PsDocument.FromFile(Corpus.File("ps/integration/minimal.ps"), TestContext.Current.CancellationToken);
+        byte[] data = doc.ToImage(new ImageSaveOptions(ImageFormat.Png, 72) { RasterWriter = skia ? new SkiaRasterWriter() : null }, TestContext.Current.CancellationToken);
         Assert.True(data.AsSpan().StartsWith(PngSignature));
     }
 
     [Fact]
     public void Xps_converts_to_bmp()
     {
-        var doc = XpsDocument.FromFile(Corpus.File("xps/integration/Simple.xps"));
-        Assert.True(doc.ToImage(new ImageSaveOptions(ImageFormat.Bmp, 72)).AsSpan().StartsWith("BM"u8));
+        var doc = XpsDocument.FromFile(Corpus.File("xps/integration/Simple.xps"), TestContext.Current.CancellationToken);
+        Assert.True(doc.ToImage(new ImageSaveOptions(ImageFormat.Bmp, 72), null, TestContext.Current.CancellationToken).AsSpan().StartsWith("BM"u8));
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public class DocumentTests
             if (decoder is null)
                 continue;
             var info = decoder(File.ReadAllBytes(path));
-            string text = Latin1(ImageToEps.ConvertFile(path));
+            string text = Latin1(ImageToEps.ConvertFile(path, null, TestContext.Current.CancellationToken));
             Assert.StartsWith("%!PS-Adobe-3.0 EPSF-3.0", text);
             string bbox = text.Split('\n').First(l => l.StartsWith("%%BoundingBox:", StringComparison.Ordinal));
             Assert.Equal($"%%BoundingBox: 0 0 {info.Width} {info.Height}", bbox);

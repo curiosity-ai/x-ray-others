@@ -1175,7 +1175,7 @@ public static class TextOperators
         {
             font = TrueTypeFont.Load(path);
         }
-        catch (Exception)
+        catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
         {
             return null;
         }
@@ -1202,7 +1202,7 @@ public static class TextOperators
         {
             resource = resolver.Resolve(fontName);
         }
-        catch (Exception)
+        catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
         {
             return false;
         }

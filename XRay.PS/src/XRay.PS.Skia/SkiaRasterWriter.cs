@@ -25,20 +25,37 @@ namespace XRay.PS.Skia;
 public sealed class SkiaRasterWriter : IRasterWriter
 {
     /// <inheritdoc />
-    public byte[] Write(RenderDocument document, ImageSaveOptions options)
+    public byte[] Write(RenderDocument document, ImageSaveOptions options) => Write(document, options, default(CancellationToken));
+
+    /// <inheritdoc />
+    public byte[] Write(RenderDocument document, ImageSaveOptions options, CancellationToken cancellationToken)
+    {
+        using var ms = new MemoryStream();
+        Write(document, options, ms, cancellationToken);
+        return ms.ToArray();
+    }
+
+    /// <summary>Renders the first page and writes the encoded image to <paramref name="output"/>.
+    /// Skia's encoder output is written from its native buffer without a managed copy.</summary>
+    public void Write(RenderDocument document, ImageSaveOptions options, Stream output, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(output);
         if (options.Dpi <= 0)
             throw new ArgumentException("dpi must be positive", nameof(options));
-        if (options.Format is not (ImageFormat.Png or ImageFormat.Jpeg))
-            return new RenderModelRasterWriter().Write(document, options);
-        if (HasFragileSkiaImages(document))
-            return new RenderModelRasterWriter().Write(document, options);
+        cancellationToken.ThrowIfCancellationRequested();
+        using var guard = Guard.Begin(cancellationToken, options.MaxRasterBytes);
+        if (options.Format is not (ImageFormat.Png or ImageFormat.Jpeg) || HasFragileSkiaImages(document))
+        {
+            new RenderModelRasterWriter().Write(document, options, output, cancellationToken);
+            return;
+        }
 
         var page = GetPage(document);
         double scale = options.Dpi / 72.0;
         var (widthPx, heightPx) = PagePixelSize(page.Width, page.Height, scale, options.PreserveFractionalPageSize);
+        Guard.Charge((long)widthPx * heightPx * 4, "page raster");
 
         bool png = options.Format == ImageFormat.Png;
         bool opaque = !png || options.OpaqueBackground;
@@ -56,6 +73,7 @@ public sealed class SkiaRasterWriter : IRasterWriter
 
         foreach (var command in page.Commands)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             switch (command)
             {
                 case StateSaveCommand:
@@ -87,11 +105,16 @@ public sealed class SkiaRasterWriter : IRasterWriter
             ? snapshot.Encode(SKEncodedImageFormat.Png, 100)
             : snapshot.Encode(SKEncodedImageFormat.Jpeg, options.JpegQuality ?? 80);
         if (encoded is null)
-            return new RenderModelRasterWriter().Write(document, options);
-        byte[] data = encoded.ToArray();
+        {
+            new RenderModelRasterWriter().Write(document, options, output, cancellationToken);
+            return;
+        }
+        cancellationToken.ThrowIfCancellationRequested();
         if (png)
-            data = RasterEncoders.AddPngDpi(data, options.Dpi);
-        return data;
+            RasterEncoders.AddPngDpi(encoded.AsSpan(), options.Dpi, output);
+        else
+            output.Write(encoded.AsSpan());
+        output.Flush();
     }
 
     /// <summary>The per-call drawing context and caches.</summary>
@@ -1017,6 +1040,7 @@ public sealed class SkiaRasterWriter : IRasterWriter
 
     private static void DrawImage(SKCanvas canvas, ImageCommand command, RenderDocument document, bool flipSampleY = false)
     {
+        Guard.Check();
         if (!document.Resources.Images.TryGetValue(command.ImageId, out var resource))
         {
             DrawImagePlaceholder(canvas, command);

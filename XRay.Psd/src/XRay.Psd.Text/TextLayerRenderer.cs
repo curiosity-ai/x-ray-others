@@ -66,14 +66,25 @@ public sealed class TextLayerRenderer : IDisposable
         return layer.Text is { } text ? Render(text, layer.Document.Bounds) : null;
     }
 
+    /// <summary>Renders a type layer (see <see cref="Render(PsdLayer)"/>), observing a cancellation token per paragraph, line and glyph.</summary>
+    public TextLayerRaster? Render(PsdLayer layer, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(layer);
+        return layer.Text is { } text ? Render(text, layer.Document.Bounds, cancellationToken) : null;
+    }
+
     /// <summary>
     /// Renders text in document pixels, optionally clipped to <paramref name="clip"/>. Type on a
     /// path (<see cref="TextShapeKind.Path"/>) follows <see cref="TextLayerInfo.Path"/>; unknown
     /// shapes (<see cref="TextShapeKind.Other"/>) and vertical type on a path return null.
     /// </summary>
-    public TextLayerRaster? Render(TextLayerInfo text, PsdRect? clip = null)
+    public TextLayerRaster? Render(TextLayerInfo text, PsdRect? clip = null) => Render(text, clip, default);
+
+    /// <summary>Renders text (see <see cref="Render(TextLayerInfo, PsdRect?)"/>), observing a cancellation token per paragraph, line and glyph.</summary>
+    public TextLayerRaster? Render(TextLayerInfo text, PsdRect? clip, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(text);
+        cancellationToken.ThrowIfCancellationRequested();
         if (text.ShapeKind == TextShapeKind.Other || (text.ShapeKind == TextShapeKind.Path && text.Path is null))
         {
             return null;
@@ -81,8 +92,8 @@ public sealed class TextLayerRenderer : IDisposable
 
         lock (_gate)
         {
-            var layout = Layout(text);
-            return Rasterize(text, layout, clip);
+            var layout = Layout(text, cancellationToken);
+            return Rasterize(text, layout, clip, cancellationToken);
         }
     }
 
@@ -128,9 +139,9 @@ public sealed class TextLayerRenderer : IDisposable
         }
     }
 
-    internal LaidOutText Layout(TextLayerInfo text)
+    internal LaidOutText Layout(TextLayerInfo text, CancellationToken cancellationToken = default)
     {
-        var engine = new TextLayoutEngine(FaceForRun, FallbackForCodePoint);
+        var engine = new TextLayoutEngine(FaceForRun, FallbackForCodePoint) { CancellationToken = cancellationToken };
         return engine.Layout(text);
     }
 
@@ -216,7 +227,7 @@ public sealed class TextLayerRenderer : IDisposable
 
     // ---- Rasterization ----
 
-    private TextLayerRaster? Rasterize(TextLayerInfo text, LaidOutText layout, PsdRect? clip)
+    private TextLayerRaster? Rasterize(TextLayerInfo text, LaidOutText layout, PsdRect? clip, CancellationToken cancellationToken)
     {
         if (layout.Glyphs.Count == 0 && layout.Bars.Count == 0)
         {
@@ -242,8 +253,14 @@ public sealed class TextLayerRenderer : IDisposable
         var paths = new List<(SKPath Path, int Style, bool Stroke)>();
         try
         {
+            var glyphCount = 0;
             foreach (var glyph in layout.Glyphs)
             {
+                if ((++glyphCount & 0x3F) == 0)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+
                 if (glyph.Glyph == 0 || glyph.Face.GlyphPath(glyph.Glyph) is not { } outline)
                 {
                     continue;
@@ -304,7 +321,8 @@ public sealed class TextLayerRenderer : IDisposable
                 return null;
             }
 
-            return Draw(text, layout, paths, transform, rect);
+            cancellationToken.ThrowIfCancellationRequested();
+            return Draw(text, layout, paths, transform, rect, cancellationToken);
         }
         finally
         {
@@ -315,7 +333,8 @@ public sealed class TextLayerRenderer : IDisposable
         }
     }
 
-    private static TextLayerRaster? Draw(TextLayerInfo text, LaidOutText layout, List<(SKPath Path, int Style, bool Stroke)> paths, Affine transform, PsdRect rect)
+    private static TextLayerRaster? Draw(TextLayerInfo text, LaidOutText layout, List<(SKPath Path, int Style, bool Stroke)> paths, Affine transform, PsdRect rect,
+        CancellationToken cancellationToken)
     {
         var info = new SKImageInfo(rect.Width, rect.Height, SKColorType.Rgba8888, SKAlphaType.Premul);
         using var bitmap = new SKBitmap(info);
@@ -324,8 +343,14 @@ public sealed class TextLayerRenderer : IDisposable
         {
             canvas.Translate(-rect.Left, -rect.Top);
             using var paint = new SKPaint { IsAntialias = text.AntiAlias != TextAntiAlias.None, BlendMode = SKBlendMode.SrcOver };
+            var drawn = 0;
             foreach (var (path, styleIndex, stroke) in paths)
             {
+                if ((++drawn & 0x3F) == 0)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+
                 var style = layout.Styles[styleIndex];
                 var color = stroke ? style.Stroke!.Value : style.Fill;
                 paint.Color = new SKColor(color.R, color.G, color.B, color.A);
@@ -567,11 +592,14 @@ public sealed class TextLayerRasterizer : ITextLayerRasterizer, IDisposable
 
     public TextLayerRenderer Renderer => _renderer;
 
-    public TextLayerRaster? Rasterize(PsdLayer layer)
+    public TextLayerRaster? Rasterize(PsdLayer layer) => Rasterize(layer, default);
+
+    /// <summary>Rasterizes a type layer, observing the render's cancellation token (cancellation is never turned into "keep the stored pixels").</summary>
+    public TextLayerRaster? Rasterize(PsdLayer layer, CancellationToken cancellationToken)
     {
         try
         {
-            return _renderer.Render(layer);
+            return _renderer.Render(layer, cancellationToken);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or IndexOutOfRangeException or OverflowException or ArithmeticException)
         {

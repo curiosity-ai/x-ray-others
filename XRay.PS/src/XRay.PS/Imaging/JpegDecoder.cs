@@ -471,6 +471,8 @@ internal static class JpegDecoder
                 int todo = restart > 0 ? Math.Min(restart, mcuCount - mcu) : mcuCount;
                 for (int n = 0; n < todo; n++, mcu++)
                 {
+                    if ((mcu & 0xFF) == 0)
+                        Internal.Guard.Check();
                     if (single)
                     {
                         var c = comps[0];
@@ -665,6 +667,7 @@ internal static class JpegDecoder
                 var workspace = new int[64];
                 for (int row = 0; row < c.BufferBlocksPerColumn; row++)
                 {
+                    Internal.Guard.Check();
                     for (int col = 0; col < c.BufferBlocksPerLine; col++)
                         IdctIslow(c.Coefficients, (row * c.BufferBlocksPerLine + col) * 64, q, workspace, c.Samples, row * 8 * c.SampleStride + col * 8, c.SampleStride);
                 }

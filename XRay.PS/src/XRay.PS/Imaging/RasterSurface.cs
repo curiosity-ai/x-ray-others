@@ -27,6 +27,7 @@ public sealed class RasterSurface
     /// <summary>Creates a surface filled with <paramref name="background"/>.</summary>
     public static RasterSurface Create(int width, int height, (byte R, byte G, byte B, byte A) background)
     {
+        Internal.Guard.Charge((long)width * height * 4, "page raster");
         var pixels = new byte[checked((long)width * height * 4)];
         if (background != (0, 0, 0, 0))
         {

@@ -83,6 +83,7 @@ internal static class JpegEncoder
         var block = new int[64];
         for (int by = 0; by < paddedHeight; by += 8)
         {
+            Internal.Guard.Check();
             for (int bx = 0; bx < paddedWidth; bx += 8)
             {
                 FillBlock(block, yPlane, width, height, bx, by);

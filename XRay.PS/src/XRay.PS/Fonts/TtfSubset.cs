@@ -127,7 +127,7 @@ public static class TtfSubset
         {
             return ReadTableDirectory(data).Any(r => r.Tag == tag);
         }
-        catch (Exception)
+        catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
         {
             return false;
         }
@@ -258,6 +258,7 @@ public static class TtfSubset
         int maxGid = offsets.Count - 1;
         while (queue.Count > 0)
         {
+            Internal.Guard.Check();
             int gid = queue[^1];
             queue.RemoveAt(queue.Count - 1);
             if (gid < 0 || gid >= maxGid)
@@ -317,6 +318,7 @@ public static class TtfSubset
         int maxGid = offsets.Count - 1;
         foreach (int gid in glyphIds)
         {
+            Internal.Guard.Check();
             if (gid < 0 || gid >= maxGid)
             {
                 newOffsets.Add(newData.Length);

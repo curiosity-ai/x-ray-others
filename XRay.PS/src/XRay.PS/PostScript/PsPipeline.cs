@@ -22,9 +22,24 @@ public sealed class PsPipeline(PsInterpreter interpreter, OperatorRegistry opera
     public OperatorRegistry Operators => operators;
 
     /// <summary>Parses PS/EPS bytes and returns the render document.</summary>
-    public RenderDocument BuildRenderModel(byte[] data)
+    public RenderDocument BuildRenderModel(byte[] data) => BuildRenderModel(data, null, false, null, default);
+
+    /// <summary>Parses PS/EPS bytes and returns the render document, under resource limits.</summary>
+    /// <param name="data">The job.</param>
+    /// <param name="limits">Ceilings on work and memory; the defaults when null.</param>
+    /// <param name="suppressErrors">On an error, abandon the current page, keep what was drawn
+    /// and continue after the next <c>showpage</c>, instead of throwing.</param>
+    /// <param name="warnings">Receives a warning for every suppressed error.</param>
+    /// <param name="cancellationToken">Polled by the interpreter loop.</param>
+    public RenderDocument BuildRenderModel(byte[] data, PsInterpreterLimits? limits, bool suppressErrors,
+        List<ConversionWarning>? warnings, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var ctx = CreateDefaultContext(fontResolver, imageStore);
+        ctx.Limits = limits ?? PsInterpreterLimits.Default;
+        ctx.SuppressErrors = suppressErrors;
+        ctx.Warnings = warnings;
+        ctx.CancellationToken = cancellationToken;
         RegisterEmbeddedType1Resources(data, ctx.FontResolver);
         byte[] processed = PreprocessType1Resources(data);
         var dsc = DscMetadata.Parse(data);

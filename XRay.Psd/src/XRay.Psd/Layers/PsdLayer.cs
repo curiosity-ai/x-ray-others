@@ -24,7 +24,7 @@ public sealed record LayerChannel(short Id, ReadOnlyMemory<byte> Data)
 
 /// <summary>
 /// A layer record from the layer and mask section, linked into the group tree.
-/// Pixel data stays compressed until <see cref="GetPixels"/> or rendering asks for it.
+/// Pixel data stays compressed until <see cref="GetPixels()"/> or rendering asks for it.
 /// </summary>
 public sealed class PsdLayer
 {
@@ -274,6 +274,7 @@ public sealed class PsdLayer
     /// </summary>
     internal PlanarImage? DecodePixels(int top, int bottom, IO.ChannelReaders? readers)
     {
+        Cancellation.Check();
         var bounds = Bounds;
         if (!HasStoredPixels)
         {
@@ -324,11 +325,27 @@ public sealed class PsdLayer
         return planar?.ToRgba(Bounds);
     }
 
+    /// <summary>Returns the layer's stored pixels (see <see cref="GetPixels()"/>), observing a cancellation token while the channels decode.</summary>
+    public RgbaImage? GetPixels(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        using var scope = Cancellation.Use(cancellationToken);
+        return GetPixels();
+    }
+
     /// <summary>
     /// Renders this layer alone (with its masks, opacity and blend mode, inside its
     /// ancestor groups) to a document-size image. Groups render their visible children.
     /// </summary>
     public RgbaImage Render() => Rendering.PsdRenderer.RenderLayer(this);
+
+    /// <summary>Renders this layer alone (see <see cref="Render()"/>), observing a cancellation token.</summary>
+    public RgbaImage Render(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        using var scope = Cancellation.Use(cancellationToken);
+        return Rendering.PsdRenderer.RenderLayer(this);
+    }
 
     public override string ToString() => $"{Kind} '{Name}' {Bounds} {BlendMode} op={Opacity}";
 }

@@ -99,6 +99,7 @@ internal static class Zlib
         private uint _bitBuf;
         private int _bitCount;
         private List<byte> _out;
+        private int _polls;
 
         public Inflater(ReadOnlySpan<byte> input)
         {
@@ -182,6 +183,7 @@ internal static class Zlib
             if ((len ^ 0xFFFF) != nlen)
                 throw Error("Error -3 while decompressing data: invalid stored block lengths");
             int available = Math.Min(len, _input.Length - _pos);
+            Guard.Check();
             for (int i = 0; i < available; i++)
                 _out.Add(_input[_pos + i]);
             _pos += available;
@@ -284,6 +286,11 @@ internal static class Zlib
         {
             while (true)
             {
+                if ((++_polls & 0xFFFF) == 0)
+                {
+                    Guard.Check();
+                    Guard.Charge(_out.Count, "inflated data");
+                }
                 int sym = Decode(lit);
                 if (sym < 256)
                 {

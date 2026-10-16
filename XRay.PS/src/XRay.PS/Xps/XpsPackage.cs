@@ -16,9 +16,14 @@ public sealed partial class XpsPackage
     public Dictionary<string, byte[]> Parts { get; }
 
     /// <summary>Reads a package from zip bytes, joining interleaved <c>[n].piece</c> parts.</summary>
-    public static XpsPackage FromBytes(byte[] data)
+    public static XpsPackage FromBytes(byte[] data) => FromBytes(data, default);
+
+    /// <summary>Reads a package from zip bytes, observing a cancellation token (checked per entry and per chunk of an entry).</summary>
+    public static XpsPackage FromBytes(byte[] data, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(data);
+        cancellationToken.ThrowIfCancellationRequested();
+        using var guard = Internal.Guard.Begin(cancellationToken);
         var parts = new Dictionary<string, byte[]>(StringComparer.Ordinal);
         var pieceParts = new Dictionary<string, Dictionary<int, byte[]>>(StringComparer.Ordinal);
         var pieceLastIndex = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -27,6 +32,7 @@ public sealed partial class XpsPackage
             using var archive = new ZipArchive(new MemoryStream(data, writable: false), ZipArchiveMode.Read);
             foreach (var entry in archive.Entries)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 string name = entry.FullName;
                 byte[] bytes = ReadEntry(entry);
                 var piece = ParsePieceName(name);
@@ -73,6 +79,7 @@ public sealed partial class XpsPackage
         int read;
         while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
         {
+            Internal.Guard.Check();
             total += read;
             if (total > limit)
                 throw new XpsFormatException("package part too large");
@@ -83,6 +90,9 @@ public sealed partial class XpsPackage
 
     /// <summary>Reads a package from a file.</summary>
     public static XpsPackage FromFile(string path) => FromBytes(File.ReadAllBytes(path));
+
+    /// <summary>Reads a package from a file, observing a cancellation token.</summary>
+    public static XpsPackage FromFile(string path, CancellationToken cancellationToken) => FromBytes(File.ReadAllBytes(path), cancellationToken);
 
     /// <summary>Reads a part by name.</summary>
     public byte[] Read(string partName)

@@ -37,6 +37,7 @@ internal sealed class ZipRowReader : IDisposable
             _scratch ??= new byte[1 << 16];
             while (_position < offset)
             {
+                Cancellation.Check();
                 var read = _zlib!.Read(_scratch.AsSpan(0, (int)Math.Min(_scratch.Length, offset - _position)));
                 if (read == 0)
                 {
@@ -50,6 +51,7 @@ internal sealed class ZipRowReader : IDisposable
             var total = 0;
             while (total < destination.Length)
             {
+                Cancellation.Check();
                 var read = _zlib!.Read(destination[total..]);
                 if (read == 0)
                 {

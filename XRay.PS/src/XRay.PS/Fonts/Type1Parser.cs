@@ -39,7 +39,7 @@ public static class Type1Parser
                 byte[] decrypted = DecryptEexec(programBytes);
                 glyphWidths = ParseWidthsFromPrivateDict(decrypted);
             }
-            catch (Exception)
+            catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
             {
                 glyphWidths = new Dictionary<string, double>();
             }
@@ -103,6 +103,7 @@ public static class Type1Parser
         int dataLen = program.Length;
         while (cursor < dataLen)
         {
+            Internal.Guard.Check();
             int nameStart = Array.IndexOf(program, (byte)'/', cursor);
             if (nameStart < 0)
                 break;
@@ -165,8 +166,10 @@ public static class Type1Parser
         var stack = new List<long>();
         int idx = start;
         int size = decrypted.Length;
+        int polls = 0;
         while (idx < size)
         {
+            Internal.Guard.Every(ref polls, 0xFFF);
             int b0 = decrypted[idx++];
             if (b0 is >= 32 and <= 246)
             {
@@ -497,7 +500,7 @@ public static class FontTypes
                     codeMap = fallback.Value.CodeMap;
             }
         }
-        catch (Exception)
+        catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
         {
             var fallback = CodeWidthsFromType42Dict(fontDict, data);
             if (fallback is not null)

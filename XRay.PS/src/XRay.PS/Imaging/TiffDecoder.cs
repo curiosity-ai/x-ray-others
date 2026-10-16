@@ -136,6 +136,7 @@ internal static class TiffDecoder
         int maxValue = (1 << bits) - 1;
         for (int y = 0; y < height; y++)
         {
+            Internal.Guard.Check();
             for (int x = 0; x < width; x++)
             {
                 for (int c = 0; c < spp; c++)
@@ -241,6 +242,7 @@ internal static class TiffDecoder
             return;
         for (int row = 0; row + rowBytes <= data.Length; row += rowBytes)
         {
+            Internal.Guard.Check();
             for (int i = samplesPerPixel; i < rowBytes; i++)
                 data[row + i] = (byte)(data[row + i] + data[row + i - samplesPerPixel]);
         }

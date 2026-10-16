@@ -576,6 +576,11 @@ public sealed class PsTokenizer
 public sealed class PsParser(PsTokenizer tokenizer)
 {
     private readonly Stack<PsToken> _buffer = new();
+    private int _depth;
+    private int _polls;
+
+    /// <summary>The deepest <c>{ }</c> nesting accepted.</summary>
+    public int MaxNesting { get; set; } = 10_000;
 
     /// <summary>A sentinel distinct from every PostScript value, returned at the end of input.</summary>
     public static readonly object EndOfInput = new();
@@ -626,6 +631,20 @@ public sealed class PsParser(PsTokenizer tokenizer)
 
     private PsProcedure ParseProcedure()
     {
+        if (++_depth > MaxNesting)
+            throw new PsResourceLimitError($"procedure nesting deeper than {MaxNesting}");
+        try
+        {
+            return ParseProcedureBody();
+        }
+        finally
+        {
+            _depth--;
+        }
+    }
+
+    private PsProcedure ParseProcedureBody()
+    {
         var items = new List<object?>();
         while (true)
         {
@@ -647,6 +666,7 @@ public sealed class PsParser(PsTokenizer tokenizer)
     {
         while (true)
         {
+            Guard.Every(ref _polls, 0xFF);
             var token = _buffer.Count > 0 ? _buffer.Pop() : tokenizer.NextToken();
             if (token is null)
                 return null;

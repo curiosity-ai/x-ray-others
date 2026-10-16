@@ -52,6 +52,7 @@ public sealed class RasterRenderer
         double ss = scale * supersample;
         foreach (var command in page.Commands)
         {
+            Guard.Check();
             switch (command)
             {
                 case StateSaveCommand:
@@ -152,7 +153,7 @@ public sealed class RasterRenderer
                 {
                     metricsFont = _fontResolver.Resolve(command.FontRef);
                 }
-                catch (Exception)
+                catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
                 {
                     metricsFont = null;
                 }
@@ -167,7 +168,7 @@ public sealed class RasterRenderer
             {
                 fallbackFont = _fontResolver.Resolve(command.FontRef);
             }
-            catch (Exception)
+            catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
             {
                 fallbackFont = null;
             }
@@ -229,7 +230,7 @@ public sealed class RasterRenderer
         {
             resource = _fontResolver.Resolve(fontRef);
         }
-        catch (Exception)
+        catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
         {
             resource = null;
         }
@@ -246,7 +247,7 @@ public sealed class RasterRenderer
             {
                 font = new TrueTypeFont(embeddedData);
             }
-            catch (Exception)
+            catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
             {
                 font = null;
             }
@@ -268,7 +269,7 @@ public sealed class RasterRenderer
             _fontCache[pathKey] = font;
             return font;
         }
-        catch (Exception)
+        catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
         {
             return null;
         }
@@ -934,6 +935,7 @@ public sealed class RasterRenderer
         int index = 0;
         while (phase > normalized[index])
         {
+            Guard.Check();
             phase -= normalized[index];
             index = (index + 1) % normalized.Count;
         }
@@ -970,6 +972,7 @@ public sealed class RasterRenderer
             double traveled = 0.0;
             while (remainingLen > 1e-6)
             {
+                Guard.Check();
                 double step = Math.Min(remainingLen, remaining);
                 double t0 = traveled / totalLen;
                 double t1 = (traveled + step) / totalLen;
@@ -997,6 +1000,7 @@ public sealed class RasterRenderer
         int xEnd = Math.Min(cx + radius, surface.Width);
         for (int y = yStart; y <= yEnd; y++)
         {
+            Guard.Check();
             for (int x = xStart; x <= xEnd; x++)
                 surface.SetPixel(x, y, color);
         }
@@ -1042,6 +1046,7 @@ public sealed class RasterRenderer
                 int yEnd = (int)Math.Min(surface.Height - 1, yEndD);
                 for (int y = yStart; y <= yEnd; y++)
                 {
+                    Guard.Check();
                     double scanY = y + 0.5;
                     if (scanY < y1 || scanY >= y2)
                         continue;
@@ -1102,7 +1107,10 @@ public sealed class RasterRenderer
         yStart = Math.Max(yStart, -1);
         yEnd = Math.Min(yEnd, surface.Height);
         for (int y = yStart; y <= yEnd; y++)
+        {
+            Guard.Check();
             FillSpan(surface, y, xStart, xEnd, color);
+        }
     }
 
     private static void FillPolygonPixels(RasterSurface surface, List<(double X, double Y)> points, Rgba color)
@@ -1148,6 +1156,7 @@ public sealed class RasterRenderer
         var intersections = new List<(double X, int Direction)>();
         for (int y = minY; y <= maxY; y++)
         {
+            Guard.Check();
             double scanY = y + 0.5;
             intersections.Clear();
             foreach (var (x1, y1, x2, y2) in edges)
@@ -1200,6 +1209,7 @@ public sealed class RasterRenderer
         double? minWidth = null;
         foreach (var command in page.Commands)
         {
+            Guard.Check();
             if (command is not PathCommand path)
                 continue;
             if (path.Stroke is not null)
@@ -1350,6 +1360,7 @@ public sealed class RasterRenderer
             commands = pattern.Commands.Select(c => TranslateCommand(c, -xMin, -yMin)).ToList();
         foreach (var command in commands)
         {
+            Guard.Check();
             if (command is PathCommand path)
                 DrawPatternPath(surface, path, scale, baseColor);
             else if (command is TextCommand text)
@@ -1465,6 +1476,7 @@ public sealed class RasterRenderer
         var src = surface.Pixels;
         for (int y = 0; y < newHeight; y++)
         {
+            Guard.Check();
             for (int x = 0; x < newWidth; x++)
             {
                 int sumR = 0, sumG = 0, sumB = 0;

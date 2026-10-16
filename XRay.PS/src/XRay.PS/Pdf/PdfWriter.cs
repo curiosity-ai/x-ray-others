@@ -44,16 +44,21 @@ public sealed class PdfWriter
     private readonly bool _noCompression;
     private readonly Func<string, RenderImageResource?>? _imageProvider;
     private readonly Func<string, ISet<int>, PdfEmbeddedFont?>? _fontProvider;
+    private readonly int? _jpegQuality;
 
     /// <summary>Creates a writer.</summary>
     /// <param name="metadata">Document information.</param>
     /// <param name="noCompression">Write streams uncompressed.</param>
     /// <param name="imageProvider">Supplies the payload of each image id the document uses.</param>
     /// <param name="fontProvider">Supplies an embedded font for a font reference and the codes it uses.</param>
+    /// <param name="jpegQuality">When set (1-100), raw 8-bit gray and RGB images are re-encoded as
+    /// JPEG at this quality if that is smaller than the deflated pixels; null passes images through.</param>
     public PdfWriter(PdfMetadata metadata, bool noCompression = false,
         Func<string, RenderImageResource?>? imageProvider = null,
-        Func<string, ISet<int>, PdfEmbeddedFont?>? fontProvider = null)
+        Func<string, ISet<int>, PdfEmbeddedFont?>? fontProvider = null,
+        int? jpegQuality = null)
     {
+        _jpegQuality = jpegQuality is { } q ? Math.Clamp(q, 1, 100) : null;
         _metadata = metadata;
         _noCompression = noCompression;
         _imageProvider = imageProvider;
@@ -79,6 +84,20 @@ public sealed class PdfWriter
     /// <summary>Serializes a render document to PDF 1.4 bytes.</summary>
     public byte[] Write(RenderDocument document)
     {
+        using var ms = new MemoryStream();
+        Write(document, ms);
+        return ms.ToArray();
+    }
+
+    /// <summary>Serializes a render document to a stream. Objects are built, written and
+    /// released one at a time (in object-number order, so the bytes equal those of
+    /// <see cref="Write(RenderDocument)"/>); only the byte offsets for the cross-reference table
+    /// stay in memory. The stream need not be seekable.</summary>
+    public void Write(RenderDocument document, Stream output, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(output);
+        using var guard = Guard.Begin(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         var res = CollectResources(document);
         var colorSpaces = document.Resources.ColorSpaces;
         var patterns = document.Resources.Patterns;
@@ -91,72 +110,80 @@ public sealed class PdfWriter
         var ids = new ObjectIds(fontOrder, res.ImageResources, imageOrder, colorSpaces, pdfPatterns, functions, document.Pages.Count, res.EmbeddedFonts);
         var lookup = new Lookup(ids, functions, colorSpaces);
 
-        var objects = new List<(int Id, byte[] Data)>();
-        void Add(int id, byte[] body) => objects.Add((id, SerializeObject(id, body)));
+        // Each object is a thunk, so its bytes exist only while it is being written.
+        var objects = new List<(int Id, Func<byte[]> Make)>();
+        void Add(int id, Func<byte[]> body) => objects.Add((id, body));
 
         foreach (string fontKey in fontOrder)
         {
             if (res.EmbeddedFonts.TryGetValue(fontKey, out var embedded))
-                Add(ids.Fonts[fontKey], FontObjectEmbedded(embedded, ids.FontDescriptors[fontKey], ids.ToUnicode[fontKey], ids.CidFonts.TryGetValue(fontKey, out int cid) ? cid : null));
+                Add(ids.Fonts[fontKey], () => FontObjectEmbedded(embedded, ids.FontDescriptors[fontKey], ids.ToUnicode[fontKey], ids.CidFonts.TryGetValue(fontKey, out int cid) ? cid : null));
             else
-                Add(ids.Fonts[fontKey], FontObject(res.FontBase[fontKey]));
+                Add(ids.Fonts[fontKey], () => FontObject(res.FontBase[fontKey]));
         }
         foreach (string fontKey in ids.EmbeddedFonts)
-            Add(ids.FontDescriptors[fontKey], FontDescriptorObject(res.EmbeddedFonts[fontKey], ids.FontFiles[fontKey]));
+            Add(ids.FontDescriptors[fontKey], () => FontDescriptorObject(res.EmbeddedFonts[fontKey], ids.FontFiles[fontKey]));
         foreach (string fontKey in ids.EmbeddedFonts)
-            Add(ids.FontFiles[fontKey], FontFileObject(res.EmbeddedFonts[fontKey], _noCompression));
+            Add(ids.FontFiles[fontKey], () => FontFileObject(res.EmbeddedFonts[fontKey], _noCompression));
         foreach (string fontKey in ids.EmbeddedFonts)
-            Add(ids.ToUnicode[fontKey], ToUnicodeObject(res.EmbeddedFonts[fontKey], _noCompression));
+            Add(ids.ToUnicode[fontKey], () => ToUnicodeObject(res.EmbeddedFonts[fontKey], _noCompression));
         foreach (string fontKey in ids.EmbeddedFonts)
         {
             if (!ids.CidFonts.TryGetValue(fontKey, out int cidFontId) || !ids.CidToGidMaps.TryGetValue(fontKey, out int cidMapId))
                 continue;
             var embedded = res.EmbeddedFonts[fontKey];
-            Add(cidMapId, CidToGidMapObject(embedded, _noCompression));
-            Add(cidFontId, CidFontObject(embedded, ids.FontDescriptors[fontKey], cidMapId));
+            Add(cidMapId, () => CidToGidMapObject(embedded, _noCompression));
+            Add(cidFontId, () => CidFontObject(embedded, ids.FontDescriptors[fontKey], cidMapId));
         }
         foreach (string imageId in imageOrder)
         {
             var image = res.ImageResources[imageId];
             bool hasSoftMask = ids.ImageSoftMasks.TryGetValue(imageId, out int softMaskId);
-            if (hasSoftMask && image.SoftMask is not null)
-                Add(softMaskId, SoftMaskImageObject(image.Width, image.Height, image.SoftMask, _noCompression));
-            Add(ids.Images[imageId], ImageObject(image, _noCompression, hasSoftMask ? $"{softMaskId} 0 R" : null));
+            if (hasSoftMask && image.SoftMask is { } softMask)
+                Add(softMaskId, () => SoftMaskImageObject(image.Width, image.Height, softMask, _noCompression));
+            Add(ids.Images[imageId], () => ImageObject(image, _noCompression, hasSoftMask ? $"{softMaskId} 0 R" : null, _jpegQuality));
         }
         foreach (var (funcId, function) in functions)
-            Add(ids.Functions[funcId], FunctionObject(function, lookup));
+            Add(ids.Functions[funcId], () => FunctionObject(function, lookup));
         foreach (var (csId, colorSpace) in colorSpaces)
         {
             if (ids.IccProfiles.TryGetValue(csId, out int iccId))
-                Add(iccId, IccProfileObject(colorSpace));
-            Add(ids.ColorSpaces[csId], Ascii(SerializeColorSpace(colorSpace, lookup)));
+                Add(iccId, () => IccProfileObject(colorSpace));
+            Add(ids.ColorSpaces[csId], () => Ascii(SerializeColorSpace(colorSpace, lookup)));
         }
         foreach (var (patternId, pattern) in pdfPatterns)
-            Add(ids.Patterns[patternId], PatternObject(pattern, lookup, res));
+            Add(ids.Patterns[patternId], () => PatternObject(pattern, lookup, res));
 
         var colorSpaceDefs = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var (csId, colorSpace) in colorSpaces)
             colorSpaceDefs[csId] = SerializeColorSpace(colorSpace, lookup);
-        var pageExtGStates = new List<Dictionary<string, ExtGStateSpec>>();
-        for (int pageIndex = 0; pageIndex < document.Pages.Count; pageIndex++)
+        int pageCount = document.Pages.Count;
+        var pageExtGStates = new Dictionary<string, ExtGStateSpec>?[pageCount];
+        Dictionary<string, ExtGStateSpec> ExtGStatesOf(int index) =>
+            pageExtGStates[index] ??= CollectCommandExtGStates(document.Pages[index].Commands);
+        for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
         {
-            var page = document.Pages[pageIndex];
-            var extgstates = CollectCommandExtGStates(page.Commands);
-            pageExtGStates.Add(extgstates);
-            byte[] content = RenderPage(page, res, colorSpaceDefs, patternVariants, patternSpaceIds, extgstates);
-            Add(ids.Contents[pageIndex], ContentObject(content, _noCompression));
+            int index = pageIndex;
+            Add(ids.Contents[index], () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var extgstates = ExtGStatesOf(index);
+                byte[] content = RenderPage(document.Pages[index], res, colorSpaceDefs, patternVariants, patternSpaceIds, extgstates);
+                return ContentObject(content, _noCompression);
+            });
         }
-        for (int pageIndex = 0; pageIndex < document.Pages.Count; pageIndex++)
+        for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
         {
-            Add(ids.Pages[pageIndex], PageObject(document.Pages[pageIndex], ids.PagesTree, ids.Contents[pageIndex], res.FontResources,
-                res.ImageMap, ids.Fonts, ids.Images, ids.ColorSpaces, ids.Patterns, pageExtGStates[pageIndex]));
+            int index = pageIndex;
+            Add(ids.Pages[index], () => PageObject(document.Pages[index], ids.PagesTree, ids.Contents[index], res.FontResources,
+                res.ImageMap, ids.Fonts, ids.Images, ids.ColorSpaces, ids.Patterns, ExtGStatesOf(index)));
         }
-        Add(ids.PagesTree, PagesTreeObject(ids.Pages));
-        Add(ids.Catalog, CatalogObject(ids.PagesTree));
-        Add(ids.Info, InfoObject(_metadata));
+        Add(ids.PagesTree, () => PagesTreeObject(ids.Pages));
+        Add(ids.Catalog, () => CatalogObject(ids.PagesTree));
+        Add(ids.Info, () => InfoObject(_metadata));
 
         objects.Sort((a, b) => a.Id.CompareTo(b.Id));
-        return SerializePdf(objects.Select(o => o.Data).ToList(), ids.Catalog, ids.Info);
+        WritePdf(output, objects, ids.Catalog, ids.Info, cancellationToken);
     }
 
     private Resources CollectResources(RenderDocument document)
@@ -195,10 +222,14 @@ public sealed class PdfWriter
                 EnsureImage(image.ImageId);
         }
 
+        int polls = 0;
         foreach (var page in document.Pages)
         {
             foreach (var command in page.Commands)
+            {
+                Guard.Every(ref polls, 0x3FFF);
                 Visit(command);
+            }
         }
         foreach (var pattern in document.Resources.Patterns.Values)
         {
@@ -210,6 +241,7 @@ public sealed class PdfWriter
 
         foreach (var (fontRef, codes) in usedCodes)
         {
+            Guard.Check();
             PdfEmbeddedFont? embedded = _fontProvider?.Invoke(fontRef, codes);
             string fontKey;
             if (embedded is not null)
@@ -240,8 +272,10 @@ public sealed class PdfWriter
         var byValues = new Dictionary<ExtGStateSpec, string>();
         foreach (var (name, value) in extgstates)
             byValues[value] = name;
+        int polls = 0;
         foreach (var command in page.Commands)
         {
+            Guard.Every(ref polls, 0x3FF);
             switch (command)
             {
                 case PathCommand path:
@@ -528,37 +562,35 @@ public sealed class PdfWriter
         }
     }
 
-    private static byte[] SerializePdf(List<byte[]> objects, int catalogId, int infoId)
+    private static void WritePdf(Stream output, List<(int Id, Func<byte[]> Make)> objects, int catalogId, int infoId, CancellationToken cancellationToken)
     {
-        byte[] header = "%PDF-1.4\n"u8.ToArray();
-        using var ms = new MemoryStream();
-        ms.Write(header);
-        var offsets = new List<long>();
-        foreach (var obj in objects)
+        long position = 0;
+        void Emit(ReadOnlySpan<byte> bytes)
         {
-            offsets.Add(ms.Position);
-            ms.Write(obj);
+            output.Write(bytes);
+            position += bytes.Length;
         }
-        long xrefOffset = ms.Position;
+        Emit("%PDF-1.4\n"u8);
+        var offsets = new List<long>(objects.Count);
+        foreach (var (id, make) in objects)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            offsets.Add(position);
+            byte[] body = make();
+            Emit(Encoding.ASCII.GetBytes($"{id} 0 obj\n"));
+            Emit(body);
+            Emit("\nendobj\n"u8);
+            // The object is garbage from here on; only its offset is kept.
+        }
+        long xrefOffset = position;
         var xref = new StringBuilder();
         xref.Append("xref\n").Append(CultureInfo.InvariantCulture, $"0 {objects.Count + 1}\n").Append("0000000000 65535 f \n");
         foreach (long offset in offsets)
             xref.Append(offset.ToString("D10", CultureInfo.InvariantCulture)).Append(" 00000 n \n");
-        ms.Write(Encoding.ASCII.GetBytes(xref.ToString()));
+        Emit(Encoding.ASCII.GetBytes(xref.ToString()));
         string trailerDict = PdfDict([$"/Size {objects.Count + 1}", $"/Root {catalogId} 0 R", $"/Info {infoId} 0 R"]);
-        ms.Write(Encoding.ASCII.GetBytes("trailer\n" + trailerDict + "\nstartxref\n" + xrefOffset.ToString(CultureInfo.InvariantCulture) + "\n%%EOF\n"));
-        return ms.ToArray();
-    }
-
-    private static byte[] SerializeObject(int id, byte[] body)
-    {
-        byte[] head = Encoding.ASCII.GetBytes($"{id} 0 obj\n");
-        byte[] tail = "\nendobj\n"u8.ToArray();
-        var result = new byte[head.Length + body.Length + tail.Length];
-        head.CopyTo(result, 0);
-        body.CopyTo(result, head.Length);
-        tail.CopyTo(result, head.Length + body.Length);
-        return result;
+        Emit(Encoding.ASCII.GetBytes("trailer\n" + trailerDict + "\nstartxref\n" + xrefOffset.ToString(CultureInfo.InvariantCulture) + "\n%%EOF\n"));
+        output.Flush();
     }
 
     private static string PdfDict(IReadOnlyList<string> lines) =>
@@ -662,14 +694,66 @@ public sealed class PdfWriter
         return StreamObject(data, []);
     }
 
-    private static byte[] ImageObject(RenderImageResource resource, bool noCompression, string? softMaskRef)
+    // Raw 8-bit gray and RGB samples with no Decode array can be stored as JPEG. The result is
+    // an RGB JPEG even for gray input (the encoder has no single-component mode), so it is used
+    // only when it is smaller than what the pass-through path would have written.
+    private static byte[]? TryEncodeJpeg(RenderImageResource resource, int quality)
+    {
+        if (resource.Mask || resource.BitsPerComponent != 8 || resource.Filter is not null || resource.FilterParams is { Count: > 0 })
+            return null;
+        int components = resource.ColorSpace switch { "DeviceRGB" => 3, "DeviceGray" => 1, _ => 0 };
+        if (components == 0 || resource.Width <= 0 || resource.Height <= 0)
+            return null;
+        if (resource.Decode is { Length: > 0 } decode)
+        {
+            for (int i = 0; i < decode.Length; i++)
+            {
+                if (decode[i] != (i % 2))
+                    return null;
+            }
+        }
+        long pixels = (long)resource.Width * resource.Height;
+        if (resource.Data.Length < pixels * components || pixels * 4 > int.MaxValue)
+            return null;
+        var rgba = new byte[pixels * 4];
+        var src = resource.Data;
+        for (long i = 0; i < pixels; i++)
+        {
+            if ((i & 0xFFFF) == 0)
+                Guard.Check();
+            long d = i * 4;
+            if (components == 3)
+            {
+                rgba[d] = src[i * 3];
+                rgba[d + 1] = src[i * 3 + 1];
+                rgba[d + 2] = src[i * 3 + 2];
+            }
+            else
+            {
+                rgba[d] = rgba[d + 1] = rgba[d + 2] = src[i];
+            }
+            rgba[d + 3] = 255;
+        }
+        return Imaging.JpegEncoder.Encode(new Imaging.RasterSurface(resource.Width, resource.Height, rgba), quality);
+    }
+
+    private static byte[] ImageObject(RenderImageResource resource, bool noCompression, string? softMaskRef, int? jpegQuality = null)
     {
         byte[] data = resource.Data;
         string? filterName = resource.Filter;
+        string colorSpace = resource.ColorSpace;
+        bool jpeg = false;
         if (filterName is null && !noCompression)
         {
             data = Zlib.Compress(data);
             filterName = "FlateDecode";
+        }
+        if (filterName is null or "FlateDecode" && jpegQuality is { } quality && TryEncodeJpeg(resource, quality) is { } encoded && encoded.Length < data.Length)
+        {
+            data = encoded;
+            filterName = "DCTDecode";
+            colorSpace = "DeviceRGB";
+            jpeg = true;
         }
         var lines = new List<string>
         {
@@ -690,9 +774,9 @@ public sealed class PdfWriter
         }
         else
         {
-            lines.Add($"/ColorSpace /{resource.ColorSpace}");
+            lines.Add($"/ColorSpace /{colorSpace}");
             lines.Add($"/BitsPerComponent {resource.BitsPerComponent}");
-            var decode = NormalizeDecodeForPdf(resource.Decode, resource.BitsPerComponent);
+            var decode = jpeg ? null : NormalizeDecodeForPdf(resource.Decode, resource.BitsPerComponent);
             if (decode is not null)
                 lines.Add($"/Decode {NumberArray(decode)}");
             if (softMaskRef is not null)
@@ -701,7 +785,7 @@ public sealed class PdfWriter
         if (filterName is not null)
         {
             lines.Add($"/Filter /{filterName}");
-            string? decodeParams = DecodeParams(resource);
+            string? decodeParams = jpeg ? null : DecodeParams(resource);
             if (decodeParams is not null)
                 lines.Add($"/DecodeParms {decodeParams}");
         }

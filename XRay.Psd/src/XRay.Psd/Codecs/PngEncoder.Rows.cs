@@ -7,7 +7,7 @@ public static partial class PngEncoder
 {
     /// <summary>
     /// Writes a PNG from consecutive bands of rows, holding only the rows of the deflate
-    /// segments not yet written. The zlib stream is the one <see cref="Encode"/> produces
+    /// segments not yet written. The zlib stream is the one <see cref="Encode(RgbaImage, bool, PngCompressionLevel)"/> produces
     /// for the same pixels and alpha choice (same filters, same segments, same checksum),
     /// split into one IDAT chunk per deflate segment, so the decoded image is identical and
     /// the bytes do not depend on the band height or the degree of parallelism.

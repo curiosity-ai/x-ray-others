@@ -112,6 +112,58 @@ public sealed class CompositorIntegrationTests : IDisposable
         }
     }
 
+    [Fact]
+    public void A_cancelled_token_is_not_swallowed_by_the_text_rasterizer()
+    {
+        var document = Fixtures.Load("photoshop-text-point-auto-leading.psd");
+        var options = new RenderOptions { TextRasterizer = _rasterizer, TextRasterMode = TextRasterMode.Always };
+        using var source = new CancellationTokenSource();
+        source.Cancel();
+
+        Assert.ThrowsAny<OperationCanceledException>(() => document.Render(options, source.Token));
+        var layer = document.EnumerateLayersTopDown().First(l => l.Text is not null);
+        Assert.ThrowsAny<OperationCanceledException>(() => _rasterizer.Renderer.Render(layer, source.Token));
+        Assert.ThrowsAny<OperationCanceledException>(() => _rasterizer.Rasterize(layer, source.Token));
+        // The same layer renders without a token.
+        Assert.NotNull(_rasterizer.Renderer.Render(layer));
+    }
+
+    [Fact]
+    public void The_compositor_hands_its_token_to_the_text_rasterizer()
+    {
+        var document = Fixtures.Load("photoshop-text-point-auto-leading.psd");
+        using var source = new CancellationTokenSource();
+        var recording = new TokenRecordingRasterizer(_rasterizer, source);
+        var options = new RenderOptions { TextRasterizer = recording, TextRasterMode = TextRasterMode.Always };
+
+        // The rasterizer cancels while it is drawing; the render stops instead of keeping the stored pixels.
+        Assert.ThrowsAny<OperationCanceledException>(() => document.Render(options, source.Token));
+        Assert.True(recording.SawCancellableToken);
+    }
+
+    [Fact]
+    public void A_live_token_leaves_text_rerendering_unchanged()
+    {
+        var document = Fixtures.Load("photoshop-text-point-auto-leading.psd");
+        var options = new RenderOptions { TextRasterizer = _rasterizer, TextRasterMode = TextRasterMode.Always };
+        using var source = new CancellationTokenSource();
+        Assert.Equal(document.Render(options).Pixels, document.Render(options, source.Token).Pixels);
+    }
+
+    private sealed class TokenRecordingRasterizer(ITextLayerRasterizer inner, CancellationTokenSource source) : ITextLayerRasterizer
+    {
+        public bool SawCancellableToken { get; private set; }
+
+        public TextLayerRaster? Rasterize(PsdLayer layer) => inner.Rasterize(layer);
+
+        public TextLayerRaster? Rasterize(PsdLayer layer, CancellationToken cancellationToken)
+        {
+            SawCancellableToken = cancellationToken.CanBeCanceled;
+            source.Cancel();
+            return inner.Rasterize(layer, cancellationToken);
+        }
+    }
+
     private static double MeanDifference(RgbaImage a, RgbaImage b)
     {
         long sum = 0;

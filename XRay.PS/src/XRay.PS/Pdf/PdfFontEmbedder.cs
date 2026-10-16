@@ -70,7 +70,7 @@ public static partial class PdfFontEmbedder
                 {
                     resolved = resolver.Resolve(candidate);
                 }
-                catch (Exception)
+                catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
                 {
                     resolved = null;
                 }
@@ -105,7 +105,7 @@ public static partial class PdfFontEmbedder
             {
                 data = TtfSubset.EnsureCmap(data, type42CodeMap);
             }
-            catch (Exception)
+            catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
             {
                 // Keep the original program.
             }
@@ -138,7 +138,7 @@ public static partial class PdfFontEmbedder
         {
             (subsetData, codeToGid) = TtfSubset.Subset(data, subsetCodes, pdfToUnicode, explicitPdfCodeToGid);
         }
-        catch (Exception)
+        catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
         {
             subsetData = allowFullEmbedOnSubsetFailure && TtfSubset.HasTable(data, "cmap") ? data : null;
             if (subsetData is null)
@@ -153,7 +153,7 @@ public static partial class PdfFontEmbedder
                     {
                         (subsetData, codeToGid) = TtfSubset.Subset(fallbackData, subsetCodes, pdfToUnicode, explicitPdfCodeToGid);
                     }
-                    catch (Exception)
+                    catch (Exception exc2) when (exc2 is not (OperationCanceledException or PostScript.PsResourceLimitError))
                     {
                         continue;
                     }
@@ -225,7 +225,7 @@ public static partial class PdfFontEmbedder
         {
             font = new TrueTypeFont(data);
         }
-        catch (Exception)
+        catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
         {
             return null;
         }
@@ -297,7 +297,7 @@ public static partial class PdfFontEmbedder
             {
                 record = resolver.Cache.FindFont(fontName, null);
             }
-            catch (Exception)
+            catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
             {
                 record = null;
             }
@@ -320,7 +320,7 @@ public static partial class PdfFontEmbedder
             var metrics = resolver.Cache.MetricsFor(path);
             return (data, metrics.UnitsPerEm, metrics.CodeWidths);
         }
-        catch (Exception)
+        catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
         {
             return null;
         }
@@ -350,7 +350,7 @@ public static partial class PdfFontEmbedder
             {
                 font = new TrueTypeFont(fontData);
             }
-            catch (Exception)
+            catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
             {
                 font = null;
             }

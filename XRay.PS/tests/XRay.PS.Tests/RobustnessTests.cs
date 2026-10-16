@@ -56,6 +56,40 @@ public class RobustnessTests
             Guard(() => XpsDocument.FromBytes(variant).ToPdf());
     }
 
+    [Fact]
+    public void Truncated_and_mutated_postscript_with_suppressed_errors_fails_cleanly()
+    {
+        byte[] original = "%!PS-Adobe-3.0\n%%BoundingBox: 0 0 100 100\n/Helvetica 12 selectfont 10 10 moveto (Hi) show 0 0 moveto 50 50 lineto stroke showpage [1 0 0 1 0 0] concat 1 1 8 [1 0 0 1 0 0] <FF> image showpage\n"u8.ToArray();
+        int recovered = 0;
+        foreach (var variant in Variants(original, 3, 200))
+        {
+            var options = new PdfSaveOptions { SuppressErrors = true, Limits = new PsInterpreterLimits { MaxOperators = 1_000_000 } };
+            try
+            {
+                byte[] pdf = PsDocument.FromBytes(variant, TestContext.Current.CancellationToken).ToPdf(options, TestContext.Current.CancellationToken);
+                Assert.StartsWith("%PDF", System.Text.Encoding.Latin1.GetString(pdf));
+                recovered++;
+            }
+            catch (Exception ex) when (IsPackageException(ex))
+            {
+            }
+        }
+
+        Assert.True(recovered > 0);
+    }
+
+    [Fact]
+    public void Truncated_and_mutated_xps_with_suppressed_errors_fails_cleanly()
+    {
+        string page = "<FixedPage xmlns=\"http://schemas.microsoft.com/xps/2005/06\" Width=\"10\" Height=\"10\"><Path Data=\"M 0,0 L 10,0 L 10,10 Z\" Fill=\"#FF0000\" /><Glyphs UnicodeString=\"Hi\" FontUri=\"/x.ttf\" FontRenderingEmSize=\"4\" OriginX=\"1\" OriginY=\"5\" Fill=\"#000000\" /></FixedPage>";
+        byte[] original = XpsTests.Package(page);
+        foreach (var variant in Variants(original, 4, 100))
+        {
+            var options = new PdfSaveOptions { SuppressErrors = true };
+            Guard(() => XpsDocument.FromBytes(variant).ToPdf(options));
+        }
+    }
+
     [Theory]
     [InlineData("ps/functional/INTRO01/CIRCLE.PS")]
     [InlineData("ps/integration/minimal.ps")]

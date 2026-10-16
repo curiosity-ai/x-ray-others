@@ -46,6 +46,7 @@ public static class GlyphOutlines
             int idx = (startIndex + 1) % expanded.Count;
             while (idx != startIndex)
             {
+                Internal.Guard.Check();
                 if (SegmentCap > 0 && segments.Count >= SegmentCap)
                     break;
                 var pt = expanded[idx];

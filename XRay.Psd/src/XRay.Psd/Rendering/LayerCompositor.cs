@@ -57,6 +57,7 @@ internal sealed partial class LayerCompositor
         var index = 0;
         while (index < siblings.Count)
         {
+            Cancellation.Check();
             var layer = siblings[index];
             var runEnd = index + 1;
             if (!IsClipped(layer))
@@ -136,6 +137,7 @@ internal sealed partial class LayerCompositor
     /// </summary>
     private void CompositeLayer(PlanarImage target, PsdLayer layer, MaskChain? masks, PsdBlendMode? modeOverride, bool clipMode, PlanarImage? gateBackdrop = null, bool suppressRestriction = false)
     {
+        Cancellation.Check();
         if (!IsVisible(layer) || layer.Opacity == 0)
         {
             return;

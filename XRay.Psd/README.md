@@ -139,6 +139,31 @@ using var mapped = PsdDocument.Load("huge.psb", new PsdLoadOptions { MemoryMap =
 var image = mapped.Render(new RenderOptions { MaxDegreeOfParallelism = 1 });
 ```
 
+Cancellation and streams. Every call that does real work takes a `CancellationToken` as its last parameter, and the outputs that can be large write to a stream:
+
+```csharp
+using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+var token = timeout.Token;
+
+using var document = PsdDocument.Load("poster.psd", new PsdLoadOptions { MemoryMap = true }, token);
+var text = document.ExtractText(null, token);
+
+// JPEG and PNG straight into the caller's stream (a temp file, a response body).
+using var jpeg = File.Create("poster.jpg");
+document.RenderToJpeg(jpeg, quality: 60, cancellationToken: token);
+using var png = File.Create("poster.png");
+document.RenderToPng(png, new RenderOptions { Source = RenderSource.Layers }, PngCompressionLevel.Default, token);
+
+// The thumbnail Photoshop stored: a stored JPEG is copied byte for byte, no decode or re-encode.
+if (document.Resources.Thumbnail is { } thumbnail)
+{
+    using var small = File.Create("thumb.jpg");
+    thumbnail.WriteJpeg(small, quality: 80, token);
+}
+```
+
+A cancelled call throws `OperationCanceledException`, never `PsdFormatException`. The token is observed while the file is read, at every layer record and tagged block the parser walks, at every channel decode, between layers and at every strip of the parallel passes (no new strip starts once it is cancelled), per band, and per paragraph, line and glyph in `XRay.Psd.Text`. A render that completes is bit-identical with or without a token.
+
 Large documents render in horizontal bands, holding one band of the canvas at a time. The bands are bit-identical to the same rows of `Render`, and they work past the size one canvas can hold (about 46000 x 46000 pixels, and about 23000 x 23000 for one `RgbaImage`):
 
 ```csharp

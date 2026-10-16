@@ -14,10 +14,28 @@ namespace XRay.PS.Xps;
 public static class XpsConverter
 {
     /// <summary>Converts an XPS document to PDF bytes.</summary>
-    public static byte[] ToPdf(XpsDocument document, PdfSaveOptions? options = null, int? maxPages = null)
+    public static byte[] ToPdf(XpsDocument document, PdfSaveOptions? options = null, int? maxPages = null) =>
+        ToPdf(document, options, maxPages, default);
+
+    /// <summary>Converts an XPS document to PDF bytes, observing a cancellation token.</summary>
+    public static byte[] ToPdf(XpsDocument document, PdfSaveOptions? options, int? maxPages, CancellationToken cancellationToken)
     {
+        using var ms = new MemoryStream();
+        ToPdf(document, ms, options, maxPages, cancellationToken);
+        return ms.ToArray();
+    }
+
+    /// <summary>Converts an XPS document to PDF and writes it to <paramref name="output"/>; the PDF
+    /// objects are written one at a time and the stream need not be seekable.</summary>
+    public static void ToPdf(XpsDocument document, Stream output, PdfSaveOptions? options = null, int? maxPages = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(output);
         var opts = options ?? new PdfSaveOptions();
-        var (renderDoc, imageStore) = BuildPdfRenderModel(document, maxPages, opts.MaskRasterizer);
+        cancellationToken.ThrowIfCancellationRequested();
+        using var guard = Guard.Begin(cancellationToken);
+        var (renderDoc, imageStore) = BuildPdfRenderModel(document, maxPages, opts.MaskRasterizer, opts.SuppressErrors, opts.Warnings, cancellationToken);
         var fontResolver = BuildXpsFontResolver(document.Package, renderDoc, opts.AdditionalFontsFolder);
         string timestamp = PsConverter.PdfTimestamp();
         var metadata = new PdfMetadata("", "", PsConverter.Producer, timestamp, timestamp, false);
@@ -27,46 +45,96 @@ public static class XpsConverter
             return new RenderImageResource(image.Data, image.Width, image.Height, image.ColorSpace, image.BitsPerComponent, image.Filter, SoftMask: image.SoftMask);
         }
         PdfEmbeddedFont? FontProvider(string fontRef, ISet<int> usedCodes) => PdfFontEmbedder.BuildEmbeddedFont(fontRef, usedCodes, fontResolver);
-        return new PdfWriter(metadata, opts.NoCompression, ImageProvider, FontProvider).Write(renderDoc);
+        new PdfWriter(metadata, opts.NoCompression, ImageProvider, FontProvider, opts.JpegQuality).Write(renderDoc, output, cancellationToken);
     }
 
     /// <summary>The render model exactly as the PDF writer receives it (page sizes quantized to
     /// half points, image payloads attached).</summary>
-    public static (RenderDocument Document, XpsImageStore Images) BuildPdfRenderModel(XpsDocument document, int? maxPages = null, IRasterWriter? maskRasterizer = null)
+    public static (RenderDocument Document, XpsImageStore Images) BuildPdfRenderModel(XpsDocument document, int? maxPages = null, IRasterWriter? maskRasterizer = null) =>
+        BuildPdfRenderModel(document, maxPages, maskRasterizer, false, null, default);
+
+    /// <summary>As <see cref="BuildPdfRenderModel(XpsDocument, int?, IRasterWriter?)"/> with error
+    /// suppression (an element that cannot be rendered is skipped, with a warning) and
+    /// cancellation.</summary>
+    public static (RenderDocument Document, XpsImageStore Images) BuildPdfRenderModel(XpsDocument document, int? maxPages,
+        IRasterWriter? maskRasterizer, bool suppressErrors, List<ConversionWarning>? warnings, CancellationToken cancellationToken)
     {
-        var (renderDoc, imageStore) = BuildRenderDocument(document, maxPages, forPdf: true, maskRasterizer);
+        var (renderDoc, imageStore) = BuildRenderDocument(document, maxPages, forPdf: true, maskRasterizer, suppressErrors, warnings, cancellationToken);
         QuantizePdfPageSizes(renderDoc);
         AttachImageResources(renderDoc, imageStore);
         return (renderDoc, imageStore);
     }
 
     /// <summary>Converts the first page to an image.</summary>
-    public static byte[] ToImage(XpsDocument document, ImageSaveOptions options, int? maxPages = null)
+    public static byte[] ToImage(XpsDocument document, ImageSaveOptions options, int? maxPages = null) =>
+        ToImage(document, options, maxPages, default);
+
+    /// <summary>Converts the first page to an image, observing a cancellation token. Only the
+    /// first page is rendered.</summary>
+    public static byte[] ToImage(XpsDocument document, ImageSaveOptions options, int? maxPages, CancellationToken cancellationToken)
     {
-        var pages = ToImages(document, options, maxPages);
-        if (pages.Count == 0)
+        using var ms = new MemoryStream();
+        ToImage(document, options, ms, maxPages, cancellationToken);
+        return ms.ToArray();
+    }
+
+    /// <summary>Converts the first page to an image and writes it to <paramref name="output"/>.</summary>
+    public static void ToImage(XpsDocument document, ImageSaveOptions options, Stream output, int? maxPages = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(output);
+        bool any = false;
+        int limit = maxPages is int m ? Math.Min(m, 1) : 1;
+        ToImages(document, options, _ =>
+        {
+            any = true;
+            return output;
+        }, limit, cancellationToken);
+        if (!any)
             throw new InvalidOperationException("document has no pages");
-        return pages[0];
     }
 
     /// <summary>Converts each fixed page to an image.</summary>
-    public static List<byte[]> ToImages(XpsDocument document, ImageSaveOptions options, int? maxPages = null)
+    public static List<byte[]> ToImages(XpsDocument document, ImageSaveOptions options, int? maxPages = null) =>
+        ToImages(document, options, maxPages, default);
+
+    /// <summary>Converts each fixed page to an image, observing a cancellation token.</summary>
+    public static List<byte[]> ToImages(XpsDocument document, ImageSaveOptions options, int? maxPages, CancellationToken cancellationToken)
     {
+        var outputs = new List<MemoryStream>();
+        ToImages(document, options, _ =>
+        {
+            var ms = new MemoryStream();
+            outputs.Add(ms);
+            return ms;
+        }, maxPages, cancellationToken);
+        return outputs.Select(m => m.ToArray()).ToList();
+    }
+
+    /// <summary>Converts each fixed page to an image, taking the stream of each page (zero-based
+    /// index) from <paramref name="streamForPage"/> just before that page is written. The streams
+    /// are not disposed.</summary>
+    public static void ToImages(XpsDocument document, ImageSaveOptions options, Func<int, Stream> streamForPage, int? maxPages = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(streamForPage);
+        cancellationToken.ThrowIfCancellationRequested();
+        using var guard = Guard.Begin(cancellationToken);
         var writer = options.RasterWriter ?? new RenderModelRasterWriter();
-        var (renderDoc, imageStore) = BuildRenderDocument(document, maxPages, forPdf: false, writer);
+        var (renderDoc, imageStore) = BuildRenderDocument(document, maxPages, forPdf: false, writer, options.SuppressErrors, options.Warnings, cancellationToken);
         AttachImageResources(renderDoc, imageStore);
         var opts = options.Clone();
         opts.OpaqueBackground = true;
         opts.PreserveFractionalPageSize = true;
         opts.FontResolver = BuildXpsFontResolver(document.Package, renderDoc, options.AdditionalFontsFolder);
-        var outputs = new List<byte[]>();
-        foreach (var page in renderDoc.Pages)
+        for (int i = 0; i < renderDoc.Pages.Count; i++)
         {
-            var pageDoc = new RenderDocument { Pages = [page], Resources = renderDoc.Resources };
-            outputs.Add(writer.Write(pageDoc, opts));
+            cancellationToken.ThrowIfCancellationRequested();
+            var pageDoc = new RenderDocument { Pages = [renderDoc.Pages[i]], Resources = renderDoc.Resources };
+            writer.Write(pageDoc, opts, streamForPage(i), cancellationToken);
         }
-        return outputs;
     }
 
     /// <summary>Builds the render model of the document's pages.</summary>
@@ -74,22 +142,62 @@ public static class XpsConverter
     /// <param name="maxPages">Render at most this many pages.</param>
     /// <param name="forPdf">Use the PDF settings (hairline solid strokes rasterized).</param>
     /// <param name="maskRasterizer">Renders opacity-masked content to images.</param>
-    public static (RenderDocument Document, XpsImageStore Images) BuildRenderDocument(XpsDocument document, int? maxPages = null, bool forPdf = false, IRasterWriter? maskRasterizer = null)
+    public static (RenderDocument Document, XpsImageStore Images) BuildRenderDocument(XpsDocument document, int? maxPages = null, bool forPdf = false, IRasterWriter? maskRasterizer = null) =>
+        BuildRenderDocument(document, maxPages, forPdf, maskRasterizer, false, null, default);
+
+    /// <summary>As <see cref="BuildRenderDocument(XpsDocument, int?, bool, IRasterWriter?)"/>, observing a
+    /// cancellation token and optionally skipping elements that cannot be rendered.</summary>
+    /// <param name="document">The document.</param>
+    /// <param name="maxPages">Render at most this many pages.</param>
+    /// <param name="forPdf">Use the PDF settings (hairline solid strokes rasterized).</param>
+    /// <param name="maskRasterizer">Renders opacity-masked content to images.</param>
+    /// <param name="suppressErrors">Skip an element (with everything it had drawn) that throws, and a
+    /// page whose XML cannot be read, recording a warning, instead of failing the document.</param>
+    /// <param name="warnings">Receives the warnings.</param>
+    /// <param name="cancellationToken">Checked per page and per element; never suppressed.</param>
+    public static (RenderDocument Document, XpsImageStore Images) BuildRenderDocument(XpsDocument document, int? maxPages, bool forPdf,
+        IRasterWriter? maskRasterizer, bool suppressErrors, List<ConversionWarning>? warnings, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        using var guard = Guard.Begin(cancellationToken);
         var builder = new RenderModelBuilder();
         var imageStore = new XpsImageStore();
-        var renderer = new XpsRenderer(builder, imageStore, null, rasterizeSolidStrokes: forPdf, maskRasterizer: maskRasterizer);
+        var renderer = new XpsRenderer(builder, imageStore, null, rasterizeSolidStrokes: forPdf, maskRasterizer: maskRasterizer)
+        {
+            CancellationToken = cancellationToken,
+            SuppressErrors = suppressErrors,
+            Warnings = warnings,
+        };
         renderer.SetPackage(document.Package);
         var parser = new XpsParser(document.Package);
         var mediaFitSizes = MediaFitSizesByPart(document);
         var parts = parser.FixedPageParts();
         if (maxPages is int limit)
             parts = parts.Take(Math.Max(0, limit)).ToList();
+        int pageNumber = 0;
         foreach (string part in parts)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            pageNumber++;
             renderer.SetCurrentPart(part);
             renderer.SetMediaFitSize(mediaFitSizes.GetValueOrDefault(part));
-            renderer.RenderFixedPage(document.Package.Read(part));
+            renderer.PageNumber = pageNumber;
+            if (!suppressErrors)
+            {
+                renderer.RenderFixedPage(document.Package.Read(part));
+                continue;
+            }
+            try
+            {
+                renderer.RenderFixedPage(document.Package.Read(part));
+            }
+            catch (Exception ex) when (XpsRenderer.IsRecoverable(ex))
+            {
+                warnings?.Add(new ConversionWarning("xps", "page", ex.Message, pageNumber));
+                // A page that failed after it began keeps what was drawn; one that never began is skipped.
+                if (builder.ActivePage is not null)
+                    builder.EndPage();
+            }
         }
         return (builder.Document(), imageStore);
     }
@@ -229,7 +337,7 @@ public static class XpsConverter
                 var (unitsPerEm, codeWidths) = TtfMetrics.Parse(data);
                 resolver.RegisterEmbeddedType42(fontRef, data, unitsPerEm, codeWidths);
             }
-            catch (Exception ex) when (ex is not OutOfMemoryException)
+            catch (Exception ex) when (ex is not (OutOfMemoryException or OperationCanceledException))
             {
                 // Unparseable fonts are skipped, as in the original.
             }

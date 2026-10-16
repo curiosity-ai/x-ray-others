@@ -92,4 +92,68 @@ public sealed class SkiaInteropTests
         Assert.Equal(new PsdColor(3, 2, 1), image.GetPixel(0, 0));
         Assert.Equal(new PsdColor(6, 5, 4), image.GetPixel(1, 0));
     }
+
+    [Theory]
+    [InlineData(SKEncodedImageFormat.Png)]
+    [InlineData(SKEncodedImageFormat.Jpeg)]
+    public void Encoding_to_a_stream_equals_the_byte_array(SKEncodedImageFormat format)
+    {
+        var image = new RgbaImage(40, 30);
+        for (var i = 0; i < image.Pixels.Length; i += 4)
+        {
+            image.Pixels[i] = (byte)(i / 4);
+            image.Pixels[i + 1] = (byte)(i / 8);
+            image.Pixels[i + 2] = 90;
+            image.Pixels[i + 3] = 255;
+        }
+
+        using var stream = new MemoryStream();
+        image.Encode(stream, format, 80);
+
+        Assert.Equal(image.Encode(format, 80), stream.ToArray());
+        Assert.Equal(image.Encode(format, 80), image.Encode(format, 80, CancellationToken.None));
+    }
+
+    [Fact]
+    public void A_cancelled_token_stops_skia_rendering_and_encoding()
+    {
+        using var source = new CancellationTokenSource();
+        source.Cancel();
+        var document = Fixtures.Load("photoshop-shape-solid.psd");
+        var image = new RgbaImage(4, 4);
+
+        Assert.ThrowsAny<OperationCanceledException>(() => document.RenderToSKBitmap(null, source.Token));
+        Assert.ThrowsAny<OperationCanceledException>(() => document.RenderAndEncode(SKEncodedImageFormat.Png, 90, null, source.Token));
+        Assert.ThrowsAny<OperationCanceledException>(() => document.RenderAndEncode(new MemoryStream(), SKEncodedImageFormat.Png, 90, null, source.Token));
+        Assert.ThrowsAny<OperationCanceledException>(() => image.Encode(new MemoryStream(), SKEncodedImageFormat.Png, 90, source.Token));
+        Assert.ThrowsAny<OperationCanceledException>(() => image.Encode(SKEncodedImageFormat.Png, 90, source.Token));
+    }
+
+    [Fact]
+    public void Rendering_into_a_stream_matches_rendering_to_bytes()
+    {
+        var document = Fixtures.Load("photoshop-shape-solid.psd");
+        using var stream = new MemoryStream();
+        document.RenderAndEncode(stream, SKEncodedImageFormat.Png);
+        Assert.Equal(document.RenderAndEncode(SKEncodedImageFormat.Png), stream.ToArray());
+    }
+
+    [Fact]
+    public void The_core_thumbnail_writer_agrees_with_the_skia_decoder_on_raw_thumbnails()
+    {
+        var thumbnail = new Resources.PsdThumbnail(Resources.PsdThumbnailFormat.RawRgb, 2, 1, 8, 24, IsBgr: true, new byte[] { 1, 2, 3, 4, 5, 6, 0, 0 });
+        Assert.Equal(thumbnail.Decode()!.Pixels, thumbnail.ToRgba()!.Pixels);
+    }
+
+    [Fact]
+    public void A_stored_jpeg_thumbnail_is_copied_without_re_encoding()
+    {
+        var document = Fixtures.Load("photoshop-shape-solid.psd");
+        var thumbnail = document.Resources.Thumbnail!;
+        using var stream = new MemoryStream();
+        Assert.True(thumbnail.WriteJpeg(stream, 10));
+        Assert.Equal(thumbnail.Data.ToArray(), stream.ToArray());
+        using var decoded = SKBitmap.Decode(stream.ToArray());
+        Assert.Equal((thumbnail.Width, thumbnail.Height), (decoded.Width, decoded.Height));
+    }
 }

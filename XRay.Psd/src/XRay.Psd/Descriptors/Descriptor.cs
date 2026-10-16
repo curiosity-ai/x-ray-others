@@ -337,6 +337,7 @@ internal static class DescriptorReader
         CheckCount(count, 8, reader);
         for (var i = 0u; i < count; i++)
         {
+            Cancellation.Check();
             var key = ReadId(reader);
             var type = reader.ReadSignature();
             descriptor.Add(key, ReadValue(reader, type, depth + 1));
@@ -424,6 +425,7 @@ internal static class DescriptorReader
                     var list = new List<DescriptorValue>((int)Math.Min(count, 4096));
                     for (var i = 0u; i < count; i++)
                     {
+                        Cancellation.Check();
                         list.Add(ReadValue(reader, reader.ReadSignature(), depth + 1));
                     }
 

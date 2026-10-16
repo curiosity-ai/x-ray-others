@@ -171,6 +171,7 @@ internal static class PsdParser
         var sawLayerBlock = false;
         while (end - position >= 12)
         {
+            Cancellation.Check();
             var header = new BigEndianReader(source.Slice(position, (int)Math.Min(16, end - position)));
             var signature = header.ReadSignature();
             if (signature is not ("8BIM" or "8B64"))
@@ -331,6 +332,7 @@ internal static class PsdParser
         var resources = new List<ImageResource>();
         while (section.Remaining >= 12)
         {
+            Cancellation.Check();
             var signature = section.ReadSignature();
             if (signature is not ("8BIM" or "MeSa" or "AgHg" or "PHUT" or "DCSR"))
             {
@@ -432,6 +434,7 @@ internal static class PsdParser
         {
             foreach (var block in blocks)
             {
+                Cancellation.Check();
                 if (block.Key is "Lr16" or "Lr32" or "Layr" && block.Data.Length >= 2)
                 {
                     var blockReader = new BigEndianReader(block.Data);
@@ -474,6 +477,7 @@ internal static class PsdParser
         var ordinaryNumber = 0;
         for (var i = 0; i < count; i++)
         {
+            Cancellation.Check();
             var layer = ReadLayerRecord(reader, document, out var lengths);
             layer.Index = i;
             if (layer.SectionType == PsdSectionType.None)
@@ -499,6 +503,7 @@ internal static class PsdParser
         var dataOffset = readerOffset + reader.Position;
         for (var i = 0; i < layers.Count; i++)
         {
+            Cancellation.Check();
             var layer = layers[i];
             var lengths = channelLengths[i];
             var channels = new List<LayerChannel>(lengths.Length);
@@ -718,6 +723,7 @@ internal static class PsdParser
         var blocks = new List<TaggedBlock>();
         while (end - reader.Position >= 12)
         {
+            Cancellation.Check();
             var start = reader.Position;
             var signature = reader.ReadSignature();
             if (signature is not ("8BIM" or "8B64"))
@@ -778,6 +784,7 @@ internal static class PsdParser
         var sawMultiEffects = false;
         foreach (var block in blocks)
         {
+            Cancellation.Check();
             var data = block.Data;
             switch (block.Key)
             {
@@ -1002,6 +1009,7 @@ internal static class PsdParser
         var current = new List<PsdLayer>();
         foreach (var record in records)
         {
+            Cancellation.Check();
             if (record.SectionType == PsdSectionType.BoundingDivider)
             {
                 stack.Push(current);
@@ -1053,6 +1061,7 @@ internal static class PsdParser
             var reader = new BigEndianReader(block.Data);
             while (reader.Remaining >= 8)
             {
+                Cancellation.Check();
                 try
                 {
                     var length = (long)reader.ReadUInt64();

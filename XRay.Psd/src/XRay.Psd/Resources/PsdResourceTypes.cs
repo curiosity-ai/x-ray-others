@@ -1,3 +1,4 @@
+using XRay.Psd.Imaging;
 using XRay.Psd.Descriptors;
 
 namespace XRay.Psd.Resources;
@@ -74,7 +75,78 @@ public sealed record PsdThumbnail(
     int RowBytes,
     int BitsPerPixel,
     bool IsBgr,
-    ReadOnlyMemory<byte> Data);
+    ReadOnlyMemory<byte> Data)
+{
+    /// <summary>Whether <see cref="Data"/> is a complete JPEG file.</summary>
+    public bool IsJpeg => Format == PsdThumbnailFormat.Jpeg;
+
+    /// <summary>
+    /// Writes the stored payload to <paramref name="destination"/> unchanged: a JPEG file for
+    /// <see cref="PsdThumbnailFormat.Jpeg"/> thumbnails (nothing is decoded or re-encoded),
+    /// the pixel rows for raw ones. The stream is not disposed.
+    /// </summary>
+    public void CopyTo(Stream destination, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        cancellationToken.ThrowIfCancellationRequested();
+        destination.Write(Data.Span);
+    }
+
+    /// <summary>
+    /// Writes the thumbnail to <paramref name="destination"/> as a JPEG file. A stored JPEG is
+    /// copied byte for byte, which is both cheaper and lossless; a raw thumbnail is
+    /// encoded at <paramref name="quality"/>. The stream is not disposed.
+    /// </summary>
+    /// <returns>True when the stored JPEG was copied, false when a raw thumbnail was encoded.</returns>
+    public bool WriteJpeg(Stream destination, int quality = 90, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (IsJpeg)
+        {
+            destination.Write(Data.Span);
+            return true;
+        }
+
+        (ToRgba() ?? throw new PsdFormatException("The thumbnail holds no pixels.")).ToJpeg(destination, quality, null, cancellationToken);
+        return false;
+    }
+
+    /// <summary>
+    /// The pixels of a raw thumbnail as RGBA (rows <see cref="RowBytes"/> apart, 24 bits per
+    /// pixel, swapped when <see cref="IsBgr"/>); null for a JPEG thumbnail (decode it with
+    /// XRay.Psd.Skia) or a payload too short for its dimensions.
+    /// </summary>
+    public RgbaImage? ToRgba()
+    {
+        if (IsJpeg || BitsPerPixel != 24 || RowBytes < Width * 3 || Data.Length < (long)RowBytes * (Height - 1) + (Width * 3L))
+        {
+            return null;
+        }
+
+        var image = new RgbaImage(Width, Height);
+        var source = Data.Span;
+        var target = image.Pixels;
+        for (var y = 0; y < Height; y++)
+        {
+            var row = source.Slice(y * RowBytes, Width * 3);
+            var offset = y * Width * 4;
+            for (var x = 0; x < Width; x++)
+            {
+                var r = row[x * 3];
+                var g = row[(x * 3) + 1];
+                var b = row[(x * 3) + 2];
+                target[offset] = IsBgr ? b : r;
+                target[offset + 1] = g;
+                target[offset + 2] = IsBgr ? r : b;
+                target[offset + 3] = 255;
+                offset += 4;
+            }
+        }
+
+        return image;
+    }
+}
 
 /// <summary>Where a slice came from.</summary>
 public enum PsdSliceOrigin

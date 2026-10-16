@@ -47,7 +47,7 @@ public partial class XpsTests
 
     private static RenderDocument Render(byte[] packageBytes, out XpsImageStore store, string part = "/Documents/1/Pages/1.fpage", bool setPackage = true)
     {
-        var package = XpsPackage.FromBytes(packageBytes);
+        var package = XpsPackage.FromBytes(packageBytes, TestContext.Current.CancellationToken);
         var builder = new RenderModelBuilder();
         store = new XpsImageStore();
         var renderer = new XpsRenderer(builder, store);
@@ -118,14 +118,14 @@ public partial class XpsTests
     [Fact]
     public void Parser_finds_the_fixed_pages()
     {
-        var package = XpsPackage.FromBytes(Package(SimplePage));
+        var package = XpsPackage.FromBytes(Package(SimplePage), TestContext.Current.CancellationToken);
         Assert.Equal(["/Documents/1/Pages/1.fpage"], new XpsParser(package).FixedPageParts());
     }
 
     [Fact]
     public void Interleaved_pieces_are_joined()
     {
-        var package = XpsPackage.FromBytes(Zip(("FixedDocumentSequence.fdseq/[0].piece", "ABC"u8.ToArray()), ("FixedDocumentSequence.fdseq/[1].last.piece", "DEF"u8.ToArray())));
+        var package = XpsPackage.FromBytes(Zip(("FixedDocumentSequence.fdseq/[0].piece", "ABC"u8.ToArray()), ("FixedDocumentSequence.fdseq/[1].last.piece", "DEF"u8.ToArray())), TestContext.Current.CancellationToken);
         Assert.Equal("ABCDEF"u8.ToArray(), package.Read("/FixedDocumentSequence.fdseq"));
     }
 
@@ -195,7 +195,7 @@ public partial class XpsTests
 
     private static (XpsRenderer Renderer, RenderModelBuilder Builder) ImageRenderer()
     {
-        var package = XpsPackage.FromBytes(Zip(("Images/test.png", MinimalPng())));
+        var package = XpsPackage.FromBytes(Zip(("Images/test.png", MinimalPng())), TestContext.Current.CancellationToken);
         var builder = new RenderModelBuilder();
         var renderer = new XpsRenderer(builder, new XpsImageStore());
         renderer.SetPackage(package);
@@ -346,7 +346,7 @@ public partial class XpsTests
             <psf:Feature name="psk:PageOrientation"><psf:Option name="psk:Landscape" /></psf:Feature>
             </psf:PrintTicket>
             """;
-        var document = XpsDocument.FromBytes(Package(page, ("_rels/FixedDocSeq.fdseq.rels", U(rels)), ("MetaData/Job_PT.xml", U(ticket))));
+        var document = XpsDocument.FromBytes(Package(page, ("_rels/FixedDocSeq.fdseq.rels", U(rels)), ("MetaData/Job_PT.xml", U(ticket))), TestContext.Current.CancellationToken);
         var size = JobMediaSize(document);
         Assert.NotNull(size);
         Assert.Equal(841.8897637795, size.Value.Item1, 6);
@@ -356,7 +356,7 @@ public partial class XpsTests
     [Fact]
     public void A_landscape_job_ticket_keeps_the_page_landscape()
     {
-        var document = XpsDocument.FromFile(Corpus.File("xps/integration/38976.xps"));
+        var document = XpsDocument.FromFile(Corpus.File("xps/integration/38976.xps"), TestContext.Current.CancellationToken);
         var size = JobMediaSize(document);
         var renderDoc = document.BuildRenderModel(forPdf: false);
         var page = Assert.Single(renderDoc.Pages);
@@ -375,12 +375,12 @@ public partial class XpsTests
     [InlineData(true)]
     public void A_landscape_job_ticket_reaches_the_pdf_and_the_images(bool skia)
     {
-        var document = XpsDocument.FromFile(Corpus.File("xps/integration/38976.xps"));
-        var match = MediaBoxRegex().Match(Encoding.Latin1.GetString(document.ToPdf()));
+        var document = XpsDocument.FromFile(Corpus.File("xps/integration/38976.xps"), TestContext.Current.CancellationToken);
+        var match = MediaBoxRegex().Match(Encoding.Latin1.GetString(document.ToPdf(null, null, TestContext.Current.CancellationToken)));
         Assert.True(match.Success);
         Assert.Equal("842", match.Groups[1].Value);
         Assert.Equal("595.5", match.Groups[2].Value);
-        var images = document.ToImages(new ImageSaveOptions(ImageFormat.Png, 300) { RasterWriter = skia ? new SkiaRasterWriter() : null });
+        var images = document.ToImages(new ImageSaveOptions(ImageFormat.Png, 300) { RasterWriter = skia ? new SkiaRasterWriter() : null }, null, TestContext.Current.CancellationToken);
         var image = DecodedImage.Open(Assert.Single(images))!;
         Assert.Equal((3507, 2480), (image.Width, image.Height));
     }
@@ -452,8 +452,8 @@ public partial class XpsTests
     [Fact]
     public void Pdf_output_embeds_the_xps_fonts()
     {
-        var doc = XpsDocument.FromFile(Corpus.File("xps/integration/mb03.xps"));
-        Assert.Contains("/FontFile2", Encoding.Latin1.GetString(doc.ToPdf()));
+        var doc = XpsDocument.FromFile(Corpus.File("xps/integration/mb03.xps"), TestContext.Current.CancellationToken);
+        Assert.Contains("/FontFile2", Encoding.Latin1.GetString(doc.ToPdf(null, null, TestContext.Current.CancellationToken)));
         var (renderDoc, _) = XpsConverter.BuildRenderDocument(doc);
         var resolver = XpsConverter.BuildXpsFontResolver(doc.Package, renderDoc, null);
         Assert.NotNull(resolver.GetEmbeddedType42("/Resources/arial.ttf"));
@@ -479,7 +479,7 @@ public partial class XpsTests
     public void Image_output_hands_the_writer_the_xps_font_resolver()
     {
         var writer = new CountingWriter();
-        byte[] data = XpsDocument.FromFile(Corpus.File("xps/integration/mb03.xps")).ToImage(new ImageSaveOptions(ImageFormat.Png, 96) { RasterWriter = writer });
+        byte[] data = XpsDocument.FromFile(Corpus.File("xps/integration/mb03.xps"), TestContext.Current.CancellationToken).ToImage(new ImageSaveOptions(ImageFormat.Png, 96) { RasterWriter = writer }, null, TestContext.Current.CancellationToken);
         Assert.Equal("png-1"u8.ToArray(), data);
         Assert.True(writer.Seen?.HasArial);
     }
@@ -488,7 +488,7 @@ public partial class XpsTests
     public void Image_output_writes_one_image_per_fixed_page()
     {
         var writer = new CountingWriter();
-        var data = XpsDocument.FromFile(Corpus.File("xps/integration/BadColor.xps")).ToImages(new ImageSaveOptions(ImageFormat.Png, 96) { RasterWriter = writer });
+        var data = XpsDocument.FromFile(Corpus.File("xps/integration/BadColor.xps"), TestContext.Current.CancellationToken).ToImages(new ImageSaveOptions(ImageFormat.Png, 96) { RasterWriter = writer }, null, TestContext.Current.CancellationToken);
         Assert.Equal(["png-1", "png-2", "png-3"], data.Select(Encoding.ASCII.GetString));
         Assert.Equal(3, writer.PageWidths.Count);
         Assert.All(writer.PageWidths, w => Assert.Equal(writer.PageWidths[0], w));
@@ -497,7 +497,7 @@ public partial class XpsTests
     [Fact]
     public void Large_character_sets_embed_as_type0()
     {
-        var doc = XpsDocument.FromFile(Corpus.File("xps/integration/OSHARED-36877.xps"));
+        var doc = XpsDocument.FromFile(Corpus.File("xps/integration/OSHARED-36877.xps"), TestContext.Current.CancellationToken);
         var (renderDoc, _) = XpsConverter.BuildRenderDocument(doc);
         var resolver = XpsConverter.BuildXpsFontResolver(doc.Package, renderDoc, null);
         var embedded = PdfFontEmbedder.BuildEmbeddedFont("/Resources/d4d6ef8f-9a15-4a9d-aea8-273954df915f.ODTTF", Enumerable.Range(0x21, 300).ToHashSet(), resolver);
@@ -523,7 +523,7 @@ public partial class XpsTests
     [InlineData("xps/integration/path-variants.xps", 419.40, 593.15)]
     public void Page_print_ticket_media_sizes_apply(string path, double width, double? height)
     {
-        var renderDoc = XpsDocument.FromFile(Corpus.File(path)).BuildRenderModel(forPdf: false);
+        var renderDoc = XpsDocument.FromFile(Corpus.File(path), TestContext.Current.CancellationToken).BuildRenderModel(forPdf: false);
         var page = Assert.Single(renderDoc.Pages);
         Assert.Equal(width, page.Width, 2);
         if (height is double h)
@@ -546,7 +546,7 @@ public partial class XpsTests
     {
         var doc = XpsDocument.Create();
         doc.AddPage(100, 100);
-        doc = XpsDocument.FromBytes(doc.Save());
+        doc = XpsDocument.FromBytes(doc.Save(), TestContext.Current.CancellationToken);
         doc.SetPrintTicket(PrintTicketScope.Document, PrintTicketXml);
         using var archive = new ZipArchive(new MemoryStream(doc.Save()));
         var rels = Relationships(archive, "Documents/1/_rels/FixedDoc.fdoc.rels").Where(r => (string?)r.Attribute("Type") == PrintTicketType).ToList();
@@ -559,11 +559,11 @@ public partial class XpsTests
     {
         var doc = XpsDocument.Create();
         doc.AddPage(100, 100);
-        doc = XpsDocument.FromBytes(doc.Save());
+        doc = XpsDocument.FromBytes(doc.Save(), TestContext.Current.CancellationToken);
         doc.SetPrintTicket(PrintTicketScope.Page, PrintTicketXml, pageIndex: 0);
         using (var archive = new ZipArchive(new MemoryStream(doc.Save())))
             Assert.Contains(Relationships(archive, "Documents/1/Pages/_rels/1.fpage.rels"), r => (string?)r.Attribute("Type") == PrintTicketType);
-        doc = XpsDocument.FromBytes(doc.Save());
+        doc = XpsDocument.FromBytes(doc.Save(), TestContext.Current.CancellationToken);
         doc.RemovePrintTicket(PrintTicketScope.Page, pageIndex: 0);
         using (var archive = new ZipArchive(new MemoryStream(doc.Save())))
             Assert.DoesNotContain(Relationships(archive, "Documents/1/Pages/_rels/1.fpage.rels"), r => (string?)r.Attribute("Type") == PrintTicketType);
@@ -574,7 +574,7 @@ public partial class XpsTests
     {
         var doc = XpsDocument.Create();
         doc.AddPage(100, 100);
-        doc = XpsDocument.FromBytes(doc.Save());
+        doc = XpsDocument.FromBytes(doc.Save(), TestContext.Current.CancellationToken);
         doc.SetPrintTicket(PrintTicketScope.Job, PrintTicketXml);
         var tickets = doc.GetPrintTickets();
         Assert.Contains(tickets, t => t.Scope == PrintTicketScope.Job);
@@ -616,12 +616,12 @@ public partial class XpsTests
     [Fact]
     public void Editing_an_existing_document_keeps_its_pages()
     {
-        var doc = XpsDocument.FromFile(Corpus.File("xps/integration/Simple.xps"));
+        var doc = XpsDocument.FromFile(Corpus.File("xps/integration/Simple.xps"), TestContext.Current.CancellationToken);
         doc.AddPage(100, 100);
         Assert.True(PageParts(doc.Save()).Count >= 2);
     }
 
     [Fact]
     public void Simple_xps_converts_to_pdf() =>
-        Assert.StartsWith("%PDF", Encoding.Latin1.GetString(XpsDocument.FromFile(Corpus.File("xps/integration/Simple.xps")).ToPdf()));
+        Assert.StartsWith("%PDF", Encoding.Latin1.GetString(XpsDocument.FromFile(Corpus.File("xps/integration/Simple.xps"), TestContext.Current.CancellationToken).ToPdf(null, null, TestContext.Current.CancellationToken)));
 }

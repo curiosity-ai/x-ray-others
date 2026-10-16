@@ -101,6 +101,9 @@ internal sealed partial class TextLayoutEngine
     private readonly Func<TextStyleRun?, (FontFace Face, bool Substituted)> _faceForRun;
     private readonly Func<int, FontFace?> _fallbackForCodePoint;
 
+    /// <summary>Observed per paragraph, per shaped item and per line.</summary>
+    public CancellationToken CancellationToken { get; init; }
+
     public TextLayoutEngine(Func<TextStyleRun?, (FontFace Face, bool Substituted)> faceForRun, Func<int, FontFace?> fallbackForCodePoint)
     {
         _faceForRun = faceForRun;
@@ -407,6 +410,7 @@ internal sealed partial class TextLayoutEngine
         var itemStart = 0;
         while (itemStart < length)
         {
+            CancellationToken.ThrowIfCancellationRequested();
             var styleIndex = styleOf[span.Start + itemStart];
             var itemEnd = itemStart + 1;
             while (itemEnd < length && styleOf[span.Start + itemEnd] == styleIndex && faces[itemEnd] == faces[itemStart]
@@ -679,6 +683,7 @@ internal sealed partial class TextLayoutEngine
             var lines = new List<Line>();
             foreach (var span in paragraphs)
             {
+                engine.CancellationToken.ThrowIfCancellationRequested();
                 var shaped = engine.Shape(text, styleOf, output.Styles, span, vertical: false);
                 BreakLines(shaped, box, lines);
             }
@@ -687,6 +692,7 @@ internal sealed partial class TextLayoutEngine
             double previousSpaceAfter = 0;
             for (var index = 0; index < lines.Count; index++)
             {
+                engine.CancellationToken.ThrowIfCancellationRequested();
                 var line = lines[index];
                 var properties = line.Paragraph.Span.Properties;
                 var spaceBefore = line.FirstInParagraph ? Math.Max(0, properties?.SpaceBefore ?? 0) : 0;
@@ -1051,6 +1057,7 @@ internal sealed partial class TextLayoutEngine
             var columns = new List<Column>();
             foreach (var span in paragraphs)
             {
+                engine.CancellationToken.ThrowIfCancellationRequested();
                 var shaped = engine.Shape(text, styleOf, output.Styles, span, vertical: true);
                 BuildColumns(shaped, box, columns);
             }
@@ -1059,6 +1066,7 @@ internal sealed partial class TextLayoutEngine
             double previousSpaceAfter = 0;
             for (var index = 0; index < columns.Count; index++)
             {
+                engine.CancellationToken.ThrowIfCancellationRequested();
                 var column = columns[index];
                 var properties = column.Span.Properties;
                 var em = ColumnEm(column);

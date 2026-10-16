@@ -13,8 +13,15 @@ public static partial class PsConverter
 {
     /// <summary>Interprets a document into its render model (with the viewing-orientation fix
     /// and a blank page for empty jobs applied).</summary>
-    public static PsRenderResult BuildRenderModel(PsDocument document, string? additionalFontsFolder = null)
+    public static PsRenderResult BuildRenderModel(PsDocument document, string? additionalFontsFolder = null) =>
+        BuildRenderModel(document, additionalFontsFolder, null, false, null, default);
+
+    /// <summary>Interprets a document into its render model under resource limits, optionally
+    /// recovering from errors (see <see cref="PsPipeline.BuildRenderModel(byte[], PsInterpreterLimits?, bool, List{ConversionWarning}?, CancellationToken)"/>).</summary>
+    public static PsRenderResult BuildRenderModel(PsDocument document, string? additionalFontsFolder, PsInterpreterLimits? limits,
+        bool suppressErrors, List<ConversionWarning>? warnings, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var builder = new RenderModelBuilder();
         var registry = new OperatorRegistry();
         var imageStore = new PsImageStore();
@@ -27,7 +34,9 @@ public static partial class PsConverter
         var interpreter = new PsInterpreter(registry);
         var pipeline = new PsPipeline(interpreter, registry, builder, fontResolver, imageStore);
         var bytes = document.AsBytes();
-        var renderDoc = PsInterpreter.RunWithLargeStack(() => pipeline.BuildRenderModel(bytes));
+        var effective = limits ?? PsInterpreterLimits.Default;
+        var renderDoc = PsInterpreter.RunWithLargeStack(
+            () => pipeline.BuildRenderModel(bytes, effective, suppressErrors, warnings, cancellationToken), cancellationToken, effective.MaxMemoryBytes);
         ApplyViewingOrientation(renderDoc, document.Dsc);
         EnsureNonEmptyDocument(renderDoc, document);
         return new PsRenderResult(renderDoc, imageStore, fontResolver);

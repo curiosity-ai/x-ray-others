@@ -51,7 +51,7 @@ public sealed class FontCache
                 {
                     _additionalFolder = System.IO.Path.GetFullPath(additionalFontsFolder);
                 }
-                catch (Exception)
+                catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
                 {
                     _additionalFolder = null;
                 }
@@ -154,6 +154,7 @@ public sealed class FontCache
         {
             foreach (string path in Directory.EnumerateFiles(folder, "*", new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true, AttributesToSkip = 0 }))
             {
+                Internal.Guard.Check();
                 string ext = System.IO.Path.GetExtension(path).ToLowerInvariant();
                 if (ext is not (".ttf" or ".otf"))
                     continue;
@@ -406,7 +407,7 @@ public static class SystemFonts
             string text = stdout.GetAwaiter().GetResult();
             return process.ExitCode == 0 ? text : null;
         }
-        catch (Exception)
+        catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
         {
             return null;
         }

@@ -62,16 +62,31 @@ internal static class Parallelism
             return;
         }
 
+        var token = Cancellation.Token;
+        token.ThrowIfCancellationRequested();
         var strips = StripCount(count, costPerItem);
         var degree = MaxDegree;
-        if (strips <= 1 || degree <= 1 || insideStrip)
+        if (strips <= 1 || insideStrip || (degree <= 1 && !token.CanBeCanceled))
         {
             body(0, count);
             return;
         }
 
+        if (degree <= 1)
+        {
+            // Sequential, but in strips so that a cancelled token is noticed between them.
+            // Strips are independent, so the result is the one the single call gives.
+            for (var strip = 0; strip < strips; strip++)
+            {
+                token.ThrowIfCancellationRequested();
+                body((int)((long)count * strip / strips), (int)((long)count * (strip + 1) / strips));
+            }
+
+            return;
+        }
+
         var errors = new Exception?[strips];
-        var options = new ParallelOptions { MaxDegreeOfParallelism = degree };
+        var options = new ParallelOptions { MaxDegreeOfParallelism = degree, CancellationToken = token };
         Parallel.For(0, strips, options, strip =>
         {
             var start = (int)((long)count * strip / strips);
@@ -80,6 +95,7 @@ internal static class Parallelism
             insideStrip = true;
             try
             {
+                token.ThrowIfCancellationRequested();
                 body(start, end);
             }
             catch (Exception ex)

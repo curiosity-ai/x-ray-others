@@ -63,6 +63,32 @@ public sealed class PsDocument
         };
     }
 
+    /// <summary>Loads a document from bytes, observing a cancellation token.</summary>
+    public static PsDocument FromBytes(byte[] data, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        using var guard = Guard.Begin(cancellationToken);
+        return FromBytes(data);
+    }
+
+    /// <summary>Loads a document from a file, observing a cancellation token.</summary>
+    public static PsDocument FromFile(string path, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var doc = FromBytes(File.ReadAllBytes(path), cancellationToken);
+        doc.SourcePath = path;
+        return doc;
+    }
+
+    /// <summary>Loads a document from a stream, observing a cancellation token.</summary>
+    public static PsDocument FromStream(Stream stream, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        using var ms = new MemoryStream();
+        stream.CopyToAsync(ms, cancellationToken).GetAwaiter().GetResult();
+        return FromBytes(ms.ToArray(), cancellationToken);
+    }
+
     /// <summary>Loads a document from a file.</summary>
     public static PsDocument FromFile(string path)
     {
@@ -176,12 +202,41 @@ public sealed class PsDocument
     /// <summary>Converts the document to PDF.</summary>
     public byte[] ToPdf(PdfSaveOptions? options = null) => PsConverter.ToPdf(this, options);
 
+    /// <summary>Converts the document to PDF, observing a cancellation token.</summary>
+    public byte[] ToPdf(PdfSaveOptions? options, CancellationToken cancellationToken) => PsConverter.ToPdf(this, options, cancellationToken);
+
+    /// <summary>Converts the document to PDF and writes it to <paramref name="output"/> without
+    /// building the whole PDF as one array. The stream need not be seekable.</summary>
+    public void ToPdf(Stream output, PdfSaveOptions? options = null, CancellationToken cancellationToken = default) =>
+        PsConverter.ToPdf(this, output, options, cancellationToken);
+
     /// <summary>Renders the first page to a raster image.</summary>
     public byte[] ToImage(ImageSaveOptions options) => PsConverter.ToImage(this, options);
+
+    /// <summary>Renders the first page to a raster image, observing a cancellation token.</summary>
+    public byte[] ToImage(ImageSaveOptions options, CancellationToken cancellationToken) => PsConverter.ToImage(this, options, cancellationToken);
+
+    /// <summary>Renders the first page and writes the image to <paramref name="output"/>.</summary>
+    public void ToImage(ImageSaveOptions options, Stream output, CancellationToken cancellationToken = default) =>
+        PsConverter.ToImage(this, options, output, cancellationToken);
+
+    /// <summary>Renders every page to an image.</summary>
+    public List<byte[]> ToImages(ImageSaveOptions options, CancellationToken cancellationToken = default) =>
+        PsConverter.ToImages(this, options, cancellationToken);
+
+    /// <summary>Renders every page to an image, taking each page's stream (zero-based index)
+    /// from <paramref name="streamForPage"/>.</summary>
+    public void ToImages(ImageSaveOptions options, Func<int, Stream> streamForPage, CancellationToken cancellationToken = default) =>
+        PsConverter.ToImages(this, options, streamForPage, cancellationToken);
 
     /// <summary>Interprets the document and returns its render model.</summary>
     public Rendering.RenderDocument BuildRenderModel(string? additionalFontsFolder = null) =>
         PsConverter.BuildRenderModel(this, additionalFontsFolder).Document;
+
+    /// <summary>Interprets the document under resource limits, observing a cancellation token.</summary>
+    public Rendering.RenderDocument BuildRenderModel(string? additionalFontsFolder, PsInterpreterLimits? limits, bool suppressErrors,
+        List<ConversionWarning>? warnings, CancellationToken cancellationToken) =>
+        PsConverter.BuildRenderModel(this, additionalFontsFolder, limits, suppressErrors, warnings, cancellationToken).Document;
 
     internal static bool DetectEps(byte[] data)
     {
@@ -212,8 +267,10 @@ public sealed class PsDocument
         var current = new List<string>();
         bool inPage = false;
         bool inTrailer = false;
+        int polls = 0;
         foreach (string line in lines)
         {
+            Guard.Every(ref polls, 0x3FFF);
             if (line.StartsWith("%%Page:", StringComparison.Ordinal) && !inTrailer)
             {
                 if (inPage)

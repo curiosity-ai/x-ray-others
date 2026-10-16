@@ -3,6 +3,7 @@
 
 using XRay.PS.Fonts;
 using XRay.PS.Imaging;
+using XRay.PS.PostScript;
 
 namespace XRay.PS;
 
@@ -18,6 +19,29 @@ public sealed class PdfSaveOptions
     /// <summary>XPS only: renders opacity-masked content to images for the PDF. The built-in
     /// managed rasterizer when null; the optional Skia writer reproduces the original output.</summary>
     public IRasterWriter? MaskRasterizer { get; set; }
+
+    /// <summary>Re-encode embedded raw 8-bit gray and RGB images as JPEG at this quality
+    /// (1-100), when that is smaller than the deflated pixels. Null (the default) passes images
+    /// through unchanged. Images that are already compressed, masks, and other color spaces are
+    /// never touched.</summary>
+    public int? JpegQuality { get; set; }
+
+    /// <summary>Recover from errors instead of throwing. PostScript: on a fatal error the page
+    /// being drawn is abandoned but kept as drawn so far, interpretation resumes after the next
+    /// <c>showpage</c>, and a warning is recorded; a runaway job (an exceeded
+    /// <see cref="Limits"/> ceiling) ends interpretation and keeps the pages so far. XPS: an
+    /// element that cannot be rendered is skipped and a warning is recorded. Cancellation is
+    /// never suppressed. Default false: the first error throws.</summary>
+    public bool SuppressErrors { get; set; }
+
+    /// <summary>Receives a <see cref="ConversionWarning"/> for every error suppressed by
+    /// <see cref="SuppressErrors"/>. Entries are appended, never cleared, so use a fresh
+    /// options object (or clear the list) per document.</summary>
+    public List<ConversionWarning> Warnings { get; set; } = [];
+
+    /// <summary>Ceilings on the work and memory of a PostScript job (not used for XPS). The
+    /// defaults apply when null.</summary>
+    public PsInterpreterLimits? Limits { get; set; }
 }
 
 /// <summary>Raster output formats.</summary>
@@ -62,6 +86,24 @@ public sealed class ImageSaveOptions
     /// <summary>JPEG quality (1-100); null uses the writer's default (75 for the managed
     /// writer, 80 for the Skia writer, as in the original).</summary>
     public int? JpegQuality { get; set; }
+
+    /// <summary>PostScript: recover from errors instead of throwing, as
+    /// <see cref="PdfSaveOptions.SuppressErrors"/>. XPS: skip unrenderable elements.</summary>
+    public bool SuppressErrors { get; set; }
+
+    /// <summary>Receives a warning for every error suppressed by <see cref="SuppressErrors"/>.</summary>
+    public List<ConversionWarning> Warnings { get; set; } = [];
+
+    /// <summary>Ceilings on the work and memory of a PostScript job; the defaults when null. For
+    /// the page raster itself (PostScript and XPS), <see cref="PsInterpreterLimits.MaxMemoryBytes"/>
+    /// caps the pixel buffer; without <see cref="Limits"/> the cap is 4 GiB.</summary>
+    public PsInterpreterLimits? Limits { get; set; }
+
+    /// <summary>The cap on one page's pixel buffer when <see cref="Limits"/> is not set.</summary>
+    internal const long DefaultMaxRasterBytes = 4L << 30;
+
+    /// <summary>The cap on one page's pixel buffer in effect.</summary>
+    internal long? MaxRasterBytes => Limits is { } limits ? limits.MaxMemoryBytes : DefaultMaxRasterBytes;
 
     /// <summary>Internal plumbing: the interpreter's font resolver (with embedded font
     /// registrations), reused during rasterization.</summary>

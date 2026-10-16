@@ -37,6 +37,7 @@ internal static class ChannelCodec
     /// </summary>
     public static byte[] DecodeLayerChannel(ReadOnlySpan<byte> payload, int width, int height, int depth, bool large)
     {
+        Cancellation.Check();
         var rowBytes = RowBytes(width, depth);
         var output = new byte[BufferLength((long)rowBytes * height)];
         if (width <= 0 || height <= 0 || payload.Length < 2)
@@ -90,6 +91,7 @@ internal static class ChannelCodec
     /// </summary>
     public static byte[] DecodeLayerChannelRows(ByteRange payload, int width, int height, int depth, bool large, int first, int end, ZipRowReader? zip = null)
     {
+        Cancellation.Check();
         var rowBytes = RowBytes(width, depth);
         first = Math.Clamp(first, 0, Math.Max(0, height));
         end = Math.Clamp(end, first, Math.Max(0, height));
@@ -315,6 +317,7 @@ internal static class ChannelCodec
             {
                 while (total < destination.Length)
                 {
+                    Cancellation.Check();
                     var read = zlib.Read(destination[total..]);
                     if (read == 0)
                     {

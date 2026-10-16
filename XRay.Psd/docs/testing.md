@@ -22,6 +22,10 @@ To add a fixture, commit it to `psd/` in test_documents (with its license if it 
 - `BandRenderingTests`: band rendering against the whole render for every fixture (and their truncated and mutated copies), and the streamed PNG against `ToPng`.
 - `LargeDocumentTests` (opt-in, `XRAY_PSD_LARGE=1`, about two minutes): a sparse 50000 x 43000 PSB written to the temporary directory, with channels and a merged image past 2 GB, rendered in bands and deleted.
 
+## Cancellation
+
+`CancellationTests` covers the token on every entry point: a cancelled token throws `OperationCanceledException` from load (bytes, memory, stream, path, memory-mapped, async), render, bands, PNG and JPEG output, text extraction, merged image, layer pixels, the encoders and the thumbnail writer; cancelling part way stops the compositor between layers (a `LayerVisibility` callback cancels on its fourth call), a band sequence between bands, a parse of 60000 layer records (timer), a load whose stream cancels while it is read, and `Parallelism.For` between strips at degrees 1 and 4. A token that is never cancelled changes nothing: renders, bands, PNG bytes, merged image, text and layer pixels are compared with and without it. The stream outputs are compared with the `byte[]` forms (JPEG bytes equal; PNG pixels equal, bytes equal for one deflate segment). The xUnit1051 analyzer, which asks for a token on every call to a method that accepts one, is disabled in the three test projects: the existing tests call the token-less forms on purpose.
+
 ## Robustness
 
 The rule in CLAUDE.md is that only `PsdFormatException` may escape `PsdDocument.Load`, `Render` and `ExtractText`. Three layers check it.

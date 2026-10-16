@@ -778,6 +778,7 @@ public sealed partial class XpsRenderer
         }
         while (idx < tokens.Count)
         {
+            Guard.Check();
             // The original looped forever on a curve with too few numbers left; stop instead.
             int iterationStart = idx;
             string token = tokens[idx];
@@ -959,6 +960,7 @@ public sealed partial class XpsRenderer
         int idx = 0;
         while (idx < tokens.Count)
         {
+            Guard.Check();
             string token = tokens[idx];
             if (idx + 2 < tokens.Count && WholeNumber().IsMatch(token) && tokens[idx + 1] is "e" or "E" && WholeNumber().IsMatch(tokens[idx + 2]))
             {

@@ -102,7 +102,7 @@ public sealed class FontResolver
                 var glyphWidths = TtfMetrics.GlyphWidthsFromEncoding(codeWidths, Encodings.Standard);
                 return new FontResource(fontName, "Type42", units, Encodings.Standard, glyphWidths, true, CodeWidths: codeWidths);
             }
-            catch (Exception)
+            catch (Exception exc) when (exc is not (OperationCanceledException or PostScript.PsResourceLimitError))
             {
                 return FallbackLiberation(fontName);
             }

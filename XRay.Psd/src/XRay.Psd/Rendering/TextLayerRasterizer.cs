@@ -17,6 +17,13 @@ public interface ITextLayerRasterizer
     /// those, as it does for stored pixels). Returns null to keep the stored pixels.
     /// </summary>
     TextLayerRaster? Rasterize(PsdLayer layer);
+
+    /// <summary>
+    /// <see cref="Rasterize(PsdLayer)"/> observing the cancellation token of the render in
+    /// progress. The compositor calls this overload; the default ignores the token, so an
+    /// implementation written before it existed keeps working.
+    /// </summary>
+    TextLayerRaster? Rasterize(PsdLayer layer, CancellationToken cancellationToken) => Rasterize(layer);
 }
 
 /// <summary>Which type layers <see cref="RenderOptions.TextRasterizer"/> draws.</summary>

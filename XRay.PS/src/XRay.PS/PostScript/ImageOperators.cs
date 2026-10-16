@@ -152,6 +152,7 @@ public static class ImageOperators
         if (bits != 8)
             throw new PsUndefinedError("multi-source colorimage supports 8-bit components only");
         long pixelCount = Math.Max(0, (long)width * height);
+        Guard.Charge(pixelCount * colorComponents, "image");
         var interleaved = new byte[pixelCount * colorComponents];
         int rowBytes = (int)ExpectedDataLength(width, 1, bits, 1, false);
         var specs = sources.Select(s => s is PsProcedure p ? CurrentfileReadSpec(p) : null).ToList();
@@ -198,6 +199,7 @@ public static class ImageOperators
         var normalized = NormalizeImageMatrix(imageMatrix, width, height);
         var effective = TextOperators.Multiply(State(ctx).Ctm, normalized);
         long expectedBytes = ExpectedDataLength(width, height, bits, colorComponents, mask);
+        Guard.Charge(expectedBytes, "image");
         var filterResult = ExtractFilteredImageSource(ctx, dataSource, expectedBytes, filters ?? []);
         byte[] imageData = filterResult.Data;
         if (filterResult.RemainingFilter is null)
@@ -363,6 +365,7 @@ public static class ImageOperators
         long expected = rowBytes * height;
         if (data.Length < expected)
             return null;
+        Guard.Charge((long)width * height * components, "image");
         var output = new byte[(long)width * height * components];
         long write = 0;
         int mask = (1 << bits) - 1;

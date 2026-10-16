@@ -44,7 +44,32 @@ public static class JpegEncoder
 
     private static readonly float[] DctMatrix = BuildDctMatrix();
 
-    public static byte[] Encode(RgbaImage image, int quality = 90, PsdColor? background = null)
+    public static byte[] Encode(RgbaImage image, int quality = 90, PsdColor? background = null) =>
+        Encode(image, quality, background, default);
+
+    /// <summary>Encodes as baseline JPEG, observing a cancellation token.</summary>
+    public static byte[] Encode(RgbaImage image, int quality, PsdColor? background, CancellationToken cancellationToken)
+    {
+        using var output = new MemoryStream();
+        Encode(image, output, quality, background, cancellationToken);
+        return output.ToArray();
+    }
+
+    /// <summary>
+    /// Encodes as baseline JPEG into <paramref name="output"/>. The quantized blocks are held
+    /// (the Huffman tables are optimized for the whole image, so the headers need every
+    /// symbol counted), but the compressed bytes go to the stream as they are produced, never
+    /// as one array. The stream is not disposed.
+    /// </summary>
+    public static void Encode(RgbaImage image, Stream output, int quality = 90, PsdColor? background = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(output);
+        using var scope = Cancellation.Use(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        EncodeCore(image, output, quality, background);
+    }
+
+    private static void EncodeCore(RgbaImage image, Stream output, int quality, PsdColor? background)
     {
         ArgumentNullException.ThrowIfNull(image);
         if (image.Width == 0 || image.Height == 0 || image.Width > 65535 || image.Height > 65535)
@@ -146,7 +171,6 @@ public static class JpegEncoder
         var dcTables = new[] { HuffmanTable.Build(dcFrequency[0]), HuffmanTable.Build(dcFrequency[1]) };
         var acTables = new[] { HuffmanTable.Build(acFrequency[0]), HuffmanTable.Build(acFrequency[1]) };
 
-        using var output = new MemoryStream();
         WriteHeaders(output, width, height, subsample, luminanceTable, chrominanceTable, dcTables, acTables);
         var writer = new BitWriter(output);
         var symbolWriter = new SymbolWriter(writer, dcTables, acTables);
@@ -154,7 +178,6 @@ public static class JpegEncoder
         writer.Flush();
         output.WriteByte(0xFF);
         output.WriteByte(0xD9);
-        return output.ToArray();
     }
 
     /// <summary>Receives the entropy-coding symbols of <see cref="Traverse{TSink}"/>; a struct so the calls inline.</summary>
@@ -204,6 +227,11 @@ public static class JpegEncoder
 
         for (var i = startBlock; i < endBlock; i++)
         {
+            if ((i & 0x3FF) == 0)
+            {
+                Cancellation.Check();
+            }
+
             var position = i % blocksPerMcu;
             int component = blocksPerMcu == 6 ? (position < 4 ? 0 : position - 3) : position;
             var table = component == 0 ? 0 : 1;
@@ -677,6 +705,8 @@ public static class JpegEncoder
 
     private sealed class BitWriter(Stream output)
     {
+        private readonly byte[] _bytes = new byte[1 << 16];
+        private int _length;
         private uint _buffer;
         private int _count;
 
@@ -687,22 +717,36 @@ public static class JpegEncoder
             while (_count >= 8)
             {
                 var b = (byte)(_buffer >> (_count - 8));
-                output.WriteByte(b);
+                if (_length >= _bytes.Length - 2)
+                {
+                    Drain();
+                }
+
+                _bytes[_length++] = b;
                 if (b == 0xFF)
                 {
-                    output.WriteByte(0);
+                    _bytes[_length++] = 0;
                 }
 
                 _count -= 8;
             }
         }
 
+        /// <summary>Pads the last byte with ones and writes everything held to the stream.</summary>
         public void Flush()
         {
             if (_count > 0)
             {
                 Write(0x7F, 8 - _count);
             }
+
+            Drain();
+        }
+
+        private void Drain()
+        {
+            output.Write(_bytes, 0, _length);
+            _length = 0;
         }
     }
 }

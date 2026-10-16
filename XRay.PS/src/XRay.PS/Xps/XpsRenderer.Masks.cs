@@ -60,6 +60,7 @@ public sealed partial class XpsRenderer
         double pageHeight = page.Height;
         for (int py = 0; py < resource.Height; py++)
         {
+            Guard.Check();
             double userY = pageHeight - (py + 0.5) / scaleY;
             int row = py * resource.Width;
             for (int px = 0; px < resource.Width; px++)
@@ -128,6 +129,7 @@ public sealed partial class XpsRenderer
         double pageHeight = page.Height;
         for (int py = 0; py < cropHeight; py++)
         {
+            Guard.Check();
             int srcY = y1 - 1 - py;
             double userY = pageHeight - (srcY + 0.5) / scaleY;
             for (int px = 0; px < cropWidth; px++)
@@ -206,6 +208,7 @@ public sealed partial class XpsRenderer
         int minX = width, minY = height, maxX = -1, maxY = -1;
         for (int y = 0; y < height; y++)
         {
+            Guard.Check();
             int row = y * width;
             for (int x = 0; x < width; x++)
             {
@@ -254,6 +257,7 @@ public sealed partial class XpsRenderer
         byte r = ToByte01(rgb.R), g = ToByte01(rgb.G), b = ToByte01(rgb.B);
         for (int py = 0; py < heightPx; py++)
         {
+            Guard.Check();
             double userY = bbox.Y0 + (py + 0.5) / rasterScale;
             for (int px = 0; px < widthPx; px++)
             {
@@ -323,6 +327,7 @@ public sealed partial class XpsRenderer
         byte r = ToByte01(fillRgb.R), g = ToByte01(fillRgb.G), b = ToByte01(fillRgb.B);
         for (int py = 0; py < heightPx; py++)
         {
+            Guard.Check();
             double userY = by0 + (py + 0.5) / rasterScale;
             for (int px = 0; px < widthPx; px++)
             {
@@ -383,6 +388,7 @@ public sealed partial class XpsRenderer
         var alphaBytes = new byte[widthPx * heightPx];
         for (int py = 0; py < heightPx; py++)
         {
+            Guard.Check();
             double userY = by0 + (py + 0.5) / rasterScale;
             for (int px = 0; px < widthPx; px++)
             {
@@ -470,6 +476,7 @@ public sealed partial class XpsRenderer
         var alphaBytes = new byte[widthPx * heightPx];
         for (int py = 0; py < heightPx; py++)
         {
+            Guard.Check();
             double userY = by1 - py / rasterScale;
             for (int px = 0; px < widthPx; px++)
             {
@@ -520,6 +527,7 @@ public sealed partial class XpsRenderer
         var alphaBytes = new byte[widthPx * heightPx];
         for (int py = 0; py < heightPx; py++)
         {
+            Guard.Check();
             double userY = bbox.Y1 - (py + 0.5) / rasterScale;
             for (int px = 0; px < widthPx; px++)
             {
@@ -560,6 +568,7 @@ public sealed partial class XpsRenderer
         var alphaBytes = new byte[widthPx * heightPx];
         for (int py = 0; py < heightPx; py++)
         {
+            Guard.Check();
             double userY = bbox.Y1 - (py + 0.5) / rasterScale;
             for (int px = 0; px < widthPx; px++)
             {
@@ -747,6 +756,7 @@ public sealed partial class XpsRenderer
         byte[] baseImage = tileW == width && tileH == height ? (byte[])tile[..(width * height * 3)].Clone() : PillowResample.ResizeRgb(tile, tileW, tileH, width, height, ResampleFilter.Bicubic);
         for (int yy = 0; yy < height; yy++)
         {
+            Guard.Check();
             double py = viewport.Y + yy + 0.5;
             for (int xx = 0; xx < width; xx++)
             {

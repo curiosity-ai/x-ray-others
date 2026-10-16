@@ -15,6 +15,17 @@ public static class RasterEncoders
     /// pHYs chunk when <paramref name="dpi"/> is given.</summary>
     public static byte[] EncodePng(RasterSurface surface, int? dpi = null)
     {
+        using var ms = new MemoryStream();
+        WritePng(surface, ms, dpi);
+        return ms.ToArray();
+    }
+
+    /// <summary>Encodes the surface as PNG straight into <paramref name="output"/>: rows are
+    /// filtered and deflated as they are produced and written in IDAT chunks of up to
+    /// 8 MiB, so neither the raw scanlines nor the compressed image exist as one array.</summary>
+    public static void WritePng(RasterSurface surface, Stream output, int? dpi = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(output);
         int width = surface.Width;
         int height = surface.Height;
         var pixels = surface.Pixels;
@@ -28,41 +39,102 @@ public static class RasterEncoders
             }
         }
         int channels = hasAlpha ? 4 : 3;
-        var raw = new byte[(long)height * (1 + width * channels)];
-        int o = 0;
-        for (int y = 0; y < height; y++)
-        {
-            raw[o++] = 0;
-            int row = y * width * 4;
-            if (hasAlpha)
-            {
-                Buffer.BlockCopy(pixels, row, raw, o, width * 4);
-                o += width * 4;
-            }
-            else
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    int idx = row + x * 4;
-                    raw[o++] = pixels[idx];
-                    raw[o++] = pixels[idx + 1];
-                    raw[o++] = pixels[idx + 2];
-                }
-            }
-        }
-        byte[] compressed = Zlib.Compress(raw);
         var ihdr = new byte[13];
         BinaryPrimitives.WriteUInt32BigEndian(ihdr, (uint)width);
         BinaryPrimitives.WriteUInt32BigEndian(ihdr.AsSpan(4), (uint)height);
         ihdr[8] = 8;
         ihdr[9] = (byte)(hasAlpha ? 6 : 2);
-        using var ms = new MemoryStream();
-        ms.Write(PngSignature);
-        WritePngChunk(ms, "IHDR"u8, ihdr);
-        WritePngChunk(ms, "IDAT"u8, compressed);
-        WritePngChunk(ms, "IEND"u8, []);
-        byte[] data = ms.ToArray();
-        return dpi is int d ? AddPngDpi(data, d) : data;
+        output.Write(PngSignature);
+        WritePngChunk(output, "IHDR"u8, ihdr);
+        if (dpi is int d && d > 0)
+        {
+            uint ppm = (uint)Py.Round(d / 0.0254);
+            var phys = new byte[9];
+            BinaryPrimitives.WriteUInt32BigEndian(phys, ppm);
+            BinaryPrimitives.WriteUInt32BigEndian(phys.AsSpan(4), ppm);
+            phys[8] = 1;
+            WritePngChunk(output, "pHYs"u8, phys);
+        }
+        using (var idat = new IdatStream(output))
+        {
+            using var z = new System.IO.Compression.ZLibStream(idat, System.IO.Compression.CompressionLevel.Optimal, leaveOpen: true);
+            var row = new byte[1 + width * channels];
+            for (int y = 0; y < height; y++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                int src = y * width * 4;
+                row[0] = 0;
+                if (hasAlpha)
+                {
+                    Buffer.BlockCopy(pixels, src, row, 1, width * 4);
+                }
+                else
+                {
+                    int o = 1;
+                    for (int x = 0; x < width; x++)
+                    {
+                        int idx = src + x * 4;
+                        row[o++] = pixels[idx];
+                        row[o++] = pixels[idx + 1];
+                        row[o++] = pixels[idx + 2];
+                    }
+                }
+                z.Write(row);
+            }
+        }
+        WritePngChunk(output, "IEND"u8, []);
+        output.Flush();
+    }
+
+    // Collects deflate output and emits it as IDAT chunks.
+    private sealed class IdatStream(Stream output) : Stream
+    {
+        private const int ChunkSize = 8 * 1024 * 1024;
+        private readonly byte[] _buffer = new byte[ChunkSize];
+        private int _count;
+        private bool _any;
+
+        public override void Write(ReadOnlySpan<byte> data)
+        {
+            while (!data.IsEmpty)
+            {
+                int n = Math.Min(data.Length, ChunkSize - _count);
+                data[..n].CopyTo(_buffer.AsSpan(_count));
+                _count += n;
+                data = data[n..];
+                if (_count == ChunkSize)
+                    Emit();
+            }
+        }
+
+        public override void Write(byte[] buffer, int offset, int count) => Write(buffer.AsSpan(offset, count));
+
+        private void Emit()
+        {
+            WritePngChunk(output, "IDAT"u8, _buffer.AsSpan(0, _count));
+            _count = 0;
+            _any = true;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (_count > 0 || !_any))
+                Emit();
+            base.Dispose(disposing);
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
     }
 
     /// <summary>Inserts or replaces the pHYs chunk with DPI metadata.</summary>
@@ -70,29 +142,42 @@ public static class RasterEncoders
     {
         if (dpi <= 0 || !data.AsSpan().StartsWith(PngSignature))
             return data;
+        using var output = new MemoryStream();
+        AddPngDpi(data, dpi, output);
+        return output.ToArray();
+    }
+
+    /// <summary>Writes the PNG in <paramref name="data"/> to <paramref name="output"/> with its
+    /// pHYs chunk set to <paramref name="dpi"/>; data that is not a PNG is copied unchanged.</summary>
+    public static void AddPngDpi(ReadOnlySpan<byte> data, int dpi, Stream output)
+    {
+        if (dpi <= 0 || !data.StartsWith(PngSignature))
+        {
+            output.Write(data);
+            return;
+        }
         uint ppm = (uint)Py.Round(dpi / 0.0254);
         var phys = new byte[9];
         BinaryPrimitives.WriteUInt32BigEndian(phys, ppm);
         BinaryPrimitives.WriteUInt32BigEndian(phys.AsSpan(4), ppm);
         phys[8] = 1;
-        using var output = new MemoryStream();
         output.Write(PngSignature);
         int idx = PngSignature.Length;
         Span<byte> len = stackalloc byte[4];
         bool inserted = false;
         while (idx + 8 <= data.Length)
         {
-            long length = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(idx));
+            long length = BinaryPrimitives.ReadUInt32BigEndian(data[idx..]);
             idx += 4;
-            var ctype = data.AsSpan(idx, 4).ToArray();
+            var ctype = data.Slice(idx, 4);
             idx += 4;
             int chunkLen = (int)Math.Min(length, Math.Max(0, data.Length - idx));
-            var chunk = data.AsSpan(idx, chunkLen).ToArray();
+            var chunk = data.Slice(idx, chunkLen);
             idx = (int)Math.Min((long)idx + length, data.Length);
             int crcLen = Math.Min(4, data.Length - idx);
-            var crc = data.AsSpan(idx, crcLen).ToArray();
+            var crc = data.Slice(idx, crcLen);
             idx += 4;
-            if (ctype.AsSpan().SequenceEqual("pHYs"u8))
+            if (ctype.SequenceEqual("pHYs"u8))
             {
                 if (!inserted)
                 {
@@ -101,7 +186,7 @@ public static class RasterEncoders
                 }
                 continue;
             }
-            if (ctype.AsSpan().SequenceEqual("IDAT"u8) && !inserted)
+            if (ctype.SequenceEqual("IDAT"u8) && !inserted)
             {
                 WritePngChunk(output, "pHYs"u8, phys);
                 inserted = true;
@@ -112,7 +197,6 @@ public static class RasterEncoders
             output.Write(chunk);
             output.Write(crc);
         }
-        return output.ToArray();
     }
 
     private static void WritePngChunk(Stream stream, ReadOnlySpan<byte> tag, ReadOnlySpan<byte> data)

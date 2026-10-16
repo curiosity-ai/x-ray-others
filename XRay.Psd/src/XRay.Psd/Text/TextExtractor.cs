@@ -58,7 +58,7 @@ public sealed record PsdTextItem(PsdTextKind Kind, string Text, string Source, P
     public TextLayerInfo? TextInfo { get; init; }
 }
 
-/// <summary>Options for <see cref="PsdDocument.ExtractText"/>.</summary>
+/// <summary>Options for <see cref="PsdDocument.ExtractText(TextExtractionOptions?)"/>.</summary>
 public sealed class TextExtractionOptions
 {
     public bool IncludeLayerNames { get; init; } = true;
@@ -122,6 +122,7 @@ internal static class TextExtractor
         var top = depth == 0;
         foreach (var layer in document.EnumerateLayersTopDown())
         {
+            Cancellation.Check();
             if (!options.IncludeHiddenLayers && !layer.IsEffectivelyVisible)
             {
                 continue;
@@ -242,6 +243,7 @@ internal static class TextExtractor
 
         foreach (var textObject in engine.Objects)
         {
+            Cancellation.Check();
             if (textObject.Text.Length == 0)
             {
                 continue;

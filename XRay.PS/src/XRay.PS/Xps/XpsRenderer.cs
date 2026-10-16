@@ -30,6 +30,20 @@ public sealed partial class XpsRenderer
     private readonly Dictionary<XElement, (string Tag, double[] Params, string Spread)> _gradientGeometryCache = new(ReferenceEqualityComparer.Instance);
     private int _depth;
 
+    /// <summary>Observed per element.</summary>
+    public CancellationToken CancellationToken { get; set; }
+
+    /// <summary>Skip (with a warning) an element that throws instead of failing the page.</summary>
+    public bool SuppressErrors { get; set; }
+
+    /// <summary>Receives a warning for every skipped element.</summary>
+    public List<ConversionWarning>? Warnings { get; set; }
+
+    /// <summary>The one-based number of the page being rendered, for warnings.</summary>
+    public int? PageNumber { get; set; }
+
+    internal static bool IsRecoverable(Exception ex) => ex is not (OperationCanceledException or OutOfMemoryException or StackOverflowException);
+
     /// <summary>Creates a renderer.</summary>
     /// <param name="builder">The render model under construction.</param>
     /// <param name="imageStore">Receives decoded images.</param>
@@ -87,10 +101,21 @@ public sealed partial class XpsRenderer
         // Nesting depth is bounded for hostile documents.
         if (_depth > 256)
             return;
+        CancellationToken.ThrowIfCancellationRequested();
         _depth++;
+        int commandCount = _builder.ActivePage?.Commands.Count ?? 0;
         try
         {
             RenderElementCore(element, resources, transform);
+        }
+        catch (Exception ex) when (SuppressErrors && IsRecoverable(ex))
+        {
+            // Skip the element: drop whatever it had already drawn (a half-drawn element can
+            // leave a state save without its restore).
+            var commands = _builder.ActivePage?.Commands;
+            if (commands is not null && commands.Count > commandCount)
+                commands.RemoveRange(commandCount, commands.Count - commandCount);
+            Warnings?.Add(new ConversionWarning("xps", "element", $"{element.Name.LocalName}: {ex.Message}", PageNumber));
         }
         finally
         {
@@ -559,7 +584,7 @@ public sealed partial class XpsRenderer
             byte[] data = DeobfuscateOdttfBytes(part, _package.Read(part));
             font = new TrueTypeFont(data);
         }
-        catch (Exception ex) when (ex is not OutOfMemoryException)
+        catch (Exception ex) when (ex is not (OutOfMemoryException or OperationCanceledException))
         {
             font = null;
         }
@@ -584,7 +609,7 @@ public sealed partial class XpsRenderer
             var (units, widths) = TtfMetrics.Parse(data);
             metrics = (units, widths);
         }
-        catch (Exception ex) when (ex is not OutOfMemoryException)
+        catch (Exception ex) when (ex is not (OutOfMemoryException or OperationCanceledException))
         {
             metrics = (1000.0, new Dictionary<int, double>());
         }

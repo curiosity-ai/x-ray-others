@@ -35,7 +35,7 @@ public sealed class PsdLoadOptions
 
 /// <summary>
 /// A Photoshop document (PSD or PSB) parsed into memory. Pixel data stays
-/// compressed until rendering or <see cref="PsdLayer.GetPixels"/> decodes it,
+/// compressed until rendering or <see cref="PsdLayer.GetPixels()"/> decodes it,
 /// so text extraction and inspection stay cheap.
 /// </summary>
 /// <remarks>
@@ -189,6 +189,26 @@ public sealed class PsdDocument : IDisposable
     }
 
     /// <summary>
+    /// Loads a file, observing a cancellation token: while the file is read and at every layer
+    /// record, tagged block and channel the parser walks. A cancelled load throws
+    /// <see cref="OperationCanceledException"/> and releases a memory mapping it had opened.
+    /// </summary>
+    public static PsdDocument Load(string path, PsdLoadOptions? options, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        cancellationToken.ThrowIfCancellationRequested();
+        using var scope = Cancellation.Use(cancellationToken);
+        options ??= new PsdLoadOptions();
+        if (options.MemoryMap || new FileInfo(path).Length > Array.MaxLength)
+        {
+            return LoadMapped(path, options);
+        }
+
+        using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 16, FileOptions.SequentialScan);
+        return Load(StreamLoader.ReadAll(file, cancellationToken), options, cancellationToken);
+    }
+
+    /// <summary>
     /// Loads from a stream, reading it from its current position to the end. A seekable
     /// stream is read straight into one array of the remaining length; other streams are
     /// buffered once. The stream is not disposed.
@@ -199,12 +219,32 @@ public sealed class PsdDocument : IDisposable
         return Load(StreamLoader.ReadAll(stream), options);
     }
 
+    /// <summary>Loads from a stream (see <see cref="Load(Stream, PsdLoadOptions?)"/>), observing a cancellation token while reading and parsing.</summary>
+    public static PsdDocument Load(Stream stream, PsdLoadOptions? options, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        cancellationToken.ThrowIfCancellationRequested();
+        return Load(StreamLoader.ReadAll(stream, cancellationToken), options, cancellationToken);
+    }
+
     public static PsdDocument Load(byte[] data, PsdLoadOptions? options = null) => Load(new ReadOnlyMemory<byte>(data), options);
+
+    /// <summary>Loads from bytes, observing a cancellation token while parsing.</summary>
+    public static PsdDocument Load(byte[] data, PsdLoadOptions? options, CancellationToken cancellationToken) =>
+        Load(new ReadOnlyMemory<byte>(data), options, cancellationToken);
 
     public static PsdDocument Load(ReadOnlyMemory<byte> data, PsdLoadOptions? options = null)
     {
         options ??= new PsdLoadOptions();
         return PsdParser.Parse(data, options);
+    }
+
+    /// <summary>Loads from memory, observing a cancellation token at every layer record, tagged block and channel the parser walks.</summary>
+    public static PsdDocument Load(ReadOnlyMemory<byte> data, PsdLoadOptions? options, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        using var scope = Cancellation.Use(cancellationToken);
+        return Load(data, options);
     }
 
     /// <summary>
@@ -220,14 +260,14 @@ public sealed class PsdDocument : IDisposable
         if (options.MemoryMap || new FileInfo(path).Length > Array.MaxLength)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return LoadMapped(path, options);
+            return Load(path, options, cancellationToken);
         }
 
         var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1, FileOptions.Asynchronous | FileOptions.SequentialScan);
         await using (stream.ConfigureAwait(false))
         {
             var data = await StreamLoader.ReadAllAsync(stream, cancellationToken).ConfigureAwait(false);
-            return Load(data, options);
+            return Load(data, options, cancellationToken);
         }
     }
 
@@ -236,7 +276,7 @@ public sealed class PsdDocument : IDisposable
     {
         ArgumentNullException.ThrowIfNull(stream);
         var data = await StreamLoader.ReadAllAsync(stream, cancellationToken).ConfigureAwait(false);
-        return Load(data, options);
+        return Load(data, options, cancellationToken);
     }
 
     private static PsdDocument LoadMapped(string path, PsdLoadOptions options)
@@ -309,21 +349,52 @@ public sealed class PsdDocument : IDisposable
     /// <summary>Decodes the merged (flattened) image Photoshop stored in the file.</summary>
     public RgbaImage GetMergedImage() => MergedImageDecoder.Decode(this).ToRgba(Bounds);
 
+    /// <summary>Decodes the merged image (see <see cref="GetMergedImage()"/>), observing a cancellation token while the channels decode.</summary>
+    public RgbaImage GetMergedImage(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        using var scope = Cancellation.Use(cancellationToken);
+        return GetMergedImage();
+    }
+
     /// <summary>Renders the document to 8-bit RGBA. See <see cref="RenderOptions"/> for the source choice.</summary>
     public RgbaImage Render(RenderOptions? options = null) => PsdRenderer.Render(this, options ?? new RenderOptions());
 
     /// <summary>
+    /// Renders the document (see <see cref="Render(RenderOptions?)"/>), observing a cancellation
+    /// token: between layers, between the strips of every parallel pass (no new strip starts once
+    /// the token is cancelled) and while channels decode. A cancelled render throws
+    /// <see cref="OperationCanceledException"/>; the pixels of a render that completes do not
+    /// depend on the token.
+    /// </summary>
+    public RgbaImage Render(RenderOptions? options, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        using var scope = Cancellation.Use(cancellationToken);
+        return PsdRenderer.Render(this, options ?? new RenderOptions());
+    }
+
+    /// <summary>
     /// Renders the document in horizontal bands of <see cref="RenderOptions.BandHeight"/> rows,
     /// top to bottom, each rendered when the sequence reaches it. The bands' pixels are
-    /// identical to the same rows of <see cref="Render"/>, but only one band of the canvas is
-    /// held at a time, so documents too large for <see cref="Render"/> (past about 46000 x 46000
+    /// identical to the same rows of <see cref="Render(RenderOptions?)"/>, but only one band of the canvas is
+    /// held at a time, so documents too large for <see cref="Render(RenderOptions?)"/> (past about 46000 x 46000
     /// pixels, or too large for memory) can render. Layers with effects, groups with effects,
     /// feathered masks, stroked shapes and re-rendered type still work on their whole extent.
     /// </summary>
     public IEnumerable<RenderBand> RenderBands(RenderOptions? options = null) => PsdRenderer.RenderBands(this, options ?? new RenderOptions());
 
     /// <summary>
-    /// Renders the document band by band (<see cref="RenderBands"/>) straight into a PNG
+    /// Renders band by band (see <see cref="RenderBands(RenderOptions?)"/>), observing a
+    /// cancellation token while each band renders and between bands. The token is read when
+    /// the sequence is enumerated, so a sequence can be cancelled between bands by cancelling
+    /// the token passed here.
+    /// </summary>
+    public IEnumerable<RenderBand> RenderBands(RenderOptions? options, CancellationToken cancellationToken) =>
+        PsdRenderer.RenderBands(this, options ?? new RenderOptions(), cancellationToken);
+
+    /// <summary>
+    /// Renders the document band by band (<see cref="RenderBands(RenderOptions?)"/>) straight into a PNG
     /// stream, holding one band and the deflate segments in progress. The image is RGB when it
     /// is opaque by construction (a <see cref="RenderOptions.Background"/>, or a merged image
     /// without transparency) and RGBA otherwise. The stream is not disposed.
@@ -334,6 +405,34 @@ public sealed class PsdDocument : IDisposable
         PsdRenderer.RenderToPng(this, output, options ?? new RenderOptions(), level);
     }
 
+    /// <summary>
+    /// Renders band by band into a PNG stream (see <see cref="RenderToPng(Stream, RenderOptions?, Codecs.PngCompressionLevel)"/>),
+    /// observing a cancellation token. A cancelled render stops with the PNG incomplete in
+    /// <paramref name="output"/>; discard it.
+    /// </summary>
+    public void RenderToPng(Stream output, RenderOptions? options, Codecs.PngCompressionLevel level, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(output);
+        cancellationToken.ThrowIfCancellationRequested();
+        using var scope = Cancellation.Use(cancellationToken);
+        PsdRenderer.RenderToPng(this, output, options ?? new RenderOptions(), level);
+    }
+
+    /// <summary>
+    /// Renders the document into a JPEG stream. The document is rendered once (with
+    /// <see cref="Render(RenderOptions?, CancellationToken)"/>) and the compressed bytes are
+    /// written to <paramref name="output"/> as they are produced. Transparent areas are
+    /// flattened over <paramref name="background"/> (white by default); a
+    /// <see cref="RenderOptions.Background"/> takes precedence. The stream is not disposed.
+    /// </summary>
+    public void RenderToJpeg(Stream output, int quality = 90, RenderOptions? options = null, PsdColor? background = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(output);
+        cancellationToken.ThrowIfCancellationRequested();
+        using var scope = Cancellation.Use(cancellationToken);
+        Render(options).ToJpeg(output, quality, background, cancellationToken);
+    }
+
     /// <summary>Renders the document band by band into a PNG file (see <see cref="RenderToPng(Stream, RenderOptions?, Codecs.PngCompressionLevel)"/>).</summary>
     public void RenderToPng(string path, RenderOptions? options = null, Codecs.PngCompressionLevel level = Codecs.PngCompressionLevel.Default)
     {
@@ -342,8 +441,53 @@ public sealed class PsdDocument : IDisposable
         RenderToPng(file, options, level);
     }
 
+    /// <summary>
+    /// Renders band by band into a PNG file, observing a cancellation token. A cancelled
+    /// render deletes the partial file it created.
+    /// </summary>
+    public void RenderToPng(string path, RenderOptions? options, Codecs.PngCompressionLevel level, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        cancellationToken.ThrowIfCancellationRequested();
+        var completed = false;
+        try
+        {
+            using (var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 1 << 20))
+            {
+                RenderToPng(file, options, level, cancellationToken);
+            }
+
+            completed = true;
+        }
+        finally
+        {
+            if (!completed)
+            {
+                try
+                {
+                    File.Delete(path);
+                }
+                catch (IOException)
+                {
+                    // The failure being reported matters more than the leftover file.
+                }
+                catch (UnauthorizedAccessException)
+                {
+                }
+            }
+        }
+    }
+
     /// <summary>Extracts every piece of text: layer and group names, type-layer content, channel, path and slice names, and text inside embedded smart objects.</summary>
     public PsdTextContent ExtractText(TextExtractionOptions? options = null) => TextExtractor.Extract(this, options ?? new TextExtractionOptions());
+
+    /// <summary>Extracts every piece of text (see <see cref="ExtractText(TextExtractionOptions?)"/>), observing a cancellation token per layer and per embedded smart object.</summary>
+    public PsdTextContent ExtractText(TextExtractionOptions? options, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        using var scope = Cancellation.Use(cancellationToken);
+        return TextExtractor.Extract(this, options ?? new TextExtractionOptions());
+    }
 
     public override string ToString() => $"{(IsLargeDocument ? "PSB" : "PSD")} {Width}x{Height} {ColorMode} {Depth}-bit, {_layers.Count} layers";
 }

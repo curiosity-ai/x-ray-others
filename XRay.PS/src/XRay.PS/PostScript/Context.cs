@@ -106,6 +106,23 @@ public sealed class PsExecutionContext
     public bool InType3Glyph { get; set; }
     public Dictionary<string, string> TextFontOverrides { get; set; } = new(StringComparer.Ordinal);
 
+    /// <summary>Ceilings for this execution.</summary>
+    public PsInterpreterLimits Limits { get; set; } = PsInterpreterLimits.Default;
+
+    /// <summary>Observed cooperatively by the interpreter loop.</summary>
+    public CancellationToken CancellationToken { get; set; }
+
+    /// <summary>On a recoverable error stop the page being interpreted and keep what was drawn.</summary>
+    public bool SuppressErrors { get; set; }
+
+    /// <summary>Receives a warning for each error that was suppressed.</summary>
+    public List<ConversionWarning>? Warnings { get; set; }
+
+    /// <summary>Objects and procedure calls executed so far (see <see cref="PsInterpreterLimits.MaxOperators"/>).</summary>
+    public long OperatorCount { get; set; }
+
+    internal long HeapBaseline { get; set; } = -1;
+
     /// <summary>Per-context values the operators attach (screen, transfer, CMap state, ...).</summary>
     public Dictionary<string, object?> Extras { get; } = new(StringComparer.Ordinal);
 

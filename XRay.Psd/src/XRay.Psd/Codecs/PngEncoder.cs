@@ -24,42 +24,45 @@ public static partial class PngEncoder
 
     private static readonly byte[] Signature = [0x89, (byte)'P', (byte)'N', (byte)'G', 0x0D, 0x0A, 0x1A, 0x0A];
 
-    public static byte[] Encode(RgbaImage image, bool dropAlphaIfOpaque = true, PngCompressionLevel level = PngCompressionLevel.Default)
+    public static byte[] Encode(RgbaImage image, bool dropAlphaIfOpaque = true, PngCompressionLevel level = PngCompressionLevel.Default) =>
+        Encode(image, dropAlphaIfOpaque, level, default);
+
+    /// <summary>Encodes as PNG, observing a cancellation token.</summary>
+    public static byte[] Encode(RgbaImage image, bool dropAlphaIfOpaque, PngCompressionLevel level, CancellationToken cancellationToken)
+    {
+        using var output = new MemoryStream();
+        Encode(image, output, dropAlphaIfOpaque, level, cancellationToken);
+        return output.ToArray();
+    }
+
+    /// <summary>
+    /// Encodes as PNG into <paramref name="output"/>, a band of rows at a time (see
+    /// <see cref="RowWriter"/>): the filtered rows of the deflate segments in progress are
+    /// the only copy of the image held besides <paramref name="image"/> itself. The zlib stream
+    /// is the one the whole-image encoder would produce; an image whose filtered data spans
+    /// several deflate segments is written as one IDAT chunk per segment, so it decodes to the
+    /// same pixels without being the same bytes as a single-chunk file. The stream is not disposed.
+    /// </summary>
+    public static void Encode(RgbaImage image, Stream output, bool dropAlphaIfOpaque = true, PngCompressionLevel level = PngCompressionLevel.Default,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(image);
+        ArgumentNullException.ThrowIfNull(output);
+        using var scope = Cancellation.Use(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         var withAlpha = !(dropAlphaIfOpaque && image.IsOpaque);
-        var channels = withAlpha ? 4 : 3;
-        var stride = image.Width * channels;
-
-        using var output = new MemoryStream();
-        WriteHeader(output, image.Width, image.Height, withAlpha);
-
-        // Filter every row in parallel (a row's filter depends only on the raw row and
-        // the raw row above), then deflate.
-        var height = image.Height;
-        var filteredStride = stride + 1;
-        var filtered = new byte[checked(filteredStride * height)];
-        Parallelism.For(height, stride * 5L, (start, end) =>
+        var writer = new RowWriter(output, image.Width, image.Height, withAlpha, level);
+        var bandRows = Math.Clamp((1 << 22) / Math.Max(1, image.Width), 1, Math.Max(1, image.Height));
+        var rowBytes = image.Width * 4;
+        for (var top = 0; top < image.Height; top += bandRows)
         {
-            var previous = new byte[stride];
-            var current = new byte[stride];
-            var candidate = new byte[filteredStride];
-            if (start > 0)
-            {
-                PackRow(image, start - 1, withAlpha, previous);
-            }
+            cancellationToken.ThrowIfCancellationRequested();
+            var rows = Math.Min(bandRows, image.Height - top);
+            var band = new RgbaImage(image.Width, rows, image.Pixels.AsSpan(top * rowBytes, rows * rowBytes).ToArray());
+            writer.Write(band);
+        }
 
-            for (var y = start; y < end; y++)
-            {
-                PackRow(image, y, withAlpha, current);
-                FilterRow(current, previous, channels, candidate, filtered.AsSpan(y * filteredStride, filteredStride));
-                (previous, current) = (current, previous);
-            }
-        });
-
-        WriteChunk(output, "IDAT", Compress(filtered, filteredStride, level));
-        WriteChunk(output, "IEND", []);
-        return output.ToArray();
+        writer.Finish();
     }
 
     /// <summary>The signature and the IHDR chunk of an 8-bit RGB or RGBA image.</summary>

@@ -69,8 +69,10 @@ public static class Filters
     public static byte[] AsciiHexDecode(ReadOnlySpan<byte> data)
     {
         var hex = new List<byte>(data.Length);
+        int polls = 0;
         foreach (byte ch in data)
         {
+            Guard.Every(ref polls, 0xFFFF);
             if (ch is (byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n' or (byte)'\f' or 0)
                 continue;
             if (ch == '>')
@@ -84,6 +86,7 @@ public static class Filters
         int i = 0;
         while (i < hex.Count)
         {
+            Guard.Every(ref polls, 0xFFFF);
             byte c = hex[i];
             if (c is (byte)' ' or (byte)'\t' or (byte)'\n' or (byte)'\r' or 0x0B or (byte)'\f')
             {
@@ -104,8 +107,14 @@ public static class Filters
     {
         var output = new List<byte>(data.Length * 2);
         int index = 0;
+        int polls = 0;
         while (index < data.Length)
         {
+            if ((++polls & 0x3FF) == 0)
+            {
+                Guard.Check();
+                Guard.Charge(output.Count, "RunLengthDecode output");
+            }
             int length = data[index++];
             if (length == 128)
                 break;
@@ -144,8 +153,14 @@ public static class Filters
         var output = new List<byte>(data.Length * 3);
         byte[]? prev = null;
         int early = (int)Math.Max(0, Math.Min(1, earlyChange));
+        int polls = 0;
         while (true)
         {
+            if ((++polls & 0x3FF) == 0)
+            {
+                Guard.Check();
+                Guard.Charge(output.Count, "LZWDecode output");
+            }
             int code = reader.Read(codeSize);
             if (code < 0)
                 break;

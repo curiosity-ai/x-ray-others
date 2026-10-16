@@ -29,10 +29,33 @@ public static class ImageToEps
     public static byte[] ConvertFile(string path, (int Llx, int Lly, int Urx, int Ury)? bbox = null) =>
         Convert(File.ReadAllBytes(path), bbox);
 
+    /// <summary>Converts an image file to EPS bytes, observing a cancellation token.</summary>
+    public static byte[] ConvertFile(string path, (int Llx, int Lly, int Urx, int Ury)? bbox, CancellationToken cancellationToken) =>
+        Convert(File.ReadAllBytes(path), bbox, cancellationToken);
+
+    /// <summary>Converts an image file to EPS and writes it to <paramref name="output"/>.</summary>
+    public static void ConvertFile(string path, Stream output, (int Llx, int Lly, int Urx, int Ury)? bbox = null, CancellationToken cancellationToken = default) =>
+        Convert(File.ReadAllBytes(path), output, bbox, cancellationToken);
+
     /// <summary>Converts image bytes (PNG, JPEG, BMP or TIFF) to EPS bytes.</summary>
-    public static byte[] Convert(byte[] data, (int Llx, int Lly, int Urx, int Ury)? bbox = null)
+    public static byte[] Convert(byte[] data, (int Llx, int Lly, int Urx, int Ury)? bbox = null) => Convert(data, bbox, default);
+
+    /// <summary>Converts image bytes to EPS bytes, observing a cancellation token.</summary>
+    public static byte[] Convert(byte[] data, (int Llx, int Lly, int Urx, int Ury)? bbox, CancellationToken cancellationToken)
+    {
+        using var ms = new MemoryStream();
+        Convert(data, ms, bbox, cancellationToken);
+        return ms.ToArray();
+    }
+
+    /// <summary>Converts image bytes to EPS and writes it to <paramref name="output"/>. The hex
+    /// body is written line by line, so the (twice the size of the pixels) text is never built.</summary>
+    public static void Convert(byte[] data, Stream output, (int Llx, int Lly, int Urx, int Ury)? bbox = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(output);
+        cancellationToken.ThrowIfCancellationRequested();
+        using var guard = Guard.Begin(cancellationToken);
         EpsImageInfo info;
         if (data.AsSpan().StartsWith(PngSignature))
             info = DecodePng(data);
@@ -44,7 +67,7 @@ public static class ImageToEps
             info = DecodeTiff(data);
         else
             throw Py.ValueError("unsupported image format");
-        return ToEps(info, bbox);
+        ToEps(info, output, bbox, cancellationToken);
     }
 
     /// <summary>Decodes an 8-bit RGB or RGBA PNG to RGB samples (alpha is dropped).</summary>
@@ -93,6 +116,7 @@ public static class ImageToEps
         byte[] prev = new byte[Math.Min(stride, decompressed.Length)];
         for (long row = 0; row < height; row++)
         {
+            Guard.Check();
             if (idx >= decompressed.Length)
                 throw Py.IndexError("index out of range");
             int filterType = decompressed[idx];
@@ -185,6 +209,7 @@ public static class ImageToEps
             long rowSize = ((width * 3L + 3) / 4) * 4;
             for (long rowIndex = 0; rowIndex < absHeight; rowIndex++)
             {
+                Guard.Check();
                 long start = offset + rowIndex * rowSize;
                 if (start >= data.Length)
                     break; // every remaining row is empty, as the original's slices were
@@ -211,6 +236,7 @@ public static class ImageToEps
             long rowSize = ((width * (long)bpp + 31) / 32) * 4;
             for (long rowIndex = 0; rowIndex < absHeight; rowIndex++)
             {
+                Guard.Check();
                 long start = offset + rowIndex * rowSize;
                 var row = Slice(data, start, rowSize);
                 var grayRow = new byte[Math.Max(0, width)];
@@ -321,7 +347,16 @@ public static class ImageToEps
     /// <summary>Serializes decoded image data as EPS.</summary>
     public static byte[] ToEps(EpsImageInfo image, (int Llx, int Lly, int Urx, int Ury)? bbox = null)
     {
+        using var ms = new MemoryStream();
+        ToEps(image, ms, bbox);
+        return ms.ToArray();
+    }
+
+    /// <summary>Writes an image as EPS to <paramref name="output"/>.</summary>
+    public static void ToEps(EpsImageInfo image, Stream output, (int Llx, int Lly, int Urx, int Ury)? bbox = null, CancellationToken cancellationToken = default)
+    {
         ArgumentNullException.ThrowIfNull(image);
+        ArgumentNullException.ThrowIfNull(output);
         int imgW = image.Width, imgH = image.Height;
         if (imgW <= 0 || imgH <= 0)
             throw Py.ValueError("invalid image dimensions");
@@ -359,17 +394,53 @@ public static class ImageToEps
         lines.Add(components == 1
             ? $"{imgW} {imgH} {image.BitsPerComponent} {matrix} {source} image"
             : $"{imgW} {imgH} {image.BitsPerComponent} {matrix} {source} false {components} colorimage");
-        lines.AddRange(WrapHex(image.Pixels));
-        lines.Add("grestore");
-        lines.Add("%%EOF");
-        return Encoding.Latin1.GetBytes(string.Join("\n", lines) + "\n");
+        foreach (string line in lines)
+            WriteLine(output, line);
+        WriteHexBody(output, image.Pixels, cancellationToken);
+        WriteLine(output, "grestore");
+        WriteLine(output, "%%EOF");
+        output.Flush();
     }
 
-    private static IEnumerable<string> WrapHex(byte[] data, int width = 64)
+    private static void WriteLine(Stream output, string line)
     {
-        string hex = System.Convert.ToHexStringLower(data) + ">";
-        for (int i = 0; i < hex.Length; i += width)
-            yield return hex.Substring(i, Math.Min(width, hex.Length - i));
+        output.Write(Encoding.Latin1.GetBytes(line));
+        output.WriteByte((byte)'\n');
+    }
+
+    // The data as lowercase hex, 64 characters per line, closed by '>' (so a '>' after a full
+    // last line starts a line of its own), written through a small buffer.
+    private static void WriteHexBody(Stream output, byte[] data, CancellationToken cancellationToken)
+    {
+        const int bytesPerLine = 32;
+        const int blockSize = 64 * 1024;
+        var block = new byte[blockSize + 16];
+        int used = 0;
+        int lastCount = 0;
+        for (int position = 0; position < data.Length; position += bytesPerLine)
+        {
+            if (used + bytesPerLine * 2 + 1 > blockSize)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                output.Write(block, 0, used);
+                used = 0;
+            }
+            int n = Math.Min(bytesPerLine, data.Length - position);
+            for (int i = 0; i < n; i++)
+            {
+                byte b = data[position + i];
+                block[used++] = (byte)"0123456789abcdef"[b >> 4];
+                block[used++] = (byte)"0123456789abcdef"[b & 15];
+            }
+            lastCount = n;
+            if (position + n < data.Length)
+                block[used++] = (byte)'\n';
+        }
+        if (lastCount == bytesPerLine)
+            block[used++] = (byte)'\n';
+        block[used++] = (byte)'>';
+        block[used++] = (byte)'\n';
+        output.Write(block, 0, used);
     }
 
     private static string Fmt(double value)
@@ -449,6 +520,8 @@ public static class ImageToEps
         var items = new List<object>((int)Math.Min(count, 1 << 16));
         for (long idx = 0; idx < count; idx++)
         {
+            if ((idx & 0xFFFF) == 0)
+                Guard.Check();
             var piece = raw.Slice((int)(idx * size), size);
             items.Add(dtype switch
             {
@@ -491,8 +564,10 @@ public static class ImageToEps
     {
         var output = new List<byte>(data.Length);
         int index = 0;
+        int polls = 0;
         while (index < data.Length)
         {
+            Guard.Every(ref polls, 0xFFF);
             int control = (sbyte)data[index];
             index++;
             if (control >= 0)
@@ -527,8 +602,10 @@ public static class ImageToEps
         int nextCode = 258;
         using var output = new MemoryStream();
         byte[]? prev = null;
+        int lzwPolls = 0;
         while (true)
         {
+            Guard.Every(ref lzwPolls, 0xFFF);
             int? read = reader.Read(codeSize);
             if (read is not int code)
                 break;

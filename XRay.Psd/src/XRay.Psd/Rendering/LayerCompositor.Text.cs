@@ -22,7 +22,7 @@ internal sealed partial class LayerCompositor
             }
         }
 
-        return rasterizer.Rasterize(layer) is { } raster ? ToPlanar(raster) : stored;
+        return rasterizer.Rasterize(layer, Cancellation.Token) is { } raster ? ToPlanar(raster) : stored;
     }
 
     private static PlanarImage? ToPlanar(TextLayerRaster raster)

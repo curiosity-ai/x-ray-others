@@ -43,6 +43,60 @@ internal static class StreamLoader
         }
     }
 
+    /// <summary>
+    /// <see cref="ReadAll(Stream)"/> in chunks of 1 MB, so that a cancelled token is noticed
+    /// while a large stream is still being read.
+    /// </summary>
+    public static byte[] ReadAll(Stream stream, CancellationToken cancellationToken)
+    {
+        if (!cancellationToken.CanBeCanceled)
+        {
+            return ReadAll(stream);
+        }
+
+        if (RemainingLength(stream) is { } remaining)
+        {
+            var data = new byte[remaining];
+            var total = 0;
+            while (total < data.Length)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var read = stream.Read(data, total, Math.Min(ChunkSize, data.Length - total));
+                if (read == 0)
+                {
+                    return data[..total];
+                }
+
+                total += read;
+            }
+
+            return data;
+        }
+
+        var chunks = new List<byte[]>();
+        try
+        {
+            long total = 0;
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var chunk = ArrayPool<byte>.Shared.Rent(ChunkSize);
+                chunks.Add(chunk);
+                var read = stream.ReadAtLeast(chunk.AsSpan(0, ChunkSize), ChunkSize, throwOnEndOfStream: false);
+                total += read;
+                CheckSize(total);
+                if (read < ChunkSize)
+                {
+                    return Concatenate(chunks, total);
+                }
+            }
+        }
+        finally
+        {
+            Return(chunks);
+        }
+    }
+
     public static async Task<byte[]> ReadAllAsync(Stream stream, CancellationToken cancellationToken)
     {
         if (RemainingLength(stream) is { } remaining)

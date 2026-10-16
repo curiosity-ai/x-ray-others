@@ -72,6 +72,32 @@ public static class PsdSkiaExtensions
     }
 
     /// <summary>
+    /// Encodes with a Skia codec into <paramref name="output"/>. The encoder's native buffer is
+    /// written to the stream directly, without a managed copy of the compressed image. The token is
+    /// checked before the pixels are handed to Skia and again before the encoded bytes are written
+    /// (Skia's own encode call cannot be interrupted). The stream is not disposed.
+    /// </summary>
+    public static void Encode(this RgbaImage image, Stream output, SKEncodedImageFormat format, int quality = 90, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(image);
+        ArgumentNullException.ThrowIfNull(output);
+        cancellationToken.ThrowIfCancellationRequested();
+        using var skImage = image.ToSKImage();
+        cancellationToken.ThrowIfCancellationRequested();
+        using var data = skImage.Encode(format, quality) ?? throw new NotSupportedException($"Skia cannot encode {format} on this platform.");
+        cancellationToken.ThrowIfCancellationRequested();
+        output.Write(data.AsSpan());
+    }
+
+    /// <summary>Encodes with a Skia codec, observing a cancellation token (see <see cref="Encode(RgbaImage, Stream, SKEncodedImageFormat, int, CancellationToken)"/>).</summary>
+    public static byte[] Encode(this RgbaImage image, SKEncodedImageFormat format, int quality, CancellationToken cancellationToken)
+    {
+        using var output = new MemoryStream();
+        image.Encode(output, format, quality, cancellationToken);
+        return output.ToArray();
+    }
+
+    /// <summary>
     /// Decodes the document thumbnail (<see cref="PsdImageResources.Thumbnail"/>):
     /// the JPEG form through Skia, the raw form directly. Photoshop 4 thumbnails
     /// (resource 1033) store BGR and are swapped to RGB. Returns null when the
@@ -129,7 +155,25 @@ public static class PsdSkiaExtensions
     public static SKBitmap RenderToSKBitmap(this PsdDocument document, RenderOptions? options = null) =>
         document.Render(options).ToSKBitmap();
 
+    /// <summary>Renders the document (see <see cref="PsdDocument.Render(RenderOptions?, CancellationToken)"/>) and returns it as an <see cref="SKBitmap"/>, observing a cancellation token.</summary>
+    public static SKBitmap RenderToSKBitmap(this PsdDocument document, RenderOptions? options, CancellationToken cancellationToken) =>
+        document.Render(options, cancellationToken).ToSKBitmap();
+
     /// <summary>Renders the document and encodes it with a Skia codec.</summary>
     public static byte[] RenderAndEncode(this PsdDocument document, SKEncodedImageFormat format, int quality = 90, RenderOptions? options = null) =>
         document.Render(options).Encode(format, quality);
+
+    /// <summary>Renders the document and encodes it with a Skia codec, observing a cancellation token.</summary>
+    public static byte[] RenderAndEncode(this PsdDocument document, SKEncodedImageFormat format, int quality, RenderOptions? options, CancellationToken cancellationToken) =>
+        document.Render(options, cancellationToken).Encode(format, quality, cancellationToken);
+
+    /// <summary>
+    /// Renders the document and encodes it with a Skia codec into <paramref name="output"/> (see
+    /// <see cref="Encode(RgbaImage, Stream, SKEncodedImageFormat, int, CancellationToken)"/>). The stream is not disposed.
+    /// </summary>
+    public static void RenderAndEncode(this PsdDocument document, Stream output, SKEncodedImageFormat format, int quality = 90, RenderOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        document.Render(options, cancellationToken).Encode(output, format, quality, cancellationToken);
+    }
 }

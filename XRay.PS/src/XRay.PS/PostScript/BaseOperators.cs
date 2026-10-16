@@ -317,6 +317,7 @@ public static class BaseOperators
             throw new PsRangeError("array size must be non-negative");
         if (size > 100_000_000)
             throw new HostErrorException("MemoryError", "array too large");
+        Guard.Charge(size * 8, "array");
         ctx.OperandStack.Push(new PsArray(Enumerable.Repeat<object?>(null, (int)size).ToList()));
     }
 
@@ -341,6 +342,7 @@ public static class BaseOperators
             throw new PsRangeError("string size must be non-negative");
         if (size > int.MaxValue / 2)
             throw new HostErrorException("MemoryError", "string too large");
+        Guard.Charge(size, "string");
         ctx.OperandStack.Push(new PsString(new byte[size]));
     }
 
@@ -738,7 +740,7 @@ public static class BaseOperators
                     throw new PsTypeError("stopped expects executable object");
             }
         }
-        catch (PsError)
+        catch (PsError ex) when (ex is not PsResourceLimitError)
         {
             ctx.OperandStack.Push(true);
             return;

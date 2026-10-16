@@ -3,7 +3,7 @@ using XRay.Psd.Layers;
 
 namespace XRay.Psd.Rendering;
 
-/// <summary>Where <see cref="PsdDocument.Render"/> takes its pixels from.</summary>
+/// <summary>Where <see cref="PsdDocument.Render(RenderOptions?)"/> takes its pixels from.</summary>
 public enum RenderSource
 {
     /// <summary>
@@ -59,7 +59,7 @@ public sealed class RenderOptions
     public int MaxDegreeOfParallelism { get; init; } = Environment.ProcessorCount;
 
     /// <summary>
-    /// Rows per band for <see cref="PsdDocument.RenderBands"/> and <see cref="PsdDocument.RenderToPng(Stream, RenderOptions?, Codecs.PngCompressionLevel)"/>.
+    /// Rows per band for <see cref="PsdDocument.RenderBands(RenderOptions?)"/> and <see cref="PsdDocument.RenderToPng(Stream, RenderOptions?, Codecs.PngCompressionLevel)"/>.
     /// Zero or negative (the default) picks about four million pixels per band (64 MB per
     /// float buffer). The pixels do not depend on it.
     /// </summary>
@@ -112,8 +112,17 @@ internal static class PsdRenderer
     /// for what still keeps its whole extent). Each band's pixels are identical to the same
     /// rows of <see cref="Render"/>. Bands render lazily as the sequence is enumerated.
     /// </summary>
-    public static IEnumerable<RenderBand> RenderBands(PsdDocument document, RenderOptions options)
+    public static IEnumerable<RenderBand> RenderBands(PsdDocument document, RenderOptions options) =>
+        RenderBands(document, options, default);
+
+    /// <summary>
+    /// <see cref="RenderBands(PsdDocument, RenderOptions)"/> observing a token. The token is
+    /// published only while a band is computed, never across a <c>yield</c>, so the consumer's
+    /// own code does not run under it.
+    /// </summary>
+    public static IEnumerable<RenderBand> RenderBands(PsdDocument document, RenderOptions options, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var height = BandHeight(document, options);
         var degree = options.MaxDegreeOfParallelism;
         if (UsesMergedImage(document, options))
@@ -121,8 +130,10 @@ internal static class PsdRenderer
             using var bands = new MergedImageBands();
             for (var top = 0; top < document.Height; top += height)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var bottom = Math.Min(document.Height, top + height);
                 RgbaImage image;
+                using (Cancellation.Use(cancellationToken))
                 using (Parallelism.Use(degree))
                 {
                     var planar = MergedImageDecoder.Decode(document, top, bottom, bands);
@@ -136,6 +147,7 @@ internal static class PsdRenderer
         }
 
         using var compositor = new LayerCompositor(document, options);
+        using (Cancellation.Use(cancellationToken))
         using (Parallelism.Use(degree))
         {
             compositor.BeginBands();
@@ -143,8 +155,10 @@ internal static class PsdRenderer
 
         for (var top = 0; top < document.Height; top += height)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var rect = new PsdRect(0, top, document.Width, Math.Min(document.Height, top + height));
             RgbaImage image;
+            using (Cancellation.Use(cancellationToken))
             using (Parallelism.Use(degree))
             {
                 image = Finish(compositor.RenderBand(rect).ToRgba(rect), options);
@@ -155,7 +169,7 @@ internal static class PsdRenderer
     }
 
     /// <summary>
-    /// Streams the rendered document into a PNG band by band (<see cref="RenderBands"/>).
+    /// Streams the rendered document into a PNG band by band (<see cref="RenderBands(PsdDocument, RenderOptions)"/>).
     /// The image keeps its alpha channel unless the result is opaque by construction: a
     /// <see cref="RenderOptions.Background"/>, or a merged image without transparency.
     /// </summary>

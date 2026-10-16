@@ -20,8 +20,10 @@ internal static class Cli
         psconvert <command> [options]
 
         Commands:
-          pdf <input> <output.pdf> [--fonts DIR] [--no-compression]
+          pdf <input> <output.pdf> [--fonts DIR] [--no-compression] [--jpeg-quality N] [--suppress-errors]
+              [--timeout SECONDS] [--max-operators N]
           image <input> <output> [--dpi N] [--format png|jpeg|bmp|tiff] [--fonts DIR] [--page N]
+              [--suppress-errors] [--timeout SECONDS] [--max-operators N]
           model <input> [--fonts DIR]          print the canonical render model
           info <input>                         page count, sizes and DSC metadata
           eps <image> <output.eps>             wrap a PNG, JPEG, BMP or TIFF image in EPS
@@ -84,9 +86,34 @@ internal static class Cli
     {
         string input = args[1];
         string output = args[2];
-        var options = new PdfSaveOptions { AdditionalFontsFolder = Option(args, "--fonts"), NoCompression = args.Contains("--no-compression"), MaskRasterizer = _writer };
-        byte[] pdf = IsXps(input) ? XpsDocument.FromFile(input).ToPdf(options) : PsDocument.FromFile(input).ToPdf(options);
-        File.WriteAllBytes(output, pdf);
+        var options = new PdfSaveOptions
+        {
+            AdditionalFontsFolder = Option(args, "--fonts"),
+            NoCompression = args.Contains("--no-compression"),
+            MaskRasterizer = _writer,
+            JpegQuality = Option(args, "--jpeg-quality") is { } quality ? int.Parse(quality, System.Globalization.CultureInfo.InvariantCulture) : null,
+            SuppressErrors = args.Contains("--suppress-errors"),
+            Limits = Limits(args),
+        };
+        using var cts = Timeout(args);
+        // The PDF goes straight to the file: no byte array of the whole document.
+        using (var file = new FileStream(output, FileMode.Create, FileAccess.Write, FileShare.None, 1 << 16))
+        {
+            if (IsXps(input))
+            {
+                XpsDocument.FromFile(input, cts.Token).ToPdf(file, options, null, cts.Token);
+            }
+            else
+            {
+                PsDocument.FromFile(input, cts.Token).ToPdf(file, options, cts.Token);
+            }
+        }
+
+        foreach (var warning in options.Warnings)
+        {
+            Console.Error.WriteLine($"warning: {warning.Source} {warning.Code}: {warning.Message}");
+        }
+
         return 0;
     }
 
@@ -100,19 +127,39 @@ internal static class Cli
             Format = ImageSaveOptions.ParseFormat(Option(args, "--format") ?? Path.GetExtension(output).TrimStart('.')),
             AdditionalFontsFolder = Option(args, "--fonts"),
             RasterWriter = _writer,
+            SuppressErrors = args.Contains("--suppress-errors"),
+            Limits = Limits(args),
         };
+        using var cts = Timeout(args);
         if (IsXps(input))
         {
-            var pages = XpsDocument.FromFile(input).ToImages(options);
+            var pages = XpsDocument.FromFile(input, cts.Token).ToImages(options, null, cts.Token);
             int page = int.Parse(Option(args, "--page") ?? "1", System.Globalization.CultureInfo.InvariantCulture);
             File.WriteAllBytes(output, pages[page - 1]);
         }
         else
         {
-            File.WriteAllBytes(output, PsDocument.FromFile(input).ToImage(options));
+            using var file = new FileStream(output, FileMode.Create, FileAccess.Write, FileShare.None, 1 << 16);
+            PsDocument.FromFile(input, cts.Token).ToImage(options, file, cts.Token);
         }
+
+        foreach (var warning in options.Warnings)
+        {
+            Console.Error.WriteLine($"warning: {warning.Source} {warning.Code}: {warning.Message}");
+        }
+
         return 0;
     }
+
+    private static CancellationTokenSource Timeout(string[] args) =>
+        Option(args, "--timeout") is { } seconds
+            ? new CancellationTokenSource(TimeSpan.FromSeconds(double.Parse(seconds, System.Globalization.CultureInfo.InvariantCulture)))
+            : new CancellationTokenSource();
+
+    private static PsInterpreterLimits? Limits(string[] args) =>
+        Option(args, "--max-operators") is { } operators
+            ? new PsInterpreterLimits { MaxOperators = long.Parse(operators, System.Globalization.CultureInfo.InvariantCulture) }
+            : null;
 
     private static int Model(string[] args)
     {

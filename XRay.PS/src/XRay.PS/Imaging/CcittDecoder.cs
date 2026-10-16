@@ -135,6 +135,7 @@ internal static class CcittDecoder
             int refCount = _refRuns.Length;
             for (int row = 0; row < rows; row++)
             {
+                Internal.Guard.Check();
                 int count;
                 try
                 {
