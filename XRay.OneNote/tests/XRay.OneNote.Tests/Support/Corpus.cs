@@ -70,7 +70,9 @@ internal static class Corpus
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
         {
             var candidate = Path.Combine(directory.FullName, "test_documents");
-            if (Directory.Exists(candidate))
+            // An uninitialised submodule is an empty directory: that is "no corpus" (skip), not
+            // "corpus with missing files" (fail).
+            if (Directory.Exists(candidate) && Directory.EnumerateFileSystemEntries(candidate).Any())
             {
                 return candidate;
             }

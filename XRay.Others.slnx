@@ -1,0 +1,44 @@
+<Solution>
+  <Folder Name="/XRay.Psd/fuzz/">
+    <Project Path="XRay.Psd/fuzz/XRay.Psd.Fuzz/XRay.Psd.Fuzz.csproj" />
+  </Folder>
+  <Folder Name="/XRay.Psd/benchmarks/">
+    <Project Path="XRay.Psd/benchmarks/XRay.Psd.Benchmarks/XRay.Psd.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/XRay.Psd/src/">
+    <Project Path="XRay.Psd/src/XRay.Psd.Skia/XRay.Psd.Skia.csproj" />
+    <Project Path="XRay.Psd/src/XRay.Psd.Text/XRay.Psd.Text.csproj" />
+    <Project Path="XRay.Psd/src/XRay.Psd/XRay.Psd.csproj" />
+  </Folder>
+  <Folder Name="/XRay.Psd/tests/">
+    <Project Path="XRay.Psd/tests/XRay.Psd.Skia.Tests/XRay.Psd.Skia.Tests.csproj" />
+    <Project Path="XRay.Psd/tests/XRay.Psd.Tests/XRay.Psd.Tests.csproj" />
+    <Project Path="XRay.Psd/tests/XRay.Psd.Text.Tests/XRay.Psd.Text.Tests.csproj" />
+  </Folder>
+  <Folder Name="/XRay.Psd/tools/">
+    <Project Path="XRay.Psd/tools/XRay.Psd.Cli/XRay.Psd.Cli.csproj" />
+  </Folder>
+  <Folder Name="/XRay.Email/src/">
+    <Project Path="XRay.Email/src/XRay.Email/XRay.Email.csproj" />
+  </Folder>
+  <Folder Name="/XRay.Email/tests/">
+    <Project Path="XRay.Email/tests/XRay.Email.Tests/XRay.Email.Tests.csproj" />
+  </Folder>
+  <Folder Name="/XRay.Email/examples/">
+    <Project Path="XRay.Email/examples/CreateMsgAndEml/CreateMsgAndEml.csproj" />
+    <Project Path="XRay.Email/examples/MsgReaderDump/MsgReaderDump.csproj" />
+    <Project Path="XRay.Email/examples/MsgSummary/MsgSummary.csproj" />
+  </Folder>
+  <Folder Name="/XRay.Email/tools/">
+    <Project Path="XRay.Email/tools/XRay.Email.CorpusGen/XRay.Email.CorpusGen.csproj" />
+  </Folder>
+  <Folder Name="/XRay.OneNote/src/">
+    <Project Path="XRay.OneNote/src/XRay.OneNote/XRay.OneNote.csproj" />
+  </Folder>
+  <Folder Name="/XRay.OneNote/tests/">
+    <Project Path="XRay.OneNote/tests/XRay.OneNote.Tests/XRay.OneNote.Tests.csproj" />
+  </Folder>
+  <Folder Name="/XRay.OneNote/tools/">
+    <Project Path="XRay.OneNote/tools/XRay.OneNote.Cli/XRay.OneNote.Cli.csproj" />
+  </Folder>
+</Solution>
