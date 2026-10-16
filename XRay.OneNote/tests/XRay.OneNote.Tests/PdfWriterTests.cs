@@ -51,11 +51,11 @@ public sealed class PdfWriterTests
     {
         var document = Fixture.Load("FormattedRichText.one");
         using var stream = new MemoryStream();
-        document.Save(stream, new PdfSaveOptions());
+        document.Save(stream, new PdfSaveOptions(), TestContext.Current.CancellationToken);
         Assert.StartsWith("%PDF", System.Text.Encoding.ASCII.GetString(stream.ToArray(), 0, 4));
 
         using var second = new MemoryStream();
-        document.Save(second);
+        document.Save(second, SaveFormat.Pdf, TestContext.Current.CancellationToken);
         Assert.True(second.Length > 100);
     }
 
@@ -67,9 +67,9 @@ public sealed class PdfWriterTests
         try
         {
             var output = Path.Combine(directory.FullName, "inferred.pdf");
-            document.Save(output);
+            document.Save(output, TestContext.Current.CancellationToken);
             Assert.StartsWith("%PDF", File.ReadAllText(output)[..4]);
-            Assert.Throws<UnsupportedSaveFormatException>(() => document.Save(Path.Combine(directory.FullName, "unsupported-output.one")));
+            Assert.Throws<UnsupportedSaveFormatException>(() => document.Save(Path.Combine(directory.FullName, "unsupported-output.one"), TestContext.Current.CancellationToken));
         }
         finally
         {

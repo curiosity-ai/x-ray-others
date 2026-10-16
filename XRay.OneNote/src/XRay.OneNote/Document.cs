@@ -1,3 +1,4 @@
+using XRay.OneNote.Internal.Html;
 using XRay.OneNote.Internal.MsOne;
 using XRay.OneNote.Saving;
 
@@ -21,12 +22,8 @@ public sealed class Document : CompositeNode
     /// <exception cref="UnsupportedFileFormatException">The file is not a OneNote section.</exception>
     /// <exception cref="IncorrectPasswordException">A password was supplied; encrypted sections are not supported.</exception>
     public Document(string path, LoadOptions? loadOptions = null)
+        : this(path, loadOptions, CancellationToken.None)
     {
-        ArgumentNullException.ThrowIfNull(path);
-        loadOptions ??= new LoadOptions();
-        RejectPassword(loadOptions);
-        var data = File.ReadAllBytes(path);
-        Load(data, Path.GetFileNameWithoutExtension(path), loadOptions);
     }
 
     /// <summary>Loads a section from the remaining contents of <paramref name="stream"/>.</summary>
@@ -34,14 +31,48 @@ public sealed class Document : CompositeNode
     /// <exception cref="UnsupportedFileFormatException">The data is not a OneNote section.</exception>
     /// <exception cref="IncorrectPasswordException">A password was supplied; encrypted sections are not supported.</exception>
     public Document(Stream stream, LoadOptions? loadOptions = null)
+        : this(stream, loadOptions, CancellationToken.None)
+    {
+    }
+
+    private Document(string path, LoadOptions? loadOptions, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        loadOptions ??= new LoadOptions();
+        RejectPassword(loadOptions);
+        cancellationToken.ThrowIfCancellationRequested();
+        var data = File.ReadAllBytes(path);
+        Load(data, Path.GetFileNameWithoutExtension(path), loadOptions, cancellationToken);
+    }
+
+    private Document(Stream stream, LoadOptions? loadOptions, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(stream);
         loadOptions ??= new LoadOptions();
         RejectPassword(loadOptions);
+        cancellationToken.ThrowIfCancellationRequested();
         using var buffer = new MemoryStream();
-        stream.CopyTo(buffer);
-        Load(buffer.ToArray(), null, loadOptions);
+        stream.CopyTo(buffer, 81920);
+        cancellationToken.ThrowIfCancellationRequested();
+        Load(buffer.ToArray(), null, loadOptions, cancellationToken);
     }
+
+    /// <summary>
+    /// Loads a section from the remaining contents of <paramref name="stream"/>, checking
+    /// <paramref name="cancellationToken"/> while it parses.
+    /// </summary>
+    /// <exception cref="OperationCanceledException">The token was cancelled.</exception>
+    /// <exception cref="FileCorruptedException">The data is truncated or damaged.</exception>
+    /// <exception cref="UnsupportedFileFormatException">The data is not a OneNote section.</exception>
+    public static Document Load(Stream stream, LoadOptions? loadOptions = null, CancellationToken cancellationToken = default) =>
+        new(stream, loadOptions, cancellationToken);
+
+    /// <summary>Loads a section file (.one) from <paramref name="path"/>, checking <paramref name="cancellationToken"/> while it parses.</summary>
+    /// <exception cref="OperationCanceledException">The token was cancelled.</exception>
+    /// <exception cref="FileCorruptedException">The file is truncated or damaged.</exception>
+    /// <exception cref="UnsupportedFileFormatException">The file is not a OneNote section.</exception>
+    public static Document Load(string path, LoadOptions? loadOptions = null, CancellationToken cancellationToken = default) =>
+        new(path, loadOptions, cancellationToken);
 
     /// <summary>
     /// The section name: the name stored in the section, else the file name without extension, else
@@ -49,7 +80,24 @@ public sealed class Document : CompositeNode
     /// </summary>
     public string? DisplayName { get; set; }
 
-    /// <summary>When the section was created, when known.</summary>
+    /// <summary>
+    /// The section's identity: the <c>guidFile</c> of its file header. A notebook table of contents
+    /// (<see cref="NotebookToc"/>) lists every section under this GUID (its <c>FileIdentityGuid</c>), so it is what
+    /// matches a section to a notebook entry. <see cref="System.Guid.Empty"/> for a document that was not loaded from
+    /// a file. Copies of a file share it.
+    /// </summary>
+    public Guid Guid { get; set; }
+
+    /// <summary>
+    /// The GUID of the notebook's table of contents file (the header's <c>guidAncestor</c>), which equals
+    /// <see cref="NotebookToc.Guid"/> of the .onetoc2 the section belongs to; empty when the section names none.
+    /// </summary>
+    public Guid NotebookGuid { get; set; }
+
+    /// <summary>The <c>NotebookManagementEntityGuid</c> of the section node, when it has one.</summary>
+    public Guid? EntityGuid { get; set; }
+
+    /// <summary>When the section was created (UTC): the topology creation time of its section node, when stored.</summary>
     public DateTime? CreationTime { get; set; }
 
     /// <summary>The format the document was read from.</summary>
@@ -68,36 +116,103 @@ public sealed class Document : CompositeNode
         return _pageHistories.TryGetValue(page, out var history) ? history : new PageHistory(page);
     }
 
-    /// <summary>Saves the document to <paramref name="path"/>; the format follows the extension (.pdf).</summary>
-    public void Save(string path)
+    /// <summary>Saves the document to <paramref name="path"/>; the format follows the extension (.pdf, .html or .htm).</summary>
+    public void Save(string path) => Save(path, CancellationToken.None);
+
+    /// <summary>Saves the document to <paramref name="path"/>; the format follows the extension (.pdf, .html or .htm).</summary>
+    /// <exception cref="OperationCanceledException">The token was cancelled; no partial file is left behind.</exception>
+    public void Save(string path, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(path);
-        if (!string.Equals(Path.GetExtension(path), ".pdf", StringComparison.OrdinalIgnoreCase))
+        var extension = Path.GetExtension(path);
+        if (string.Equals(extension, ".pdf", StringComparison.OrdinalIgnoreCase))
         {
-            throw new UnsupportedSaveFormatException("Only .pdf file targets are supported for save operations");
+            Save(path, new PdfSaveOptions(), cancellationToken);
         }
-
-        Save(path, new PdfSaveOptions());
+        else if (string.Equals(extension, ".html", StringComparison.OrdinalIgnoreCase) || string.Equals(extension, ".htm", StringComparison.OrdinalIgnoreCase))
+        {
+            Save(path, new HtmlSaveOptions { PerPage = false }, cancellationToken);
+        }
+        else
+        {
+            throw new UnsupportedSaveFormatException("Only .pdf and .html file targets are supported for save operations");
+        }
     }
 
     /// <summary>Saves the document to <paramref name="path"/> in <paramref name="format"/>.</summary>
-    public void Save(string path, SaveFormat format) => Save(path, OptionsFor(format));
+    public void Save(string path, SaveFormat format) => Save(path, OptionsFor(format), CancellationToken.None);
+
+    /// <summary>Saves the document to <paramref name="path"/> in <paramref name="format"/>.</summary>
+    public void Save(string path, SaveFormat format, CancellationToken cancellationToken) => Save(path, OptionsFor(format), cancellationToken);
 
     /// <summary>Saves the document to <paramref name="path"/> with <paramref name="options"/>.</summary>
-    public void Save(string path, SaveOptions options)
+    public void Save(string path, SaveOptions options) => Save(path, options, CancellationToken.None);
+
+    /// <summary>
+    /// Saves the document to <paramref name="path"/> with <paramref name="options"/>. For HTML with one
+    /// document per page and several pages, the pages go to <c>name_000.html</c>, <c>name_001.html</c>, ... beside
+    /// <paramref name="path"/> unless a <see cref="HtmlSaveOptions.PageSavingCallback"/> says otherwise.
+    /// </summary>
+    /// <exception cref="OperationCanceledException">The token was cancelled; no partial file is left behind.</exception>
+    public void Save(string path, SaveOptions options, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(path);
-        File.WriteAllBytes(path, Render(options));
+        ArgumentNullException.ThrowIfNull(options);
+        var created = new List<string>();
+        try
+        {
+            if (options is HtmlSaveOptions html)
+            {
+                SaveHtmlToPath(path, html, created, cancellationToken);
+            }
+            else
+            {
+                using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+                created.Add(path);
+                SaveToStream(stream, options, cancellationToken);
+            }
+        }
+        catch
+        {
+            foreach (var file in created)
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (IOException)
+                {
+                    // Best effort: the original failure is the one to report.
+                }
+                catch (UnauthorizedAccessException)
+                {
+                }
+            }
+
+            throw;
+        }
     }
 
     /// <summary>Saves the document to <paramref name="stream"/> in <paramref name="format"/> (PDF by default).</summary>
-    public void Save(Stream stream, SaveFormat format = SaveFormat.Pdf) => Save(stream, OptionsFor(format));
+    public void Save(Stream stream, SaveFormat format = SaveFormat.Pdf) => Save(stream, OptionsFor(format), CancellationToken.None);
+
+    /// <summary>Saves the document to <paramref name="stream"/> in <paramref name="format"/>.</summary>
+    public void Save(Stream stream, SaveFormat format, CancellationToken cancellationToken) => Save(stream, OptionsFor(format), cancellationToken);
 
     /// <summary>Saves the document to <paramref name="stream"/> with <paramref name="options"/>.</summary>
-    public void Save(Stream stream, SaveOptions options)
+    public void Save(Stream stream, SaveOptions options) => Save(stream, options, CancellationToken.None);
+
+    /// <summary>
+    /// Saves the document to <paramref name="stream"/> with <paramref name="options"/>, which is left open. PDF is
+    /// written straight to the stream. HTML with one document per page and several pages needs a
+    /// <see cref="HtmlSaveOptions.PageSavingCallback"/> that supplies each page's stream.
+    /// </summary>
+    /// <exception cref="OperationCanceledException">The token was cancelled; the stream may hold partial output.</exception>
+    public void Save(Stream stream, SaveOptions options, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        stream.Write(Render(options));
+        ArgumentNullException.ThrowIfNull(options);
+        SaveToStream(stream, options, cancellationToken);
     }
 
     private protected override void AcceptCore(DocumentVisitor visitor)
@@ -109,7 +224,7 @@ public sealed class Document : CompositeNode
 
     internal override Node CloneCore(CloneContext context)
     {
-        var copy = new Document { DisplayName = DisplayName, CreationTime = CreationTime };
+        var copy = new Document { DisplayName = DisplayName, CreationTime = CreationTime, Guid = Guid, NotebookGuid = NotebookGuid, EntityGuid = EntityGuid };
         context.Register(this, copy);
         CloneChildrenInto(copy, context);
         return copy;
@@ -118,7 +233,8 @@ public sealed class Document : CompositeNode
     private static SaveOptions OptionsFor(SaveFormat format) => format switch
     {
         SaveFormat.Pdf => new PdfSaveOptions(),
-        _ => throw new UnsupportedSaveFormatException("Only PDF save is supported"),
+        SaveFormat.Html => new HtmlSaveOptions { PerPage = false },
+        _ => throw new UnsupportedSaveFormatException("Only PDF and HTML save are supported"),
     };
 
     private static void RejectPassword(LoadOptions loadOptions)
@@ -129,21 +245,77 @@ public sealed class Document : CompositeNode
         }
     }
 
-    private byte[] Render(SaveOptions options)
+    private void SaveToStream(Stream stream, SaveOptions options, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(options);
-        if (options.SaveFormat != SaveFormat.Pdf || options is not PdfSaveOptions pdfOptions)
+        switch (options)
         {
-            throw new UnsupportedSaveFormatException("Only PDF save is supported");
-        }
+            case PdfSaveOptions pdf:
+            {
+                var token = HtmlWriter.Combine(pdf, cancellationToken, out var linked);
+                using (linked)
+                {
+                    Internal.Pdf.PdfExporter.Export(this, pdf, stream, token);
+                }
 
-        return Internal.Pdf.PdfExporter.Export(this, pdfOptions);
+                break;
+            }
+
+            case HtmlSaveOptions html:
+            {
+                var token = HtmlWriter.Combine(html, cancellationToken, out var linked);
+                using (linked)
+                {
+                    new HtmlRenderer(html, token).SaveDocument(this, stream, null);
+                }
+
+                break;
+            }
+
+            default:
+                throw new UnsupportedSaveFormatException("Only PDF and HTML save are supported");
+        }
     }
 
-    private void Load(byte[] data, string? displayName, LoadOptions loadOptions)
+    private void SaveHtmlToPath(string path, HtmlSaveOptions options, List<string> created, CancellationToken cancellationToken)
     {
-        var loaded = OneNoteLoader.Load(data, displayName, loadOptions.LoadHistory);
+        var token = HtmlWriter.Combine(options, cancellationToken, out var linked);
+        using (linked)
+        {
+            var directory = Path.GetDirectoryName(Path.GetFullPath(path)) ?? ".";
+            var name = Path.GetFileNameWithoutExtension(path);
+            var extension = Path.GetExtension(path);
+            Stream CreateFile(string file)
+            {
+                var stream = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.None);
+                created.Add(file);
+                return stream;
+            }
+
+            Stream StreamFor(int index, int count) => count <= 1
+                ? CreateFile(path)
+                : CreateFile(Path.Combine(directory, name + "_" + index.ToString("D3", System.Globalization.CultureInfo.InvariantCulture) + extension));
+
+            new HtmlRenderer(options, token).SaveDocument(this, null, options.PerPage ? StreamFor : (_, _) => CreateFile(path));
+            if (!options.EmbedCss && options.PageSavingCallback is null && IsPlainRelativeFileName(options.StyleSheetUrl))
+            {
+                var cssPath = Path.Combine(directory, options.StyleSheetUrl);
+                File.WriteAllText(cssPath, HtmlWriter.StyleSheet + "\n", new System.Text.UTF8Encoding(false));
+                created.Add(cssPath);
+            }
+        }
+    }
+
+    private static bool IsPlainRelativeFileName(string? url) =>
+        !string.IsNullOrWhiteSpace(url) && url == Path.GetFileName(url) && url is not ("." or "..") && !url.Contains(':', StringComparison.Ordinal);
+
+    private void Load(byte[] data, string? displayName, LoadOptions loadOptions, CancellationToken cancellationToken)
+    {
+        var loaded = OneNoteLoader.Load(data, displayName, loadOptions.LoadHistory, cancellationToken);
         DisplayName = loaded.DisplayName;
+        Guid = loaded.FileGuid;
+        NotebookGuid = loaded.AncestorGuid;
+        EntityGuid = loaded.EntityGuid;
+        CreationTime = loaded.CreationTime;
         for (var index = 0; index < loaded.Pages.Count; index++)
         {
             var page = loaded.Pages[index];

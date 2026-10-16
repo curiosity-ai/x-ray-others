@@ -21,7 +21,7 @@ public sealed class ImageDecoderTests
     public void Decodes_like_pillow(string name)
     {
         var expected = Cases[name]!;
-        var image = ImageDecoder.Decode(Convert.FromBase64String(expected["data"]!.GetValue<string>()));
+        var image = ImageDecoder.Decode(Convert.FromBase64String(expected["data"]!.GetValue<string>()), TestContext.Current.CancellationToken);
         Assert.NotNull(image);
         Assert.Equal(expected["w"]!.GetValue<int>(), image.Width);
         Assert.Equal(expected["h"]!.GetValue<int>(), image.Height);
@@ -47,7 +47,7 @@ public sealed class ImageDecoderTests
     {
         var expected = Cases[name]!;
         var data = Convert.FromBase64String(expected["data"]!.GetValue<string>());
-        var image = ImageDecoder.Decode(data);
+        var image = ImageDecoder.Decode(data, TestContext.Current.CancellationToken);
         Assert.NotNull(image);
         Assert.Same(data, image.Jpeg);
         Assert.Equal((expected["w"]!.GetValue<int>(), expected["h"]!.GetValue<int>(), expected["components"]!.GetValue<int>()), (image.Width, image.Height, image.Components));
@@ -57,15 +57,15 @@ public sealed class ImageDecoderTests
     [Fact]
     public void Rejects_unknown_and_damaged_data()
     {
-        Assert.Null(ImageDecoder.Decode([]));
-        Assert.Null(ImageDecoder.Decode("II*\0 not really a tiff"u8.ToArray()));
+        Assert.Null(ImageDecoder.Decode([], TestContext.Current.CancellationToken));
+        Assert.Null(ImageDecoder.Decode("II*\0 not really a tiff"u8.ToArray(), TestContext.Current.CancellationToken));
         foreach (var (name, value) in Cases)
         {
             var data = Convert.FromBase64String(value!["data"]!.GetValue<string>());
             for (var length = 0; length < data.Length; length += 3)
             {
                 // Truncated data either decodes (when the tail is not needed) or is rejected; it never throws.
-                _ = ImageDecoder.Decode(data[..length]);
+                _ = ImageDecoder.Decode(data[..length], TestContext.Current.CancellationToken);
             }
         }
     }
@@ -77,7 +77,7 @@ public sealed class ImageDecoderTests
         {
             foreach (var picture in Support.Fixture.Load(fixture).GetChildNodes<Image>())
             {
-                Assert.NotNull(ImageDecoder.Decode(picture.Bytes));
+                Assert.NotNull(ImageDecoder.Decode(picture.Bytes, TestContext.Current.CancellationToken));
             }
         }
     }

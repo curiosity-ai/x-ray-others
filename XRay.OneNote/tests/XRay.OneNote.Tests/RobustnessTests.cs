@@ -46,6 +46,8 @@ public sealed class RobustnessTests
 
             using var output = new MemoryStream();
             document.Save(output, Pdf);
+            using var html = new MemoryStream();
+            document.Save(html, new HtmlSaveOptions { PerPage = false });
             return null;
         }
         catch (Exception exception)

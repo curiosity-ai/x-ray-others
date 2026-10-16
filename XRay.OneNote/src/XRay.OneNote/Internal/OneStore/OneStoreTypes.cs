@@ -292,6 +292,12 @@ internal sealed class OneStoreFile
     public required Dictionary<string, byte[]> FileDataStore { get; init; }
 
     public string? DisplayName { get; init; }
+
+    /// <summary>The <c>guidFile</c> of the header (MS-ONESTORE 2.3.1): identifies this file, but copies of a file share it.</summary>
+    public Guid FileGuid { get; init; }
+
+    /// <summary>The <c>guidAncestor</c> of the header: the <see cref="FileGuid"/> of the table of contents file, or empty.</summary>
+    public Guid AncestorGuid { get; init; }
 }
 
 /// <summary>Bounds-checked little-endian reads. Out-of-range reads raise <see cref="FileCorruptedException"/>.</summary>

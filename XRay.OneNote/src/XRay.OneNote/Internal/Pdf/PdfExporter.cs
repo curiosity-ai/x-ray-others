@@ -26,43 +26,54 @@ internal sealed class PdfExporter
     private static readonly (double R, double G, double B) DefaultHyperlinkColor = (0.0, 0.2, 0.65);
     private static readonly (double R, double G, double B) Black = (0, 0, 0);
 
-    private static readonly HashSet<int> CheckboxShapes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 28, 30, 32, 48, 50, 52, 69, 71, 73, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99];
-    private static readonly HashSet<int> StarShapes = [4, 5, 6, 13, 34, 40, 54, 61, 75];
-    private static readonly HashSet<int> FlagShapes = [14, 89, 90, 91, 92, 93, 97, 98, 99];
-    private static readonly HashSet<int> QuestionShapes = [15, 111];
-    private static readonly HashSet<int> ArrowRightShapes = [10, 11, 12, 16, 59, 80];
-    private static readonly HashSet<int> ArrowLeftShapes = [38, 58, 79];
-    private static readonly HashSet<int> ArrowUpShapes = [45, 66, 86];
-    private static readonly HashSet<int> ArrowDownShapes = [37, 57, 78];
-    private static readonly HashSet<int> ExclamationShapes = [7, 8, 9, 17, 115];
-    private static readonly HashSet<int> ContactShapes = [18, 94, 95, 96, 114, 115, 116, 118];
-    private static readonly HashSet<int> MusicShapes = [121];
-    private static readonly HashSet<int> CalendarShapes = [19, 120, 133, 139];
-    private static readonly HashSet<int> TimeShapes = [20, 110, 117];
-    private static readonly HashSet<int> CheckmarkShapes = [35, 55, 76];
-    private static readonly HashSet<int> GreenShapes = [1, 4, 7, 10, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 96, 99, 103];
-    private static readonly HashSet<int> BlueShapes = [3, 6, 9, 12, 14, 16, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 94, 97, 102, 118, 121, 124, 125, 126, 133];
-    private static readonly HashSet<int> RedShapes = [17, 98, 100, 113, 119, 137, 138, 140, 142];
+    private static readonly HashSet<int> CheckboxShapes = TagShapes.Checkbox;
+    private static readonly HashSet<int> StarShapes = TagShapes.Star;
+    private static readonly HashSet<int> FlagShapes = TagShapes.Flag;
+    private static readonly HashSet<int> QuestionShapes = TagShapes.Question;
+    private static readonly HashSet<int> ArrowRightShapes = TagShapes.ArrowRight;
+    private static readonly HashSet<int> ArrowLeftShapes = TagShapes.ArrowLeft;
+    private static readonly HashSet<int> ArrowUpShapes = TagShapes.ArrowUp;
+    private static readonly HashSet<int> ArrowDownShapes = TagShapes.ArrowDown;
+    private static readonly HashSet<int> ExclamationShapes = TagShapes.Exclamation;
+    private static readonly HashSet<int> ContactShapes = TagShapes.Contact;
+    private static readonly HashSet<int> MusicShapes = TagShapes.Music;
+    private static readonly HashSet<int> CalendarShapes = TagShapes.Calendar;
+    private static readonly HashSet<int> TimeShapes = TagShapes.Time;
+    private static readonly HashSet<int> CheckmarkShapes = TagShapes.Checkmark;
+    private static readonly HashSet<int> GreenShapes = TagShapes.Green;
+    private static readonly HashSet<int> BlueShapes = TagShapes.Blue;
+    private static readonly HashSet<int> RedShapes = TagShapes.Red;
 
     private readonly IPdfCanvas _pdf;
     private readonly FontResolver _fonts;
 
-    private PdfExporter(IPdfCanvas canvas, PdfSaveOptions options)
+    private readonly CancellationToken _ct;
+
+    private PdfExporter(IPdfCanvas canvas, PdfSaveOptions options, CancellationToken ct)
     {
+        _ct = ct;
         _pdf = canvas;
         _fonts = new FontResolver(canvas.Fonts, options.FontsSubsystem);
     }
 
     public static byte[] Export(Document document, PdfSaveOptions options)
     {
-        var canvas = new PdfCanvas();
-        Render(document, options, canvas);
-        return canvas.Save();
+        using var buffer = new MemoryStream();
+        Export(document, options, buffer, default);
+        return buffer.ToArray();
+    }
+
+    /// <summary>Renders the document and writes the PDF to <paramref name="output"/>.</summary>
+    public static void Export(Document document, PdfSaveOptions options, Stream output, CancellationToken ct)
+    {
+        var canvas = new PdfCanvas { CancellationToken = ct };
+        Render(document, options, canvas, ct);
+        canvas.Save(output, ct);
     }
 
     /// <summary>Renders onto <paramref name="canvas"/> without saving it.</summary>
-    internal static void Render(Document document, PdfSaveOptions options, IPdfCanvas canvas) =>
-        new PdfExporter(canvas, options).WritePdf(document, options);
+    internal static void Render(Document document, PdfSaveOptions options, IPdfCanvas canvas, CancellationToken ct = default) =>
+        new PdfExporter(canvas, options, ct).WritePdf(document, options);
 
     /// <summary>The fill color of a note tag glyph for a shape.</summary>
     internal static (double R, double G, double B) TagColor(int? shape)
@@ -115,6 +126,7 @@ internal sealed class PdfExporter
 
         for (var index = 0; index < selected.Count; index++)
         {
+            _ct.ThrowIfCancellationRequested();
             var cursorY = height - TopMargin;
             var page = selected[index];
             if (page is null)
@@ -160,6 +172,7 @@ internal sealed class PdfExporter
             var nextOutlineY = contentOriginY;
             foreach (var outline in page.GetChildNodes<Outline>())
             {
+                _ct.ThrowIfCancellationRequested();
                 // The reference writer positions outlines at a fixed origin: it reads offset and width
                 // attributes the outline model does not have, so they are always zero.
                 var outlineCursorY = Math.Min(contentOriginY, nextOutlineY);
@@ -331,7 +344,7 @@ internal sealed class PdfExporter
         return best;
     }
 
-    private static List<TextRun> IterRuns(RichText richText)
+    internal static List<TextRun> IterRuns(RichText richText)
     {
         if (richText.TextRuns.Count > 0)
         {
@@ -362,7 +375,7 @@ internal sealed class PdfExporter
         ];
     }
 
-    private static string? ExtractHyperlinkTarget(string text)
+    internal static string? ExtractHyperlinkTarget(string text)
     {
         var match = PdfText.HyperlinkTarget().Match(text);
         if (!match.Success)
@@ -374,7 +387,7 @@ internal sealed class PdfExporter
         return target.Length > 0 ? target : null;
     }
 
-    private static string? NormalizeHyperlinkTarget(string? target)
+    internal static string? NormalizeHyperlinkTarget(string? target)
     {
         if (string.IsNullOrEmpty(target))
         {
@@ -467,6 +480,7 @@ internal sealed class PdfExporter
 
         foreach (var run in runs)
         {
+            _ct.ThrowIfCancellationRequested();
             var style = run.Style;
             var fontSize = FontSizeOf(style, defaultSize);
             var rawText = run.Text;
@@ -486,6 +500,7 @@ internal sealed class PdfExporter
             var position = 0;
             while (position < text.Length)
             {
+                _ct.ThrowIfCancellationRequested();
                 if (cursorY < BottomMargin + currentLineHeight)
                 {
                     cursorY = ShowPage(pageHeight);
@@ -499,6 +514,7 @@ internal sealed class PdfExporter
 
                 while (chunk.Length > 0)
                 {
+                    _ct.ThrowIfCancellationRequested();
                     // The reference writer only breaks pages at explicit newlines, so a long wrapped
                     // paragraph ran off the bottom of the page; break at the start of every line.
                     if (x == startX && cursorY < BottomMargin + currentLineHeight)
@@ -606,7 +622,7 @@ internal sealed class PdfExporter
 
     // ------------------------------------------------------------------ note tags
 
-    private static List<NoteTag> DedupeTags(IEnumerable<NoteTag>? tags)
+    internal static List<NoteTag> DedupeTags(IEnumerable<NoteTag>? tags)
     {
         var seen = new HashSet<(int?, string?, uint?, uint?, DateTime?, DateTime?)>();
         var result = new List<NoteTag>();
@@ -1072,6 +1088,7 @@ internal sealed class PdfExporter
         Dictionary<(int, string), int> listState,
         int outlineDepth)
     {
+        _ct.ThrowIfCancellationRequested();
         switch (node)
         {
             case OutlineElement outlineElement:
@@ -1629,6 +1646,7 @@ internal sealed class PdfExporter
         var freshPage = false;
         while (pending.Count > 0)
         {
+            _ct.ThrowIfCancellationRequested();
             var current = pending[0];
             pending.RemoveAt(0);
             var availableHeight = Math.Max(cursorY - BottomMargin, 1.0);

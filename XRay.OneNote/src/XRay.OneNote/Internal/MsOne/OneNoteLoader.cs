@@ -7,7 +7,7 @@ using P = XRay.OneNote.Internal.OneStore.PropertyNames;
 namespace XRay.OneNote.Internal.MsOne;
 
 /// <summary>The result of loading a section: its name, its current pages and each page's history.</summary>
-internal sealed record LoadedOneNoteDocument(string? DisplayName, List<Page> Pages, List<List<Page>> PageHistories);
+internal sealed record LoadedOneNoteDocument(string? DisplayName, List<Page> Pages, List<List<Page>> PageHistories, Guid FileGuid, Guid? EntityGuid, Guid AncestorGuid, DateTime? CreationTime = null);
 
 /// <summary>A node of the MS-ONE object graph: an object with its structural children and metadata objects.</summary>
 internal sealed class LogicalNode
@@ -58,6 +58,7 @@ internal sealed partial class OneNoteLoader
 
     private readonly OneStoreFile _parsed;
     private readonly bool _includePageHistory;
+    private readonly CancellationToken _ct;
     private readonly Dictionary<ObjectSpaceState, Dictionary<int, OrderedDictionary<ExtendedGuid, OneStoreObject>>> _snapshotCache = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<ObjectSpaceState, Dictionary<ExtendedGuid, int>> _revisionIndexCache = new(ReferenceEqualityComparer.Instance);
     private readonly ObjectSpaceState? _sectionSpace;
@@ -69,8 +70,9 @@ internal sealed partial class OneNoteLoader
     private OrderedDictionary<ExtendedGuid, OneStoreObject> _objects;
     private int _nodeCount;
 
-    private OneNoteLoader(OneStoreFile parsed, bool includePageHistory)
+    private OneNoteLoader(OneStoreFile parsed, bool includePageHistory, CancellationToken ct)
     {
+        _ct = ct;
         _parsed = parsed;
         _includePageHistory = includePageHistory;
         _sectionSpace = SelectSectionSpace(parsed);
@@ -82,10 +84,10 @@ internal sealed partial class OneNoteLoader
         _objects = GetSnapshotObjects(_space, _currentRevisionIndex);
     }
 
-    public static LoadedOneNoteDocument Load(byte[] data, string? displayName, bool includePageHistory)
+    public static LoadedOneNoteDocument Load(byte[] data, string? displayName, bool includePageHistory, CancellationToken ct = default)
     {
-        var parsed = OneStoreParser.Parse(data, displayName);
-        return new OneNoteLoader(parsed, includePageHistory).Build();
+        var parsed = OneStoreParser.Parse(data, displayName, ct);
+        return new OneNoteLoader(parsed, includePageHistory, ct).Build();
     }
 
     private LoadedOneNoteDocument Build()
@@ -113,7 +115,57 @@ internal sealed partial class OneNoteLoader
             displayName = pages[0].Title?.TitleText?.Text;
         }
 
-        return new LoadedOneNoteDocument(displayName, pages, histories);
+        return new LoadedOneNoteDocument(displayName, pages, histories, _parsed.FileGuid, SectionEntityGuid(), _parsed.AncestorGuid, SectionCreationTime());
+    }
+
+    /// <summary>
+    /// The <c>NotebookManagementEntityGuid</c> of the section node; null when the node has none.
+    /// </summary>
+    /// <summary>When the section was created: the topology timestamp of its section node.</summary>
+    private DateTime? SectionCreationTime()
+    {
+        foreach (var space in new[] { _sectionSpace, _contentSpace })
+        {
+            if (space is null)
+            {
+                continue;
+            }
+
+            var revision = space.Revisions.Count > 0 ? SelectCurrentRevisionIndex(space) : null;
+            foreach (var record in GetSnapshotObjects(space, revision).Values)
+            {
+                if (record.JcidName == J.SectionNode && TimestampToDateTime(record.Properties.Get(P.TopologyCreationTimeStamp)) is { } time)
+                {
+                    return time;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Guid? SectionEntityGuid()
+    {
+        foreach (var space in new[] { _sectionSpace, _contentSpace })
+        {
+            if (space is null)
+            {
+                continue;
+            }
+
+            var revision = space.Revisions.Count > 0 ? SelectCurrentRevisionIndex(space) : null;
+            var objects = GetSnapshotObjects(space, revision);
+            foreach (var record in objects.Values)
+            {
+                if (record.JcidName == J.SectionNode
+                    && record.Properties.Get(P.NotebookManagementEntityGuid).AsNonEmptyBytes() is { Length: 16 } bytes)
+                {
+                    return new Guid(bytes);
+                }
+            }
+        }
+
+        return null;
     }
 
     // ------------------------------------------------------------------ object space and revision selection
@@ -281,6 +333,7 @@ internal sealed partial class OneNoteLoader
 
         for (var position = chain.Count - 1; position >= 0; position--)
         {
+            _ct.ThrowIfCancellationRequested();
             var revision = chain[position];
             var merged = baseSnapshot is null
                 ? new OrderedDictionary<ExtendedGuid, OneStoreObject>()
@@ -448,6 +501,7 @@ internal sealed partial class OneNoteLoader
 
     private LogicalNode? BuildLogicalNode(ExtendedGuid oid, HashSet<ExtendedGuid> stack)
     {
+        _ct.ThrowIfCancellationRequested();
         if (!_objects.TryGetValue(oid, out var record))
         {
             return null;
@@ -696,6 +750,7 @@ internal sealed partial class OneNoteLoader
 
         for (var spaceOrder = 0; spaceOrder < candidateSpaces.Count; spaceOrder++)
         {
+            _ct.ThrowIfCancellationRequested();
             var space = candidateSpaces[spaceOrder];
             var revisionIndex = SelectCurrentRevisionIndex(space);
             var pageInfos = BuildPageInfosForSpace(space, revisionIndex);
@@ -709,6 +764,7 @@ internal sealed partial class OneNoteLoader
             var count = Math.Min(pageInfos.Count, histories.Count);
             for (var pageOrder = 0; pageOrder < count; pageOrder++)
             {
+                _ct.ThrowIfCancellationRequested();
                 var (oid, logicalPage, page) = pageInfos[pageOrder];
                 // Resolved against the primary content snapshot, not this space's: the reference reader
                 // does the same, and page order depends on it.
@@ -812,6 +868,7 @@ internal sealed partial class OneNoteLoader
 
         foreach (var revisionIndex in PublishedPageRevisionIndices())
         {
+            _ct.ThrowIfCancellationRequested();
             var pagePairs = BuildPagePairsForRevision(_space, revisionIndex);
             var timestamp = RevisionLastModifiedTimestamp(_space, revisionIndex);
             var revisionObjects = GetSnapshotObjects(_space, revisionIndex);
@@ -988,6 +1045,7 @@ internal sealed partial class OneNoteLoader
     {
         foreach (var child in node.Children)
         {
+            _ct.ThrowIfCancellationRequested();
             if (BuildPublicNode(child) is { } publicChild)
             {
                 parent.AppendChildLast(publicChild);

@@ -19,6 +19,12 @@ public abstract class SaveOptions
 
     /// <summary>Where fonts for the output come from. Null uses <see cref="Saving.FontsSubsystem.Default"/>.</summary>
     public FontsSubsystem? FontsSubsystem { get; set; }
+
+    /// <summary>
+    /// Cancels the save cooperatively. It is combined with the token passed to the
+    /// <c>Save</c> overload, when there is one; either one cancelling throws <see cref="OperationCanceledException"/>.
+    /// </summary>
+    public CancellationToken CancellationToken { get; set; }
 }
 
 /// <summary>Options for saving to PDF.</summary>

@@ -138,7 +138,7 @@ public sealed class ApiSurfaceTests
     }
 
     [Fact]
-    public void Save_format_has_only_pdf() => Assert.Equal([SaveFormat.Pdf], Enum.GetValues<SaveFormat>());
+    public void Save_format_has_pdf_and_html() => Assert.Equal([SaveFormat.Pdf, SaveFormat.Html], Enum.GetValues<SaveFormat>());
 
     [Fact]
     public void Outline_exposes_offsets_and_max_width()

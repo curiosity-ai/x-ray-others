@@ -11,12 +11,20 @@ internal static class OneStoreParser
     private const ulong FileNodeListMagic = 0xA4567AB1F5F7F4C4;
     private const ulong FileNodeListFooterMagic = 0x8BC215C38233BA4B;
     private static readonly Guid SectionFileType = new("7b5c52e4-d88c-4da7-aeb1-5378d02996d3");
+    private static readonly Guid TocFileType = new("43ff2fa1-efd9-4c76-9ee2-10ea5722765f");
 
     // FileChunkReference field sizes for the StpFormat and CbFormat values of a FileNode header (2.4.3).
     private static readonly int[] StpSizes = [8, 4, 2, 4];
     private static readonly int[] CbSizes = [4, 8, 1, 2];
 
-    public static OneStoreFile Parse(byte[] data, string? displayName)
+    public static OneStoreFile Parse(byte[] data, string? displayName, CancellationToken ct = default) =>
+        ParseCore(data, displayName, SectionFileType, ct);
+
+    /// <summary>Parses a table of contents (.onetoc2) file: the same container as a section, with another file type.</summary>
+    public static OneStoreFile ParseToc(byte[] data, string? displayName, CancellationToken ct = default) =>
+        ParseCore(data, displayName, TocFileType, ct);
+
+    private static OneStoreFile ParseCore(byte[] data, string? displayName, Guid expectedType, CancellationToken ct)
     {
         if (data.Length < 1024)
         {
@@ -25,14 +33,14 @@ internal static class OneStoreParser
 
         var span = data.AsSpan();
         var fileType = Bytes.Guid(span, 0);
-        if (fileType != SectionFileType)
+        if (fileType != expectedType)
         {
             throw new UnsupportedFileFormatException("Unsupported file format", fileType.ToString("D"));
         }
 
         var rootOffset = Bytes.U64(span, 172);
         var rootSize = Bytes.U32(span, 180);
-        var rootNodes = ParseFileNodeList(data, rootOffset, rootSize);
+        var rootNodes = ParseFileNodeList(data, rootOffset, rootSize, ct);
 
         var fileDataStore = new Dictionary<string, byte[]>(StringComparer.Ordinal);
         var objectSpaces = new List<ObjectSpaceState>();
@@ -42,17 +50,17 @@ internal static class OneStoreParser
             if (node.FileNodeId == 0x090)
             {
                 var (listOffset, listSize, _) = DecodeChunkReference(node, 0);
-                ProcessFileDataStoreList(data, fileDataStore, listOffset, listSize);
+                ProcessFileDataStoreList(data, fileDataStore, listOffset, listSize, ct);
             }
             else if (node.FileNodeId == 0x008)
             {
                 var (listOffset, listSize, refSize) = DecodeChunkReference(node, 0);
                 var gosid = Bytes.ExtendedGuid(node.Payload.Span, refSize);
-                objectSpaces.Add(ParseObjectSpace(data, gosid, listOffset, listSize));
+                objectSpaces.Add(ParseObjectSpace(data, gosid, listOffset, listSize, ct));
             }
         }
 
-        return new OneStoreFile { ObjectSpaces = objectSpaces, FileDataStore = fileDataStore, DisplayName = displayName };
+        return new OneStoreFile { ObjectSpaces = objectSpaces, FileDataStore = fileDataStore, DisplayName = displayName, FileGuid = Bytes.Guid(span, 16), AncestorGuid = Bytes.Guid(span, 128) };
     }
 
     /// <summary>Decodes a FileChunkReference whose field sizes come from the node header.</summary>
@@ -71,7 +79,7 @@ internal static class OneStoreParser
     }
 
     /// <summary>Walks a file node list (2.4.1) across its fragments.</summary>
-    internal static List<FileNode> ParseFileNodeList(byte[] data, ulong startOffset, ulong size)
+    internal static List<FileNode> ParseFileNodeList(byte[] data, ulong startOffset, ulong size, CancellationToken ct = default)
     {
         var result = new List<FileNode>();
         var currentOffset = startOffset;
@@ -81,6 +89,8 @@ internal static class OneStoreParser
 
         while (currentSize != 0)
         {
+            ct.ThrowIfCancellationRequested();
+
             // A fragment chain that loops back on itself would never end.
             if (!visited.Add(currentOffset))
             {
@@ -133,29 +143,31 @@ internal static class OneStoreParser
         return result;
     }
 
-    private static ObjectSpaceState ParseObjectSpace(byte[] data, ExtendedGuid gosid, ulong listOffset, ulong listSize)
+    private static ObjectSpaceState ParseObjectSpace(byte[] data, ExtendedGuid gosid, ulong listOffset, ulong listSize, CancellationToken ct)
     {
         var state = new ObjectSpaceState(gosid);
-        foreach (var node in ParseFileNodeList(data, listOffset, listSize))
+        foreach (var node in ParseFileNodeList(data, listOffset, listSize, ct))
         {
+            ct.ThrowIfCancellationRequested();
             if (node.FileNodeId != 0x010)
             {
                 continue;
             }
 
             var (revisionOffset, revisionSize, _) = DecodeChunkReference(node, 0);
-            var revisionNodes = ParseFileNodeList(data, revisionOffset, revisionSize);
-            ProcessRevisionManifestList(data, state, revisionNodes);
+            var revisionNodes = ParseFileNodeList(data, revisionOffset, revisionSize, ct);
+            ProcessRevisionManifestList(data, state, revisionNodes, ct);
         }
 
         return state;
     }
 
-    private static void ProcessFileDataStoreList(byte[] data, Dictionary<string, byte[]> store, ulong offset, ulong size)
+    private static void ProcessFileDataStoreList(byte[] data, Dictionary<string, byte[]> store, ulong offset, ulong size, CancellationToken ct)
     {
         var memory = new ReadOnlyMemory<byte>(data);
-        foreach (var node in ParseFileNodeList(data, offset, size))
+        foreach (var node in ParseFileNodeList(data, offset, size, ct))
         {
+            ct.ThrowIfCancellationRequested();
             if (node.FileNodeId != 0x094)
             {
                 continue;
@@ -181,13 +193,14 @@ internal static class OneStoreParser
         return blob.Slice(dataOffset, (int)Math.Min(length, available)).ToArray();
     }
 
-    private static void ProcessRevisionManifestList(byte[] data, ObjectSpaceState state, List<FileNode> nodes)
+    private static void ProcessRevisionManifestList(byte[] data, ObjectSpaceState state, List<FileNode> nodes, CancellationToken ct)
     {
         List<FileNode>? currentManifest = null;
         var orderIndex = 0;
 
         foreach (var node in nodes)
         {
+            ct.ThrowIfCancellationRequested();
             var id = node.FileNodeId;
             if (id is 0x01B or 0x01E or 0x01F)
             {
@@ -200,7 +213,7 @@ internal static class OneStoreParser
                 currentManifest.Add(node);
                 if (id == 0x01C)
                 {
-                    var revision = ProcessRevisionManifest(data, state.Gosid, currentManifest, orderIndex);
+                    var revision = ProcessRevisionManifest(data, state.Gosid, currentManifest, orderIndex, ct);
                     if (revision is not null)
                     {
                         state.Revisions.Add(revision);
@@ -236,7 +249,7 @@ internal static class OneStoreParser
             }
         }
 
-        RevisionChains.MaterializeLatestRoots(state);
+        RevisionChains.MaterializeLatestRoots(state, ct);
         var preferred = state.GetLatestRevisionIndex(1);
         if (preferred is null && state.Revisions.Count > 0)
         {
@@ -245,11 +258,11 @@ internal static class OneStoreParser
 
         if (preferred is { } index)
         {
-            state.Objects = RevisionChains.BuildSnapshot(state, state.Revisions[index]);
+            state.Objects = RevisionChains.BuildSnapshot(state, state.Revisions[index], ct);
         }
     }
 
-    private static RevisionManifestRecord? ProcessRevisionManifest(byte[] data, ExtendedGuid gosid, List<FileNode> nodes, int orderIndex)
+    private static RevisionManifestRecord? ProcessRevisionManifest(byte[] data, ExtendedGuid gosid, List<FileNode> nodes, int orderIndex, CancellationToken ct)
     {
         var gidTable = new Dictionary<uint, Guid>();
         var objects = new OrderedDictionary<ExtendedGuid, OneStoreObject>();
@@ -258,6 +271,7 @@ internal static class OneStoreParser
 
         foreach (var node in nodes)
         {
+            ct.ThrowIfCancellationRequested();
             var payload = node.Payload.Span;
             switch (node.FileNodeId)
             {
@@ -319,7 +333,7 @@ internal static class OneStoreParser
                     if (revision is not null)
                     {
                         var (groupOffset, groupSize, _) = DecodeChunkReference(node, 0);
-                        ProcessGroup(data, objects, ref sectionDisplayName, groupOffset, groupSize, gidTable);
+                        ProcessGroup(data, objects, ref sectionDisplayName, groupOffset, groupSize, gidTable, ct);
                     }
 
                     break;
@@ -361,11 +375,13 @@ internal static class OneStoreParser
         ref string? sectionDisplayName,
         ulong offset,
         ulong size,
-        Dictionary<uint, Guid> gidTable)
+        Dictionary<uint, Guid> gidTable,
+        CancellationToken ct)
     {
         var localGidTable = new Dictionary<uint, Guid>(gidTable);
-        foreach (var node in ParseFileNodeList(data, offset, size))
+        foreach (var node in ParseFileNodeList(data, offset, size, ct))
         {
+            ct.ThrowIfCancellationRequested();
             var payload = node.Payload.Span;
             switch (node.FileNodeId)
             {
@@ -532,11 +548,12 @@ internal static class RevisionChains
     public static ExtendedGuid? ResolveRoot(ObjectSpaceState state, RevisionManifestRecord revision, uint role) =>
         EffectiveRoots(state, revision).TryGetValue(role, out var root) ? root : null;
 
-    public static OrderedDictionary<ExtendedGuid, OneStoreObject> BuildSnapshot(ObjectSpaceState state, RevisionManifestRecord revision)
+    public static OrderedDictionary<ExtendedGuid, OneStoreObject> BuildSnapshot(ObjectSpaceState state, RevisionManifestRecord revision, CancellationToken ct = default)
     {
         var snapshot = new OrderedDictionary<ExtendedGuid, OneStoreObject>();
         foreach (var item in IterChain(state, revision))
         {
+            ct.ThrowIfCancellationRequested();
             foreach (var (oid, obj) in item.Objects)
             {
                 snapshot[oid] = obj;
@@ -550,7 +567,7 @@ internal static class RevisionChains
     /// Replays revision manifests and role declarations in file order to find the latest root of every
     /// (context, role) pair and the revision that supplied it.
     /// </summary>
-    public static void MaterializeLatestRoots(ObjectSpaceState state)
+    public static void MaterializeLatestRoots(ObjectSpaceState state, CancellationToken ct = default)
     {
         var latest = new OrderedDictionary<ContextRole, ExtendedGuid>();
         var latestIndices = new OrderedDictionary<ContextRole, int>();
@@ -575,6 +592,7 @@ internal static class RevisionChains
 
         foreach (var item in events.OrderBy(e => e.Order).ThenBy(e => e.Sequence))
         {
+            ct.ThrowIfCancellationRequested();
             if (item.Revision is { } revision)
             {
                 var revisionIndex = indexByRid[revision.Rid];

@@ -39,13 +39,13 @@ internal static class ImageDecoder
     // Refuse images whose decoded size would be unreasonable for a page.
     private const long MaxPixels = 40_000_000;
 
-    public static DecodedImage? Decode(byte[] data)
+    public static DecodedImage? Decode(byte[] data, CancellationToken ct = default)
     {
         try
         {
             if (data.Length >= 8 && data.AsSpan(0, 8).SequenceEqual((ReadOnlySpan<byte>)[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]))
             {
-                return DecodePng(data);
+                return DecodePng(data, ct);
             }
 
             if (data.Length >= 3 && data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF)
@@ -55,12 +55,12 @@ internal static class ImageDecoder
 
             if (data.Length >= 6 && data[0] == 'G' && data[1] == 'I' && data[2] == 'F')
             {
-                return DecodeGif(data);
+                return DecodeGif(data, ct);
             }
 
             if (data.Length >= 26 && data[0] == 'B' && data[1] == 'M')
             {
-                return DecodeBmp(data);
+                return DecodeBmp(data, ct);
             }
         }
         catch (Exception exception) when (exception is InvalidDataException or IndexOutOfRangeException or ArgumentException
@@ -148,7 +148,7 @@ internal static class ImageDecoder
 
     // ------------------------------------------------------------------ PNG
 
-    private static DecodedImage DecodePng(byte[] data)
+    private static DecodedImage DecodePng(byte[] data, CancellationToken ct)
     {
         var position = 8;
         int width = 0, height = 0, bitDepth = 0, colorType = 0, interlace = 0;
@@ -221,6 +221,7 @@ internal static class ImageDecoder
             int read;
             while (filled < raw.Length && (read = inflater.Read(raw, filled, raw.Length - filled)) > 0)
             {
+                ct.ThrowIfCancellationRequested();
                 filled += read;
             }
         }
@@ -233,14 +234,14 @@ internal static class ImageDecoder
         var samples = new byte[checked(stride * height)];
         if (interlace == 1)
         {
-            DeinterlaceAdam7(raw, samples, width, height, bitsPerPixel, stride);
+            DeinterlaceAdam7(raw, samples, width, height, bitsPerPixel, stride, ct);
         }
         else
         {
-            Unfilter(raw, 0, samples, 0, stride, height, Math.Max(1, bitsPerPixel / 8), stride);
+            Unfilter(raw, 0, samples, 0, stride, height, Math.Max(1, bitsPerPixel / 8), stride, ct);
         }
 
-        return ExpandPng(samples, width, height, bitDepth, colorType, stride, palette, transparency);
+        return ExpandPng(samples, width, height, bitDepth, colorType, stride, palette, transparency, ct);
     }
 
     private static long InterlacedLength(int width, int height, int bitsPerPixel)
@@ -263,12 +264,17 @@ internal static class ImageDecoder
         return total;
     }
 
-    private static int Unfilter(byte[] raw, int rawOffset, byte[] target, int targetOffset, int stride, int rows, int bytesPerPixel, int targetStride)
+    private static int Unfilter(byte[] raw, int rawOffset, byte[] target, int targetOffset, int stride, int rows, int bytesPerPixel, int targetStride, CancellationToken ct)
     {
         var previous = new byte[stride];
         var current = new byte[stride];
         for (var row = 0; row < rows; row++)
         {
+            if ((row & 63) == 0)
+            {
+                ct.ThrowIfCancellationRequested();
+            }
+
             if (rawOffset + 1 + stride > raw.Length)
             {
                 throw new InvalidDataException("Truncated PNG image data");
@@ -309,7 +315,7 @@ internal static class ImageDecoder
         return pa <= pb && pa <= pc ? a : (pb <= pc ? b : c);
     }
 
-    private static void DeinterlaceAdam7(byte[] raw, byte[] samples, int width, int height, int bitsPerPixel, int stride)
+    private static void DeinterlaceAdam7(byte[] raw, byte[] samples, int width, int height, int bitsPerPixel, int stride, CancellationToken ct)
     {
         int[] startX = [0, 4, 0, 2, 0, 1, 0];
         int[] startY = [0, 0, 4, 0, 2, 0, 1];
@@ -327,9 +333,14 @@ internal static class ImageDecoder
 
             var passStride = (int)(((long)passWidth * bitsPerPixel + 7) / 8);
             var passSamples = new byte[passStride * passHeight];
-            offset = Unfilter(raw, offset, passSamples, 0, passStride, passHeight, Math.Max(1, bitsPerPixel / 8), passStride);
+            offset = Unfilter(raw, offset, passSamples, 0, passStride, passHeight, Math.Max(1, bitsPerPixel / 8), passStride, ct);
             for (var y = 0; y < passHeight; y++)
             {
+                if ((y & 63) == 0)
+                {
+                    ct.ThrowIfCancellationRequested();
+                }
+
                 for (var x = 0; x < passWidth; x++)
                 {
                     CopyPixelBits(passSamples, y * passStride, x, samples, ((startY[pass] + (y * stepY[pass])) * stride), startX[pass] + (x * stepX[pass]), bitsPerPixel);
@@ -356,7 +367,7 @@ internal static class ImageDecoder
         cell = (byte)((cell & ~(mask << shift)) | (value << shift));
     }
 
-    private static DecodedImage ExpandPng(byte[] samples, int width, int height, int bitDepth, int colorType, int stride, byte[]? palette, byte[]? transparency)
+    private static DecodedImage ExpandPng(byte[] samples, int width, int height, int bitDepth, int colorType, int stride, byte[]? palette, byte[]? transparency, CancellationToken ct)
     {
         var colorChannels = colorType is 2 or 3 or 6 ? 3 : 1;
         var pixels = new byte[(long)width * height * colorChannels];
@@ -385,6 +396,11 @@ internal static class ImageDecoder
 
         for (var y = 0; y < height; y++)
         {
+            if ((y & 63) == 0)
+            {
+                ct.ThrowIfCancellationRequested();
+            }
+
             for (var x = 0; x < width; x++)
             {
                 var pixel = (y * width) + x;
@@ -458,7 +474,7 @@ internal static class ImageDecoder
 
     // ------------------------------------------------------------------ GIF
 
-    private static DecodedImage DecodeGif(byte[] data)
+    private static DecodedImage DecodeGif(byte[] data, CancellationToken ct)
     {
         var width = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(6));
         var height = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(8));
@@ -529,13 +545,18 @@ internal static class ImageDecoder
                 position += data[position] + 1;
             }
 
-            var indices = LzwDecode(compressed.ToArray(), minCodeSize, frameWidth * frameHeight);
+            var indices = LzwDecode(compressed.ToArray(), minCodeSize, frameWidth * frameHeight, ct);
             var pixels = new byte[width * height * 3];
             byte[]? alpha = transparentIndex >= 0 ? new byte[width * height] : null;
             var interlaced = (frameFlags & 0x40) != 0;
             var rowOrder = interlaced ? InterlacedRows(frameHeight) : Enumerable.Range(0, frameHeight).ToArray();
             for (var row = 0; row < frameHeight; row++)
             {
+                if ((row & 63) == 0)
+                {
+                    ct.ThrowIfCancellationRequested();
+                }
+
                 var y = top + rowOrder[row];
                 for (var x = 0; x < frameWidth; x++)
                 {
@@ -578,7 +599,7 @@ internal static class ImageDecoder
         return [.. order];
     }
 
-    private static byte[] LzwDecode(byte[] input, int minCodeSize, int pixelCount)
+    private static byte[] LzwDecode(byte[] input, int minCodeSize, int pixelCount, CancellationToken ct)
     {
         if (minCodeSize is < 2 or > 11)
         {
@@ -604,8 +625,14 @@ internal static class ImageDecoder
         var bitBuffer = 0;
         var bitCount = 0;
         var stack = new byte[4097];
+        var blockCounter = 0;
         foreach (var b in input)
         {
+            if ((++blockCounter & 4095) == 0)
+            {
+                ct.ThrowIfCancellationRequested();
+            }
+
             bitBuffer |= b << bitCount;
             bitCount += 8;
             while (bitCount >= codeSize)
@@ -687,7 +714,7 @@ internal static class ImageDecoder
 
     // ------------------------------------------------------------------ BMP
 
-    private static DecodedImage DecodeBmp(byte[] data)
+    private static DecodedImage DecodeBmp(byte[] data, CancellationToken ct)
     {
         var dataOffset = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(10));
         var headerSize = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(14));
@@ -719,6 +746,11 @@ internal static class ImageDecoder
         var pixels = new byte[width * height * 3];
         for (var y = 0; y < height; y++)
         {
+            if ((y & 63) == 0)
+            {
+                ct.ThrowIfCancellationRequested();
+            }
+
             var sourceRow = dataOffset + ((topDown ? y : height - 1 - y) * stride);
             if (sourceRow + stride > data.Length)
             {

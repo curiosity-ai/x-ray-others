@@ -5,7 +5,7 @@
 X-Ray.OneNote reads Microsoft OneNote section files (`.one`) in pure managed C#. It parses the
 MS-ONESTORE revision store and the MS-ONE object model into a document tree of pages, outlines,
 formatted rich text, images, tables, attached files, note tags and numbered lists, reconstructs
-page history, and exports pages to PDF. It has no NuGet dependencies and no native code, and does
+page history, and exports pages to PDF and HTML. It has no NuGet dependencies and no native code, and does
 not need OneNote or COM automation.
 
 It is part of [X-Ray](https://github.com/curiosity-ai/x-ray), a family of .NET 10 libraries for
@@ -104,6 +104,53 @@ document.Save("Notes.pdf", new PdfSaveOptions { FontsSubsystem = fonts });
 
 When no suitable font is found, characters the standard fonts cannot show are written as `?`.
 
+## HTML export
+
+`Document.Save` also writes HTML 5 (UTF-8, no script, deterministic output, stable `on-` class
+names, CSS in a `<style>` element). Outlines keep their horizontal offset and width, outline
+elements nest with their list markers, runs carry bold, italic, underline, strikethrough, super
+and subscript, color, highlight, font and size, links are anchors (only `http`, `https`, `mailto`,
+`ftp`, `tel`, `onenote` and `file` targets), tags are inline markers, and tables, pictures
+and attached files are written in place. Hidden text stays in the markup with the class
+`on-hidden`; set `ShowHiddenText` to show it.
+
+```csharp
+// One HTML document per page, pictures served from your own URLs, each page into your own stream.
+document.Save(Stream.Null, new HtmlSaveOptions
+{
+    ImageSavingCallback = args => args.Url = $"./api/blob/get/{args.PageIndex}-{args.ImageIndex}",
+    PageSavingCallback = args => args.OutputStream = File.Create($"page-{args.PageIndex}.html"),
+});
+
+// One document, everything embedded (pictures as data: URIs).
+document.Save("Notes.html");
+```
+
+`ImageSavingArgs` carries the picture bytes, format, size, page and image index; set `Url` to
+choose the `src`, `OutputStream` to receive the bytes, or `SkipEmbedding` to leave the picture out.
+`FileSavingCallback` does the same for attached files. `HtmlWriter.WritePage` and
+`HtmlWriter.WriteDocument` are the lower-level entry points, and `HtmlWriter.StyleSheet` is the CSS
+for use with `EmbedCss = false`. Ink and other items the document model does not hold are not
+written.
+
+## Sections and notebooks
+
+`Document.Guid` is the section file's identity (the header `guidFile`), the value a notebook
+table of contents lists a section under; `Document.NotebookGuid` is the table of contents file it
+belongs to. `NotebookToc.Load` reads a `.onetoc2` file: its GUID, color and the ordered section
+entries (file name, GUID, color, ordering id; folders have no GUID). This reader is best effort: the
+property ids of the table of contents are not in the published specifications this package
+was built from, so entries are recognised by property type, and it has been tested only against
+synthetic files.
+
+## Cancellation
+
+`Document.Load(stream, options, cancellationToken)`, the `Save` overloads that take a token,
+`HtmlWriter` and `NotebookToc.Load` check the token while they parse, lay out and write, and
+throw `OperationCanceledException`. `HtmlSaveOptions.CancellationToken` does the same for options
+passed around. PDF and HTML are written to the stream as they are produced; a path that was
+being written is deleted when the save fails.
+
 ## Errors
 
 Damaged or truncated input raises `FileCorruptedException`; a file that is not a OneNote section
@@ -113,8 +160,8 @@ raises `UnsupportedFileFormatException`. Both derive from `OneNoteException`, as
 
 ## Limitations
 
-- Reads OneNote 2010 and later section files (`.one`). Notebook table of contents files
-  (`.onetoc2`), OneNote 2007 sections, encrypted sections and the OneNote web packaging are not
+- Reads OneNote 2010 and later section files (`.one`) and, best effort, notebook table of contents
+  files (`.onetoc2`; `.onepkg` is not supported). OneNote 2007 sections, encrypted sections and the OneNote web packaging are not
   supported, and the library does not write `.one` files.
 - Images and attachments stored outside the section (in a `onefiles` folder next to it) are
   listed with empty `Bytes`.

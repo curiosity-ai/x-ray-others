@@ -5,6 +5,9 @@ public enum SaveFormat
 {
     /// <summary>Portable Document Format.</summary>
     Pdf,
+
+    /// <summary>HTML 5, one document per page or one document for the whole section.</summary>
+    Html,
 }
 
 /// <summary>The OneNote file format a document was read from.</summary>

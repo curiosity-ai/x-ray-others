@@ -37,8 +37,8 @@ public sealed class ReadmeExampleTests
             }
 
             var pdf = Path.Combine(directory.FullName, "Notes.pdf");
-            document.Save(pdf);
-            document.Save(Stream.Null, new PdfSaveOptions { PageIndex = 0, PageCount = 1 });
+            document.Save(pdf, TestContext.Current.CancellationToken);
+            document.Save(Stream.Null, new PdfSaveOptions { PageIndex = 0, PageCount = 1 }, TestContext.Current.CancellationToken);
 
             var withHistory = new Document(source, new LoadOptions { LoadHistory = true });
             foreach (var version in withHistory.GetPageHistory(withHistory.Pages.First()))
@@ -48,7 +48,7 @@ public sealed class ReadmeExampleTests
 
             var fonts = new FontsSubsystem { SearchSystemFontDirectories = false };
             fonts.FontDirectories.Add(TestFonts.Directory);
-            document.Save(pdf, new PdfSaveOptions { FontsSubsystem = fonts });
+            document.Save(pdf, new PdfSaveOptions { FontsSubsystem = fonts }, TestContext.Current.CancellationToken);
 
             Assert.Equal("Notes", lines[0]);
             Assert.Contains("# tyty  (level 1, by Дмитрий)", lines);

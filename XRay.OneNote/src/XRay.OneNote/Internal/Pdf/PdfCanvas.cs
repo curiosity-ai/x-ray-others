@@ -183,12 +183,15 @@ internal sealed class PdfCanvas : IPdfCanvas
         Append(builder.ToString());
     }
 
+    /// <summary>Cancels image decoding and saving.</summary>
+    public CancellationToken CancellationToken { get; init; }
+
     public PdfImageSource? LoadImage(byte[] data)
     {
         var hash = Convert.ToHexString(SHA256.HashData(data));
         if (!_imagesByHash.TryGetValue(hash, out var xobject))
         {
-            var decoded = ImageDecoder.Decode(data);
+            var decoded = ImageDecoder.Decode(data, CancellationToken);
             if (decoded is null)
             {
                 return null;
@@ -237,12 +240,20 @@ internal sealed class PdfCanvas : IPdfCanvas
 
     public byte[] Save()
     {
+        using var buffer = new MemoryStream();
+        Save(buffer);
+        return buffer.ToArray();
+    }
+
+    /// <summary>Writes the finished file to <paramref name="output"/> without buffering it a second time.</summary>
+    public void Save(Stream output, CancellationToken ct = default)
+    {
         if (_current.Touched || _current.Content.Length > 0)
         {
             ShowPage();
         }
 
-        return new PdfFileWriter(this).Write();
+        new PdfFileWriter(this, ct == default ? CancellationToken : ct).Write(output);
     }
 
     private static string N(double value) => PdfSyntax.Number(value);
@@ -291,13 +302,15 @@ internal sealed class PdfCanvas : IPdfCanvas
     {
         private readonly PdfCanvas _canvas;
         private readonly List<byte[]> _objects = [];
+        private readonly CancellationToken _ct;
 
-        public PdfFileWriter(PdfCanvas canvas)
+        public PdfFileWriter(PdfCanvas canvas, CancellationToken ct)
         {
             _canvas = canvas;
+            _ct = ct;
         }
 
-        public byte[] Write()
+        public void Write(Stream output)
         {
             var catalog = Reserve();
             var pagesRoot = Reserve();
@@ -318,6 +331,7 @@ internal sealed class PdfCanvas : IPdfCanvas
             var pageIds = new List<int>();
             foreach (var page in _canvas._pages)
             {
+                _ct.ThrowIfCancellationRequested();
                 var content = WriteStream(Encoding.Latin1.GetBytes(page.Content.ToString()), compress: true, "");
                 var resources = new StringBuilder("<< /ProcSet [/PDF /Text /ImageB /ImageC /ImageI]");
                 if (page.FontsUsed.Count > 0)
@@ -365,7 +379,7 @@ internal sealed class PdfCanvas : IPdfCanvas
 
             Set(pagesRoot, Encoding.ASCII.GetBytes($"<< /Type /Pages /Kids [{string.Join(' ', pageIds.Select(p => $"{p} 0 R"))}] /Count {pageIds.Count} >>"));
             Set(catalog, Encoding.ASCII.GetBytes($"<< /Type /Catalog /Pages {pagesRoot} 0 R >>"));
-            return Serialize(catalog, info);
+            Serialize(output, catalog, info);
         }
 
         private int Reserve()
@@ -506,31 +520,40 @@ internal sealed class PdfCanvas : IPdfCanvas
             return WriteStream(image.Pixels!, compress: true, $" /Type /XObject /Subtype /Image /Width {image.Width} /Height {image.Height} /ColorSpace {space} /BitsPerComponent 8{smask}");
         }
 
-        private byte[] Serialize(int catalog, int info)
+        private void Serialize(Stream target, int catalog, int info)
         {
-            using var output = new MemoryStream();
-            void Write(string text) => output.Write(Encoding.ASCII.GetBytes(text));
+            // The trailer carries a hash of everything before it, so the bytes are hashed as they go out.
+            using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            long position = 0;
+            void Emit(ReadOnlySpan<byte> bytes)
+            {
+                target.Write(bytes);
+                hash.AppendData(bytes);
+                position += bytes.Length;
+            }
+
+            void Write(string text) => Emit(Encoding.ASCII.GetBytes(text));
             Write("%PDF-1.4\n");
-            output.Write([(byte)'%', 0xE2, 0xE3, 0xCF, 0xD3, (byte)'\n']);
+            Emit([(byte)'%', 0xE2, 0xE3, 0xCF, 0xD3, (byte)'\n']);
             var offsets = new long[_objects.Count];
             for (var i = 0; i < _objects.Count; i++)
             {
-                offsets[i] = output.Position;
+                _ct.ThrowIfCancellationRequested();
+                offsets[i] = position;
                 Write($"{i + 1} 0 obj\n");
-                output.Write(_objects[i]);
+                Emit(_objects[i]);
                 Write("\nendobj\n");
             }
 
-            var xref = output.Position;
+            var xref = position;
             Write($"xref\n0 {_objects.Count + 1}\n0000000000 65535 f \n");
             foreach (var offset in offsets)
             {
                 Write($"{offset.ToString("D10", CultureInfo.InvariantCulture)} 00000 n \n");
             }
 
-            var id = Convert.ToHexString(SHA256.HashData(output.ToArray()).AsSpan(0, 16));
+            var id = Convert.ToHexString(hash.GetCurrentHash().AsSpan(0, 16));
             Write($"trailer\n<< /Size {_objects.Count + 1} /Root {catalog} 0 R /Info {info} 0 R /ID [<{id}> <{id}>] >>\nstartxref\n{xref}\n%%EOF\n");
-            return output.ToArray();
         }
     }
 }

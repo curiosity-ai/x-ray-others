@@ -2,7 +2,7 @@
 
 Package `X-Ray.OneNote` (assembly and namespace `XRay.OneNote`). Reads OneNote 2010+ section
 files: the MS-ONESTORE revision store, the MS-ONE object model, a public document tree, page
-history, and PDF export. Pure managed, no NuGet dependencies.
+history, PDF and HTML export, and (best effort) notebook table of contents files. Pure managed, no NuGet dependencies.
 
 The code is ported from an MIT-licensed open-source Python OneNote reader (see `LICENSE`). Its
 checkout, when present, is a sibling under `/home/user` (`ls -d /home/user/*Note-FOSS-for-Python`);
@@ -20,18 +20,21 @@ match only `LICENSE`. Scripts that import the reference discover its package nam
 | Path | What |
 |---|---|
 | `src/XRay.OneNote/*.cs` | Public DOM: `Document`, `Page`, `Title`, `Outline`, `OutlineElement`, `RichText`, `TextRun`, `TextStyle`, `ParagraphStyle`, `Image`, `AttachedFile`, `Table*`, `NumberList`, `NoteTag`, `PageHistory`, `DocumentVisitor`, `LoadOptions`, enums, exceptions |
-| `src/XRay.OneNote/Saving/` | `SaveOptions`, `PdfSaveOptions`, `FontsSubsystem` (font directories for PDF) |
+| `src/XRay.OneNote/NotebookToc.cs` | `NotebookToc` (.onetoc2 reader, best effort) and `NotebookTocEntry` |
+| `src/XRay.OneNote/Saving/` | `SaveOptions` (page range, `CancellationToken`), `PdfSaveOptions`, `FontsSubsystem`, `HtmlSaveOptions` + `ImageSavingArgs`/`FileSavingArgs`/`PageSavingArgs` and their callbacks, `HtmlWriter` (low-level entry points, `StyleSheet`) |
+| `src/XRay.OneNote/Internal/Html/` | `HtmlRenderer` (the writer; `ImageFormats` sniffing) and `HtmlStyle` (the shared CSS; class names are output contract) |
+| `src/XRay.OneNote/Internal/TagShapes.cs` | Note tag shape groups shared by the PDF and HTML writers |
 | `src/XRay.OneNote/Internal/OneStore/` | MS-ONESTORE: `OneStoreParser` (header, file node lists, object spaces, revision manifests, object groups, file data store), `PropertySetParser`, `RevisionChains`, `TextDecoding`, value types, property/JCID names |
 | `src/XRay.OneNote/Internal/MsOne/` | `OneNoteLoader`: object space and revision selection, logical graph, page/outline/text/image/table/tag builders, page history |
 | `src/XRay.OneNote/Internal/Pdf/` | `PdfExporter` (layout), `Flowables` (paragraphs, tables with row splitting), `PdfCanvas` (`IPdfCanvas` + PDF file writer), `PdfFonts` (standard fonts, `FontResolver`, embedded TrueType), `TrueTypeFont` (parse, subset), `ImageDecoder` (PNG, JPEG pass-through, GIF, BMP), `StandardFontMetrics.g.cs` |
 | `src/XRay.OneNote/Internal/Text/PyText.cs` | White space rules of the reference (`str.strip`/`isspace`) |
 | `tests/XRay.OneNote.Tests/` | xUnit v3. `Goldens/dom`, `Goldens/pdf` (from the Python reader), `Goldens/images.json` (from Pillow), `Fonts/` (Liberation Sans, OFL), `Support/` (corpus locator, JSON diff, PDF inspector, recording canvas) |
 | `tools/Shared/DomJson.cs` | The parity DOM dump (public API only), linked into tests and the CLI |
-| `tools/XRay.OneNote.Cli/` | `onenotetool info|text|dump|pdf|pdf-dir` |
+| `tools/XRay.OneNote.Cli/` | `onenotetool info|text|dump|pdf|html|toc|pdf-dir` |
 | `tools/regenerate_goldens.py` | Regenerates `Goldens/dom` and `Goldens/pdf` from the Python checkout; `--compare-pdfs DIR` checks C# PDFs with pypdf |
 | `tools/generate_standard_font_metrics.py` | Regenerates the standard font width tables |
 
-Fixtures: `test_documents/onenote/*.one` (12 files, MIT, from the Python test suite). Tests find
+Fixtures: `test_documents/onenote/*.one` (12 files, MIT, from the Python test suite). `test_documents/onenote/html-golden/` holds this package's own HTML output for them (not third-party reference output); regenerate with `XRAY_ONENOTE_UPDATE_GOLDENS=1 dotnet test ... --filter-class "*HtmlWriterTests"` and review the diff by eye. The golden test skips when the folder is absent, so reference output can be dropped there under the same names. Tests find
 the corpus through `XRAY_TEST_DOCUMENTS` or by walking up to a `test_documents` directory; absent
 corpus skips, a missing file fails.
 
@@ -61,6 +64,25 @@ python3 tools/regenerate_goldens.py --source <python checkout> --compare-pdfs /t
 | `saving/options.py` | `Saving/SaveOptions.cs` |
 | `saving/pdf_writer.py` (ReportLab canvas + platypus) | `Internal/Pdf/*` (own PDF writer; same layout rules) |
 | `tests/test_*.py` | `tests/XRay.OneNote.Tests/*Tests.cs` (same cases, ported; fake canvas became `RecordingCanvas`) |
+
+## HTML, identity, TOC, cancellation
+
+- **HTML**: one `HtmlRenderer`; no indentation inside paragraphs (they are `white-space: pre-wrap`);
+  offsets and sizes are half-inches, written as px at 48 per half-inch; outlines keep document order
+  (no reordering by position); tags are glyph spans (`on-tag on-tag-<kind> on-tag-<state>`); list
+  markers come from `PdfExporter.ResolveListMarkerText`, hyperlink field codes are handled as in the
+  PDF writer. Output must stay deterministic (no clock, culture or hash order) because the goldens pin it.
+  Merged cells, header rows and ink are not modelled, so they are not written.
+- **`Document.Guid`** is the header `guidFile`; MS-ONE says a TOC section entry's `FileIdentityGuid`
+  equals it. `NotebookGuid` is the header `guidAncestor`; `EntityGuid` the section node's
+  `NotebookManagementEntityGuid`; `CreationTime` the section node's topology time stamp.
+- **`NotebookToc`** is best effort: MS-ONE does not publish the TOC property ids, so entries are
+  recognised by property type (object-reference list, 16-byte GUID, UTF-16 string, integers) and
+  the one known id 0x1CBE (color). Unverified against a OneNote-written file; the tests use
+  `Support/SyntheticToc` (the parser's inverse). The root of a TOC is jcid 0x00020001.
+- **Cancellation**: every loop that walks file nodes, revisions, object groups, the logical graph,
+  pages, outlines, rows or image rows checks the token (`ThrowIfCancellationRequested`); PDF is
+  written to the stream by `PdfCanvas.Save(Stream)` (the trailer hash is incremental).
 
 ## Rules
 
@@ -105,7 +127,7 @@ python3 tools/regenerate_goldens.py --source <python checkout> --compare-pdfs /t
 
 ## Gaps
 
-- `.onetoc2`, OneNote 2007, encrypted sections, MS-FSSHTTPB (web) packaging; writing `.one`.
+- OneNote 2007, encrypted sections, MS-FSSHTTPB (web) packaging, `.onepkg` (CAB) listing; writing `.one`. `.onetoc2` is best effort (see above).
 - Files referenced outside the section (`<file>` references into `onefiles/`) have empty bytes.
 - Ink, equations, page backgrounds and outline positions are not modeled; the PDF lays outlines
   out in reading order at a fixed origin, as the reference does.
