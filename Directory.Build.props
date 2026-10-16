@@ -1,0 +1,39 @@
+<Project>
+  <!-- Shared by every package in x-ray-others. Each package folder (XRay.Psd/, XRay.Email/, ...)
+       has its own Directory.Build.props that imports this one and adds what is specific to it. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <!-- NuGet packaging. Only the libraries under <Package>/src/ opt in with IsPackable. Package
+       ids are hyphenated (X-Ray.Psd), assemblies and namespaces are not (XRay.Psd), matching
+       X-Ray.Content. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <Authors>Curiosity GmbH</Authors>
+    <Company>Curiosity GmbH</Company>
+    <Version>0.1.0-alpha</Version>
+    <PackageIcon>logo.png</PackageIcon>
+    <RepositoryUrl>https://github.com/curiosity-ai/x-ray-others</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)assets/logo.png" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true' or '$(TF_BUILD)' == 'true' or '$(CI)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>
