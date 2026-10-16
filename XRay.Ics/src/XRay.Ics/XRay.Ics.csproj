@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>XRay.Ics</AssemblyName>
+    <RootNamespace>XRay.Ics</RootNamespace>
+    <Description>Dependency-free .NET library for iCalendar (.ics, RFC 5545, iTIP RFC 5546) and vCalendar 1.0: tolerant reader, typed events/to-dos/journals, time zones, recurrence expansion, writer, and appointment extraction to HTML, text and Markdown. Part of the X-Ray family.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>X-Ray.Ics</PackageId>
+    <PackageTags>ics;icalendar;ical;vcalendar;calendar;rfc5545;itip;recurrence;rrule;x-ray</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/curiosity-ai/x-ray-others/tree/main/XRay.Ics</PackageProjectUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" Visible="false" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="XRay.Ics.Tests" />
+  </ItemGroup>
+</Project>
