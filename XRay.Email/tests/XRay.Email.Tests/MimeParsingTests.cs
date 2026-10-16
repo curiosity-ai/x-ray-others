@@ -134,7 +134,7 @@ body
     public void Folds_without_leading_whitespace_and_a_byte_order_mark_are_tolerated()
     {
         var text = "﻿From: a@example.com\r\nSubject: =?utf-8?q?one?=\r\n=?utf-8?q?_two?=\r\nTo: b@example.com\r\n\r\nbody\r\n";
-        var message = MapiMessage.LoadFromEml(Encoding.UTF8.GetBytes(text));
+        var message = MapiMessage.LoadFromEml(Encoding.UTF8.GetBytes(text), TestContext.Current.CancellationToken);
         Assert.Equal("one two", message.Subject);
         Assert.Equal("a@example.com", message.SenderEmailAddress);
         Assert.Equal("b@example.com", Assert.Single(message.Recipients).EmailAddress);
@@ -163,7 +163,7 @@ body
         }
 
         builder.Append("Content-Type: text/plain\r\n\r\nleaf\r\n");
-        var message = MapiMessage.LoadFromEml(Encoding.ASCII.GetBytes(builder.ToString()));
+        var message = MapiMessage.LoadFromEml(Encoding.ASCII.GetBytes(builder.ToString()), TestContext.Current.CancellationToken);
         Assert.Equal("deep", message.Subject);
 
         var nested = new StringBuilder();
@@ -173,9 +173,9 @@ body
         }
 
         nested.Append("Subject: leaf\r\n\r\nleaf body\r\n");
-        var outer = MapiMessage.LoadFromEml(Encoding.ASCII.GetBytes(nested.ToString()));
+        var outer = MapiMessage.LoadFromEml(Encoding.ASCII.GetBytes(nested.ToString()), TestContext.Current.CancellationToken);
         Assert.Equal("level 0", outer.Subject);
-        Assert.NotNull(outer.Save());
+        Assert.NotNull(outer.Save(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -189,16 +189,16 @@ body
         message.AddAttachment("résumé; final.pdf", [1, 2, 3], "application/pdf");
         message.AddAttachment("非常に長いファイル名の添付ファイルはRFC2231の継続行に分割されます.txt", "x\ny\n"u8.ToArray(), "text/plain");
 
-        var eml = message.SaveToEml();
+        var eml = message.SaveToEml(TestContext.Current.CancellationToken);
         var text = Encoding.UTF8.GetString(eml);
         var headerBlock = text[..text.IndexOf("\r\n\r\n", StringComparison.Ordinal)];
         Assert.True(eml.All(b => b < 0x80), "the written message is 7-bit");
         Assert.All(headerBlock.Split("\r\n"), line => Assert.True(line.Length <= 78, $"header line longer than 78: {line}"));
 
         message.MessageDeliveryTime = new DateTime(2026, 3, 15, 10, 30, 0, DateTimeKind.Utc);
-        Assert.Contains("\r\nDate: Sun, 15 Mar 2026 10:30:00 +0000\r\n", Encoding.ASCII.GetString(message.SaveToEml()));
+        Assert.Contains("\r\nDate: Sun, 15 Mar 2026 10:30:00 +0000\r\n", Encoding.ASCII.GetString(message.SaveToEml(TestContext.Current.CancellationToken)));
 
-        var reloaded = MapiMessage.LoadFromEml(eml);
+        var reloaded = MapiMessage.LoadFromEml(eml, TestContext.Current.CancellationToken);
         Assert.Equal(message.Subject, reloaded.Subject);
         Assert.Equal("Zoë, Ångström", reloaded.SenderName);
         Assert.Equal(["Doe, John", "山田 太郎"], reloaded.Recipients.Select(item => item.DisplayName));
@@ -218,10 +218,10 @@ body
         outer.AddEmbeddedMessageAttachment(inner, "inner.eml");
         outer.AddAttachment("c.txt", "c"u8.ToArray(), "text/plain");
 
-        var eml = Encoding.ASCII.GetString(outer.SaveToEml());
+        var eml = Encoding.ASCII.GetString(outer.SaveToEml(TestContext.Current.CancellationToken));
         // RFC 2046 5.2.1: an embedded message is never base64 encoded.
         Assert.Matches(@"Content-Type: message/rfc822[^\r]*\r\nContent-Transfer-Encoding: 7bit", eml);
-        var reloaded = MapiMessage.LoadFromEml(Encoding.ASCII.GetBytes(eml));
+        var reloaded = MapiMessage.LoadFromEml(Encoding.ASCII.GetBytes(eml), TestContext.Current.CancellationToken);
         Assert.Equal(2, reloaded.Attachments.Count);
         var embedded = reloaded.Attachments[0].EmbeddedMessage;
         Assert.NotNull(embedded);

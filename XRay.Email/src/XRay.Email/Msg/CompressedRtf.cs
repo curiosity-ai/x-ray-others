@@ -18,8 +18,9 @@ internal static class CompressedRtf
         "\\pard\\plain\\f0\\fs20\\b\\i\\u\\tab\\tx");
 
     /// <summary>Returns the decompressed RTF, or null when the payload is not valid compressed RTF.</summary>
-    public static byte[]? TryDecompress(byte[] data)
+    public static byte[]? TryDecompress(byte[] data, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (data.Length < HeaderSize)
         {
             return null;
@@ -49,6 +50,11 @@ internal static class CompressedRtf
         var position = HeaderSize;
         while (position < end)
         {
+            if ((output.Count & 0xFFFF) < 32)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
             var control = data[position++];
             for (var bit = 0; bit < 8; bit++)
             {

@@ -32,6 +32,23 @@ public sealed class MapiAttachment
 
     public string? ContentId { get; set; }
 
+    /// <summary>
+    /// PR_ATTACH_CONTENT_LOCATION: the URL an HTML body may use to refer to this attachment (the MIME
+    /// <c>Content-Location</c> header). Null when there is none.
+    /// </summary>
+    public string? ContentLocation
+    {
+        get => Properties.Get(0x3713)?.Value as string;
+        set
+        {
+            Properties.Remove(0x3713);
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                Properties.Add(0x3713, (ushort)PropertyTypeCode.PtypString, value);
+            }
+        }
+    }
+
     public MapiMessage? EmbeddedMessage { get; set; }
 
     public MapiPropertyCollection Properties { get; } = new();
@@ -61,5 +78,17 @@ public sealed class MapiAttachment
     public Stream OpenRead()
     {
         return new MemoryStream(Data, writable: false);
+    }
+
+    /// <summary>Writes <see cref="Data"/> to <paramref name="destination"/> in blocks, checking the token between them.</summary>
+    public void CopyTo(Stream destination, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        cancellationToken.ThrowIfCancellationRequested();
+        for (var offset = 0; offset < Data.Length; offset += 81920)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            destination.Write(Data, offset, Math.Min(81920, Data.Length - offset));
+        }
     }
 }

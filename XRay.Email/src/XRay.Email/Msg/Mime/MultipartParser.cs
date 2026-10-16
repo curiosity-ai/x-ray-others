@@ -9,7 +9,7 @@ internal static class MultipartParser
     /// whitespace; the line break before a boundary belongs to the boundary, so exactly one is removed
     /// from each part; a missing closing boundary ends the last part at the end of the data.
     /// </summary>
-    public static IReadOnlyList<byte[]> SplitParts(byte[] bodyBytes, string boundary)
+    public static IReadOnlyList<byte[]> SplitParts(byte[] bodyBytes, string boundary, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(bodyBytes);
         ArgumentException.ThrowIfNullOrWhiteSpace(boundary);
@@ -17,8 +17,14 @@ internal static class MultipartParser
         var delimiter = Encoding.Latin1.GetBytes($"--{boundary}");
         var parts = new List<byte[]>();
         var activePartStart = -1;
+        var lineCount = 0;
         foreach (var (lineStart, contentEnd, nextLineStart) in EnumerateLines(bodyBytes))
         {
+            if ((++lineCount & 0x3FFF) == 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
             var kind = ClassifyBoundaryLine(bodyBytes.AsSpan(lineStart, contentEnd - lineStart), delimiter);
             if (kind == BoundaryKind.None)
             {

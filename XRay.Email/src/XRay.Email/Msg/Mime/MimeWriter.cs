@@ -4,15 +4,18 @@ namespace XRay.Email.Msg.Mime;
 
 internal sealed class MimeWriter
 {
-    public byte[] Write(MimeMessageModel message)
+    private const int Base64LineBytes = 57; // 76 base64 characters per line
+    private const int Base64BlockLines = 512;
+
+    public byte[] Write(MimeMessageModel message, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
         using var memory = new MemoryStream();
-        Write(memory, message);
+        Write(memory, message, cancellationToken);
         return memory.ToArray();
     }
 
-    public void Write(Stream stream, MimeMessageModel message)
+    public void Write(Stream stream, MimeMessageModel message, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
         ArgumentNullException.ThrowIfNull(message);
@@ -20,54 +23,82 @@ internal sealed class MimeWriter
         var headerBytes = SerializeHeaders(message.Headers);
         stream.Write(headerBytes, 0, headerBytes.Length);
         stream.Write("\r\n"u8);
-        var bodyBytes = SerializeEntityBody(message.RootEntity);
-        stream.Write(bodyBytes, 0, bodyBytes.Length);
+        WriteEntityBody(stream, message.RootEntity, cancellationToken);
     }
 
-    private static byte[] SerializeEntity(MimeEntity entity)
+    private static void WriteEntity(Stream stream, MimeEntity entity, CancellationToken cancellationToken)
     {
-        using var memory = new MemoryStream();
         var headers = SerializeHeaders(entity.Headers);
-        memory.Write(headers, 0, headers.Length);
-        memory.Write("\r\n"u8);
-        var body = SerializeEntityBody(entity);
-        memory.Write(body, 0, body.Length);
-        return memory.ToArray();
+        stream.Write(headers, 0, headers.Length);
+        stream.Write("\r\n"u8);
+        WriteEntityBody(stream, entity, cancellationToken);
     }
 
-    private static byte[] SerializeEntityBody(MimeEntity entity)
+    private static void WriteEntityBody(Stream stream, MimeEntity entity, CancellationToken cancellationToken)
     {
-        return entity switch
+        cancellationToken.ThrowIfCancellationRequested();
+        switch (entity)
         {
-            MimeMultipart multipart => SerializeMultipartBody(multipart),
-            MimePart part => SerializePartBody(part),
-            _ => Array.Empty<byte>(),
-        };
+            case MimeMultipart multipart:
+                WriteMultipartBody(stream, multipart, cancellationToken);
+                break;
+            case MimeEmbeddedMessage embedded:
+                new MimeWriter().Write(stream, embedded.Message, cancellationToken);
+                break;
+            case MimePart { DeferEncoding: true } deferred when string.Equals(deferred.TransferEncoding, "base64", StringComparison.Ordinal):
+                WriteBase64(stream, deferred.DecodedBody, cancellationToken);
+                break;
+            case MimePart part:
+                // Encode with the transfer encoding the part declares, so headers and body always agree.
+                // No line break is appended: RFC 2046 5.1.1 makes the CRLF before a boundary part of the
+                // boundary, so adding one here would add a line to the content.
+                var body = TransferEncodingEncoder.EncodeBodyAs(part.TransferEncoding, part.DecodedBody);
+                stream.Write(body, 0, body.Length);
+                break;
+        }
     }
 
-    private static byte[] SerializePartBody(MimePart part)
+    /// <summary>Base64 with 76-character lines, each ended by CRLF (the last included), written block by block.</summary>
+    private static void WriteBase64(Stream stream, byte[] payload, CancellationToken cancellationToken)
     {
-        // Encode with the transfer encoding the part declares, so headers and body always agree.
-        // No line break is appended: RFC 2046 5.1.1 makes the CRLF before a boundary part of the
-        // boundary, so adding one here would add a line to the content.
-        return TransferEncodingEncoder.EncodeBodyAs(part.TransferEncoding, part.DecodedBody);
+        const int blockBytes = Base64LineBytes * Base64BlockLines;
+        var line = new char[76];
+        var buffer = new byte[(Base64BlockLines * 78)];
+        for (var offset = 0; offset < payload.Length; offset += blockBytes)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var count = Math.Min(blockBytes, payload.Length - offset);
+            var written = 0;
+            for (var lineOffset = 0; lineOffset < count; lineOffset += Base64LineBytes)
+            {
+                var lineCount = Math.Min(Base64LineBytes, count - lineOffset);
+                Convert.TryToBase64Chars(payload.AsSpan(offset + lineOffset, lineCount), line, out var chars);
+                for (var i = 0; i < chars; i++)
+                {
+                    buffer[written++] = (byte)line[i];
+                }
+
+                buffer[written++] = (byte)'\r';
+                buffer[written++] = (byte)'\n';
+            }
+
+            stream.Write(buffer, 0, written);
+        }
     }
 
-    private static byte[] SerializeMultipartBody(MimeMultipart multipart)
+    private static void WriteMultipartBody(Stream stream, MimeMultipart multipart, CancellationToken cancellationToken)
     {
-        using var memory = new MemoryStream();
         foreach (var child in multipart.Children)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var marker = Encoding.ASCII.GetBytes($"--{multipart.Boundary}\r\n");
-            memory.Write(marker, 0, marker.Length);
-            var serialized = SerializeEntity(child);
-            memory.Write(serialized, 0, serialized.Length);
-            memory.Write("\r\n"u8);
+            stream.Write(marker, 0, marker.Length);
+            WriteEntity(stream, child, cancellationToken);
+            stream.Write("\r\n"u8);
         }
 
         var closing = Encoding.ASCII.GetBytes($"--{multipart.Boundary}--\r\n");
-        memory.Write(closing, 0, closing.Length);
-        return memory.ToArray();
+        stream.Write(closing, 0, closing.Length);
     }
 
     private static byte[] SerializeHeaders(IEnumerable<MimeHeader> headers)

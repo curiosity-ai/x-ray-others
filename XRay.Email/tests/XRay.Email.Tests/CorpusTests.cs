@@ -46,7 +46,7 @@ public sealed class CorpusTests
             return;
         }
 
-        var reloaded = MapiMessage.LoadFromEml(message.SaveToEml());
+        var reloaded = MapiMessage.LoadFromEml(message.SaveToEml(TestContext.Current.CancellationToken), TestContext.Current.CancellationToken);
         AssertNoMismatch(key, "EML -> EML", Compare(reloaded, expected, Fields.All));
     }
 
@@ -59,8 +59,8 @@ public sealed class CorpusTests
             return;
         }
 
-        using var stream = new MemoryStream(message.Save());
-        var reloaded = MapiMessage.FromStream(stream, strict: true);
+        using var stream = new MemoryStream(message.Save(TestContext.Current.CancellationToken));
+        var reloaded = MapiMessage.FromStream(stream, strict: true, TestContext.Current.CancellationToken);
         Assert.Empty(reloaded.ValidationIssues);
         AssertNoMismatch(key, "EML -> MSG", Compare(reloaded, expected, Fields.All));
     }
@@ -74,8 +74,8 @@ public sealed class CorpusTests
             return;
         }
 
-        using var stream = new MemoryStream(message.Save());
-        var reloaded = MapiMessage.FromStream(stream);
+        using var stream = new MemoryStream(message.Save(TestContext.Current.CancellationToken));
+        var reloaded = MapiMessage.FromStream(stream, TestContext.Current.CancellationToken);
         AssertNoMismatch(key, "MSG -> MSG", Compare(reloaded, expected, Fields.All));
     }
 
@@ -90,7 +90,7 @@ public sealed class CorpusTests
 
         // An EML carries no MAPI-only state, so only what MIME can express is compared: the HTML
         // body (Outlook often keeps it only as RTF) and attachment types are left out.
-        var reloaded = MapiMessage.LoadFromEml(message.SaveToEml());
+        var reloaded = MapiMessage.LoadFromEml(message.SaveToEml(TestContext.Current.CancellationToken), TestContext.Current.CancellationToken);
         AssertNoMismatch(key, "MSG -> EML", Compare(reloaded, expected, Fields.Subject | Fields.From | Fields.Recipients | Fields.MessageId | Fields.Date | Fields.Body | Fields.Attachments));
     }
 

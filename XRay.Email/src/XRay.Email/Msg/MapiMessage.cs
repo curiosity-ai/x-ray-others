@@ -247,22 +247,75 @@ public sealed partial class MapiMessage : IDisposable
         return message;
     }
 
-    public static MapiMessage FromFile(string path, bool strict = false)
+    public static MapiMessage FromFile(string path, CancellationToken cancellationToken) => FromFile(path, false, cancellationToken);
+
+    public static MapiMessage FromStream(Stream stream, CancellationToken cancellationToken) => FromStream(stream, false, cancellationToken);
+
+    public static MapiMessage FromFile(string path, bool strict = false) => FromFile(path, strict, CancellationToken.None);
+
+    /// <summary>
+    /// Loads an MSG file. The file is read sector by sector on demand and is never held whole in
+    /// memory; only the parsed message (its properties and attachment bytes) is.
+    /// </summary>
+    public static MapiMessage FromFile(string path, bool strict, CancellationToken cancellationToken)
     {
-        using var reader = MsgReader.FromFile(path, strict);
+        ArgumentNullException.ThrowIfNull(path);
+        using var reader = MsgReader.FromFile(path, strict, cancellationToken);
+        return FromReader(reader);
+    }
+
+    public static MapiMessage FromStream(Stream stream, bool strict = false) => FromStream(stream, strict, CancellationToken.None);
+
+    /// <summary>
+    /// Loads an MSG from a stream. A seekable stream is read in place from its current position (no
+    /// copy); a non-seekable one is spooled to a temporary file, not to memory. The stream is not
+    /// disposed.
+    /// </summary>
+    public static MapiMessage FromStream(Stream stream, bool strict, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        using var reader = MsgReader.FromStream(stream, strict, cancellationToken);
+        return FromReader(reader);
+    }
+
+    private static MapiMessage FromReader(MsgReader reader)
+    {
         var message = FromMsgDocument(MsgDocument.FromReader(reader));
         message.ValidationIssues = reader.ValidationIssues.ToArray();
         return message;
     }
 
-    public static MapiMessage FromStream(Stream stream, bool strict = false)
+    /// <summary>Loads a message from a file, detecting MSG (a compound file) or EML from its first bytes.</summary>
+    public static MapiMessage Load(string path, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.RandomAccess);
+        return Load(file, cancellationToken);
+    }
+
+    /// <summary>
+    /// Loads a message from a stream, detecting MSG (compound file signature) or EML. A non-seekable
+    /// stream is handled without buffering the part already inspected.
+    /// </summary>
+    public static MapiMessage Load(Stream stream, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        using var reader = MsgReader.FromStream(stream, strict);
-        var message = FromMsgDocument(MsgDocument.FromReader(reader));
-        message.ValidationIssues = reader.ValidationIssues.ToArray();
-        return message;
+        var signature = new byte[8];
+        if (stream.CanSeek)
+        {
+            var start = stream.Position;
+            var read = stream.ReadAtLeast(signature, signature.Length, throwOnEndOfStream: false);
+            stream.Position = start;
+            return IsCompoundFile(signature.AsSpan(0, read)) ? FromStream(stream, false, cancellationToken) : LoadFromEml(stream, cancellationToken);
+        }
+
+        var peeked = stream.ReadAtLeast(signature, signature.Length, throwOnEndOfStream: false);
+        using var rejoined = new PrefixedStream(signature.AsSpan(0, peeked).ToArray(), stream);
+        return IsCompoundFile(signature.AsSpan(0, peeked)) ? FromStream(rejoined, false, cancellationToken) : LoadFromEml(rejoined, cancellationToken);
     }
+
+    private static bool IsCompoundFile(ReadOnlySpan<byte> head) =>
+        head.Length >= 8 && head.StartsWith((ReadOnlySpan<byte>)[0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]);
 
     public static MapiMessage FromMsgDocument(MsgDocument document) => FromMsgDocument(document, null);
 
@@ -282,6 +335,7 @@ public sealed partial class MapiMessage : IDisposable
             MajorVersion = document.MajorVersion,
             MinorVersion = document.MinorVersion,
             TransactionSignatureNumber = document.TransactionSignatureNumber,
+            SourceFormat = MessageSourceFormat.Msg,
             HeaderReserved0 = header0,
             HeaderReserved1 = header1,
             EmitStoreSupportMask = properties.Get((ushort)CommonMessagePropertyId.StoreSupportMask, (ushort)PropertyTypeCode.PtypInteger32) is not null,
@@ -328,25 +382,42 @@ public sealed partial class MapiMessage : IDisposable
         return message;
     }
 
-    public static MapiMessage LoadFromEml(string path)
+    public static MapiMessage LoadFromEml(string path) => LoadFromEml(path, CancellationToken.None);
+
+    /// <summary>
+    /// Loads an EML file. MIME parsing works on the message as one block (decoded parts are kept in
+    /// memory regardless), so the file is read once into an array of exactly its size; there is no
+    /// intermediate copy.
+    /// </summary>
+    public static MapiMessage LoadFromEml(string path, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(path);
-        return LoadFromEml(File.ReadAllBytes(path));
+        var model = new MimeReader(cancellationToken).ReadFile(path);
+        return FinishEml(model, cancellationToken);
     }
 
-    public static MapiMessage LoadFromEml(Stream stream)
+    public static MapiMessage LoadFromEml(Stream stream) => LoadFromEml(stream, CancellationToken.None);
+
+    /// <summary>Loads an EML from the rest of a stream (not disposed). A seekable stream is read into an exactly sized array.</summary>
+    public static MapiMessage LoadFromEml(Stream stream, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        using var memory = new MemoryStream();
-        stream.CopyTo(memory);
-        return LoadFromEml(memory.ToArray());
+        var model = new MimeReader(cancellationToken).Read(stream);
+        return FinishEml(model, cancellationToken);
     }
 
-    public static MapiMessage LoadFromEml(byte[] data)
+    public static MapiMessage LoadFromEml(byte[] data) => LoadFromEml(data, CancellationToken.None);
+
+    public static MapiMessage LoadFromEml(byte[] data, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(data);
-        var model = new MimeReader().Read(data);
-        return EmlMessageMapper.ToMapiMessage(model);
+        var model = new MimeReader(cancellationToken).Read(data);
+        return FinishEml(model, cancellationToken);
+    }
+
+    private static MapiMessage FinishEml(MimeMessageModel model, CancellationToken cancellationToken)
+    {
+        return EmlMessageMapper.ToMapiMessage(model, cancellationToken);
     }
 
     public void Dispose()
@@ -391,6 +462,9 @@ public sealed partial class MapiMessage : IDisposable
         Attachments.Add(attachment);
         return attachment;
     }
+
+    /// <summary>The format this message was loaded from; <see cref="MessageSourceFormat.Created"/> for one built in code.</summary>
+    public MessageSourceFormat SourceFormat { get; internal set; } = MessageSourceFormat.Created;
 
     public MapiProperty SetProperty(ushort propertyId, ushort propertyType, object? value, uint flags = DefaultPropertyFlags)
     {
@@ -511,39 +585,61 @@ public sealed partial class MapiMessage : IDisposable
         return storage;
     }
 
-    public byte[] Save()
+    public byte[] Save() => Save(CancellationToken.None);
+
+    public byte[] Save(CancellationToken cancellationToken)
     {
-        return MsgWriter.ToBytes(ToMsgDocument());
+        using var memory = new MemoryStream();
+        Save(memory, cancellationToken);
+        return memory.ToArray();
     }
 
-    public void Save(string path)
-    {
-        File.WriteAllBytes(path, Save());
-    }
+    public void Save(string path) => Save(path, CancellationToken.None);
 
-    public void Save(Stream stream)
-    {
-        ArgumentNullException.ThrowIfNull(stream);
-        var bytes = Save();
-        stream.Write(bytes, 0, bytes.Length);
-    }
-
-    public byte[] SaveToEml()
-    {
-        var model = EmlMessageMapper.ToMimeMessage(this);
-        return new MimeWriter().Write(model);
-    }
-
-    public void SaveToEml(string path)
+    public void Save(string path, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(path);
-        File.WriteAllBytes(path, SaveToEml());
+        MsgWriter.WriteFile(ToMsgDocument(), path, cancellationToken);
     }
 
-    public void SaveToEml(Stream stream)
+    public void Save(Stream stream) => Save(stream, CancellationToken.None);
+
+    /// <summary>Writes the message as an MSG file to <paramref name="stream"/>, one sector at a time (the file is never assembled in memory).</summary>
+    public void Save(Stream stream, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        var bytes = SaveToEml();
-        stream.Write(bytes, 0, bytes.Length);
+        MsgWriter.Write(ToMsgDocument(), stream, cancellationToken);
+    }
+
+    public byte[] SaveToEml() => SaveToEml(CancellationToken.None);
+
+    public byte[] SaveToEml(CancellationToken cancellationToken)
+    {
+        using var memory = new MemoryStream();
+        SaveToEml(memory, cancellationToken);
+        return memory.ToArray();
+    }
+
+    public void SaveToEml(string path) => SaveToEml(path, CancellationToken.None);
+
+    public void SaveToEml(string path, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 81920);
+        SaveToEml(file, cancellationToken);
+    }
+
+    public void SaveToEml(Stream stream) => SaveToEml(stream, CancellationToken.None);
+
+    /// <summary>
+    /// Writes the message as MIME to <paramref name="stream"/>. Attachments are base64-encoded block by
+    /// block as they are written, and embedded messages are written in place, so no encoded copy of
+    /// the message is held in memory.
+    /// </summary>
+    public void SaveToEml(Stream stream, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        var model = EmlMessageMapper.ToMimeMessage(this, cancellationToken);
+        new MimeWriter().Write(stream, model, cancellationToken);
     }
 }

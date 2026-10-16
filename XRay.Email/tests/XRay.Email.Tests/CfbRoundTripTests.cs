@@ -23,7 +23,7 @@ public sealed class CfbRoundTripTests
         storage.AddStream(new CfbStream("BigStream", Encoding.ASCII.GetBytes(new string('x', 6000))));
         storage.AddStream(new CfbStream("Zed", Encoding.ASCII.GetBytes("payload")));
 
-        var payload = CfbWriter.ToBytes(document);
+        var payload = CfbWriter.ToBytes(document, TestContext.Current.CancellationToken);
 
         using var reader = new CfbReader(payload);
         Assert.Equal(3, reader.MajorVersion);
@@ -45,7 +45,7 @@ public sealed class CfbRoundTripTests
         document.Root.AddStream(new CfbStream("ab", [1]));
         document.Root.AddStream(new CfbStream("AB", [2]));
 
-        var error = Assert.Throws<CfbException>(() => CfbWriter.ToBytes(document));
+        var error = Assert.Throws<CfbException>(() => CfbWriter.ToBytes(document, TestContext.Current.CancellationToken));
         Assert.Contains("Duplicate sibling name", error.Message);
     }
 }

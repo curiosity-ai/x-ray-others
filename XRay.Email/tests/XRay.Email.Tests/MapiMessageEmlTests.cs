@@ -20,7 +20,7 @@ Content-Type: text/plain; charset=utf-8
 Hello from EML.
 """u8.ToArray();
 
-        var message = MapiMessage.LoadFromEml(eml);
+        var message = MapiMessage.LoadFromEml(eml, TestContext.Current.CancellationToken);
 
         Assert.Equal("Plain", message.Subject);
         Assert.Equal("alice@example.com", message.SenderEmailAddress);
@@ -46,7 +46,7 @@ Content-Transfer-Encoding: base64
 {body}
 """;
 
-        var message = MapiMessage.LoadFromEml(Encoding.ASCII.GetBytes(eml.Replace("\n", "\r\n", StringComparison.Ordinal)));
+        var message = MapiMessage.LoadFromEml(Encoding.ASCII.GetBytes(eml.Replace("\n", "\r\n", StringComparison.Ordinal)), TestContext.Current.CancellationToken);
 
         Assert.Equal("Folded", message.Subject);
         Assert.Equal("Base64 body", message.Body);
@@ -80,7 +80,7 @@ Content-ID: <inline-1>
 --outer--
 """;
 
-        var message = MapiMessage.LoadFromEml(Encoding.ASCII.GetBytes(eml.Replace("\n", "\r\n", StringComparison.Ordinal)));
+        var message = MapiMessage.LoadFromEml(Encoding.ASCII.GetBytes(eml.Replace("\n", "\r\n", StringComparison.Ordinal)), TestContext.Current.CancellationToken);
 
         Assert.Contains("cid:inline-1", message.HtmlBody);
         var attachment = Assert.Single(message.Attachments);
@@ -107,7 +107,7 @@ Content-ID: <inline-1>
             Data = "img"u8.ToArray(),
         });
 
-        var reloaded = MapiMessage.LoadFromEml(message.SaveToEml());
+        var reloaded = MapiMessage.LoadFromEml(message.SaveToEml(TestContext.Current.CancellationToken), TestContext.Current.CancellationToken);
 
         Assert.Equal("RoundTrip", reloaded.Subject);
         Assert.Equal("alice@example.com", reloaded.SenderEmailAddress);
@@ -131,15 +131,15 @@ Hello stream.
 """u8.ToArray();
 
         using var input = new MemoryStream(eml);
-        var message = MapiMessage.LoadFromEml(input);
+        var message = MapiMessage.LoadFromEml(input, TestContext.Current.CancellationToken);
 
         Assert.Equal("Stream EML", message.Subject);
 
         using var output = new MemoryStream();
-        message.SaveToEml(output);
+        message.SaveToEml(output, TestContext.Current.CancellationToken);
         output.Position = 0;
 
-        var roundTripped = MapiMessage.LoadFromEml(output);
+        var roundTripped = MapiMessage.LoadFromEml(output, TestContext.Current.CancellationToken);
         Assert.Equal("Stream EML", roundTripped.Subject);
         Assert.Equal("Hello stream.", roundTripped.Body?.Trim());
     }
@@ -158,7 +158,7 @@ Content-Transfer-Encoding: quoted-printable
 <p>line=20one</p>
 """u8.ToArray();
 
-        var message = MapiMessage.LoadFromEml(eml);
+        var message = MapiMessage.LoadFromEml(eml, TestContext.Current.CancellationToken);
 
         Assert.Equal("<p>line one</p>", message.HtmlBody);
         Assert.True(string.IsNullOrEmpty(message.Body));

@@ -39,15 +39,23 @@ public sealed class MsgDocument
             reader.Strict);
     }
 
-    public static MsgDocument FromFile(string path, bool strict = false)
+    public static MsgDocument FromFile(string path, CancellationToken cancellationToken) => FromFile(path, false, cancellationToken);
+
+    public static MsgDocument FromStream(Stream stream, CancellationToken cancellationToken) => FromStream(stream, false, cancellationToken);
+
+    public static MsgDocument FromFile(string path, bool strict = false) => FromFile(path, strict, CancellationToken.None);
+
+    public static MsgDocument FromFile(string path, bool strict, CancellationToken cancellationToken)
     {
-        using var reader = MsgReader.FromFile(path, strict);
+        using var reader = MsgReader.FromFile(path, strict, cancellationToken);
         return FromReader(reader);
     }
 
-    public static MsgDocument FromStream(Stream stream, bool strict = false)
+    public static MsgDocument FromStream(Stream stream, bool strict = false) => FromStream(stream, strict, CancellationToken.None);
+
+    public static MsgDocument FromStream(Stream stream, bool strict, CancellationToken cancellationToken)
     {
-        using var reader = MsgReader.FromStream(stream, strict);
+        using var reader = MsgReader.FromStream(stream, strict, cancellationToken);
         return FromReader(reader);
     }
 
@@ -66,6 +74,7 @@ public sealed class MsgDocument
         }
 
         var cfb = reader.CfbReader;
+        cfb.CancellationToken.ThrowIfCancellationRequested();
         var storage = new MsgStorage(entry.Name, role)
         {
             Clsid = entry.Clsid.ToArray(),
@@ -240,7 +249,7 @@ public sealed class MsgDocument
 
         foreach (var stream in storage.Streams)
         {
-            cfbStorage.AddStream(new CfbStream(stream.Name, stream.Data.ToArray())
+            cfbStorage.AddStream(new CfbStream(stream.Name, stream.Data)
             {
                 Clsid = stream.Clsid.ToArray(),
                 StateBits = stream.StateBits,

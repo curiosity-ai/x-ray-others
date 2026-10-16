@@ -272,7 +272,7 @@ public sealed partial class MapiMessage
         else
         {
             SyncPropertyValue(attachment.Properties, (ushort)CommonMessagePropertyId.AttachMethod, (ushort)PropertyTypeCode.PtypInteger32, AttachMethodByValue);
-            SyncPropertyValue(attachment.Properties, (ushort)CommonMessagePropertyId.AttachDataBinary, (ushort)PropertyTypeCode.PtypBinary, attachment.Data.ToArray());
+            SyncPropertyValue(attachment.Properties, (ushort)CommonMessagePropertyId.AttachDataBinary, (ushort)PropertyTypeCode.PtypBinary, attachment.Data);
         }
 
         if (!string.IsNullOrEmpty(attachment.Filename))

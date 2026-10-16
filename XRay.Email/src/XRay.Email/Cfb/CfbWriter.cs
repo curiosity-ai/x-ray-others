@@ -4,16 +4,32 @@ namespace XRay.Email.Cfb;
 
 public static class CfbWriter
 {
-    public static byte[] ToBytes(CfbDocument document)
+    public static byte[] ToBytes(CfbDocument document) => ToBytes(document, CancellationToken.None);
+
+    public static byte[] ToBytes(CfbDocument document, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(document);
-        return new Serializer(document).Serialize();
+        using var memory = new MemoryStream();
+        new Serializer(document, cancellationToken).Serialize(memory);
+        return memory.ToArray();
     }
 
-    public static void WriteFile(CfbDocument document, string path)
+    /// <summary>Writes the container sector by sector to <paramref name="stream"/>; the output is never assembled in memory.</summary>
+    public static void Write(CfbDocument document, Stream stream, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(stream);
+        new Serializer(document, cancellationToken).Serialize(stream);
+    }
+
+    public static void WriteFile(CfbDocument document, string path) => WriteFile(document, path, CancellationToken.None);
+
+    public static void WriteFile(CfbDocument document, string path, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(path);
-        File.WriteAllBytes(path, ToBytes(document));
+        using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 81920);
+        Write(document, file, cancellationToken);
     }
 
     private sealed class Serializer
@@ -27,9 +43,12 @@ public static class CfbWriter
         private readonly int _entriesPerDifatSector;
         private readonly int _directoryEntriesPerSector;
 
-        public Serializer(CfbDocument document)
+        private readonly CancellationToken _cancellationToken;
+
+        public Serializer(CfbDocument document, CancellationToken cancellationToken)
         {
             _document = document;
+            _cancellationToken = cancellationToken;
             _majorVersion = document.MajorVersion;
             if (_majorVersion is not (3 or 4))
             {
@@ -44,7 +63,7 @@ public static class CfbWriter
             _directoryEntriesPerSector = _sectorSize / 128;
         }
 
-        public byte[] Serialize()
+        public void Serialize(Stream destination)
         {
             if (_document.Root.Name != CfbConstants.RootEntryName)
             {
@@ -127,7 +146,6 @@ public static class CfbWriter
             }
 
             var fatPayload = PackUInt32Array(fatEntries);
-            var fatSectorMap = SplitPayload(fatPayload, fatSectorNumbers);
 
             var difatEntries = fatSectorNumbers.ToList();
             var headerDifat = difatEntries.Take(109).ToList();
@@ -138,17 +156,20 @@ public static class CfbWriter
 
             var difatPayloadMap = BuildDifatSectors(difatEntries.Skip(109).ToArray(), difatSectorNumbers);
 
-            var sectorPayloads = new Dictionary<uint, byte[]>();
-            MergePayloads(sectorPayloads, SplitPayload(rootChain.Payload, rootChain.Sectors));
-            MergePayloads(sectorPayloads, SplitPayload(directoryChain.Payload, directoryChain.Sectors));
-            MergePayloads(sectorPayloads, SplitPayload(miniFatChain.Payload, miniFatChain.Sectors));
+            var sources = new (byte[]? Payload, int Offset)[totalSectorCount];
+            Place(sources, rootChain.Payload, rootChain.Sectors);
+            Place(sources, directoryChain.Payload, directoryChain.Sectors);
+            Place(sources, miniFatChain.Payload, miniFatChain.Sectors);
             foreach (var chain in regularChains.Values)
             {
-                MergePayloads(sectorPayloads, SplitPayload(chain.Payload, chain.Sectors));
+                Place(sources, chain.Payload, chain.Sectors);
             }
 
-            MergePayloads(sectorPayloads, fatSectorMap);
-            MergePayloads(sectorPayloads, difatPayloadMap);
+            Place(sources, fatPayload, fatSectorNumbers);
+            foreach (var pair in difatPayloadMap)
+            {
+                sources[pair.Key] = (pair.Value, 0);
+            }
 
             var header = BuildHeader(
                 numberOfDirectorySectors: _majorVersion == 3 ? 0u : (uint)directoryChain.Sectors.Count,
@@ -160,17 +181,28 @@ public static class CfbWriter
                 numberOfDifatSectors: (uint)difatSectorNumbers.Count,
                 difat: headerDifat);
 
-            var output = new byte[_sectorSize + (totalSectorCount * _sectorSize)];
-            header.CopyTo(output, 0);
+            destination.Write(header, 0, header.Length);
+            var sectorBuffer = new byte[_sectorSize];
             for (var sectorNumber = 0; sectorNumber < totalSectorCount; sectorNumber++)
             {
-                if (sectorPayloads.TryGetValue((uint)sectorNumber, out var payload))
+                if ((sectorNumber & 0x3F) == 0)
                 {
-                    Buffer.BlockCopy(payload, 0, output, _sectorSize + (sectorNumber * _sectorSize), payload.Length);
+                    _cancellationToken.ThrowIfCancellationRequested();
                 }
-            }
 
-            return output;
+                Array.Clear(sectorBuffer);
+                var (payload, offset) = sources[sectorNumber];
+                if (payload is not null)
+                {
+                    var count = Math.Min(_sectorSize, payload.Length - offset);
+                    if (count > 0)
+                    {
+                        Buffer.BlockCopy(payload, offset, sectorBuffer, 0, count);
+                    }
+                }
+
+                destination.Write(sectorBuffer, 0, sectorBuffer.Length);
+            }
         }
 
         private List<EntryRecord> BuildEntryRecords(CfbStorage root)
@@ -215,7 +247,7 @@ public static class CfbWriter
                                 childStream.CreationTime,
                                 childStream.ModifiedTime)
                             {
-                                StreamData = childStream.Data.ToArray(),
+                                StreamData = childStream.Data,
                                 StreamSize = (ulong)childStream.Data.Length,
                             };
                             records.Add(childRecord);
@@ -301,6 +333,7 @@ public static class CfbWriter
 
                 nextMiniSector += (uint)miniSectorCount;
                 miniStream.AddRange(PadBytes(record.StreamData, miniSectorCount * _miniSectorSize));
+                _cancellationToken.ThrowIfCancellationRequested();
             }
 
             return (miniStream.ToArray(), miniFatEntries);
@@ -437,22 +470,12 @@ public static class CfbWriter
             return result;
         }
 
-        private Dictionary<uint, byte[]> SplitPayload(byte[] payload, IReadOnlyList<uint> sectors)
+        private void Place((byte[]? Payload, int Offset)[] sources, byte[] payload, IReadOnlyList<uint> sectors)
         {
-            var result = new Dictionary<uint, byte[]>();
             for (var index = 0; index < sectors.Count; index++)
             {
-                var chunk = new byte[_sectorSize];
-                var count = Math.Min(_sectorSize, payload.Length - (index * _sectorSize));
-                if (count > 0)
-                {
-                    Buffer.BlockCopy(payload, index * _sectorSize, chunk, 0, count);
-                }
-
-                result[sectors[index]] = chunk;
+                sources[sectors[index]] = (payload, index * _sectorSize);
             }
-
-            return result;
         }
 
         private byte[] PackUInt32Array(IReadOnlyList<uint> values)
@@ -582,14 +605,6 @@ public static class CfbWriter
             var padded = new byte[targetLength];
             Buffer.BlockCopy(value, 0, padded, 0, value.Length);
             return padded;
-        }
-
-        private static void MergePayloads(IDictionary<uint, byte[]> destination, IReadOnlyDictionary<uint, byte[]> source)
-        {
-            foreach (var pair in source)
-            {
-                destination[pair.Key] = pair.Value;
-            }
         }
 
         private static void WriteUInt16(Span<byte> destination, int offset, ushort value) =>

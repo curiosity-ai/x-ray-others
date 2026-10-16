@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Active content that must not run</title>
+<style>.xray-mail{font-family:Calibri,'Segoe UI',Arial,sans-serif;font-size:11pt;color:#000}.xray-mail-header{font-size:10pt;border-bottom:1px solid #c8c8c8;padding:0 0 8px;margin:0 0 12px}.xray-mail-header table{border-collapse:collapse}.xray-mail-header th{text-align:left;font-weight:bold;vertical-align:top;padding:1px 14px 1px 0;white-space:nowrap}.xray-mail-header td{padding:1px 0;vertical-align:top}.xray-mail-header .xray-mail-subject td{font-weight:bold;font-size:12pt}.xray-mail-text{white-space:pre-wrap;word-wrap:break-word}</style>
+<style>p.note { color: #336699; background: url(); width: /*removed*/; }
+/*removed*/</style>
+</head>
+<body>
+<div class="xray-mail">
+<div class="xray-mail-header">
+<table>
+<tr><th>From:</th><td>Mallory &lt;mallory@example.com&gt;</td></tr>
+<tr><th>Sent:</th><td>Monday, January 8, 2024 10:30 AM UTC</td></tr>
+<tr><th>To:</th><td>Bob &lt;bob@example.com&gt;</td></tr>
+<tr><th>Cc:</th><td>Carol &lt;carol@example.com&gt;</td></tr>
+<tr class="xray-mail-subject"><th>Subject:</th><td>Active content that must not run</td></tr>
+</table>
+</div>
+<div class="xray-mail-body" style="background-color:#f0f0f0;color:#202020;">
+
+<p class="note">Quarterly report: <b>please read</b>.</p>
+
+<p><a>javascript link</a> and <a href="https://example.com/report">a normal link</a>.</p>
+<p><a>obfuscated link</a></p>
+<img src="x" alt="broken image">
+
+
+<svg><a><text>svg</text></a></svg>
+<form><input type="submit" value="Send"></form>
+<p style="color:red;background:url()">styled</p>
+
+
+
+
+</div>
+</div>
+</body>
+</html>

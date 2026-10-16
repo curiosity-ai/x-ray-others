@@ -42,9 +42,32 @@ public sealed class MsgReader : IDisposable
 
     public IReadOnlyList<string> ValidationIssues => new ReadOnlyCollection<string>(_validationIssues);
 
-    public static MsgReader FromFile(string path, bool strict = false) => new(Cfb.CfbReader.FromFile(path), strict);
+    public static MsgReader FromFile(string path, CancellationToken cancellationToken) => FromFile(path, false, cancellationToken);
 
-    public static MsgReader FromStream(Stream stream, bool strict = false) => new(Cfb.CfbReader.FromStream(stream), strict);
+    public static MsgReader FromStream(Stream stream, CancellationToken cancellationToken) => FromStream(stream, false, cancellationToken);
+
+    public static MsgReader FromFile(string path, bool strict = false) => FromFile(path, strict, CancellationToken.None);
+
+    /// <summary>Opens a file and reads it on demand rather than loading it whole.</summary>
+    public static MsgReader FromFile(string path, bool strict, CancellationToken cancellationToken) => Open(Cfb.CfbReader.FromFile(path, cancellationToken), strict);
+
+    public static MsgReader FromStream(Stream stream, bool strict = false) => FromStream(stream, strict, CancellationToken.None);
+
+    /// <summary>Reads a seekable stream in place; a non-seekable stream is spooled to a temporary file.</summary>
+    public static MsgReader FromStream(Stream stream, bool strict, CancellationToken cancellationToken) => Open(Cfb.CfbReader.FromStream(stream, cancellationToken), strict);
+
+    private static MsgReader Open(CfbReader cfb, bool strict)
+    {
+        try
+        {
+            return new MsgReader(cfb, strict);
+        }
+        catch
+        {
+            cfb.Dispose();
+            throw;
+        }
+    }
 
     public void Dispose()
     {

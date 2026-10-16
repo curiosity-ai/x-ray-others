@@ -9,6 +9,14 @@ internal sealed class MimePart : MimeEntity
         DecodedBody = decodedBody ?? throw new ArgumentNullException(nameof(decodedBody));
     }
 
+    /// <summary>
+    /// A part whose body is encoded while it is written, so a large attachment is never held a second
+    /// time as base64 text. <see cref="RawBody"/> is empty for such a part.
+    /// </summary>
+    public static MimePart Deferred(IEnumerable<MimeHeader> headers, byte[] decodedBody) => new(headers, [], decodedBody) { DeferEncoding = true };
+
+    public bool DeferEncoding { get; private init; }
+
     public byte[] RawBody { get; }
 
     public byte[] DecodedBody { get; }

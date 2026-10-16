@@ -17,8 +17,10 @@ reference: the specifications are (MS-CFB, MS-OXMSG, MS-OXCMSG, MS-OXRTFCP, RFC 
 |---|---|
 | `src/XRay.Email/Cfb/` | `CfbReader`/`CfbWriter`, `CfbDocument`/`CfbStorage`/`CfbStream`, directory model (`XRay.Email.Cfb`) |
 | `src/XRay.Email/Msg/` | `MapiMessage` (partials: `.Codec` property streams, `.Helpers` storages), `MsgReader`/`MsgWriter`/`MsgDocument`, `MapiAttachment`, `MapiRecipient`, `CompressedRtf` (`XRay.Email.Msg`) |
+| `src/XRay.Email/Msg/Html/` | Internal: `HtmlTokenizer`, `HtmlBodyProcessor` (sanitise, lift the body out of a document, rewrite `cid:`), `HtmlText` (HTML to text, text to HTML), `RtfConverter` (RTF to HTML/text, MS-OXRTFEX de-encapsulation) |
+| `src/XRay.Email/Msg/` (preview) | `MailHtmlWriter` + `MailHtmlOptions` (the HTML preview), `MapiMessage.Bodies.cs` (`GetBestTextBody`/`GetBestHtmlBody`), `MessageAttachment.cs` (`GetAttachmentsFlattened`, `AttachmentFlattenOptions`), `MapiMessage.Envelope.cs` (typed flags, times, property helpers), `SpillStream`, `PrefixedStream`, `MimeTypes` |
 | `src/XRay.Email/Msg/Mime/` | Internal MIME stack: `MimeReader`, `HeaderParser`, `AddressParser`, `MultipartParser`, transfer encodings, `CharsetDecoder`, `MimeWriter`, `EmlMessageMapper` (MIME model <-> `MapiMessage`) |
-| `tests/XRay.Email.Tests/` | xUnit v3. `CorpusTests` + `Corpus/email-manifest.json`, `RobustnessTests`, `MimeParsingTests`, `MsgFormatTests`, plus the ported original tests |
+| `tests/XRay.Email.Tests/` | xUnit v3. `CorpusTests` + `Corpus/email-manifest.json`, `RobustnessTests`, `MimeParsingTests`, `MsgFormatTests`, `PreviewHtmlTests`, `HtmlGoldenTests`, `RtfConverterTests`, `BodyFallbackTests`, `AttachmentAdapterTests`, `StreamApiTests`, `CancellationTests`, `EnvelopeTests`, plus the ported original tests |
 | `tools/XRay.Email.CorpusGen/` | Writes the generated MSG fixtures (`test_documents/email/xray-email/msg/`) |
 | `tools/corpus/make_eml_fixtures.py` | Writes the hand-crafted EML fixtures (`test_documents/email/xray-email/`) |
 | `tools/corpus/build_manifest.py` | Rebuilds the expectation manifest from independent readers |
@@ -35,11 +37,46 @@ XRAY_EMAIL_MUTATIONS=300 dotnet test --project XRay.Email/tests/XRay.Email.Tests
 dotnet pack XRay.Email/src/XRay.Email -c Release -o artifacts
 ```
 
+## Preview, body fallbacks, attachment adapters
+
+Written for Mosaik's file-extraction helper, which stores `Html` as a file's preview and the
+attachments as temp files. Parity with any other library's output is **unverified**: the goldens
+are our own output, reviewed by eye.
+
+- **Body choice** (`MapiMessage.ResolveBody`, the one place): HTML body; else RTF (encapsulated
+  HTML is de-encapsulated, `\fromtext` defers to the plain `Body`, other RTF is rendered); else
+  plain text. `GetBestTextBody` prefers `Body`, then derives from HTML, then RTF.
+- **Sanitiser** is a deny-list on a forgiving tokenizer (`HtmlTokenizer` never throws, treats a
+  stray `<` as text, keeps `script`/`style` content as one raw token). It is display hygiene, not
+  a security boundary; keep that in the docs. Add a case to `PreviewHtmlTests` for every bypass.
+- **RTF engine** (`RtfConverter`): one walker, three modes (Html, Text, EncapsulatedHtml).
+  `\'hh` bytes are flushed before every control word so `\htmlrtf` scoping is exact. Code pages
+  come from `\ansicpg` and per-font `\fcharset`. Group depth is capped, `\bin` is skipped, pictures
+  are PNG/JPEG only. Fuzz case: `Damaged_rtf_never_throws`.
+- **Output is deterministic**: no clock, no machine zone (UTC unless `TimeZone` is set), invariant
+  culture, LF line endings. MIME boundaries in EML output carry a random token, so compare EML
+  structurally, never by bytes.
+- **Goldens**: `tests/XRay.Email.Tests/Goldens/html/`, 15 fixtures (some under
+  `test_documents/email/xray-email/html-preview/`, written by hand or by `XRay.Email.CorpusGen`).
+  Regenerate with `XRAY_EMAIL_UPDATE_GOLDENS=1`, then read the diff. A golden that lists an
+  embedded message includes its serialised size, so a change to the MSG writer shows up there.
+- **Streams**: `CfbReader` reads from a seekable stream by sector (`FromFile` opens the file;
+  non-seekable input is spooled to a `DeleteOnClose` temp file); `CfbWriter.Write` emits sector by
+  sector; `MimeWriter` streams, encoding deferred attachment parts (`MimePart.Deferred`) as base64
+  block by block and embedded messages in place (`MimeEmbeddedMessage`). MIME *reading* is
+  array-based by design.
+- **Cancellation** follows the family convention: token last, `ThrowIfCancellationRequested`
+  at loop boundaries (CFB sector chains every 256 sectors, MIME parts and lines, writer sectors every
+  64, base64 blocks, tokenizer every 4096 tokens, RTF every 4096 control tokens), never swallowed.
+  `CancellationTests` covers pre-cancelled and mid-way cancellation.
+- **Not supported**: S/MIME and TNEF (documented in the README); OLE storage attachments read as
+  empty (`MessageAttachment.HasContent` is false).
+
 ## Test corpus
 
 Fixtures live in `curiosity-ai/test_documents` under `email/` (upstream xberg files),
 `email/msgreader/` and `email/mimekit/` (MIT third-party sets, each with `LICENSE` and
-`README.md`), and `email/xray-email/` (ours). Tests find the corpus through `TestDocuments`:
+`README.md`), and `email/xray-email/` (ours; `html-preview/` there holds the preview fixtures, which have no oracle and so are not in the manifest). Tests find the corpus through `TestDocuments`:
 `XRAY_TEST_DOCUMENTS`, else the first non-empty `test_documents` directory above the binaries.
 No corpus: corpus tests skip. Corpus present but a file missing: they fail.
 

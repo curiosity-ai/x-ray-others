@@ -5,13 +5,13 @@ namespace XRay.Email.Msg.Mime;
 
 internal static class EmlMessageMapper
 {
-    public static MapiMessage ToMapiMessage(MimeMessageModel model) => ToMapiMessage(model, 0);
+    public static MapiMessage ToMapiMessage(MimeMessageModel model, CancellationToken cancellationToken = default) => ToMapiMessage(model, 0, cancellationToken);
 
-    private static MapiMessage ToMapiMessage(MimeMessageModel model, int depth)
+    private static MapiMessage ToMapiMessage(MimeMessageModel model, int depth, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        var message = new MapiMessage();
+        var message = new MapiMessage { SourceFormat = MessageSourceFormat.Eml };
         message.Subject = model.Subject;
         var sender = model.From.FirstOrDefault();
         if (string.IsNullOrWhiteSpace(sender.Address))
@@ -45,17 +45,17 @@ internal static class EmlMessageMapper
             message.TransportMessageHeaders = model.RawHeaderText.TrimEnd('\r', '\n') + "\r\n";
         }
 
-        ExtractContent(model.RootEntity, message, depth);
+        ExtractContent(model.RootEntity, message, depth, cancellationToken);
         return message;
     }
 
-    public static MimeMessageModel ToMimeMessage(MapiMessage message) => ToMimeMessage(message, new MimeBoundaryFactory());
+    public static MimeMessageModel ToMimeMessage(MapiMessage message, CancellationToken cancellationToken = default) => ToMimeMessage(message, new MimeBoundaryFactory(), cancellationToken);
 
-    private static MimeMessageModel ToMimeMessage(MapiMessage message, MimeBoundaryFactory boundaryFactory)
+    private static MimeMessageModel ToMimeMessage(MapiMessage message, MimeBoundaryFactory boundaryFactory, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(message);
 
-        var rootEntity = BuildRootEntity(message, boundaryFactory);
+        var rootEntity = BuildRootEntity(message, boundaryFactory, cancellationToken);
         var headers = new List<MimeHeader>();
         AddHeader(headers, "MIME-Version", "1.0");
         if (!string.IsNullOrWhiteSpace(message.Subject))
@@ -86,14 +86,15 @@ internal static class EmlMessageMapper
         return new MimeMessageModel(headers, rootEntity);
     }
 
-    private static void ExtractContent(MimeEntity entity, MapiMessage message, int depth)
+    private static void ExtractContent(MimeEntity entity, MapiMessage message, int depth, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         switch (entity)
         {
             case MimeMultipart multipart:
                 foreach (var child in multipart.Children)
                 {
-                    ExtractContent(child, message, depth);
+                    ExtractContent(child, message, depth, cancellationToken);
                 }
 
                 break;
@@ -115,7 +116,7 @@ internal static class EmlMessageMapper
                 {
                     try
                     {
-                        var embedded = ToMapiMessage(new MimeReader().Read(part.DecodedBody), depth + 1);
+                        var embedded = ToMapiMessage(new MimeReader(cancellationToken).Read(part.DecodedBody), depth + 1, cancellationToken);
                         message.Attachments.Add(new MapiAttachment
                         {
                             Filename = part.FileName,
@@ -132,21 +133,27 @@ internal static class EmlMessageMapper
                     }
                 }
 
-                message.Attachments.Add(new MapiAttachment
+                var attachment = new MapiAttachment
                 {
                     Filename = part.FileName,
                     MimeType = part.ContentType,
                     ContentId = part.ContentId,
-                    Data = part.DecodedBody.ToArray(),
-                });
+                    Data = part.DecodedBody,
+                };
+                if (HeaderParser.StripComments(part.GetHeaderValue("content-location") ?? string.Empty).Trim() is { Length: > 0 } location)
+                {
+                    attachment.ContentLocation = location;
+                }
+
+                message.Attachments.Add(attachment);
                 break;
         }
     }
 
-    private static MimeEntity BuildRootEntity(MapiMessage message, MimeBoundaryFactory boundaryFactory)
+    private static MimeEntity BuildRootEntity(MapiMessage message, MimeBoundaryFactory boundaryFactory, CancellationToken cancellationToken)
     {
         var bodyEntity = BuildBodyEntity(message, boundaryFactory);
-        var attachmentEntities = message.Attachments.Select(attachment => BuildAttachmentPart(attachment, boundaryFactory)).ToArray();
+        var attachmentEntities = message.Attachments.Select(attachment => BuildAttachmentPart(attachment, boundaryFactory, cancellationToken)).ToArray();
         if (attachmentEntities.Length == 0)
         {
             return bodyEntity;
@@ -201,25 +208,30 @@ internal static class EmlMessageMapper
         return new MimePart(headers, encodedBody, decodedBody);
     }
 
-    private static MimePart BuildAttachmentPart(MapiAttachment attachment, MimeBoundaryFactory boundaryFactory)
+    private static MimeEntity BuildAttachmentPart(MapiAttachment attachment, MimeBoundaryFactory boundaryFactory, CancellationToken cancellationToken)
     {
-        byte[] decodedBody;
+        cancellationToken.ThrowIfCancellationRequested();
         var mediaType = attachment.MimeType ?? GuessMimeType(attachment.Filename);
+        MimeMessageModel? embedded = null;
+        byte[] decodedBody = [];
+        string transferEncoding;
         if (attachment.EmbeddedMessage is not null)
         {
-            decodedBody = new MimeWriter().Write(ToMimeMessage(attachment.EmbeddedMessage, boundaryFactory));
+            embedded = ToMimeMessage(attachment.EmbeddedMessage, boundaryFactory, cancellationToken);
             mediaType = "message/rfc822";
+            // RFC 2046 5.2.1: never encoded; 7bit only if every byte is. A throw-away pass decides
+            // without holding the serialised message.
+            var probe = new SevenBitProbe();
+            new MimeWriter().Write(probe, embedded, cancellationToken);
+            transferEncoding = probe.IsEmpty ? "7bit" : probe.IsSevenBit ? "7bit" : "8bit";
         }
         else
         {
-            decodedBody = attachment.Data.ToArray();
+            decodedBody = attachment.Data;
+            // Attachments keep their exact bytes: base64 even for text, whose 7bit and quoted-printable
+            // forms would canonicalise line breaks.
+            transferEncoding = decodedBody.Length == 0 ? "7bit" : "base64";
         }
-
-        // Attachments keep their exact bytes: base64 even for text, whose 7bit and quoted-printable
-        // forms would canonicalise line breaks. Embedded messages stay unencoded (RFC 2046 5.2.1).
-        var (transferEncoding, encodedBody) = TransferEncodingEncoder.EncodeBody(
-            mediaType.StartsWith("text/", StringComparison.OrdinalIgnoreCase) ? "application/octet-stream" : mediaType,
-            decodedBody);
         var disposition = !string.IsNullOrEmpty(attachment.ContentId) ? "inline" : "attachment";
         var filename = attachment.Filename;
         var headers = new List<MimeHeader>
@@ -236,7 +248,63 @@ internal static class EmlMessageMapper
             headers.Add(new MimeHeader("Content-ID", $"<{attachment.ContentId}>"));
         }
 
-        return new MimePart(headers, encodedBody, decodedBody);
+        if (attachment.ContentLocation is { Length: > 0 } contentLocation && contentLocation.All(ch => ch is > ' ' and <= '~'))
+        {
+            headers.Add(new MimeHeader("Content-Location", contentLocation));
+        }
+
+        if (embedded is not null)
+        {
+            return new MimeEmbeddedMessage(headers, embedded);
+        }
+
+        return decodedBody.Length == 0 ? new MimePart(headers, [], []) : MimePart.Deferred(headers, decodedBody);
+    }
+
+    private sealed class SevenBitProbe : Stream
+    {
+        public bool IsSevenBit { get; private set; } = true;
+
+        public bool IsEmpty { get; private set; } = true;
+
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => Write(buffer.AsSpan(offset, count));
+
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            if (buffer.Length > 0)
+            {
+                IsEmpty = false;
+            }
+
+            if (!IsSevenBit)
+            {
+                return;
+            }
+
+            foreach (var b in buffer)
+            {
+                if (b is 9 or 10 or 13)
+                {
+                    continue;
+                }
+
+                if (b < 32 || b > 126)
+                {
+                    IsSevenBit = false;
+                    return;
+                }
+            }
+        }
     }
 
     private static MimeHeader WireHeader(string name, string rawValue) => MimeHeader.FromWire(name, rawValue);

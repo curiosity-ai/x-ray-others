@@ -45,12 +45,26 @@ public sealed class CfbReader : IDisposable
         ["stream_size"] = new(120, 8),
     };
 
-    private readonly byte[] _data;
+    private readonly byte[] _headerBytes;
+    private readonly byte[]? _data;
+    private readonly Stream? _stream;
+    private readonly bool _ownsStream;
+    private readonly long _length;
+    private readonly long _baseOffset;
+    private readonly CancellationToken _cancellationToken;
     private readonly Dictionary<uint, byte[]> _streamData = [];
 
     public CfbReader(byte[] data)
+        : this(data, CancellationToken.None)
+    {
+    }
+
+    public CfbReader(byte[] data, CancellationToken cancellationToken)
     {
         _data = data ?? throw new ArgumentNullException(nameof(data));
+        _length = data.Length;
+        _cancellationToken = cancellationToken;
+        _headerBytes = _data.AsSpan(0, (int)Math.Min(512, _length)).ToArray();
         Header = ParseHeader();
         ValidateHeader();
         Difat = BuildDifat().AsReadOnly();
@@ -61,6 +75,44 @@ public sealed class CfbReader : IDisposable
         MiniStream = RootEntry.StreamSize > 0 ? ReadStreamBytes(RootEntry) : [];
         _streamData[RootEntry.StreamId] = MiniStream;
     }
+
+    /// <summary>
+    /// Reads sectors on demand from a seekable stream instead of holding the whole file in memory.
+    /// </summary>
+    private CfbReader(Stream stream, bool ownsStream, CancellationToken cancellationToken)
+    {
+        _stream = stream;
+        _ownsStream = ownsStream;
+        _cancellationToken = cancellationToken;
+        try
+        {
+            _baseOffset = stream.Position;
+            _length = Math.Max(0, stream.Length - _baseOffset);
+            var header = new byte[(int)Math.Min(512, _length)];
+            stream.ReadExactly(header);
+            _headerBytes = header;
+            Header = ParseHeader();
+            ValidateHeader();
+            Difat = BuildDifat().AsReadOnly();
+            Fat = BuildFat().AsReadOnly();
+            MiniFat = BuildMiniFat().AsReadOnly();
+            DirectoryEntries = BuildDirectoryEntries().AsReadOnly();
+            RootEntry = GetRootEntry();
+            MiniStream = RootEntry.StreamSize > 0 ? ReadStreamBytes(RootEntry) : [];
+            _streamData[RootEntry.StreamId] = MiniStream;
+        }
+        catch
+        {
+            if (ownsStream)
+            {
+                stream.Dispose();
+            }
+
+            throw;
+        }
+    }
+
+    internal CancellationToken CancellationToken => _cancellationToken;
 
     public Header Header { get; }
 
@@ -86,20 +138,77 @@ public sealed class CfbReader : IDisposable
 
     public int MaterializedStreamCount => _streamData.Count;
 
-    public int FileSize => _data.Length;
+    public int FileSize => (int)Math.Min(_length, int.MaxValue);
 
-    public static CfbReader FromFile(string path) => new(File.ReadAllBytes(path));
+    public static CfbReader FromFile(string path) => FromFile(path, CancellationToken.None);
 
-    public static CfbReader FromStream(Stream stream)
+    /// <summary>Opens the file and reads sectors from it on demand; the file is not read whole.</summary>
+    public static CfbReader FromFile(string path, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.RandomAccess);
+        return new CfbReader(file, true, cancellationToken);
+    }
+
+    public static CfbReader FromStream(Stream stream) => FromStream(stream, CancellationToken.None);
+
+    /// <summary>
+    /// Reads from the stream. A seekable stream is read in place, starting at its current position;
+    /// a non-seekable one is first spooled to a temporary file (never held whole in memory).
+    /// The stream is not disposed by the reader.
+    /// </summary>
+    public static CfbReader FromStream(Stream stream, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        using var buffer = new MemoryStream();
-        stream.CopyTo(buffer);
-        return new CfbReader(buffer.ToArray());
+        if (stream.CanSeek && stream.CanRead)
+        {
+            return new CfbReader(new NonDisposingStream(stream), false, cancellationToken);
+        }
+
+        var spool = new FileStream(Path.Combine(Path.GetTempPath(), "xray-email-" + Guid.NewGuid().ToString("N") + ".tmp"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None, 81920, FileOptions.DeleteOnClose | FileOptions.RandomAccess);
+        try
+        {
+            var buffer = new byte[81920];
+            int read;
+            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                spool.Write(buffer, 0, read);
+            }
+
+            spool.Flush();
+            spool.Position = 0;
+        }
+        catch
+        {
+            spool.Dispose();
+            throw;
+        }
+
+        return new CfbReader(spool, true, cancellationToken);
     }
 
     public void Dispose()
     {
+        if (_ownsStream)
+        {
+            _stream?.Dispose();
+        }
+    }
+
+    private sealed class NonDisposingStream(Stream inner) : Stream
+    {
+        public override bool CanRead => inner.CanRead;
+        public override bool CanSeek => inner.CanSeek;
+        public override bool CanWrite => false;
+        public override long Length => inner.Length;
+        public override long Position { get => inner.Position; set => inner.Position = value; }
+        public override void Flush() { }
+        public override int Read(byte[] buffer, int offset, int count) => inner.Read(buffer, offset, count);
+        public override int Read(Span<byte> buffer) => inner.Read(buffer);
+        public override long Seek(long offset, SeekOrigin origin) => inner.Seek(offset, origin);
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 
     public DirectoryEntry GetEntry(uint streamId)
@@ -114,6 +223,7 @@ public sealed class CfbReader : IDisposable
 
     public byte[] GetStreamData(uint streamId)
     {
+        _cancellationToken.ThrowIfCancellationRequested();
         if (_streamData.TryGetValue(streamId, out var existing))
         {
             return existing;
@@ -224,12 +334,12 @@ public sealed class CfbReader : IDisposable
 
     private Header ParseHeader()
     {
-        if (_data.Length < 512)
+        if (_length < 512)
         {
             throw new CfbException("File is too small to contain a Compound File Binary (CFB) header.");
         }
 
-        if (!_data.AsSpan(0, 8).SequenceEqual(new byte[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 }))
+        if (!_headerBytes.AsSpan(0, 8).SequenceEqual(new byte[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 }))
         {
             throw new CfbException("Invalid Compound File Binary (CFB) signature.");
         }
@@ -337,13 +447,21 @@ public sealed class CfbReader : IDisposable
     private byte[] ReadSector(uint sectorNumber)
     {
         var offset = SectorOffset(sectorNumber);
-        var end = offset + Header.SectorSize;
-        if (end > _data.Length)
+        var end = (long)offset + Header.SectorSize;
+        if (end > _length)
         {
             throw new CfbException($"Sector {sectorNumber} points past end of file.");
         }
 
-        return _data[offset..end];
+        if (_data is not null)
+        {
+            return _data[offset..(int)end];
+        }
+
+        var sector = new byte[Header.SectorSize];
+        _stream!.Position = _baseOffset + offset;
+        _stream.ReadExactly(sector);
+        return sector;
     }
 
     private List<uint> BuildDifat()
@@ -409,6 +527,11 @@ public sealed class CfbReader : IDisposable
         var sector = startSector;
         while (sector != (uint)SectorMarker.ENDOFCHAIN)
         {
+            if ((seen.Count & 0xFF) == 0)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
+            }
+
             if (!seen.Add(sector))
             {
                 throw new CfbException("Cycle detected in sector chain.");
@@ -460,6 +583,7 @@ public sealed class CfbReader : IDisposable
         var raw = new List<byte>(chain.Count * Header.SectorSize);
         foreach (var sector in chain)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             raw.AddRange(ReadSector(sector));
         }
 
@@ -565,6 +689,7 @@ public sealed class CfbReader : IDisposable
                 var payload = new List<byte>(chain.Count * Header.SectorSize);
                 foreach (var sector in chain)
                 {
+                    _cancellationToken.ThrowIfCancellationRequested();
                     payload.AddRange(ReadSector(sector));
                 }
 
@@ -581,6 +706,11 @@ public sealed class CfbReader : IDisposable
             var miniSector = entry.StartingSectorLocation;
             while (miniSector != (uint)SectorMarker.ENDOFCHAIN)
             {
+                if ((seen.Count & 0xFF) == 0)
+                {
+                    _cancellationToken.ThrowIfCancellationRequested();
+                }
+
                 if (!seen.Add(miniSector))
                 {
                     throw new CfbException("Cycle detected in mini FAT chain.");
@@ -615,6 +745,11 @@ public sealed class CfbReader : IDisposable
         var regularPayload = new List<byte>(regularChain.Count * Header.SectorSize);
         foreach (var sector in regularChain)
         {
+            if ((regularPayload.Count & 0xFFFF) == 0)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
+            }
+
             regularPayload.AddRange(ReadSector(sector));
         }
 
@@ -661,11 +796,11 @@ public sealed class CfbReader : IDisposable
         return result;
     }
 
-    private ushort ReadUInt16(int offset) => BinaryPrimitives.ReadUInt16LittleEndian(_data.AsSpan(offset, 2));
+    private ushort ReadUInt16(int offset) => BinaryPrimitives.ReadUInt16LittleEndian(_headerBytes.AsSpan(offset, 2));
 
-    private uint ReadUInt32(int offset) => BinaryPrimitives.ReadUInt32LittleEndian(_data.AsSpan(offset, 4));
+    private uint ReadUInt32(int offset) => BinaryPrimitives.ReadUInt32LittleEndian(_headerBytes.AsSpan(offset, 4));
 
-    private byte[] ReadBytes(LayoutField layout) => _data.AsSpan(layout.Offset, layout.Size).ToArray();
+    private byte[] ReadBytes(LayoutField layout) => _headerBytes.AsSpan(layout.Offset, layout.Size).ToArray();
 
     private static LayoutField GetLayout(IReadOnlyDictionary<string, LayoutField> map, string name) => map[name];
 

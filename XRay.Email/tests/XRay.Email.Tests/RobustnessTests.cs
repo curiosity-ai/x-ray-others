@@ -46,12 +46,27 @@ public sealed class RobustnessTests
 
             try
             {
-                var message = isEml ? MapiMessage.LoadFromEml(data) : MapiMessage.FromStream(new MemoryStream(data));
+                var message = isEml ? MapiMessage.LoadFromEml(data, TestContext.Current.CancellationToken) : MapiMessage.FromStream(new MemoryStream(data), TestContext.Current.CancellationToken);
                 _ = message.HtmlBody;
                 _ = message.RtfBody;
                 _ = message.SenderSmtpAddress;
-                _ = MapiMessage.LoadFromEml(message.SaveToEml());
-                _ = MapiMessage.FromStream(new MemoryStream(message.Save()));
+                _ = MapiMessage.LoadFromEml(message.SaveToEml(TestContext.Current.CancellationToken), TestContext.Current.CancellationToken);
+                _ = MapiMessage.FromStream(new MemoryStream(message.Save(TestContext.Current.CancellationToken)), TestContext.Current.CancellationToken);
+
+                // the preview, body fallbacks and attachment adapters take the same hostile input
+                _ = message.ToHtml(null, TestContext.Current.CancellationToken);
+                _ = message.GetBestTextBody(TestContext.Current.CancellationToken);
+                _ = message.GetBestHtmlBody(TestContext.Current.CancellationToken);
+                foreach (var attachment in message.GetAttachmentsFlattened(new AttachmentFlattenOptions { MaxDepth = 3 }, TestContext.Current.CancellationToken))
+                {
+                    _ = attachment.GetSize(TestContext.Current.CancellationToken);
+                    attachment.CopyTo(Stream.Null, TestContext.Current.CancellationToken);
+                }
+
+                if (!isEml)
+                {
+                    _ = MapiMessage.FromStream(new ForwardOnlyStream(new MemoryStream(data)), TestContext.Current.CancellationToken);
+                }
             }
             catch (Exception exception) when (!isEml && exception is CfbException or MsgException)
             {

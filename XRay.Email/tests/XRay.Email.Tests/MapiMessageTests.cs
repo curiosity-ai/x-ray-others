@@ -16,13 +16,13 @@ public sealed class MapiMessageTests
         message.AddRecipient("bob@example.com", "Bob");
         message.AddAttachment("note.txt", "abc"u8.ToArray(), "text/plain");
 
-        var bytes = message.Save();
+        var bytes = message.Save(TestContext.Current.CancellationToken);
         var tempPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.msg");
         File.WriteAllBytes(tempPath, bytes);
 
         try
         {
-            var loaded = MapiMessage.FromFile(tempPath);
+            var loaded = MapiMessage.FromFile(tempPath, TestContext.Current.CancellationToken);
             Assert.Equal("Hello", loaded.Subject);
             Assert.Equal("Body", loaded.Body);
             Assert.Equal("Alice", loaded.SenderName);
@@ -51,10 +51,10 @@ public sealed class MapiMessageTests
         message.AddAttachment("stream.txt", attachmentStream, "text/plain");
 
         using var messageStream = new MemoryStream();
-        message.Save(messageStream);
+        message.Save(messageStream, TestContext.Current.CancellationToken);
         messageStream.Position = 0;
 
-        var loaded = MapiMessage.FromStream(messageStream);
+        var loaded = MapiMessage.FromStream(messageStream, TestContext.Current.CancellationToken);
 
         Assert.Equal("Stream subject", loaded.Subject);
         Assert.Equal("Stream body", loaded.Body);
@@ -72,11 +72,11 @@ public sealed class MapiMessageTests
         parent.AddEmbeddedMessageAttachment(child, "inner.msg");
 
         var tempPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.msg");
-        parent.Save(tempPath);
+        parent.Save(tempPath, TestContext.Current.CancellationToken);
 
         try
         {
-            var loaded = MapiMessage.FromFile(tempPath);
+            var loaded = MapiMessage.FromFile(tempPath, TestContext.Current.CancellationToken);
             var attachment = Assert.Single(loaded.Attachments);
             Assert.True(attachment.IsEmbeddedMessage);
             Assert.Equal("inner.msg", attachment.Filename);

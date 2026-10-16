@@ -31,11 +31,11 @@ public sealed class MsgFormatTests
     [Fact]
     public void Embedded_message_property_stream_has_a_24_byte_header()
     {
-        var file = WithEmbeddedMessage().Save();
+        var file = WithEmbeddedMessage().Save(TestContext.Current.CancellationToken);
         Assert.Equal(0, (StreamAt(file, EmbeddedPropertyStreamPath).Length - 24) % 16);
         Assert.Equal(0, (StreamAt(file, "__properties_version1.0").Length - 32) % 16);
 
-        var loaded = MapiMessage.FromStream(new MemoryStream(file), strict: true);
+        var loaded = MapiMessage.FromStream(new MemoryStream(file), strict: true, TestContext.Current.CancellationToken);
         var embedded = Assert.Single(loaded.Attachments).EmbeddedMessage;
         Assert.NotNull(embedded);
         Assert.Equal("Inner", embedded.Subject);
@@ -50,7 +50,7 @@ public sealed class MsgFormatTests
         var propertyStream = embeddedRoot.FindStream(MsgConstants.PropertyStreamName)!;
         propertyStream.Data = [.. propertyStream.Data.AsSpan(0, 24), .. new byte[8], .. propertyStream.Data.AsSpan(24)];
 
-        var loaded = MapiMessage.FromStream(new MemoryStream(MsgWriter.ToBytes(document)));
+        var loaded = MapiMessage.FromStream(new MemoryStream(MsgWriter.ToBytes(document, TestContext.Current.CancellationToken)), TestContext.Current.CancellationToken);
         Assert.Equal("Inner", Assert.Single(loaded.Attachments).EmbeddedMessage?.Subject);
     }
 
@@ -60,18 +60,18 @@ public sealed class MsgFormatTests
         var document = MapiMessage.Create("Trailing", "Body").ToMsgDocument();
         var propertyStream = document.Root.FindStream(MsgConstants.PropertyStreamName)!;
         propertyStream.Data = [.. propertyStream.Data, 0, 0, 0, 0];
-        var file = MsgWriter.ToBytes(document);
+        var file = MsgWriter.ToBytes(document, TestContext.Current.CancellationToken);
 
-        var loaded = MapiMessage.FromStream(new MemoryStream(file));
+        var loaded = MapiMessage.FromStream(new MemoryStream(file), TestContext.Current.CancellationToken);
         Assert.Equal("Trailing", loaded.Subject);
         Assert.Contains(loaded.ValidationIssues, issue => issue.Contains("not divisible by 16", StringComparison.Ordinal));
-        Assert.Throws<MsgException>(() => MapiMessage.FromStream(new MemoryStream(file), strict: true));
+        Assert.Throws<MsgException>(() => MapiMessage.FromStream(new MemoryStream(file), strict: true, TestContext.Current.CancellationToken));
     }
 
     [Fact]
     public void Named_property_mapping_storage_has_its_three_streams()
     {
-        using var reader = new CfbReader(MapiMessage.Create("x", "y").Save());
+        using var reader = new CfbReader(MapiMessage.Create("x", "y").Save(TestContext.Current.CancellationToken));
         var nameId = reader.ResolvePath([MsgConstants.NamedPropertyMappingStorageName]);
         Assert.NotNull(nameId);
         Assert.Equal(["__substg1.0_00020102", "__substg1.0_00030102", "__substg1.0_00040102"], reader.IterChildren(nameId.StreamId).Select(item => item.Name).Order(StringComparer.Ordinal));
@@ -95,11 +95,11 @@ public sealed class MsgFormatTests
         var message = MapiMessage.Create("Html", "Body");
         message.SetProperty((ushort)CommonMessagePropertyId.InternetCodepage, (ushort)PropertyTypeCode.PtypInteger32, 1252);
         message.SetProperty((ushort)CommonMessagePropertyId.BodyHtml, (ushort)PropertyTypeCode.PtypBinary, Encoding.GetEncoding(1252).GetBytes("<p>café “quoted”</p>"));
-        var loaded = MapiMessage.FromStream(new MemoryStream(message.Save()));
+        var loaded = MapiMessage.FromStream(new MemoryStream(message.Save(TestContext.Current.CancellationToken)), TestContext.Current.CancellationToken);
         Assert.Equal("<p>café “quoted”</p>", loaded.HtmlBody);
 
         loaded.HtmlBody = "<p>replaced</p>";
-        Assert.Equal("<p>replaced</p>", MapiMessage.FromStream(new MemoryStream(loaded.Save())).HtmlBody);
+        Assert.Equal("<p>replaced</p>", MapiMessage.FromStream(new MemoryStream(loaded.Save(TestContext.Current.CancellationToken)), TestContext.Current.CancellationToken).HtmlBody);
         Assert.Single(loaded.IterPropertyKeys(), key => key.PropertyId == (ushort)CommonMessagePropertyId.BodyHtml);
     }
 
@@ -107,11 +107,11 @@ public sealed class MsgFormatTests
     public void Setting_a_string_replaces_a_loaded_string8_value()
     {
         var ansi = MapiMessage.Create("Old subject", unicodeStrings: false);
-        var loaded = MapiMessage.FromStream(new MemoryStream(ansi.Save()));
+        var loaded = MapiMessage.FromStream(new MemoryStream(ansi.Save(TestContext.Current.CancellationToken)), TestContext.Current.CancellationToken);
         loaded.UnicodeStrings = true;
         loaded.Subject = "New subject";
         Assert.Equal("New subject", loaded.Subject);
-        Assert.Equal("New subject", MapiMessage.FromStream(new MemoryStream(loaded.Save())).Subject);
+        Assert.Equal("New subject", MapiMessage.FromStream(new MemoryStream(loaded.Save(TestContext.Current.CancellationToken)), TestContext.Current.CancellationToken).Subject);
     }
 
     [Fact]
@@ -120,10 +120,10 @@ public sealed class MsgFormatTests
         var message = MapiMessage.Create(unicodeStrings: false);
         message.SetProperty(0x3FFD, (ushort)PropertyTypeCode.PtypInteger32, 1251);
         message.Subject = "Привет";
-        var file = message.Save();
+        var file = message.Save(TestContext.Current.CancellationToken);
         var subjectStream = StreamAt(file, "__substg1.0_0037001E");
         Assert.Equal(Encoding.GetEncoding(1251).GetBytes("Привет"), subjectStream);
-        Assert.Equal("Привет", MapiMessage.FromStream(new MemoryStream(file)).Subject);
+        Assert.Equal("Привет", MapiMessage.FromStream(new MemoryStream(file), TestContext.Current.CancellationToken).Subject);
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public sealed class MsgFormatTests
         var message = MapiMessage.Create("Multi", "Body");
         message.SetProperty(0x9000, (ushort)PropertyTypeCode.PtypMultipleString, new[] { "alpha", "βήτα" });
         message.SetProperty(0x9001, (ushort)PropertyTypeCode.PtypMultipleBinary, new[] { new byte[] { 1, 2 }, new byte[] { 3 } });
-        var loaded = MapiMessage.FromStream(new MemoryStream(message.Save()));
+        var loaded = MapiMessage.FromStream(new MemoryStream(message.Save(TestContext.Current.CancellationToken)), TestContext.Current.CancellationToken);
         Assert.Equal(new[] { "alpha", "βήτα" }, loaded.GetPropertyValue(0x9000, (ushort)PropertyTypeCode.PtypMultipleString));
         var blobs = Assert.IsType<byte[][]>(loaded.GetPropertyValue(0x9001, (ushort)PropertyTypeCode.PtypMultipleBinary));
         Assert.Equal([new byte[] { 1, 2 }, new byte[] { 3 }], blobs);
@@ -149,11 +149,11 @@ public sealed class MsgFormatTests
         recipient.AddressType = "EX";
         recipient.Properties.Add(0x39FE, (ushort)PropertyTypeCode.PtypString, "bob@example.com");
 
-        var loaded = MapiMessage.FromStream(new MemoryStream(message.Save()));
+        var loaded = MapiMessage.FromStream(new MemoryStream(message.Save(TestContext.Current.CancellationToken)), TestContext.Current.CancellationToken);
         Assert.Equal("alice@example.com", loaded.SenderSmtpAddress);
         Assert.Equal("bob@example.com", Assert.Single(loaded.Recipients).SmtpAddress);
 
-        var eml = Encoding.ASCII.GetString(loaded.SaveToEml());
+        var eml = Encoding.ASCII.GetString(loaded.SaveToEml(TestContext.Current.CancellationToken));
         Assert.Contains("From: alice@example.com", eml);
         Assert.Contains("To: Bob <bob@example.com>", eml);
     }
@@ -181,20 +181,20 @@ public sealed class MsgFormatTests
         var message = MapiMessage.Create("v4", "Body");
         message.MajorVersion = 4;
         message.AddAttachment("big.bin", new byte[100_000]);
-        var file = message.Save();
+        var file = message.Save(TestContext.Current.CancellationToken);
         using (var reader = new CfbReader(file))
         {
             Assert.Equal(4, reader.MajorVersion);
             Assert.Equal(4096, reader.SectorSize);
         }
 
-        Assert.Equal(100_000, Assert.Single(MapiMessage.FromStream(new MemoryStream(file)).Attachments).Data.Length);
+        Assert.Equal(100_000, Assert.Single(MapiMessage.FromStream(new MemoryStream(file), TestContext.Current.CancellationToken).Attachments).Data.Length);
     }
 
     [Fact]
     public void Damaged_directory_entries_raise_cfb_exceptions()
     {
-        var file = MapiMessage.Create("x", "y").Save();
+        var file = MapiMessage.Create("x", "y").Save(TestContext.Current.CancellationToken);
         var directoryOffset = (int)((BinaryPrimitives.ReadUInt32LittleEndian(file.AsSpan(0x30, 4)) + 1) * 512);
 
         // A name length past the 64-byte name field.
@@ -211,7 +211,7 @@ public sealed class MsgFormatTests
         var childEntry = directoryOffset + ((int)rootChild * 128);
         cyclic[childEntry + 66] = 1; // make it a storage
         BinaryPrimitives.WriteUInt32LittleEndian(cyclic.AsSpan(childEntry + 76, 4), 0);
-        var exception = Record.Exception(() => MapiMessage.FromStream(new MemoryStream(cyclic)));
+        var exception = Record.Exception(() => MapiMessage.FromStream(new MemoryStream(cyclic), TestContext.Current.CancellationToken));
         Assert.True(exception is CfbException or MsgException, $"unexpected {exception?.GetType().Name}: {exception?.Message}");
         using var cyclicReader = new CfbReader(cyclic);
         Assert.Throws<CfbException>(() => cyclicReader.IterTree().ToArray());
