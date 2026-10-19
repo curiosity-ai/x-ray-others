@@ -58,7 +58,7 @@ Benchmarks, the parallel model and the loading paths are described in [docs/perf
 ## API and packaging
 
 - PSD writing (the reference writer is `.reference/src/psd/psd_document_io.cpp` plus `.reference/docs/ps-compat.md`; every written file must open in Photoshop without warnings).
-- A CI test stage: `.devops/build-x-ray-psd-nuget.yml` (at the x-ray-others root) builds, packs and publishes but does not test, because it runs on Windows and the test projects carry only the Linux Skia and HarfBuzz native assets. Add a Linux test job.
+- A CI test stage: `.devops/build-x-ray-others-nuget.yml` (at the x-ray-others root) builds, packs and publishes but does not test, because it runs on Windows and the test projects carry only the Linux Skia and HarfBuzz native assets. Add a Linux test job.
 - Typed views not written yet: the animation items of `PsdLayer.Metadata` (`mlst` frames, `mdyn` flags, `tmln` timeline) beyond their raw descriptors. Applying a layer comp when rendering (`PsdLayerCompState` has the visibility, offset and appearance) is not implemented.
 - Real-file checks still missing: a version 7 slices resource (the corpus has version 6 and 8 only) and a raw-RGB thumbnail (every real file seen stores JPEG); both layouts are covered by synthetic tests.
 

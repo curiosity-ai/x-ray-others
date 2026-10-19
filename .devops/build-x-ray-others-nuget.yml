@@ -1,28 +1,39 @@
-# Publishes the X-Ray.Psd family to nuget.org: X-Ray.Psd (the dependency-free PSD/PSB reader and
-# compositor under XRay.Psd/src/XRay.Psd, whose API lives in the XRay.Psd namespace), and its two
-# optional companions X-Ray.Psd.Skia (SkiaSharp interop) and X-Ray.Psd.Text (type-layer
-# re-rendering with SkiaSharp and HarfBuzz). Modelled on x-ray-content's .devops/build-x-ray-nuget.yml:
-# CalVer versioning off the build id, pack, then push through the shared service connection.
+# Publishes every package in x-ray-others to nuget.org in one run, from one version:
+#   X-Ray.Psd, X-Ray.Psd.Skia, X-Ray.Psd.Text   (XRay.Psd/)
+#   X-Ray.Email                                  (XRay.Email/)
+#   X-Ray.Ics                                    (XRay.Ics/)
+#   X-Ray.PS, X-Ray.PS.Skia                      (XRay.PS/)
+#   X-Ray.OneNote                                (XRay.OneNote/)
+# Modelled on x-ray-content's .devops/build-x-ray-nuget.yml: CalVer versioning off the build id,
+# pack, then push through the shared service connection.
 #
-# The three packages ship in one run, from one version. X-Ray.Psd.Skia and X-Ray.Psd.Text reach the
-# core through a ProjectReference, so `dotnet pack` writes their dependency on X-Ray.Psd at the
-# version of this run; publishing one on its own would leave the others pointing elsewhere.
+# One pipeline for the repository, not one per package: the steps were identical apart from the
+# project list, and a single run keeps the family's versions in step. The cost is that a change to
+# one package publishes a new version of all of them (each package keeps its own id, so nothing
+# collides; a package whose code did not change just gets a new version number). Packages that
+# depend on a sibling (X-Ray.Psd.Skia and X-Ray.Psd.Text on X-Ray.Psd, X-Ray.PS.Skia on X-Ray.PS)
+# reach it through a ProjectReference, so `dotnet pack` writes the dependency at this run's version.
 variables:
   # Every packable project, in dependency order. The two tasks that take a list do not take it
   # the same way: `projects` (restore/build) is a multi-line input, one path per line, while
   # `packagesToPack` is a *pattern* input that is split on semicolons only; a newline-separated
   # value there is one pattern containing a newline, which matches no file, and the pack step
   # fails with "No files matched the search pattern". Hence `packList` below.
-  library: './XRay.Psd/src/XRay.Psd/XRay.Psd.csproj'
-  skia: './XRay.Psd/src/XRay.Psd.Skia/XRay.Psd.Skia.csproj'
-  text: './XRay.Psd/src/XRay.Psd.Text/XRay.Psd.Text.csproj'
-  # The same three projects as one semicolon-separated pattern, for `packagesToPack`.
-  packList: '$(library);$(skia);$(text)'
+  psd: './XRay.Psd/src/XRay.Psd/XRay.Psd.csproj'
+  psdSkia: './XRay.Psd/src/XRay.Psd.Skia/XRay.Psd.Skia.csproj'
+  psdText: './XRay.Psd/src/XRay.Psd.Text/XRay.Psd.Text.csproj'
+  email: './XRay.Email/src/XRay.Email/XRay.Email.csproj'
+  ics: './XRay.Ics/src/XRay.Ics/XRay.Ics.csproj'
+  ps: './XRay.PS/src/XRay.PS/XRay.PS.csproj'
+  psSkia: './XRay.PS/src/XRay.PS.Skia/XRay.PS.Skia.csproj'
+  oneNote: './XRay.OneNote/src/XRay.OneNote/XRay.OneNote.csproj'
+  # The same projects as one semicolon-separated pattern, for `packagesToPack`.
+  packList: '$(psd);$(psdSkia);$(psdText);$(email);$(ics);$(ps);$(psSkia);$(oneNote)'
   buildConfiguration: 'Release'
   targetVersion: yy.M.$(build.buildId)
 
-# x-ray-others holds several packages side by side, each with its own pipeline. The path filter
-# keeps a change to a sibling package from shipping a new X-Ray.Psd version with no PSD change.
+# Any change under a package folder, or to the shared build files, publishes. The shared files are
+# listed because Directory.Build.props and .targets change every package's metadata.
 trigger:
   branches:
     include:
@@ -30,7 +41,14 @@ trigger:
   paths:
     include:
     - XRay.Psd/*
-    - .devops/build-x-ray-psd-nuget.yml
+    - XRay.Email/*
+    - XRay.Ics/*
+    - XRay.PS/*
+    - XRay.OneNote/*
+    - Directory.Build.props
+    - Directory.Build.targets
+    - assets/*
+    - .devops/build-x-ray-others-nuget.yml
 
 pool:
   vmImage: 'windows-latest'
@@ -68,25 +86,36 @@ steps:
   inputs:
     command: 'restore'
     projects: |
-      $(library)
-      $(skia)
-      $(text)
+      $(psd)
+      $(psdSkia)
+      $(psdText)
+      $(email)
+      $(ics)
+      $(ps)
+      $(psSkia)
+      $(oneNote)
   displayName: 'restore nuget'
 
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
     projects: |
-      $(library)
-      $(skia)
-      $(text)
+      $(psd)
+      $(psdSkia)
+      $(psdText)
+      $(email)
+      $(ics)
+      $(ps)
+      $(psSkia)
+      $(oneNote)
     arguments: '-c $(buildConfiguration) /p:Version=$(targetVersion) /p:LangVersion=latest'
   displayName: 'build'
 
 # No test step: the tests read their fixtures from the test_documents submodule
-# (curiosity-ai/test_documents, psd/), and the test projects carry only the Linux Skia and
-# HarfBuzz native assets. Run them locally (see XRay.Psd/CLAUDE.md) until a Linux test stage
-# with submodule checkout is added.
+# (curiosity-ai/test_documents), which this job does not check out, and the test projects carry
+# only the Linux Skia and HarfBuzz native assets while this job runs on Windows. Run them locally
+# (`dotnet test --solution XRay.Others.slnx`, see CLAUDE.md) until a Linux test stage with
+# submodule checkout is added.
 
 - task: DotNetCoreCLI@2
   inputs:

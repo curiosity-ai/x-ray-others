@@ -50,9 +50,10 @@ the family's shared corpus, checked out here as the `test_documents` submodule: 
 
 ## Publishing
 
-Each package family has an Azure DevOps pipeline under [`.devops/`](.devops/) that versions it
-CalVer (`yy.M.<build>`) and pushes it to nuget.org, triggered by changes under its folder on
-`main`. The [X-Ray umbrella](https://github.com/curiosity-ai/x-ray) picks up the newest published
+One Azure DevOps pipeline, [`.devops/build-x-ray-others-nuget.yml`](.devops/build-x-ray-others-nuget.yml),
+builds, packs and pushes every package here to nuget.org at one CalVer version (`yy.M.<build>`).
+It triggers on `main` for a change under any package folder or to the shared build files, so a
+change to one package publishes a new version number for all of them. The [X-Ray umbrella](https://github.com/curiosity-ai/x-ray) picks up the newest published
 versions.
 
 ## Licence
