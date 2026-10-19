@@ -130,17 +130,28 @@ steps:
     nobuild: true
   displayName: 'pack nuget'
 
-# The push below picks up every .nupkg in the staging directory, so all three packages go out in
-# one step. NuGet accepts them in any order: a package may be published before a dependency it
-# names, and the dependency only has to exist by the time a consumer restores. Each package's
-# symbol package (.snupkg, from IncludeSymbols in the root Directory.Build.props) sits next to it
-# in the same directory, and nuget push (4.9 and later, pinned above) sends it to nuget.org's
-# symbol server along with the .nupkg, so it needs no step of its own.
-
-- task: NuGetCommand@2
+# Marks that every package was built and packed, so the push steps below may run even when an
+# earlier push failed, but never after a failed build or pack.
+- task: PowerShell@2
+  displayName: 'mark packed'
   inputs:
-    command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg'
-    nuGetFeedType: 'external'
-    publishFeedCredentials: 'nuget-curiosity-org'
-  displayName: 'push nuget'
+    targetType: 'inline'
+    script: |
+      Write-Host "##vso[task.setvariable variable=packed;]true"
+
+# One push step per package (templates/push-nuget.yml), not one glob push. A glob push stops at the
+# first package that fails, and a later package then never reaches nuget.org (the first runs of the
+# multi-package pipelines published one package each). Each step also skips a package that is already
+# on nuget.org at this version, so a re-run of the same build completes the set instead of failing on
+# the packages that went out the first time. The .snupkg beside each .nupkg is pushed with it.
+- template: templates/push-nuget.yml
+  parameters:
+    packages:
+    - X-Ray.Psd
+    - X-Ray.Psd.Skia
+    - X-Ray.Psd.Text
+    - X-Ray.Email
+    - X-Ray.Ics
+    - X-Ray.PS
+    - X-Ray.PS.Skia
+    - X-Ray.OneNote
