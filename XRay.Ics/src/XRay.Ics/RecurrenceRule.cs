@@ -602,8 +602,18 @@ public sealed class RecurrenceRule
         private readonly bool monthScopedOrdinals;
         private readonly DateTime firstWeekStart;
 
+        // AddTimes runs once per matching day, and a time zone's rule is expanded day by day over two
+        // centuries; ordering the time lists there allocated three times per day.
+        private readonly int[] hours;
+        private readonly int[] minutes;
+        private readonly int[] seconds;
+
         public Plan(RecurrenceRule rule, DateTime start)
         {
+            hours = [.. (rule.ByHour.Count > 0 ? rule.ByHour : [start.Hour]).Distinct().Order()];
+            minutes = [.. (rule.ByMinute.Count > 0 ? rule.ByMinute : [start.Minute]).Distinct().Order()];
+            seconds = [.. (rule.BySecond.Count > 0 ? rule.BySecond : [start.Second]).Distinct().Order()];
+
             this.rule = rule;
             this.start = start;
             byMonth = [.. rule.ByMonth];
@@ -795,6 +805,15 @@ public sealed class RecurrenceRule
             for (var i = 0; i < count; i++)
             {
                 var day = first.AddDays(i);
+
+                // A day outside BYMONTH fails DayAllowed's first test, so the rest of its month can be
+                // stepped over whole: the same days are kept, without asking about the others one by one.
+                if (byMonth.Count > 0 && !byMonth.Contains(day.Month))
+                {
+                    i += DateTime.DaysInMonth(day.Year, day.Month) - day.Day;
+                    continue;
+                }
+
                 if (DayAllowed(day))
                 {
                     AddTimes(result, day);
@@ -804,14 +823,11 @@ public sealed class RecurrenceRule
 
         private void AddTimes(List<DateTime> result, DateTime day)
         {
-            var hours = rule.ByHour.Count > 0 ? rule.ByHour : [start.Hour];
-            var minutes = rule.ByMinute.Count > 0 ? rule.ByMinute : [start.Minute];
-            var seconds = rule.BySecond.Count > 0 ? rule.BySecond : [start.Second];
-            foreach (var hour in hours.Distinct().Order())
+            foreach (var hour in hours)
             {
-                foreach (var minute in minutes.Distinct().Order())
+                foreach (var minute in minutes)
                 {
-                    foreach (var second in seconds.Distinct().Order())
+                    foreach (var second in seconds)
                     {
                         result.Add(day.AddHours(hour).AddMinutes(minute).AddSeconds(Math.Min(second, 59)).AddTicks(start.Ticks % TimeSpan.TicksPerSecond));
                     }
