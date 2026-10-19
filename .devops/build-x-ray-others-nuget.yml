@@ -12,13 +12,9 @@
 # one package publishes a new version of all of them (each package keeps its own id, so nothing
 # collides; a package whose code did not change just gets a new version number). Packages that
 # depend on a sibling (X-Ray.Psd.Skia and X-Ray.Psd.Text on X-Ray.Psd, X-Ray.PS.Skia on X-Ray.PS)
-# reach it through a ProjectReference, so `dotnet pack` writes the dependency at this run's version.
+# reach it through a ProjectReference, so the build writes the dependency at this run's version.
 variables:
-  # Every packable project, in dependency order. The two tasks that take a list do not take it
-  # the same way: `projects` (restore/build) is a multi-line input, one path per line, while
-  # `packagesToPack` is a *pattern* input that is split on semicolons only; a newline-separated
-  # value there is one pattern containing a newline, which matches no file, and the pack step
-  # fails with "No files matched the search pattern". Hence `packList` below.
+  # Every packable project, one path per line in the restore and build steps below.
   psd: './XRay.Psd/src/XRay.Psd/XRay.Psd.csproj'
   psdSkia: './XRay.Psd/src/XRay.Psd.Skia/XRay.Psd.Skia.csproj'
   psdText: './XRay.Psd/src/XRay.Psd.Text/XRay.Psd.Text.csproj'
@@ -27,8 +23,6 @@ variables:
   ps: './XRay.PS/src/XRay.PS/XRay.PS.csproj'
   psSkia: './XRay.PS/src/XRay.PS.Skia/XRay.PS.Skia.csproj'
   oneNote: './XRay.OneNote/src/XRay.OneNote/XRay.OneNote.csproj'
-  # The same projects as one semicolon-separated pattern, for `packagesToPack`.
-  packList: '$(psd);$(psdSkia);$(psdText);$(email);$(ics);$(ps);$(psSkia);$(oneNote)'
   buildConfiguration: 'Release'
   targetVersion: yy.M.$(build.buildId)
 
@@ -101,7 +95,7 @@ steps:
       $(ps)
       $(psSkia)
       $(oneNote)
-    arguments: '-c $(buildConfiguration) /p:Version=$(targetVersion) /p:LangVersion=latest'
+    arguments: '-c $(buildConfiguration) /p:Version=$(targetVersion) /p:LangVersion=latest /p:GeneratePackageOnBuild=true'
   displayName: 'build'
 
 # No test step: the tests read their fixtures from the test_documents submodule
@@ -110,26 +104,17 @@ steps:
 # (`dotnet test --solution XRay.Others.slnx`, see CLAUDE.md) until a Linux test stage with
 # submodule checkout is added.
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'pack'
-    packagesToPack: '$(packList)'
-    packDirectory: '$(Build.ArtifactStagingDirectory)'
-    versioningScheme: 'off'
-    configuration: '$(buildConfiguration)'
-    buildProperties: 'Version="$(targetVersion)";LangVersion="latest"'
-    nobuild: true
-  displayName: 'pack nuget'
-
 # Push every package in one step, as sentence-transformers-sharp does. No NuGetToolInstaller step:
 # it put nuget.exe 6.4 on the path, which refuses an API key service connection, whereas the push
-# task's own bundled nuget.exe accepts it. No symbol packages (.snupkg) are produced, so nothing
-# beside a .nupkg can fail the push.
+# task's own bundled nuget.exe accepts it. The packages are written by the build itself
+# (/p:GeneratePackageOnBuild=true, one per project), not by a separate pack step: the pack step with a
+# semicolon-separated project list packed only the first project, so only one package was ever
+# pushed. No symbol packages (.snupkg) are produced either, so nothing beside a .nupkg can fail the push.
 
 - task: NuGetCommand@2
   displayName: 'push nuget'
   inputs:
     command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg'
+    packagesToPush: '$(Build.SourcesDirectory)/**/bin/$(buildConfiguration)/*.nupkg'
     nuGetFeedType: 'external'
     publishFeedCredentials: 'nuget-curiosity-org'
