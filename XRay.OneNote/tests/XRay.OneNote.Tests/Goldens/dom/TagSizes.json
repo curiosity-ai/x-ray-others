@@ -180,7 +180,7 @@
               "superscript": false,
               "underline": false
              },
-             "text": "﷟HYPERLINK \"www.google.com\""
+             "text": "\uFDDFHYPERLINK \"www.google.com\""
             },
             {
              "style": {
@@ -189,7 +189,7 @@
               "font_name": null,
               "font_size": null,
               "highlight": null,
-              "hyperlink_address": null,
+              "hyperlink_address": "www.google.com",
               "is_hyperlink": true,
               "italic": false,
               "language": 1033,
@@ -220,7 +220,7 @@
             }
            ],
            "tags": [],
-           "text": "This is ﷟HYPERLINK \"www.google.com\"hyperlink. This text is not a hyperlink.",
+           "text": "This is \uFDDFHYPERLINK \"www.google.com\"hyperlink. This text is not a hyperlink.",
            "type": "RichText"
           }
          ],
@@ -366,7 +366,7 @@
        "vertical_offset": 2.4000000953674316
       }
      ],
-     "creation_time": null,
+     "creation_time": "2015-04-14T10:12:03Z",
      "has_title": true,
      "last_modified_time": "2015-04-14T10:58:23Z",
      "level": 1,
@@ -533,7 +533,7 @@
            "tags": [
             {
              "completed_time": null,
-             "creation_time": null,
+             "creation_time": "2015-05-26T17:05:32Z",
              "font_color": null,
              "highlight": null,
              "icon": 23,
@@ -542,7 +542,7 @@
             },
             {
              "completed_time": null,
-             "creation_time": null,
+             "creation_time": "2015-05-26T17:05:12Z",
              "font_color": null,
              "highlight": null,
              "icon": 13,
@@ -564,7 +564,7 @@
        "vertical_offset": 2.4000000953674316
       }
      ],
-     "creation_time": null,
+     "creation_time": "2015-04-14T10:12:03Z",
      "has_title": true,
      "last_modified_time": "2015-05-26T17:05:40Z",
      "level": 1,
@@ -767,7 +767,7 @@
            "tags": [
             {
              "completed_time": null,
-             "creation_time": null,
+             "creation_time": "2015-05-26T17:05:32Z",
              "font_color": null,
              "highlight": null,
              "icon": 23,
@@ -776,7 +776,7 @@
             },
             {
              "completed_time": null,
-             "creation_time": null,
+             "creation_time": "2015-05-26T17:05:12Z",
              "font_color": null,
              "highlight": null,
              "icon": 13,
@@ -830,7 +830,7 @@
            "tags": [
             {
              "completed_time": null,
-             "creation_time": null,
+             "creation_time": "2015-05-27T07:28:50Z",
              "font_color": null,
              "highlight": null,
              "icon": 118,
@@ -838,13 +838,13 @@
              "status": "Open"
             },
             {
-             "completed_time": "1980-01-01T00:00:00Z",
+             "completed_time": null,
              "creation_time": "2015-05-27T07:28:31Z",
              "font_color": null,
              "highlight": null,
              "icon": 90,
              "label": null,
-             "status": "Completed"
+             "status": "Open"
             }
            ],
            "text": "Task and contact",
@@ -861,7 +861,7 @@
        "vertical_offset": 2.4000000953674316
       }
      ],
-     "creation_time": null,
+     "creation_time": "2015-04-14T10:12:03Z",
      "has_title": true,
      "last_modified_time": "2015-05-27T08:31:37Z",
      "level": 1,
@@ -1046,7 +1046,7 @@
            "tags": [
             {
              "completed_time": null,
-             "creation_time": null,
+             "creation_time": "2015-05-26T17:05:32Z",
              "font_color": null,
              "highlight": null,
              "icon": 23,
@@ -1055,7 +1055,7 @@
             },
             {
              "completed_time": null,
-             "creation_time": null,
+             "creation_time": "2015-05-26T17:05:12Z",
              "font_color": null,
              "highlight": null,
              "icon": 13,
@@ -1109,7 +1109,7 @@
            "tags": [
             {
              "completed_time": null,
-             "creation_time": null,
+             "creation_time": "2015-05-27T11:45:24Z",
              "font_color": null,
              "highlight": null,
              "icon": 13,
@@ -1118,7 +1118,7 @@
             },
             {
              "completed_time": null,
-             "creation_time": null,
+             "creation_time": "2015-05-27T07:28:50Z",
              "font_color": null,
              "highlight": null,
              "icon": 118,
@@ -1126,13 +1126,13 @@
              "status": "Open"
             },
             {
-             "completed_time": "1980-01-01T00:00:00Z",
+             "completed_time": null,
              "creation_time": "2015-05-27T07:28:31Z",
              "font_color": null,
              "highlight": null,
              "icon": 90,
              "label": null,
-             "status": "Completed"
+             "status": "Open"
             }
            ],
            "text": "Task and contact",
@@ -1149,7 +1149,7 @@
        "vertical_offset": 2.4000000953674316
       }
      ],
-     "creation_time": null,
+     "creation_time": "2015-04-14T10:12:03Z",
      "has_title": true,
      "last_modified_time": "2015-05-27T12:10:36Z",
      "level": 1,
@@ -1338,7 +1338,7 @@
          "tags": [
           {
            "completed_time": null,
-           "creation_time": null,
+           "creation_time": "2015-05-26T17:05:12Z",
            "font_color": null,
            "highlight": null,
            "icon": 13,
@@ -1410,7 +1410,7 @@
          "tags": [
           {
            "completed_time": null,
-           "creation_time": null,
+           "creation_time": "2015-05-27T11:45:24Z",
            "font_color": null,
            "highlight": null,
            "icon": 13,
@@ -1482,7 +1482,7 @@
          "tags": [
           {
            "completed_time": null,
-           "creation_time": null,
+           "creation_time": "2015-05-27T15:45:09Z",
            "font_color": null,
            "highlight": null,
            "icon": 13,
@@ -1554,7 +1554,7 @@
          "tags": [
           {
            "completed_time": null,
-           "creation_time": null,
+           "creation_time": "2015-05-27T15:45:28Z",
            "font_color": null,
            "highlight": null,
            "icon": 13,
@@ -1620,7 +1620,7 @@
      "vertical_offset": 2.4000000953674316
     }
    ],
-   "creation_time": null,
+   "creation_time": "2015-04-14T10:12:03Z",
    "has_title": true,
    "last_modified_time": "2015-05-27T16:04:09Z",
    "level": 1,

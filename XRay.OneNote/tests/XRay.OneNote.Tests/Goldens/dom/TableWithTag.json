@@ -149,7 +149,7 @@
        "vertical_offset": 2.4000000953674316
       }
      ],
-     "creation_time": null,
+     "creation_time": "2015-04-10T16:01:45Z",
      "has_title": true,
      "last_modified_time": "2015-04-10T16:07:49Z",
      "level": 1,
@@ -422,7 +422,7 @@
                  "tags": [
                   {
                    "completed_time": null,
-                   "creation_time": null,
+                   "creation_time": "2015-10-26T20:31:03Z",
                    "font_color": null,
                    "highlight": null,
                    "icon": 13,
@@ -712,7 +712,7 @@
                      "tags": [
                       {
                        "completed_time": null,
-                       "creation_time": null,
+                       "creation_time": "2015-10-26T20:31:42Z",
                        "font_color": null,
                        "highlight": null,
                        "icon": 13,
@@ -770,7 +770,7 @@
                      "tags": [
                       {
                        "completed_time": null,
-                       "creation_time": null,
+                       "creation_time": "2015-10-26T20:31:39Z",
                        "font_color": null,
                        "highlight": null,
                        "icon": 15,
@@ -779,7 +779,7 @@
                       },
                       {
                        "completed_time": null,
-                       "creation_time": null,
+                       "creation_time": "2015-10-26T20:31:39Z",
                        "font_color": null,
                        "highlight": null,
                        "icon": 13,
@@ -788,7 +788,7 @@
                       },
                       {
                        "completed_time": null,
-                       "creation_time": null,
+                       "creation_time": "2015-10-26T20:31:38Z",
                        "font_color": null,
                        "highlight": null,
                        "icon": 3,
@@ -880,19 +880,19 @@
           }
          ],
          "columns": [
-          -1.4243917733337883e-36,
-          8.49366403589591e+36,
-          -1.424397244002993e-36
+          1.03083336353302,
+          3.9499802589416504,
+          1.03083336353302
          ],
          "tags": [
           {
-           "completed_time": null,
-           "creation_time": null,
+           "completed_time": "2015-05-27T19:02:55Z",
+           "creation_time": "2015-05-27T07:08:15Z",
            "font_color": null,
            "highlight": null,
            "icon": 3,
            "label": "Дела",
-           "status": "Open"
+           "status": "Completed"
           }
          ],
          "type": "Table"
@@ -1128,7 +1128,7 @@
      "vertical_offset": 2.4000000953674316
     }
    ],
-   "creation_time": null,
+   "creation_time": "2015-04-10T16:01:45Z",
    "has_title": true,
    "last_modified_time": "2015-10-26T20:31:53Z",
    "level": 1,

@@ -148,7 +148,7 @@
          "tags": [
           {
            "completed_time": null,
-           "creation_time": null,
+           "creation_time": "2015-05-27T07:22:13Z",
            "font_color": null,
            "highlight": null,
            "icon": 15,
@@ -157,7 +157,7 @@
           },
           {
            "completed_time": null,
-           "creation_time": null,
+           "creation_time": "2015-05-27T07:21:21Z",
            "font_color": null,
            "highlight": null,
            "icon": 3,
@@ -179,7 +179,7 @@
      "vertical_offset": 2.4000000953674316
     }
    ],
-   "creation_time": null,
+   "creation_time": "2015-04-10T16:01:45Z",
    "has_title": true,
    "last_modified_time": "2015-05-27T19:19:28Z",
    "level": 1,

@@ -49,7 +49,9 @@ dotnet pack src/XRay.OneNote -c Release -o artifacts
 dotnet run --project tools/XRay.OneNote.Cli -c Release -- dump <file.one> --history
 
 # Parity against the Python reader (venv with `pip install reportlab pypdf`)
-python3 tools/regenerate_goldens.py --source <python checkout>            # rewrite goldens
+python3 tools/regenerate_goldens.py --source <python checkout>            # rewrite goldens (pure Python output)
+# ...then put back the fields this package corrects (see "Golden policy" below):
+XRAY_ONENOTE_UPDATE_GOLDENS=1 dotnet test --project tests/XRay.OneNote.Tests -c Release -- --filter-class "*DomParityTests"
 dotnet run --project tools/XRay.OneNote.Cli -c Release -- pdf-dir ../../test_documents/onenote /tmp/pdf
 python3 tools/regenerate_goldens.py --source <python checkout> --compare-pdfs /tmp/pdf
 ```
@@ -151,12 +153,24 @@ python3 tools/regenerate_goldens.py --source <python checkout> --compare-pdfs /t
   code over two runs); the field code stays in `RichText.Text` (offsets match the reference) and the writers hide it.
 - `ParagraphStyle.StyleId`, `Image.LayoutMaxWidth/LayoutMaxHeight/IsBackground`, `TableCell.BackgroundColor`,
   `Document.Color` and `Page.InkRecognition` are additions; U+FFFC placeholders are dropped from paragraphs that carry
-  inline object data. `DomParityTests` lists the golden fields these change (`DeliberateDifference`).
+  inline object data. `DomParityTests.DeliberateDifference` names the golden fields these change.
+
+## Golden policy
+
+`Goldens/dom/*.json` started as the Python reader's dumps. Five groups of fields were wrong or empty in the
+reference and are corrected here, so their golden values are this package's: table column widths, tag status
+and created/completed times, page creation time, and hyperlink addresses written as field codes. They were
+cross-checked against an independent parser (used only as an oracle) on the 12 fixtures and on its own 32
+sample files. Everything else in each golden is untouched Python output, which is what keeps the parity claim
+meaningful. `DeliberateDifference` in `DomParityTests` is the list of those paths and is used only to
+re-derive: after `tools/regenerate_goldens.py` rewrites the goldens from Python, run the test with
+`XRAY_ONENOTE_UPDATE_GOLDENS=1` to put the five groups back, then review `git diff`. The comparison itself
+ignores nothing.
 
 ## Validation status
 
-- DOM parity: all 12 fixtures equal the Python dumps field for field, page history included, except the fields
-  `DomParityTests.DeliberateDifference` lists (column widths, tag state, page creation time, hyperlink addresses).
+- DOM parity: all 12 fixtures equal their goldens field for field, page history included. The goldens are the
+  Python dumps with five fields re-derived (see "Golden policy").
 - PDF parity: all 12 match the Python manifests (page count, links, image count, text without
   white space); 2 also match white space exactly.
 - Image decoders match Pillow on PNG (all color types, 1-16 bit, Adam7, tRNS), GIF, BMP.

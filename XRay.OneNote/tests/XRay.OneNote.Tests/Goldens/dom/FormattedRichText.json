@@ -237,7 +237,7 @@
             "superscript": false,
             "underline": false
            },
-           "text": "﷟HYPERLINK \"www.google.com\""
+           "text": "\uFDDFHYPERLINK \"www.google.com\""
           },
           {
            "style": {
@@ -246,7 +246,7 @@
             "font_name": null,
             "font_size": null,
             "highlight": null,
-            "hyperlink_address": null,
+            "hyperlink_address": "www.google.com",
             "is_hyperlink": true,
             "italic": false,
             "language": 1033,
@@ -457,7 +457,7 @@
           }
          ],
          "tags": [],
-         "text": "This is ﷟HYPERLINK \"www.google.com\"hyperlink. This text is not a hyperlink.",
+         "text": "This is \uFDDFHYPERLINK \"www.google.com\"hyperlink. This text is not a hyperlink.",
          "type": "RichText"
         }
        ],
@@ -471,7 +471,7 @@
      "vertical_offset": 2.4000000953674316
     }
    ],
-   "creation_time": null,
+   "creation_time": "2015-04-14T10:12:03Z",
    "has_title": true,
    "last_modified_time": "2015-04-27T13:02:57Z",
    "level": 1,
