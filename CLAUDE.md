@@ -18,7 +18,7 @@ the rules there (provenance, reference implementations, parity checks) are speci
 | `XRay.Ics/` | `X-Ray.Ics` | Written from RFC 5545 for this family; checked against Python `icalendar` and `dateutil` on 434 fixtures |
 | `XRay.PS/` | `X-Ray.PS` | Ported from an MIT-licensed open-source Python PostScript/XPS library |
 | `XRay.OneNote/` | `X-Ray.OneNote` | Ported from an MIT-licensed open-source Python OneNote reader |
-| `.devops/` | one `build-x-ray-<name>-nuget.yml` per package folder | |
+| `.devops/` | `build-x-ray-others-nuget.yml`, the one pipeline that publishes every package | |
 | `assets/logo.png` | the family icon, packed into every package | |
 | `test_documents/` | git submodule: curiosity-ai/test_documents | |
 | `XRay.Others.slnx` | every project in the repository | |
@@ -64,10 +64,12 @@ dotnet pack XRay.Email/src/XRay.Email -c Release -o artifacts  # one package
 
 ## Publishing
 
-Each `.devops/build-x-ray-<name>-nuget.yml` follows the family's pipeline: CalVer
-`yy.M.<buildId % 65536>`, windows-latest, .NET 10 SDK, restore/build/pack with the version
-passed in, push (`.nupkg` and `.snupkg`) through the `nuget-curiosity-org` service connection.
-Each triggers on `main` for its own folder only. Adding a package to this repository means: a new
-folder following the layout above, its pipeline, a row in `README.md`, its projects in
+`.devops/build-x-ray-others-nuget.yml` is the single pipeline for the repository, following the
+family's shape: CalVer `yy.M.<buildId % 65536>`, windows-latest, .NET 10 SDK, restore/build/pack
+with the version passed in, push (`.nupkg` and `.snupkg`) through the `nuget-curiosity-org`
+service connection. It triggers on `main` for a change under any package folder or to the shared
+build files and publishes all packages at one version. Adding a package to this repository means:
+a new folder following the layout above, its projects added to the variables, restore, build and
+`packList` of that pipeline (plus a path filter for its folder), a row in `README.md`, its projects in
 `XRay.Others.slnx`, and a `Members.props` entry plus docs section in curiosity-ai/x-ray (see the
 `add-family-member` skill there).
