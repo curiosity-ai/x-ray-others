@@ -84,6 +84,95 @@ internal sealed class SyntheticToc
         return data;
     }
 
+    /// <summary>
+    /// The shape OneNote desktop writes for a .onetoc2 in a file-node-list file: no object groups; the revision
+    /// manifests hold ObjectDeclarationWithRefCount nodes (0x02D) and ObjectRevisionWithRefCount nodes (0x041), the
+    /// second revision's global identification table copies an entry from its dependency's (0x025), and the
+    /// root object is declared empty and then revised to list the entries.
+    /// </summary>
+    public static byte[] BuildWithRefCountNodes(Guid fileGuid, uint? notebookColor, IReadOnlyList<Entry> entries)
+    {
+        var builder = new SyntheticToc();
+        return builder.WriteRefCount(fileGuid, notebookColor, entries);
+    }
+
+    private byte[] WriteRefCount(Guid fileGuid, uint? notebookColor, IReadOnlyList<Entry> entries)
+    {
+        var rootGuid = GuidFor(1);
+        var entryGuid = GuidFor(2);
+
+        // Revision 1: the root, declared with an empty property set.
+        var emptyRoot = Blob([], [], []);
+        var emptyRootAt = Append(emptyRoot);
+        var revision1Nodes = new List<byte[]>
+        {
+            Node(0x01B, 0, 0, 0, [.. rootGuid.ToByteArray(), .. U32(11), .. new byte[20]]),
+            Node(0x021, 0, 0, 0, []),
+            Node(0x024, 0, 0, 0, [.. U32(0), .. rootGuid.ToByteArray()]),
+            Node(0x028, 0, 0, 0, []),
+            Node(0x02D, 0, 0, 1, [.. Ref(emptyRootAt, emptyRoot.Length), .. U32((0u << 8) | 10), .. U32(1), .. new byte[2], 1]),
+            Node(0x059, 0, 0, 0, [.. U32((0u << 8) | 10), .. U32(1)]),
+            Node(0x01C, 0, 0, 0, []),
+        };
+        var revision1List = Fragment(revision1Nodes);
+        var revision1At = Append(revision1List);
+
+        // Revision 2: the entries, and the root revised to point at them.
+        var entryRefs = new List<byte[]>();
+        var revision2Nodes = new List<byte[]>
+        {
+            Node(0x01B, 0, 0, 0, [.. rootGuid.ToByteArray(), .. U32(12), .. rootGuid.ToByteArray(), .. U32(11)]),
+            Node(0x021, 0, 0, 0, []),
+            Node(0x024, 0, 0, 0, [.. U32(0), .. entryGuid.ToByteArray()]),
+            Node(0x025, 0, 0, 0, [.. U32(0), .. U32(1)]),
+            Node(0x028, 0, 0, 0, []),
+        };
+        for (var i = 0; i < entries.Count; i++)
+        {
+            var blob = EntryBlob(entries[i]);
+            var at = Append(blob);
+            entryRefs.Add(U32((uint)((0u << 8) | (uint)(20 + i))));
+            revision2Nodes.Add(Node(0x02D, 0, 0, 1, [.. Ref(at, blob.Length), .. U32((0u << 8) | (uint)(20 + i)), .. U32(1), .. new byte[2], 1]));
+        }
+
+        // Root revision: compact ids (index 1 = the root's GUID, copied from the dependency's table).
+        var ids = new List<uint>();
+        var values = new List<byte[]>();
+        if (notebookColor is { } color)
+        {
+            ids.Add(Id(ColorPropertyId, 5));
+            values.Add(U32(color));
+        }
+
+        ids.Add(Id(0x1CF6, 9));
+        values.Add(U32((uint)entries.Count));
+        var rootBlob = Blob(entryRefs.Select(r => BitConverter.ToUInt32(r)).ToList(), ids, values);
+        var rootAt = Append(rootBlob);
+        revision2Nodes.Add(Node(0x041, 0, 0, 1, [.. Ref(rootAt, rootBlob.Length), .. U32((1u << 8) | 10), .. new byte[1] { 1 }]));
+        revision2Nodes.Add(Node(0x01C, 0, 0, 0, []));
+        var revision2List = Fragment(revision2Nodes);
+        var revision2At = Append(revision2List);
+
+        var spaceNodes = new List<byte[]>
+        {
+            Node(0x010, 0, 0, 0, [.. Ref(revision1At, revision1List.Length), .. new byte[20]]),
+            Node(0x010, 0, 0, 0, [.. Ref(revision2At, revision2List.Length), .. new byte[20]]),
+        };
+        var spaceList = Fragment(spaceNodes);
+        var spaceAt = Append(spaceList);
+        var rootNodes = new List<byte[]> { Node(0x008, 0, 0, 0, [.. Ref(spaceAt, spaceList.Length), .. GuidFor(900).ToByteArray(), .. U32(1)]) };
+        var rootList = Fragment(rootNodes);
+        var rootListAt = Append(rootList);
+
+        var data = _file.ToArray();
+        new Guid("43ff2fa1-efd9-4c76-9ee2-10ea5722765f").ToByteArray().CopyTo(data, 0);
+        fileGuid.ToByteArray().CopyTo(data, 16);
+        new Guid("109add3f-911b-49f5-a5d0-1791edc8aed8").ToByteArray().CopyTo(data, 48);
+        BinaryPrimitives.WriteUInt64LittleEndian(data.AsSpan(172), (ulong)rootListAt);
+        BinaryPrimitives.WriteUInt32LittleEndian(data.AsSpan(180), (uint)rootList.Length);
+        return data;
+    }
+
     private long Append(byte[] bytes)
     {
         var at = _file.Count;
@@ -167,7 +256,7 @@ internal sealed class SyntheticToc
             ids.Add(Id(0x1E1E, 2, h));
         }
 
-        ids.Add(Id(0x1D10, 9));
+        ids.Add(Id(0x1CF6, 9));
         values.Add(U32((uint)children));
         return Blob(oids, ids, values);
     }
@@ -178,14 +267,14 @@ internal sealed class SyntheticToc
         var values = new List<byte[]>();
         if (entry.Guid is { } guid)
         {
-            ids.Add(Id(0x1D00, 7));
+            ids.Add(Id(0x1D94, 7));
             values.Add([.. U32(16), .. guid.ToByteArray()]);
         }
 
         var name = Encoding.Unicode.GetBytes(entry.Name + "\0");
-        ids.Add(Id(0x1D01, 7));
+        ids.Add(Id(0x1D6B, 7));
         values.Add([.. U32((uint)name.Length), .. name]);
-        ids.Add(Id(0x1D02, 5));
+        ids.Add(Id(0x1CB9, 5));
         values.Add(U32(entry.Order));
         if (entry.Color is { } color)
         {

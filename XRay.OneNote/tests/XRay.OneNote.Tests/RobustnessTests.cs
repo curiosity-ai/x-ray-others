@@ -20,7 +20,7 @@ public sealed class RobustnessTests
     private static readonly PdfSaveOptions Pdf = TestFonts.Options();
 
     /// <summary>Loads and exports; returns the unexpected exception, if any.</summary>
-    private static Exception? Exercise(byte[] data)
+    internal static Exception? Exercise(byte[] data)
     {
         Document document;
         try

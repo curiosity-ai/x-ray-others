@@ -196,6 +196,18 @@ internal sealed class HtmlRenderer
         _w.Flush();
     }
 
+    private void WriteTimeAttribute(string name, DateTime? time)
+    {
+        if (time is { } value)
+        {
+            _w.Write(' ');
+            _w.Write(name);
+            _w.Write("=\"");
+            _w.Write(value.ToString("yyyy-MM-dd'T'HH:mm:ss", CultureInfo.InvariantCulture));
+            _w.Write("Z\"");
+        }
+    }
+
     private void WriteTimeMeta(string name, DateTime? time)
     {
         if (time is { } value)
@@ -223,6 +235,8 @@ internal sealed class HtmlRenderer
         _w.Write("\" data-level=\"");
         _w.Write(level.ToString(CultureInfo.InvariantCulture));
         _w.Write('"');
+        WriteTimeAttribute("data-created", page.CreationTime);
+        WriteTimeAttribute("data-modified", page.LastModifiedTime);
         if (Color(page.BackgroundColor) is { } background)
         {
             _w.Write(" style=\"background-color:");
@@ -458,7 +472,22 @@ internal sealed class HtmlRenderer
             style.Add("line-height:" + s + "pt");
         }
 
-        _w.Write("<p class=\"");
+        // A named paragraph style gives the element its meaning: headings, code and quotations.
+        var element = richText.ParagraphStyle.StyleId switch
+        {
+            "h1" => "h1",
+            "h2" => "h2",
+            "h3" => "h3",
+            "h4" => "h4",
+            "h5" => "h5",
+            "h6" => "h6",
+            "code" => "pre",
+            "blockquote" => "blockquote",
+            _ => "p",
+        };
+        _w.Write('<');
+        _w.Write(element);
+        _w.Write(" class=\"");
         _w.Write(classes.ToString());
         _w.Write('"');
         WriteStyleAttribute(style);
@@ -470,7 +499,9 @@ internal sealed class HtmlRenderer
         }
 
         WriteRuns(richText);
-        _w.Write("</p>\n");
+        _w.Write("</");
+        _w.Write(element);
+        _w.Write(">\n");
         return true;
     }
 
@@ -879,7 +910,15 @@ internal sealed class HtmlRenderer
             _w.Write("<tr class=\"on-row\">");
             foreach (var cell in row.OfType<TableCell>())
             {
-                _w.Write("<td class=\"on-cell\">");
+                _w.Write("<td class=\"on-cell\"");
+                if (Color(cell.BackgroundColor) is { } cellBackground)
+                {
+                    _w.Write(" style=\"background-color:");
+                    _w.Write(cellBackground);
+                    _w.Write('"');
+                }
+
+                _w.Write('>');
                 var any = false;
                 var listState = new Dictionary<(int, string), int>();
                 foreach (var child in cell)

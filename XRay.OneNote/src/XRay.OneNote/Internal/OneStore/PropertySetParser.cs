@@ -21,14 +21,26 @@ internal static class PropertySetParser
     /// <summary>The object ids referenced by a property set, consumed in order as properties ask for them.</summary>
     internal sealed class State
     {
-        public State(List<ExtendedGuid> objectIds)
+        public State(List<ExtendedGuid> objectIds, List<ExtendedGuid>? objectSpaceIds = null, List<ExtendedGuid>? contextIds = null)
         {
             ObjectIds = objectIds;
+            ObjectSpaceIds = objectSpaceIds ?? [];
+            ContextIds = contextIds ?? [];
         }
 
         public List<ExtendedGuid> ObjectIds { get; }
 
+        /// <summary>The object space references (the OSID stream), consumed by ObjectSpaceID properties.</summary>
+        public List<ExtendedGuid> ObjectSpaceIds { get; }
+
+        /// <summary>The context references (the context stream), consumed by ContextID properties.</summary>
+        public List<ExtendedGuid> ContextIds { get; }
+
         public long OidCursor { get; set; }
+
+        public long OsidCursor { get; set; }
+
+        public long ContextCursor { get; set; }
     }
 
     /// <summary>Parses an ObjectSpaceObjectPropSet blob: the OID streams, then the property set.</summary>
@@ -52,24 +64,73 @@ internal static class PropertySetParser
 
         offset += oidCount * 4L;
 
+        var objectSpaceIds = new List<ExtendedGuid>();
+        var contextIds = new List<ExtendedGuid>();
         if (!noOsidStream)
         {
             var osidHeader = Bytes.U32(blob, offset);
             offset += 4;
             var osidCount = osidHeader & 0x00FFFFFF;
             var osidHasExtendedStreams = ((osidHeader >> 30) & 1) != 0;
+            for (long index = 0; index < osidCount; index++)
+            {
+                if (ResolveObjectId(Bytes.U32(blob, offset + (index * 4)), gidTable) is { } osid)
+                {
+                    objectSpaceIds.Add(osid);
+                }
+            }
+
             offset += osidCount * 4L;
             if (osidHasExtendedStreams)
             {
                 var contextHeader = Bytes.U32(blob, offset);
                 offset += 4;
                 var contextCount = contextHeader & 0x00FFFFFF;
+                for (long index = 0; index < contextCount; index++)
+                {
+                    if (ResolveObjectId(Bytes.U32(blob, offset + (index * 4)), gidTable) is { } context)
+                    {
+                        contextIds.Add(context);
+                    }
+                }
+
                 offset += contextCount * 4L;
             }
         }
 
-        var state = new State(objectIds);
+        var state = new State(objectIds, objectSpaceIds, contextIds);
         return ParsePropertySet(blob, offset, state, out _);
+    }
+
+    /// <summary>
+    /// Parses the ObjectSpaceObjectPropSet of an object carried in an FSSHTTPB package. The stream headers
+    /// are skipped: the references come from the object data's own arrays, matched to the properties that
+    /// ask for them by position (MS-ONESTORE 2.7.6, 2.7.8).
+    /// </summary>
+    public static PropertySet ParseObjectBlobWithReferences(
+        ReadOnlySpan<byte> blob,
+        List<ExtendedGuid> objectReferences,
+        List<ExtendedGuid> objectSpaceReferences,
+        List<ExtendedGuid> contextReferences)
+    {
+        long offset = 0;
+        var header = Bytes.U32(blob, offset);
+        offset += 4;
+        offset += (header & 0x00FFFFFF) * 4L;
+        if (((header >> 31) & 1) == 0)
+        {
+            var osidHeader = Bytes.U32(blob, offset);
+            offset += 4;
+            offset += (osidHeader & 0x00FFFFFF) * 4L;
+            if (((osidHeader >> 30) & 1) != 0)
+            {
+                var contextHeader = Bytes.U32(blob, offset);
+                offset += 4;
+                offset += (contextHeader & 0x00FFFFFF) * 4L;
+            }
+        }
+
+        return ParsePropertySet(blob, offset, new State(objectReferences, objectSpaceReferences, contextReferences), out _);
     }
 
     /// <summary>Resolves a CompactID (2.2.2) through the global id table; null when the index is unknown.</summary>
@@ -115,10 +176,14 @@ internal static class PropertySetParser
 
             var snapshotOffset = dataOffset;
             var snapshotCursor = state.OidCursor;
+            var snapshotOsid = state.OsidCursor;
+            var snapshotContext = state.ContextCursor;
             if (!TryReadValue(data, ref dataOffset, rawPropertyId, propertyType, state, depth, out var value))
             {
                 dataOffset = snapshotOffset;
                 state.OidCursor = snapshotCursor;
+                state.OsidCursor = snapshotOsid;
+                state.ContextCursor = snapshotContext;
                 if (propertyType == defaultType)
                 {
                     break;
@@ -128,6 +193,8 @@ internal static class PropertySetParser
                 {
                     dataOffset = snapshotOffset;
                     state.OidCursor = snapshotCursor;
+                    state.OsidCursor = snapshotOsid;
+                    state.ContextCursor = snapshotContext;
                     break;
                 }
             }
@@ -164,7 +231,7 @@ internal static class PropertySetParser
 
                 break;
             case 0x8:
-                value = state.OidCursor < state.ObjectIds.Count
+                value = state.OidCursor < state.ObjectIds.Count && !state.ObjectIds[(int)state.OidCursor].IsZero
                     ? PropertyValue.FromObjectId(state.ObjectIds[(int)state.OidCursor])
                     : PropertyValue.None;
                 state.OidCursor++;
@@ -182,7 +249,10 @@ internal static class PropertySetParser
                 var last = Math.Min(first + count, state.ObjectIds.Count);
                 for (var index = first; index < last; index++)
                 {
-                    items.Add(PropertyValue.FromObjectId(state.ObjectIds[(int)index]));
+                    if (!state.ObjectIds[(int)index].IsZero)
+                    {
+                        items.Add(PropertyValue.FromObjectId(state.ObjectIds[(int)index]));
+                    }
                 }
 
                 state.OidCursor += count;
@@ -257,9 +327,63 @@ internal static class PropertySetParser
                 break;
             }
 
+            case 0xA:
+                value = state.OsidCursor < state.ObjectSpaceIds.Count
+                    ? PropertyValue.FromObjectSpaceId(state.ObjectSpaceIds[(int)state.OsidCursor])
+                    : PropertyValue.None;
+                state.OsidCursor++;
+                break;
+            case 0xB:
+            {
+                if (!TryU32(data, local, out var count))
+                {
+                    return false;
+                }
+
+                local += 4;
+                var items = new List<PropertyValue>();
+                var first = state.OsidCursor;
+                var last = Math.Min(first + count, state.ObjectSpaceIds.Count);
+                for (var index = first; index < last; index++)
+                {
+                    items.Add(PropertyValue.FromObjectSpaceId(state.ObjectSpaceIds[(int)index]));
+                }
+
+                state.OsidCursor += count;
+                value = PropertyValue.FromList(items);
+                break;
+            }
+
+            case 0xC:
+                value = state.ContextCursor < state.ContextIds.Count
+                    ? PropertyValue.FromContextId(state.ContextIds[(int)state.ContextCursor])
+                    : PropertyValue.None;
+                state.ContextCursor++;
+                break;
+            case 0xD:
+            {
+                if (!TryU32(data, local, out var count))
+                {
+                    return false;
+                }
+
+                local += 4;
+                var items = new List<PropertyValue>();
+                var first = state.ContextCursor;
+                var last = Math.Min(first + count, state.ContextIds.Count);
+                for (var index = first; index < last; index++)
+                {
+                    items.Add(PropertyValue.FromContextId(state.ContextIds[(int)index]));
+                }
+
+                state.ContextCursor += count;
+                value = PropertyValue.FromList(items);
+                break;
+            }
+
             default:
-                // ObjectSpaceID and ContextID references (and unknown types) are not decoded, matching
-                // the reference reader: the value is absent and nothing is consumed.
+                // Unknown types are not decoded, matching the reference reader: the value is absent and
+                // nothing is consumed.
                 value = PropertyValue.None;
                 return true;
         }

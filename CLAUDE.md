@@ -66,8 +66,8 @@ dotnet pack XRay.Email/src/XRay.Email -c Release -o artifacts  # one package
 
 `.devops/build-x-ray-others-nuget.yml` is the single pipeline for the repository, following the
 family's shape: CalVer `yy.M.<buildId % 65536>`, windows-latest, .NET 10 SDK, restore/build/pack
-with the version passed in, push (`.nupkg` and `.snupkg`) through the `nuget-curiosity-org`
-service connection. It triggers on `main` for a change under any package folder or to the shared
+with the version passed in, push (`*.nupkg`, one glob push, no NuGetToolInstaller step) through the
+`nuget-curiosity-org` service connection. Packages carry embedded symbols instead of `.snupkg` files. It triggers on `main` for a change under any package folder or to the shared
 build files and publishes all packages at one version. Adding a package to this repository means:
 a new folder following the layout above, its projects added to the variables, restore, build and
 `packList` of that pipeline (plus a path filter for its folder), a row in `README.md`, its projects in

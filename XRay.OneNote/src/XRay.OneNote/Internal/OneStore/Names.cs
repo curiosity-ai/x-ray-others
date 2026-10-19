@@ -37,6 +37,7 @@ internal static class PropertyNames
     public const string StructureElementChildNodes = "StructureElementChildNodes";
     public const string ChildGraphSpaceElementNodes = "ChildGraphSpaceElementNodes";
     public const string TableColumnWidths = "TableColumnWidths";
+    public const string TableColumnsLocked = "TableColumnsLocked";
     public const string Author = "Author";
     public const string LastModifiedTimeStamp = "LastModifiedTimeStamp";
     public const string LastModifiedTime = "LastModifiedTime";
@@ -59,6 +60,7 @@ internal static class PropertyNames
     public const string NoteTagLabel = "NoteTagLabel";
     public const string NoteTagCreated = "NoteTagCreated";
     public const string NoteTagCompleted = "NoteTagCompleted";
+    public const string ActionItemStatus = "ActionItemStatus";
     public const string ParagraphAlignment = "ParagraphAlignment";
     public const string NoteTagDefinitionOid = "NoteTagDefinitionOid";
     public const string NoteTagStates = "NoteTagStates";
@@ -66,6 +68,15 @@ internal static class PropertyNames
     public const string WebPictureContainer14 = "WebPictureContainer14";
     public const string PictureWidth = "PictureWidth";
     public const string PictureHeight = "PictureHeight";
+    public const string LayoutMaxHeight = "LayoutMaxHeight";
+    public const string IsBackground = "IsBackground";
+    public const string SectionColor = "SectionColor";
+    public const string CellBackgroundColor = "CellBackgroundColor";
+    public const string ParagraphStyle = "ParagraphStyle";
+    public const string ParagraphStyleId = "ParagraphStyleId";
+    public const string PageRecognizedTextContainer = "PageRecognizedTextContainer";
+    public const string RecognizedTextChildNodes = "RecognizedTextChildNodes";
+    public const string RecognizedText = "RecognizedText";
 
     private static readonly Dictionary<uint, string> ById = new()
     {
@@ -101,6 +112,9 @@ internal static class PropertyNames
         [0x1C88] = "IsBoilerText",
         [0x1CB4] = "IsTitleText",
         [0x1CB5] = "IsTitleDate",
+        [0x1CBE] = "SectionColor",
+        [0x1D13] = "IsBackground",
+        [0x1E26] = "CellBackgroundColor",
         [0x1CB7] = "ListRestart",
         [0x1CF3] = "CachedTitleString",
         [0x1CFE] = "RichEditTextLangID",
@@ -117,6 +131,7 @@ internal static class PropertyNames
         [0x1D78] = "AuthorOriginal",
         [0x1D79] = "AuthorMostRecent",
         [0x1D7A] = "LastModifiedTime",
+        [0x1D7D] = "TableColumnsLocked",
         [0x1D9B] = "EmbeddedFileContainer",
         [0x1D9C] = "EmbeddedFileName",
         [0x1D9D] = "SourceFilepath",
@@ -152,6 +167,9 @@ internal static class PropertyNames
         [0x349B] = "SectionDisplayName",
         [0x34C8] = "WebPictureContainer14",
         [0x34CD] = "PictureWidth",
+        [0x35D7] = "PageRecognizedTextContainer",
+        [0x35D9] = "RecognizedTextChildNodes",
+        [0x35DA] = "RecognizedText",
         [0x34CE] = "PictureHeight",
     };
 
@@ -200,6 +218,8 @@ internal static class JcidNames
     public const string VersionHistoryContent = "VersionHistoryContent";
     public const string VersionProxy = "VersionProxy";
     public const string RevisionMetaData = "RevisionMetaData";
+    public const string RecognizedTextRoot = "RecognizedTextRoot";
+    public const string RecognizedTextWord = "RecognizedTextWord";
 
     private static readonly Dictionary<ushort, string> ByIndex = new()
     {
@@ -228,6 +248,10 @@ internal static class JcidNames
         [0x0044] = "RevisionMetaData",
         [0x0046] = "VersionHistoryMetaData",
         [0x004D] = "ParagraphStyleObject",
+        [0x0054] = "RecognizedTextRoot",
+        [0x0055] = "RecognizedTextLine",
+        [0x0056] = "RecognizedTextBlock",
+        [0x0057] = "RecognizedTextWord",
     };
 
     public static string For(ushort index) =>

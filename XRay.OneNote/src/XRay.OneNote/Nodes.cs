@@ -125,6 +125,12 @@ public sealed class Image : CompositeNode
     /// <summary>Whether the picture is a page background.</summary>
     public bool IsBackground { get; set; }
 
+    /// <summary>The widest the picture is laid out in its outline, in half-inches (<c>LayoutMaxWidth</c>), when stored.</summary>
+    public double? LayoutMaxWidth { get; set; }
+
+    /// <summary>The tallest the picture is laid out, in half-inches (<c>LayoutMaxHeight</c>), when stored.</summary>
+    public double? LayoutMaxHeight { get; set; }
+
     /// <summary>When the picture was last modified, when known.</summary>
     public DateTime? LastModifiedTime { get; set; }
 
@@ -156,6 +162,8 @@ public sealed class Image : CompositeNode
         VerticalOffset = image.VerticalOffset;
         Alignment = image.Alignment;
         IsBackground = image.IsBackground;
+        LayoutMaxWidth = image.LayoutMaxWidth;
+        LayoutMaxHeight = image.LayoutMaxHeight;
         LastModifiedTime = image.LastModifiedTime;
         AlternativeTextTitle = image.AlternativeTextTitle;
         AlternativeTextDescription = image.AlternativeTextDescription;
@@ -243,9 +251,12 @@ public sealed class TableRow : CompositeNode
 /// <summary>A cell of a <see cref="TableRow"/>.</summary>
 public sealed class TableCell : CompositeNode
 {
+    /// <summary>The cell's background color as a COLORREF (0x00BBGGRR), when it has one.</summary>
+    public uint? BackgroundColor { get; set; }
+
     internal override Node CloneCore(CloneContext context)
     {
-        var copy = new TableCell();
+        var copy = new TableCell { BackgroundColor = BackgroundColor };
         context.Register(this, copy);
         CloneChildrenInto(copy, context);
         return copy;

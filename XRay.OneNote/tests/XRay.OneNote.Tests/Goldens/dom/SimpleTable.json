@@ -10,7 +10,7 @@
     {
      "author": "Dima Panchenko",
      "children": [],
-     "creation_time": null,
+     "creation_time": "2015-02-25T12:36:25Z",
      "has_title": false,
      "last_modified_time": "2015-02-25T12:36:25Z",
      "level": 1,
@@ -176,7 +176,7 @@
        "vertical_offset": 2.4000000953674316
       }
      ],
-     "creation_time": null,
+     "creation_time": "2015-02-25T12:36:25Z",
      "has_title": false,
      "last_modified_time": "2015-03-03T15:00:13Z",
      "level": 1,
@@ -806,9 +806,9 @@
           }
          ],
          "columns": [
-          -1.4243917733337883e-36,
-          -1.4243971543198913e-36,
-          -1.4243971543198913e-36
+          1.03083336353302,
+          1.03083336353302,
+          1.03083336353302
          ],
          "tags": [],
          "type": "Table"
@@ -824,7 +824,7 @@
      "vertical_offset": 2.4000000953674316
     }
    ],
-   "creation_time": null,
+   "creation_time": "2015-02-25T12:36:25Z",
    "has_title": false,
    "last_modified_time": "2015-03-15T20:49:47Z",
    "level": 1,

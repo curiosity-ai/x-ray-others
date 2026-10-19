@@ -100,6 +100,9 @@ public sealed class Document : CompositeNode
     /// <summary>When the section was created (UTC): the topology creation time of its section node, when stored.</summary>
     public DateTime? CreationTime { get; set; }
 
+    /// <summary>The section's color as a COLORREF (0x00BBGGRR), when it has one (its section metadata's color).</summary>
+    public uint? Color { get; set; }
+
     /// <summary>The format the document was read from.</summary>
     public FileFormat FileFormat => FileFormat.OneNote2010;
 
@@ -224,7 +227,7 @@ public sealed class Document : CompositeNode
 
     internal override Node CloneCore(CloneContext context)
     {
-        var copy = new Document { DisplayName = DisplayName, CreationTime = CreationTime, Guid = Guid, NotebookGuid = NotebookGuid, EntityGuid = EntityGuid };
+        var copy = new Document { DisplayName = DisplayName, CreationTime = CreationTime, Guid = Guid, NotebookGuid = NotebookGuid, EntityGuid = EntityGuid, Color = Color };
         context.Register(this, copy);
         CloneChildrenInto(copy, context);
         return copy;
@@ -316,6 +319,7 @@ public sealed class Document : CompositeNode
         NotebookGuid = loaded.AncestorGuid;
         EntityGuid = loaded.EntityGuid;
         CreationTime = loaded.CreationTime;
+        Color = loaded.Color;
         for (var index = 0; index < loaded.Pages.Count; index++)
         {
             var page = loaded.Pages[index];

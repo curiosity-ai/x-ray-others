@@ -34,6 +34,12 @@ internal enum PropertyKind
     Integer,
     Bytes,
     ObjectId,
+
+    /// <summary>A reference to an object space (a page, for ChildGraphSpaceElementNodes); the id is the object space's.</summary>
+    ObjectSpaceId,
+
+    /// <summary>A reference to a context (MS-ONESTORE 2.1.11).</summary>
+    ContextId,
     List,
     PropertySet,
 }
@@ -73,6 +79,10 @@ internal sealed class PropertyValue
 
     public static PropertyValue FromObjectId(ExtendedGuid value) => new(PropertyKind.ObjectId) { ObjectIdValue = value };
 
+    public static PropertyValue FromObjectSpaceId(ExtendedGuid value) => new(PropertyKind.ObjectSpaceId) { ObjectIdValue = value };
+
+    public static PropertyValue FromContextId(ExtendedGuid value) => new(PropertyKind.ContextId) { ObjectIdValue = value };
+
     public static PropertyValue FromList(List<PropertyValue> items) => new(PropertyKind.List) { Items = items };
 
     public static PropertyValue FromSet(PropertySet set) => new(PropertyKind.PropertySet) { SetValue = set };
@@ -87,7 +97,7 @@ internal sealed class PropertyValue
         PropertyKind.Bool => BoolValue,
         PropertyKind.Integer => IntegerValue != 0,
         PropertyKind.Bytes => BytesValue.Length > 0,
-        PropertyKind.ObjectId => true,
+        PropertyKind.ObjectId or PropertyKind.ObjectSpaceId or PropertyKind.ContextId => true,
         PropertyKind.List => Items.Count > 0,
         PropertyKind.PropertySet => SetValue!.Count > 0,
         _ => false,
@@ -119,6 +129,9 @@ internal sealed class PropertyValue
     public byte[]? AsNonEmptyBytes() => Kind == PropertyKind.Bytes && BytesValue.Length > 0 ? BytesValue : null;
 
     public ExtendedGuid? AsObjectId() => Kind == PropertyKind.ObjectId ? ObjectIdValue : null;
+
+    /// <summary>The referenced object space when the value is an ObjectSpaceID, otherwise null.</summary>
+    public ExtendedGuid? AsObjectSpaceId() => Kind == PropertyKind.ObjectSpaceId ? ObjectIdValue : null;
 }
 
 /// <summary>
@@ -191,6 +204,9 @@ internal sealed class RevisionManifestRecord
     public OrderedDictionary<ExtendedGuid, OneStoreObject> Objects { get; set; } = new();
 
     public string? SectionDisplayName { get; set; }
+
+    /// <summary>The revision's global identification table at its end: what a later revision's Entry2 and Entry3 nodes copy from.</summary>
+    public Dictionary<uint, Guid> GidTable { get; set; } = [];
 
     public int OrderIndex { get; init; }
 }
@@ -292,6 +308,9 @@ internal sealed class OneStoreFile
     public required Dictionary<string, byte[]> FileDataStore { get; init; }
 
     public string? DisplayName { get; init; }
+
+    /// <summary>Whether the store was read from an FSSHTTPB package (MS-ONESTORE 2.8) rather than from file node lists.</summary>
+    public bool IsPackaged { get; init; }
 
     /// <summary>The <c>guidFile</c> of the header (MS-ONESTORE 2.3.1): identifies this file, but copies of a file share it.</summary>
     public Guid FileGuid { get; init; }

@@ -54,15 +54,6 @@ pool:
   vmImage: 'windows-latest'
 
 steps:
-# nuget.exe 7.6 or later. An external service connection that authenticates with an API key (the
-# `nuget-curiosity-org` push below) is refused by older versions, and the task's default is 6.x.
-# It also has to be 4.9 or later for the push to send the .snupkg beside each .nupkg (see the push
-# step).
-- task: NuGetToolInstaller@1
-  inputs:
-    versionSpec: '>=7.6.0'
-
-
 - task: PowerShell@2
   displayName: 'Create CalVer Version'
   inputs:
@@ -130,17 +121,15 @@ steps:
     nobuild: true
   displayName: 'pack nuget'
 
-# The push below picks up every .nupkg in the staging directory, so all three packages go out in
-# one step. NuGet accepts them in any order: a package may be published before a dependency it
-# names, and the dependency only has to exist by the time a consumer restores. Each package's
-# symbol package (.snupkg, from IncludeSymbols in the root Directory.Build.props) sits next to it
-# in the same directory, and nuget push (4.9 and later, pinned above) sends it to nuget.org's
-# symbol server along with the .nupkg, so it needs no step of its own.
+# Push every package in one step, as sentence-transformers-sharp does. No NuGetToolInstaller step:
+# it put nuget.exe 6.4 on the path, which refuses an API key service connection, whereas the push
+# task's own bundled nuget.exe accepts it. No symbol packages (.snupkg) are produced, so nothing
+# beside a .nupkg can fail the push.
 
 - task: NuGetCommand@2
+  displayName: 'push nuget'
   inputs:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg'
     nuGetFeedType: 'external'
     publishFeedCredentials: 'nuget-curiosity-org'
-  displayName: 'push nuget'

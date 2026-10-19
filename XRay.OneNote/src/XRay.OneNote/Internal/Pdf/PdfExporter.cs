@@ -344,11 +344,42 @@ internal sealed class PdfExporter
         return best;
     }
 
+    private static readonly System.Text.RegularExpressions.Regex SplitFieldCode = new("^\\s*HYPERLINK\\s+\"[^\"]+\"\\s*$", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// The address of a hyperlink field code that OneNote Online splits over two runs: a run ending in U+FDDF, then a
+    /// run holding exactly <c>HYPERLINK "address"</c>. Null when <paramref name="text"/> is not the second half.
+    /// </summary>
+    internal static string? ExtractSplitHyperlinkTarget(string? previousText, string text)
+    {
+        if (previousText is not { Length: > 0 } || previousText[^1] != '\uFDDF' || !SplitFieldCode.IsMatch(text))
+        {
+            return null;
+        }
+
+        return ExtractHyperlinkTarget('\uFDDF' + text);
+    }
+
     internal static List<TextRun> IterRuns(RichText richText)
     {
         if (richText.TextRuns.Count > 0)
         {
-            return [.. richText.TextRuns];
+            // A field code split over two runs is rejoined, so the code is recognised (and hidden) as one.
+            var runs = new List<TextRun>(richText.TextRuns.Count);
+            foreach (var run in richText.TextRuns)
+            {
+                if (runs.Count > 0 && ExtractSplitHyperlinkTarget(runs[^1].Text, run.Text) is not null)
+                {
+                    var marker = runs[^1];
+                    runs[^1] = new TextRun(marker.Text[..^1], marker.Style);
+                    runs.Add(new TextRun('\uFDDF' + run.Text, run.Style));
+                    continue;
+                }
+
+                runs.Add(run);
+            }
+
+            return runs;
         }
 
         var text = richText.Text;
@@ -667,7 +698,7 @@ internal sealed class PdfExporter
         for (var index = deduped.Count - 1; index >= 0; index--)
         {
             var shape = deduped[index].Icon;
-            consumed += DrawTagGlyph(pdf, x + consumed, baselineY, shape, TagColor(shape), TagIconSize);
+            consumed += DrawTagGlyph(pdf, x + consumed, baselineY, shape, TagColor(shape), TagIconSize, deduped[index].Status == TagStatus.Completed);
             consumed += TagIconGap;
         }
 
@@ -676,7 +707,7 @@ internal sealed class PdfExporter
 
     private static double CenteredTagBaseline(double topY, double blockHeight, double iconSize) => topY - (blockHeight / 2.0) - (iconSize * 0.42);
 
-    private static double DrawTagGlyph(IPdfCanvas pdf, double x, double baselineY, int? shape, (double R, double G, double B) color, double iconSize)
+    private static double DrawTagGlyph(IPdfCanvas pdf, double x, double baselineY, int? shape, (double R, double G, double B) color, double iconSize, bool completed = false)
     {
         var glyphY = baselineY - (iconSize * 0.08);
         pdf.SetStrokeColor(color.R, color.G, color.B);
@@ -685,6 +716,13 @@ internal sealed class PdfExporter
         if (CheckboxShapes.Contains(s))
         {
             pdf.Rect(x, glyphY - (iconSize * 0.10), iconSize, iconSize, stroke: true, fill: false);
+            if (completed)
+            {
+                // A ticked box: a check mark across the whole box, over the shape's own decoration.
+                pdf.Line(x + (iconSize * 0.15), glyphY + (iconSize * 0.38), x + (iconSize * 0.42), glyphY + (iconSize * 0.12));
+                pdf.Line(x + (iconSize * 0.42), glyphY + (iconSize * 0.12), x + (iconSize * 0.90), glyphY + (iconSize * 0.80));
+            }
+
             var innerX = x + (iconSize * 0.08);
             var innerY = glyphY;
             var innerSize = iconSize * 0.84;
@@ -1573,7 +1611,7 @@ internal sealed class PdfExporter
             return [];
         }
 
-        var rawWidths = table.Columns.Where(c => c.Width is { } w && w > 1.0).Select(c => c.Width!.Value).ToList();
+        var rawWidths = table.Columns.Where(c => c.Width is { } w && double.IsFinite(w) && w > 0).Select(c => c.Width!.Value).ToList();
         if (rawWidths.Count >= columnCount)
         {
             var total = rawWidths.Take(columnCount).Sum();

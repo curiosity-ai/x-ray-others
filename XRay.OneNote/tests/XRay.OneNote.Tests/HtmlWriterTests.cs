@@ -150,6 +150,15 @@ public sealed class HtmlWriterTests
     }
 
     [Fact]
+    public void Pages_carry_their_times_and_tables_their_column_widths()
+    {
+        var html = Render(Fixture.Load("Issue1Subpages.one"));
+        Assert.Contains("data-created=\"2026-01-20T14:50:35Z\"", html, StringComparison.Ordinal);
+        Assert.Contains("<colgroup><col style=\"width:49.48px\"><col style=\"width:189.6px\">", Render(Fixture.Load("TableWithTag.one")), StringComparison.Ordinal);
+        Assert.Contains("on-tag-completed", Render(Fixture.Load("TableWithTag.one")), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Tags_are_written_with_state_classes()
     {
         var html = Render(Fixture.Load("TagSizes.one"));
