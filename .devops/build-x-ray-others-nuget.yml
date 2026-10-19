@@ -54,11 +54,13 @@ pool:
   vmImage: 'windows-latest'
 
 steps:
-# Pinned past the 4.3.0 this task installs by default: nuget.exe pushes the .snupkg beside each
-# .nupkg only from 4.9 on (see the push step).
-- task: NuGetToolInstaller@0
+# nuget.exe 7.6 or later. An external service connection that authenticates with an API key (the
+# `nuget-curiosity-org` push below) is refused by older versions, and the task's default is 6.x.
+# It also has to be 4.9 or later for the push to send the .snupkg beside each .nupkg (see the push
+# step).
+- task: NuGetToolInstaller@1
   inputs:
-    versionSpec: '6.x'
+    versionSpec: '>=7.6.0'
 
 
 - task: PowerShell@2
