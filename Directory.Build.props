@@ -25,8 +25,10 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- No .snupkg: a symbol package beside each .nupkg is a second push that can fail the first.
+         The symbols are embedded in the assemblies instead, so stepping into the packages still works. -->
+    <IncludeSymbols>false</IncludeSymbols>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true' or '$(TF_BUILD)' == 'true' or '$(CI)' == 'true'">
