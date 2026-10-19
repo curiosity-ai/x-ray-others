@@ -11,7 +11,9 @@
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <PackageId>X-Ray.PS</PackageId>
-    <PackageLicenseExpression>MIT AND OFL-1.1 AND Bitstream-Vera</PackageLicenseExpression>
+    <!-- DjVu Dingbats is under the Bitstream Vera licence (see NOTICE), which is left out here on purpose:
+         nuget.org only accepts OSI or FSF approved ids and rejects Bitstream-Vera with a 400. -->
+    <PackageLicenseExpression>MIT AND OFL-1.1</PackageLicenseExpression>
     <PackageTags>postscript;ps;eps;xps;pdf;png;render;convert;x-ray</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
