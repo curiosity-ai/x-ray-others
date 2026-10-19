@@ -6,6 +6,19 @@ repository, umbrella package, shared skills and documentation site are in
 conventions. This repository holds the packages for formats outside x-ray-content (extraction)
 and x-ray-office (Office rendering).
 
+## Documentation lives in curiosity-ai/documentation
+
+The docs for each package here are not in this repository. They are the `x-ray/<package>/` folder (`psd/`, `email/`, `ics/`, `ps/`, `onenote/`) of
+[curiosity-ai/documentation](https://github.com/curiosity-ai/documentation) (clone: `/home/user/documentation`
+in agent sessions), published at <https://docs.curiosity.ai/x-ray/<package>/>.
+
+**A change to the public API, options, defaults, behavior, limits, licence, install steps or
+supported formats is not finished until that page is updated.** Open the documentation PR against
+`curiosity-ai/documentation` (never against this repository, an upstream, or a LibreOffice
+repository), link it from the code PR, and say in the code PR when no page needs to change. The
+`docs-site` skill in curiosity-ai/x-ray has the conventions: links carry the `/x-ray` prefix and
+samples use the real API.
+
 ## Layout
 
 Each package is a self-contained folder. Read that folder's `CLAUDE.md` before working in it;

@@ -15,6 +15,14 @@ Never write the upstream vendor's name anywhere in this folder (code, docs, comm
 goldens); `LICENSE` is the only file allowed to contain it. `grep -rIi <vendor> XRay.OneNote` must
 match only `LICENSE`. Scripts that import the reference discover its package name at run time.
 
+## Documentation lives in curiosity-ai/documentation
+
+The docs for X-Ray.OneNote are the `x-ray/onenote/` folder of
+[curiosity-ai/documentation](https://github.com/curiosity-ai/documentation), not this repository.
+A change to its public API, options, defaults, behavior, limits or licence is not finished until
+that page is updated; open that PR there and link it from the code PR. The root `CLAUDE.md` has
+the full rule.
+
 ## Layout
 
 | Path | What |

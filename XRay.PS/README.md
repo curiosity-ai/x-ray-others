@@ -4,7 +4,7 @@
 
 Reads PostScript, Encapsulated PostScript and XPS documents and converts them to PDF and raster
 images, in pure managed C#. Part of the [X-Ray](https://github.com/curiosity-ai/x-ray) family of
-.NET document libraries; documentation at <https://xray.curiosity.ai/>.
+.NET document libraries; documentation at <https://docs.curiosity.ai/x-ray/>.
 
 X-Ray.PS is a port of an MIT-licensed open-source Python PostScript/XPS library. It contains a
 PostScript interpreter, an XPS reader and writer, a render model shared by both inputs, a PDF

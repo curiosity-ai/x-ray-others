@@ -8,6 +8,14 @@ The x-ray-others root holds what all its packages share: `Directory.Build.props`
 
 Read this file before any task. Keep it current and under 20,000 bytes; put detailed topic knowledge in `docs/<topic>.md` and link it here. `TODO.md` is the backlog; update it when you finish or discover work.
 
+## Documentation lives in curiosity-ai/documentation
+
+The docs for X-Ray.Psd are the `x-ray/psd/` folder of
+[curiosity-ai/documentation](https://github.com/curiosity-ai/documentation), not this repository.
+A change to its public API, options, defaults, behavior, limits or licence is not finished until
+that page is updated; open that PR there and link it from the code PR. The root `CLAUDE.md` has
+the full rule.
+
 ## Goals and scope
 
 - Read PSD (version 1) and PSB (version 2) files: header, color mode data, image resources, layer tree, masks, vector masks, tagged blocks, linked/embedded files, merged image.

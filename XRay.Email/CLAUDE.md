@@ -11,6 +11,14 @@ parsing and writing bugs were fixed (listed below), so the original is no longer
 reference: the specifications are (MS-CFB, MS-OXMSG, MS-OXCMSG, MS-OXRTFCP, RFC 5322, 2045-2047,
 2231, 6532).
 
+## Documentation lives in curiosity-ai/documentation
+
+The docs for X-Ray.Email are the `x-ray/email/` folder of
+[curiosity-ai/documentation](https://github.com/curiosity-ai/documentation), not this repository.
+A change to its public API, options, defaults, behavior, limits or licence is not finished until
+that page is updated; open that PR there and link it from the code PR. The root `CLAUDE.md` has
+the full rule.
+
 ## Layout
 
 | Path | What |
