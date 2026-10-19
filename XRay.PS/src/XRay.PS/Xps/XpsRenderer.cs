@@ -28,6 +28,9 @@ public sealed partial class XpsRenderer
     private readonly Dictionary<XElement, List<(double Offset, (double R, double G, double B) Color)>> _gradientRgbStopsCache = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<XElement, List<(double Offset, double Alpha)>> _gradientAlphaStopsCache = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<XElement, (string Tag, double[] Params, string Spread)> _gradientGeometryCache = new(ReferenceEqualityComparer.Instance);
+    // A solid brush is sampled once per pixel when a stroke is drawn as an image, and parsing its
+    // colour every time was most of what an XPS page with such strokes allocated.
+    private readonly Dictionary<XElement, (double R, double G, double B)> _solidBrushRgbCache = new(ReferenceEqualityComparer.Instance);
     private int _depth;
 
     /// <summary>Observed per element.</summary>

@@ -167,14 +167,22 @@ public sealed class PsPipeline(PsInterpreter interpreter, OperatorRegistry opera
 
     private static PsArray BuildEncodingArray(IReadOnlyDictionary<int, string> mapping)
     {
-        var values = new List<object?>(256);
-        for (int i = 0; i < 256; i++)
-            values.Add(new PsName(".notdef", true));
-        foreach (var (code, name) in mapping)
+        // The names are built once per encoding and shared: a PsName is an immutable value, while
+        // the array holding them is a fresh one per document because a program may `put` into it.
+        PsName[] names = EncodingNames.GetValue(mapping, static m =>
         {
-            if (code is >= 0 and < 256)
-                values[code] = new PsName(name, true);
-        }
-        return new PsArray(values);
+            var built = new PsName[256];
+            for (int i = 0; i < 256; i++)
+                built[i] = new PsName(".notdef", true);
+            foreach (var (code, name) in m)
+            {
+                if (code is >= 0 and < 256)
+                    built[code] = new PsName(name, true);
+            }
+            return built;
+        });
+        return new PsArray(new List<object?>(names));
     }
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<IReadOnlyDictionary<int, string>, PsName[]> EncodingNames = new();
 }

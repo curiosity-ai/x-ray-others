@@ -153,7 +153,9 @@ public sealed record OperatorEntry(string Name, int MinOperands, int? MaxOperand
 /// <summary>Registers and resolves operator implementations by name.</summary>
 public sealed class OperatorRegistry
 {
-    private readonly Dictionary<string, OperatorEntry> _operators = new(StringComparer.Ordinal);
+    // Sized for the built-in set up front: every document registers all of them, and growing the
+    // table from empty re-hashed it several times per document.
+    private readonly Dictionary<string, OperatorEntry> _operators = new(512, StringComparer.Ordinal);
 
     public void Register(string name, Action<PsExecutionContext> fn, int minOperands = 0, int? maxOperands = null) =>
         _operators[name] = new OperatorEntry(name, minOperands, maxOperands, fn);
