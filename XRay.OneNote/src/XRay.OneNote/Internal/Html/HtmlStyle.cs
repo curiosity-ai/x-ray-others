@@ -16,6 +16,9 @@ internal static class HtmlStyle
         .on-oe{margin:0}
         .on-children{margin-left:24px}
         .on-p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+        h1.on-p,h2.on-p,h3.on-p,h4.on-p,h5.on-p,h6.on-p{font-size:inherit;font-weight:inherit}
+        pre.on-p{font-family:inherit}
+        blockquote.on-p{margin:0 0 0 2em}
         .on-align-center{text-align:center}
         .on-align-right{text-align:right}
         .on-marker{display:inline-block;min-width:1.5em;margin-right:.25em}

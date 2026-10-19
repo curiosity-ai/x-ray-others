@@ -2,8 +2,9 @@
 
 ![X-Ray](https://raw.githubusercontent.com/curiosity-ai/x-ray-others/main/assets/logo.png)
 
-X-Ray.OneNote reads Microsoft OneNote section files (`.one`) in pure managed C#. It parses the
-MS-ONESTORE revision store and the MS-ONE object model into a document tree of pages, outlines,
+X-Ray.OneNote reads Microsoft OneNote section files (`.one`) and notebook table of contents files (`.onetoc2`)
+in pure managed C#, whether they were written by OneNote desktop or by OneNote online (OneDrive and SharePoint). It parses the
+MS-ONESTORE revision store (as file node lists or as an FSSHTTPB package) and the MS-ONE object model into a document tree of pages, outlines,
 formatted rich text, images, tables, attached files, note tags and numbered lists, reconstructs
 page history, and exports pages to PDF and HTML. It has no NuGet dependencies and no native code, and does
 not need OneNote or COM automation.
@@ -59,16 +60,16 @@ document.Save(Stream.Null, new PdfSaveOptions { PageIndex = 0, PageCount = 1 });
 
 | Node | Content |
 |---|---|
-| `Document` | the section: `DisplayName`, pages in section order (subpages included) |
-| `Page` | `Title`, `Author`, `CreationTime`, `LastModifiedTime`, `Level` |
+| `Document` | the section: `DisplayName`, `Color`, `Guid`, pages in section order (subpages included) |
+| `Page` | `Title`, `Author`, `CreationTime`, `LastModifiedTime`, `Level`, `InkRecognition` (the text OneNote recognized in handwriting) |
 | `Title` | `TitleText`, `TitleDate`, `TitleTime` (each a `RichText`) |
 | `Outline` | a note container: offsets and maximum width, holding `OutlineElement`s |
 | `OutlineElement` | one paragraph level; nested elements form indented levels; `NumberList` for list items |
-| `RichText` | `Text`, `TextRuns` (each with a `TextStyle`: font, size, color, highlight, bold, italic, underline, strikethrough, super/subscript, hyperlink, language), `ParagraphStyle`, `Alignment`, `Tags` |
-| `Image` | `Bytes`, `FileName`, size, `Alignment`, alternative text, hyperlink, `Tags` |
-| `Table`, `TableRow`, `TableCell` | rows of cells holding outline content; `Columns` with widths; `Tags` |
+| `RichText` | `Text`, `TextRuns` (each with a `TextStyle`: font, size, color, highlight, bold, italic, underline, strikethrough, super/subscript, hyperlink and its `HyperlinkAddress`, language), `ParagraphStyle` (including the named style, `StyleId`: `p`, `h1` to `h6`, `code`, `blockquote`, `cite`), `Alignment`, `Tags` |
+| `Image` | `Bytes`, `FileName`, size, `LayoutMaxWidth`/`LayoutMaxHeight`, `IsBackground`, `Alignment`, alternative text, hyperlink, `Tags` |
+| `Table`, `TableRow`, `TableCell` | rows of cells holding outline content (a cell's `BackgroundColor`); `Columns` with widths in half-inches and locks; `Tags` |
 | `AttachedFile` | `Bytes`, `FileName`, `Tags` |
-| `NoteTag` | `Label`, `Icon` (shape), `Status`, colors, creation and completion times |
+| `NoteTag` | `Label`, `Icon` (shape), `Status` (open, completed, disabled), colors, creation and completion times |
 
 Traverse with `CompositeNode.GetChildNodes<T>()` (every descendant of a type, in document order),
 by enumerating a node's children, or with a `DocumentVisitor` passed to `Accept`.
@@ -91,7 +92,7 @@ foreach (var version in document.GetPageHistory(page))
 ## PDF export
 
 `Document.Save` writes PDF: titles, outlines with list numbering, formatted runs, clickable
-hyperlinks, note tag glyphs, images (PNG, JPEG, GIF and BMP), attached file names and tables
+hyperlinks, note tag glyphs (ticked when completed), images (PNG, JPEG, GIF and BMP), attached file names and tables
 split across pages. Text in Latin-1 uses the PDF standard fonts. Text outside Latin-1 (Cyrillic,
 for example) is drawn with a TrueType font that is embedded as a subset; the library looks for one
 in the usual Windows, Linux and macOS font directories. To control where fonts come from:
@@ -112,7 +113,8 @@ elements nest with their list markers, runs carry bold, italic, underline, strik
 and subscript, color, highlight, font and size, links are anchors (only `http`, `https`, `mailto`,
 `ftp`, `tel`, `onenote` and `file` targets), tags are inline markers, and tables, pictures
 and attached files are written in place. Hidden text stays in the markup with the class
-`on-hidden`; set `ShowHiddenText` to show it.
+`on-hidden`; set `ShowHiddenText` to show it. Paragraphs in a heading style are `h1` to `h6`, `code` is `pre` and
+`blockquote` is `blockquote`; pages carry `data-created` and `data-modified`, table cells their background color.
 
 ```csharp
 // One HTML document per page, pictures served from your own URLs, each page into your own stream.
@@ -135,13 +137,23 @@ written.
 
 ## Sections and notebooks
 
-`Document.Guid` is the section file's identity (the header `guidFile`), the value a notebook
-table of contents lists a section under; `Document.NotebookGuid` is the table of contents file it
-belongs to. `NotebookToc.Load` reads a `.onetoc2` file: its GUID, color and the ordered section
-entries (file name, GUID, color, ordering id; folders have no GUID). This reader is best effort: the
-property ids of the table of contents are not in the published specifications this package
-was built from, so entries are recognised by property type, and it has been tested only against
-synthetic files.
+`Document.Guid` is the section file's identity (the header `guidFile`, or the identity the package's header cell
+carries), the value a notebook table of contents lists a section under; `Document.NotebookGuid` is the table of
+contents file it belongs to. Pages come in the order the section's page series name them.
+
+`NotebookToc.Load` reads a `.onetoc2` file: its GUID, color, `EnableHistory` and the ordered entries (file name,
+GUID, color, ordering id). An entry whose name does not end in `.one` is a folder (a section group). Loaded from a
+path, a folder's `Children` are read from the table of contents file in its directory, recursively;
+`OneNote_RecycleBin` is never entered. A file name the file refers to more than once appears once, as its last
+reference states it.
+
+```csharp
+var toc = NotebookToc.Load("MyNotebook/.onetoc2");
+foreach (var entry in toc.Entries)
+{
+    Console.WriteLine($"{entry.OrderingId} {entry.FileName} {(entry.IsFolder ? entry.Children.Count + " entries" : "")}");
+}
+```
 
 ## Cancellation
 
@@ -160,11 +172,13 @@ raises `UnsupportedFileFormatException`. Both derive from `OneNoteException`, as
 
 ## Limitations
 
-- Reads OneNote 2010 and later section files (`.one`) and, best effort, notebook table of contents
-  files (`.onetoc2`; `.onepkg` is not supported). OneNote 2007 sections, encrypted sections and the OneNote web packaging are not
+- Reads OneNote 2010 and later section files (`.one`) and notebook table of contents files (`.onetoc2`), both as
+  file node lists and as FSSHTTPB packages (a file that starts with the package, or a header whose package follows
+  the transaction log). `.onepkg` is not supported. OneNote 2007 sections and encrypted sections are not
   supported, and the library does not write `.one` files.
 - Images and attachments stored outside the section (in a `onefiles` folder next to it) are
   listed with empty `Bytes`.
+- Ink strokes, equations and page backgrounds are not modelled (recognized handwriting is on `Page.InkRecognition`).
 - The PDF export lays content out in reading order rather than at the positions OneNote shows,
   and does not draw TIFF or other picture formats beyond PNG, JPEG, GIF and BMP (their file name
   is printed instead).

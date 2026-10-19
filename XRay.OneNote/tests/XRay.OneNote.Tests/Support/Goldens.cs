@@ -16,20 +16,20 @@ internal static class Goldens
     /// Compares two JSON trees: same keys, same array lengths, equal strings and booleans, numbers
     /// within a relative tolerance. Returns the differences as JSON paths (empty when equal).
     /// </summary>
-    public static List<string> Diff(JsonNode? expected, JsonNode? actual, string path = "$", int limit = 50)
+    public static List<string> Diff(JsonNode? expected, JsonNode? actual, string path = "$", int limit = 50, Func<string, bool>? ignore = null)
     {
         var differences = new List<string>();
 
         // Round-trip through text so values built in memory compare like values read from a file.
-        Walk(Reparse(expected), Reparse(actual), path, differences, limit);
+        Walk(Reparse(expected), Reparse(actual), path, differences, limit, ignore);
         return differences;
     }
 
     private static JsonNode? Reparse(JsonNode? node) => node is null ? null : JsonNode.Parse(node.ToJsonString());
 
-    private static void Walk(JsonNode? expected, JsonNode? actual, string path, List<string> differences, int limit)
+    private static void Walk(JsonNode? expected, JsonNode? actual, string path, List<string> differences, int limit, Func<string, bool>? ignore)
     {
-        if (differences.Count >= limit)
+        if (differences.Count >= limit || (ignore is not null && ignore(path)))
         {
             return;
         }
@@ -50,7 +50,7 @@ internal static class Goldens
                         continue;
                     }
 
-                    Walk(e[key], a[key], $"{path}.{key}", differences, limit);
+                    Walk(e[key], a[key], $"{path}.{key}", differences, limit, ignore);
                 }
 
                 return;
@@ -62,7 +62,7 @@ internal static class Goldens
 
                 for (var index = 0; index < Math.Min(e.Count, a.Count); index++)
                 {
-                    Walk(e[index], a[index], $"{path}[{index}]", differences, limit);
+                    Walk(e[index], a[index], $"{path}[{index}]", differences, limit, ignore);
                 }
 
                 return;

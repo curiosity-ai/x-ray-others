@@ -11,6 +11,26 @@ public sealed class DomParityTests
 {
     public static TheoryData<string> Fixtures => Corpus.AllFixtures();
 
+    /// <summary>
+    /// Fields where this package deliberately differs from the Python reference (listed in CLAUDE.md under
+    /// "Deliberate differences"), so the golden value is the reference's bug, not the expected value.
+    /// </summary>
+    private static bool DeliberateDifference(string path) =>
+        // The reference reads the one-byte count of TableColumnWidths as part of the first float.
+        path.EndsWith(".columns", StringComparison.Ordinal) || path.Contains(".columns[", StringComparison.Ordinal)
+        // The reference reports a tag's state from the wrong property set (every tag completed on
+        // 1980-01-01); the state is the ActionItemStatus bits and times of the tag's own NoteTagState.
+        || (path.Contains(".tags[", StringComparison.Ordinal)
+            && (path.EndsWith(".status", StringComparison.Ordinal)
+                || path.EndsWith(".creation_time", StringComparison.Ordinal)
+                || path.EndsWith(".completed_time", StringComparison.Ordinal)))
+        // The reference leaves a page's creation time empty when only the page metadata records it
+        // (the topology time stamp); this package fills it.
+        || path.EndsWith(".creation_time", StringComparison.Ordinal)
+        // The reference leaves a hyperlink's address empty when the link is written as a field code in the text;
+        // this package gives the address to the hyperlink run the field code governs.
+        || path.EndsWith(".style.hyperlink_address", StringComparison.Ordinal);
+
     [Theory]
     [MemberData(nameof(Fixtures))]
     public void Dom_matches_python_reference(string fixture)
@@ -22,7 +42,7 @@ public sealed class DomParityTests
         var actual = DomJson.DumpDocument(fixture, document, historyDocument);
         var expected = Goldens.Load("dom", fixture);
 
-        var differences = Goldens.Diff(expected, actual);
+        var differences = Goldens.Diff(expected, actual, ignore: DeliberateDifference);
         Assert.True(differences.Count == 0, $"{fixture}: {differences.Count} difference(s)\n" + string.Join("\n", differences));
     }
 }

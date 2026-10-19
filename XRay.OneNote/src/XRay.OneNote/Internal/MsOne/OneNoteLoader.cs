@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using XRay.OneNote.Internal.OneStore;
+using XRay.OneNote.Internal.Pdf;
 using XRay.OneNote.Internal.Text;
 using J = XRay.OneNote.Internal.OneStore.JcidNames;
 using P = XRay.OneNote.Internal.OneStore.PropertyNames;
@@ -7,7 +8,7 @@ using P = XRay.OneNote.Internal.OneStore.PropertyNames;
 namespace XRay.OneNote.Internal.MsOne;
 
 /// <summary>The result of loading a section: its name, its current pages and each page's history.</summary>
-internal sealed record LoadedOneNoteDocument(string? DisplayName, List<Page> Pages, List<List<Page>> PageHistories, Guid FileGuid, Guid? EntityGuid, Guid AncestorGuid, DateTime? CreationTime = null);
+internal sealed record LoadedOneNoteDocument(string? DisplayName, List<Page> Pages, List<List<Page>> PageHistories, Guid FileGuid, Guid? EntityGuid, Guid AncestorGuid, DateTime? CreationTime = null, uint? Color = null);
 
 /// <summary>A node of the MS-ONE object graph: an object with its structural children and metadata objects.</summary>
 internal sealed class LogicalNode
@@ -64,19 +65,24 @@ internal sealed partial class OneNoteLoader
     private readonly ObjectSpaceState? _sectionSpace;
     private readonly List<ObjectSpaceState> _contentSpaces;
     private readonly ObjectSpaceState? _contentSpace;
+    private readonly bool _pagesFromReferences;
 
     private ObjectSpaceState? _space;
     private int? _currentRevisionIndex;
     private OrderedDictionary<ExtendedGuid, OneStoreObject> _objects;
     private int _nodeCount;
+    private bool _buildingHistory;
 
     private OneNoteLoader(OneStoreFile parsed, bool includePageHistory, CancellationToken ct)
     {
         _ct = ct;
         _parsed = parsed;
         _includePageHistory = includePageHistory;
+        _objects = new OrderedDictionary<ExtendedGuid, OneStoreObject>();
         _sectionSpace = SelectSectionSpace(parsed);
-        _contentSpaces = SelectContentSpaces(parsed);
+        var referenced = ReferencedPageSpaces(parsed);
+        _pagesFromReferences = referenced.Count > 0;
+        _contentSpaces = _pagesFromReferences ? referenced : SelectContentSpaces(parsed);
         _contentSpace = _contentSpaces.Count > 0 ? _contentSpaces[0] : SelectContentSpace(parsed);
         _space = _contentSpace ?? _sectionSpace;
         _objects = _space?.Objects ?? new OrderedDictionary<ExtendedGuid, OneStoreObject>();
@@ -110,12 +116,18 @@ internal sealed partial class OneNoteLoader
             displayName = _parsed.DisplayName;
         }
 
+        // OneNote online stores the section's file name, extension included, as its display name.
+        if (_parsed.IsPackaged && displayName is not null && displayName.EndsWith(".one", StringComparison.OrdinalIgnoreCase) && displayName.Length > 4)
+        {
+            displayName = displayName[..^4];
+        }
+
         if (displayName is null && pages.Count > 0)
         {
             displayName = pages[0].Title?.TitleText?.Text;
         }
 
-        return new LoadedOneNoteDocument(displayName, pages, histories, _parsed.FileGuid, SectionEntityGuid(), _parsed.AncestorGuid, SectionCreationTime());
+        return new LoadedOneNoteDocument(displayName, pages, histories, _parsed.FileGuid, SectionEntityGuid(), _parsed.AncestorGuid, SectionCreationTime(), SectionColor());
     }
 
     /// <summary>
@@ -137,6 +149,31 @@ internal sealed partial class OneNoteLoader
                 if (record.JcidName == J.SectionNode && TimestampToDateTime(record.Properties.Get(P.TopologyCreationTimeStamp)) is { } time)
                 {
                     return time;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>The color of the section: the <c>SectionColor</c> of its section metadata (undefined, 0xFFFFFFFF, is none).</summary>
+    private uint? SectionColor()
+    {
+        foreach (var space in new[] { _sectionSpace, _contentSpace })
+        {
+            if (space is null)
+            {
+                continue;
+            }
+
+            var revision = space.Revisions.Count > 0 ? SelectCurrentRevisionIndex(space) : null;
+            foreach (var record in GetSnapshotObjects(space, revision).Values)
+            {
+                if (record.JcidName == J.SectionMetaData
+                    && record.Properties.Get(P.SectionColor).AsUInt32() is { } color
+                    && color != 0xFFFFFFFF)
+                {
+                    return color & 0x00FFFFFF;
                 }
             }
         }
@@ -424,6 +461,74 @@ internal sealed partial class OneNoteLoader
         return bestSpace ?? SelectSectionSpace(parsed);
     }
 
+    /// <summary>
+    /// The page object spaces the section names, in reading order: the section node's page series in
+    /// child order, and within each series the ChildGraphSpaceElementNodes object space references
+    /// in array order (MS-ONE 2.2.18, 2.2.65). Empty when the section does not name any usable page
+    /// space, in which case the caller falls back to inspecting the object spaces.
+    /// </summary>
+    private List<ObjectSpaceState> ReferencedPageSpaces(OneStoreFile parsed)
+    {
+        var result = new List<ObjectSpaceState>();
+        if (_sectionSpace is null)
+        {
+            return result;
+        }
+
+        var byId = new Dictionary<ExtendedGuid, ObjectSpaceState>();
+        foreach (var space in parsed.ObjectSpaces)
+        {
+            byId.TryAdd(space.Gosid, space);
+        }
+
+        var revisionIndex = SelectCurrentRevisionIndex(_sectionSpace);
+        var references = RunInSpace(_sectionSpace, revisionIndex, () =>
+        {
+            var found = new List<ExtendedGuid>();
+            foreach (var node in Descendants(BuildLogicalRoot(_sectionSpace, revisionIndex)))
+            {
+                _ct.ThrowIfCancellationRequested();
+                if (node.Kind != J.PageSeriesNode || !_objects.TryGetValue(node.Oid, out var record))
+                {
+                    continue;
+                }
+
+                foreach (var (name, value) in record.Properties.Raw)
+                {
+                    if (name != P.ChildGraphSpaceElementNodes)
+                    {
+                        continue;
+                    }
+
+                    if (value.Kind == PropertyKind.List)
+                    {
+                        found.AddRange(value.Items.Select(item => item.AsObjectSpaceId()).OfType<ExtendedGuid>());
+                    }
+                    else if (value.AsObjectSpaceId() is { } single)
+                    {
+                        found.Add(single);
+                    }
+                }
+            }
+
+            return found;
+        });
+
+        var seen = new HashSet<ObjectSpaceState>(ReferenceEqualityComparer.Instance);
+        foreach (var reference in references)
+        {
+            if (byId.TryGetValue(reference, out var space)
+                && !ReferenceEquals(space, _sectionSpace)
+                && IsPageRevision(space, SelectCurrentRevisionIndex(space))
+                && seen.Add(space))
+            {
+                result.Add(space);
+            }
+        }
+
+        return result;
+    }
+
     private List<ObjectSpaceState> SelectContentSpaces(OneStoreFile parsed)
     {
         var candidates = new List<(int Index, int Score, ObjectSpaceState Space)>();
@@ -636,8 +741,18 @@ internal sealed partial class OneNoteLoader
     private List<(ExtendedGuid Oid, LogicalNode Node, Page Page)> BuildPageInfosForSpace(ObjectSpaceState space, int? revisionIndex) =>
         RunInSpace(space, revisionIndex, () => BuildPageInfos(BuildLogicalRoot(space, revisionIndex)));
 
-    private List<(ExtendedGuid Oid, Page Page)> BuildPagePairsForRevision(ObjectSpaceState space, int revisionIndex) =>
-        RunInSpace(space, revisionIndex, () => BuildPageInfos(BuildLogicalRoot(space, revisionIndex)).Select(info => (info.Oid, info.Page)).ToList());
+    private List<(ExtendedGuid Oid, Page Page)> BuildPagePairsForRevision(ObjectSpaceState space, int revisionIndex)
+    {
+        _buildingHistory = true;
+        try
+        {
+            return RunInSpace(space, revisionIndex, () => BuildPageInfos(BuildLogicalRoot(space, revisionIndex)).Select(info => (info.Oid, info.Page)).ToList());
+        }
+        finally
+        {
+            _buildingHistory = false;
+        }
+    }
 
     private List<OneStoreObject> PageMetadataCandidates() =>
         _objects.Values.Where(record => record.JcidName == J.PageMetaData).ToList();
@@ -780,6 +895,12 @@ internal sealed partial class OneNoteLoader
                     spaceOrder,
                     pageOrder));
             }
+        }
+
+        if (_pagesFromReferences)
+        {
+            // The section names its pages in reading order; entries are already in that order.
+            return entries;
         }
 
         return entries
@@ -952,10 +1073,17 @@ internal sealed partial class OneNoteLoader
         {
             var properties = metadata.Properties;
             page.Author ??= DecodeUtf16(properties.Get(P.Author));
-            page.CreationTime ??= Time32ToDateTime(properties.Get(P.CreationTimeStamp));
+            // The page metadata records when the page was created as a topology FILETIME (MS-ONE 2.3.32).
+            page.CreationTime ??= Time32ToDateTime(properties.Get(P.CreationTimeStamp))
+                ?? FileTimeToDateTime(properties.Get(P.TopologyCreationTimeStamp));
             page.LastModifiedTime ??= FileTimeToDateTime(properties.Get(P.LastModifiedTimeStamp))
                 ?? Time32ToDateTime(properties.Get(P.LastModifiedTime));
             page.Level ??= properties.Get(P.PageLevel).AsInt32();
+        }
+
+        if (record is not null && record.Properties.Get(P.PageRecognizedTextContainer).AsObjectId() is { } recognition)
+        {
+            page.InkRecognition = BuildInkRecognition(recognition);
         }
 
         var titleNode = node.Children.FirstOrDefault(child => child.Kind == J.TitleNode);
@@ -978,8 +1106,12 @@ internal sealed partial class OneNoteLoader
             }
         }
 
-        if (page.Title is null && ShouldSynthesizePageTitle(node))
+        var titleIsEmpty = page.Title is null || string.IsNullOrEmpty(page.Title.TitleText?.Text);
+        if (titleIsEmpty && (page.Title is null ? ShouldSynthesizePageTitle(node) : (_parsed.IsPackaged && !_buildingHistory)))
         {
+            // A page in an FSSHTTPB package keeps its title in the page metadata, and its title object holds
+            // an empty text; a page without a title object has only the metadata. Section files keep the
+            // reference's behaviour (the empty title object stands), which the parity goldens pin.
             string? titleText = null;
             if (metadata is not null)
             {
@@ -989,14 +1121,83 @@ internal sealed partial class OneNoteLoader
 
             if (!string.IsNullOrEmpty(titleText))
             {
-                var title = new Title { TitleText = new RichText(titleText, [new TextRun(titleText)]) };
-                page.Title = title;
-                page.AppendChildFirst(title);
+                var text = new RichText(titleText, [new TextRun(titleText)]);
+                if (page.Title is { } existing)
+                {
+                    existing.TitleText = text;
+                }
+                else
+                {
+                    var title = new Title { TitleText = text };
+                    page.Title = title;
+                    page.AppendChildFirst(title);
+                }
             }
         }
 
         return page;
     }
+
+    private const int MaxRecognitionDepth = 8;
+
+    /// <summary>
+    /// Reads the handwriting recognition tree of a page: a root, its lines, their blocks and the words below them. Each
+    /// word's best candidate is its first; words are joined by spaces and lines by line feeds.
+    /// </summary>
+    private RichText? BuildInkRecognition(ExtendedGuid rootId)
+    {
+        if (!_objects.TryGetValue(rootId, out var root) || root.JcidName != J.RecognizedTextRoot)
+        {
+            return null;
+        }
+
+        var lines = new List<string>();
+        foreach (var lineId in ChildReferences(root))
+        {
+            var words = new List<string>();
+            CollectRecognizedWords(lineId, words, 1);
+            if (words.Count > 0)
+            {
+                lines.Add(string.Join(' ', words));
+            }
+        }
+
+        if (lines.Count == 0)
+        {
+            return null;
+        }
+
+        var text = string.Join('\n', lines);
+        return new RichText(text, [new TextRun(text)]);
+    }
+
+    private void CollectRecognizedWords(ExtendedGuid id, List<string> words, int depth)
+    {
+        _ct.ThrowIfCancellationRequested();
+        if (depth > MaxRecognitionDepth || !_objects.TryGetValue(id, out var node))
+        {
+            return;
+        }
+
+        if (node.JcidName == J.RecognizedTextWord)
+        {
+            // The candidates are UTF-16 strings separated by NULs, best first.
+            if (node.Properties.Get(P.RecognizedText).AsNonEmptyBytes() is { } bytes
+                && TextDecoding.DecodeUtf16(bytes).Split('\0', StringSplitOptions.RemoveEmptyEntries) is { Length: > 0 } candidates)
+            {
+                words.Add(candidates[0]);
+            }
+
+            return;
+        }
+
+        foreach (var child in ChildReferences(node))
+        {
+            CollectRecognizedWords(child, words, depth + 1);
+        }
+    }
+
+    private static List<ExtendedGuid> ChildReferences(OneStoreObject node) => FlattenRefs(node.Properties.Get(P.RecognizedTextChildNodes));
 
     private Title BuildTitle(LogicalNode node)
     {
@@ -1233,7 +1434,82 @@ internal sealed partial class OneNoteLoader
             richText.ReplaceTextRuns(runs);
         }
 
+        richText.ParagraphStyle.StyleId = ParagraphStyleIdOf(properties);
+        AssignFieldHyperlinks(richText);
+        if (properties.Contains(P.TextRunDataObject))
+        {
+            RemoveObjectPlaceholders(richText);
+        }
+
         return richText;
+    }
+
+    /// <summary>The named paragraph style of a text object: its own <c>ParagraphStyleId</c>, else that of the style object it references.</summary>
+    private string? ParagraphStyleIdOf(PropertySet properties)
+    {
+        if (DecodeUtf16(properties.Get(P.ParagraphStyleId)) is { } own)
+        {
+            return own;
+        }
+
+        return properties.Get(P.ParagraphStyle).AsObjectId() is { } reference && _objects.TryGetValue(reference, out var style)
+            ? DecodeUtf16(style.Properties.Get(P.ParagraphStyleId))
+            : null;
+    }
+
+    /// <summary>
+    /// Gives the hyperlink run that follows a <c>HYPERLINK "address"</c> field-code run the address that field names,
+    /// as the writers read it; the field code stays in the text.
+    /// </summary>
+    private static void AssignFieldHyperlinks(RichText richText)
+    {
+        string? pending = null;
+        string? previous = null;
+        foreach (var run in richText.TextRuns)
+        {
+            var target = PdfExporter.ExtractHyperlinkTarget(run.Text) ?? PdfExporter.ExtractSplitHyperlinkTarget(previous, run.Text);
+            previous = run.Text;
+            if (target is not null)
+            {
+                pending = target;
+                continue;
+            }
+
+            var visible = PdfText.Sanitize(run.Text).Length > 0;
+            if (run.Style.IsHyperlink && string.IsNullOrEmpty(run.Style.HyperlinkAddress) && pending is not null && visible)
+            {
+                run.Style.HyperlinkAddress = pending;
+            }
+
+            if (visible && (run.Style.IsHyperlink || !string.IsNullOrEmpty(run.Style.HyperlinkAddress)))
+            {
+                pending = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// U+FFFC stands for an inline object (ink, an equation) in a paragraph whose runs carry object data; the object is
+    /// not text, so the placeholder is dropped and a run left empty goes with it.
+    /// </summary>
+    private static void RemoveObjectPlaceholders(RichText richText)
+    {
+        if (!richText.Text.Contains('\uFFFC', StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        foreach (var run in richText.TextRuns)
+        {
+            run.Text = run.Text.Replace("\uFFFC", string.Empty, StringComparison.Ordinal);
+        }
+
+        richText.TextRuns.RemoveAll(run => run.Text.Length == 0);
+        if (richText.TextRuns.Count == 0)
+        {
+            // The text is kept apart from the runs while there are none; clear it too.
+            richText.Text = string.Empty;
+        }
     }
 
     [GeneratedRegex("([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})")]
@@ -1284,6 +1560,9 @@ internal sealed partial class OneNoteLoader
                 ?? DecodeLayoutAlignment(properties.Get(P.LayoutAlignmentInParent)),
             AlternativeTextDescription = DecodeUtf16(properties.Get(P.ImageAltText)),
             HyperlinkUrl = DecodeUtf16(properties.Get(P.WzHyperlinkUrl)),
+            IsBackground = properties.Get(P.IsBackground).IsTruthy,
+            LayoutMaxWidth = U32ToFloat(properties.Get(P.LayoutMaxWidth)),
+            LayoutMaxHeight = U32ToFloat(properties.Get(P.LayoutMaxHeight)),
         };
         image.Tags.AddRange(CollectTags(record));
         return image;
@@ -1309,9 +1588,11 @@ internal sealed partial class OneNoteLoader
             : true;
         var table = new Table { IsBordersVisible = bordersVisible };
         table.Tags.AddRange(CollectTags(record));
-        foreach (var width in BytesToFloatList(record.Properties.Get(P.TableColumnWidths)))
+        var widths = DecodeColumnWidths(record.Properties.Get(P.TableColumnWidths));
+        var locked = DecodeColumnLocks(record.Properties.Get(P.TableColumnsLocked), widths.Count);
+        for (var column = 0; column < widths.Count; column++)
         {
-            table.Columns.Add(new TableColumn { Width = width });
+            table.Columns.Add(new TableColumn { Width = widths[column], LockedWidth = locked[column] });
         }
 
         foreach (var child in node.Children)
@@ -1341,7 +1622,7 @@ internal sealed partial class OneNoteLoader
 
     private TableCell BuildTableCell(LogicalNode node)
     {
-        var cell = new TableCell();
+        var cell = new TableCell { BackgroundColor = Record(node).Properties.Get(P.CellBackgroundColor).AsUInt32() is { } background && background != 0xFFFFFFFF ? background & 0x00FFFFFF : null };
         AppendPublicChildren(cell, node);
         return cell;
     }
@@ -1360,22 +1641,51 @@ internal sealed partial class OneNoteLoader
 
     // ------------------------------------------------------------------ note tags
 
-    private static NoteTag? TagFromProperties(PropertySet properties)
+    /// <summary>
+    /// Builds a note tag from its definition (label, shape, colors: a jcidNoteTagSharedDefinitionContainer,
+    /// or the state itself for a task tag) and its state (created, completed, ActionItemStatus), MS-ONE 2.1.9.
+    /// </summary>
+    private static NoteTag? BuildTag(PropertySet? definition, PropertySet state)
     {
-        var tag = new NoteTag(
-            DecodeUtf16(properties.Get(P.NoteTagLabel)),
-            properties.Get(P.NoteTagShape).AsInt32(),
-            null,
-            properties.Get(P.NoteTagHighlightColor).AsUInt32(),
-            TimestampToDateTime(properties.Get(P.NoteTagCreated)),
-            TimestampToDateTime(properties.Get(P.NoteTagCompleted)),
-            properties.Get(P.NoteTagTextColor).AsUInt32());
+        string? Text(string name) => DecodeUtf16(state.Get(name)) ?? (definition is null ? null : DecodeUtf16(definition.Get(name)));
+        int? Int(string name) => state.Get(name).AsInt32() ?? definition?.Get(name).AsInt32();
+        uint? Color(string name) => state.Get(name).AsUInt32() ?? definition?.Get(name).AsUInt32();
+
+        var label = Text(P.NoteTagLabel);
+        var shape = Int(P.NoteTagShape);
+        var checkable = shape is { } s && TagShapes.Checkbox.Contains(s);
+        var created = NonZeroTimestamp(state.Get(P.NoteTagCreated));
+        var completedAt = NonZeroTimestamp(state.Get(P.NoteTagCompleted));
+        var itemStatus = state.Get(P.ActionItemStatus).AsInteger();
+
+        // A tag that cannot be checked has the Completed bit set and a completion time equal to its
+        // creation time (MS-ONE 2.1.9); neither says anything about the tag, so it stays open.
+        var status = TagStatus.Open;
+        DateTime? completed = null;
+        if (itemStatus is { } bits && (bits & 0x2) != 0)
+        {
+            status = TagStatus.Disabled;
+        }
+        else if (checkable && ((itemStatus is { } done && (done & 0x1) != 0) || (itemStatus is null && completedAt is not null)))
+        {
+            status = TagStatus.Completed;
+        }
+
+        if (checkable && status != TagStatus.Open)
+        {
+            completed = completedAt;
+        }
+
+        var tag = new NoteTag(label, shape, status, Color(P.NoteTagHighlightColor), created, completed, Color(P.NoteTagTextColor));
         return !string.IsNullOrEmpty(tag.Label) || tag.Icon is not null ? tag : null;
     }
 
+    private static DateTime? NonZeroTimestamp(PropertyValue value) =>
+        value.AsInteger() is 0 or null ? null : TimestampToDateTime(value);
+
     private static void TagFromRecord(OneStoreObject? record, List<NoteTag> into)
     {
-        if (record is not null && TagFromProperties(record.Properties) is { } tag)
+        if (record is not null && BuildTag(record.Properties, record.Properties) is { } tag)
         {
             into.Add(tag);
         }
@@ -1389,14 +1699,16 @@ internal sealed partial class OneNoteLoader
         }
 
         var properties = state.SetValue!;
-        if (properties.Get(P.NoteTagDefinitionOid).AsObjectId() is { } definition)
+        PropertySet? definition = null;
+        if (properties.Get(P.NoteTagDefinitionOid).AsObjectId() is { } reference
+            && _objects.TryGetValue(reference, out var target))
         {
-            TagFromRecord(_objects.GetValueOrDefault(definition), into);
+            definition = target.Properties;
         }
 
-        if (TagFromProperties(properties) is { } inline)
+        if (BuildTag(definition, properties) is { } tag)
         {
-            into.Add(inline);
+            into.Add(tag);
         }
     }
 
@@ -1404,6 +1716,8 @@ internal sealed partial class OneNoteLoader
     {
         var tags = new List<NoteTag>();
         TagFromRecord(record, tags);
+
+        // One tag per state, each resolved against its own definition, in array order.
         var states = record.Properties.Get(P.NoteTagStates);
         if (states.Kind == PropertyKind.List)
         {
@@ -1415,7 +1729,7 @@ internal sealed partial class OneNoteLoader
 
         foreach (var (name, value) in record.Properties.Raw)
         {
-            if (!TagReferenceProperties.Contains(name))
+            if (!TagReferenceProperties.Contains(name) || name == P.NoteTagStates)
             {
                 continue;
             }
@@ -1440,11 +1754,11 @@ internal sealed partial class OneNoteLoader
 
     private static List<NoteTag> UniqueTags(List<NoteTag> tags)
     {
-        var seen = new HashSet<(string?, int?, uint?, uint?, DateTime?, DateTime?)>();
+        var seen = new HashSet<(string?, int?, uint?, uint?, DateTime?, DateTime?, TagStatus)>();
         var result = new List<NoteTag>();
         foreach (var tag in tags)
         {
-            if (seen.Add((tag.Label, tag.Icon, tag.FontColor, tag.Highlight, tag.CreationTime, tag.CompletedTime)))
+            if (seen.Add((tag.Label, tag.Icon, tag.FontColor, tag.Highlight, tag.CreationTime, tag.CompletedTime, tag.Status)))
             {
                 result.Add(tag);
             }
@@ -1485,18 +1799,40 @@ internal sealed partial class OneNoteLoader
     internal static double? U32ToFloat(PropertyValue value) =>
         value.AsUInt32() is { } bits ? BitConverter.Int32BitsToSingle(unchecked((int)bits)) : null;
 
-    private static List<double> BytesToFloatList(PropertyValue value)
+    /// <summary>
+    /// Decodes TableColumnWidths (MS-ONE 2.2.66): a one-byte column count followed by that many 32-bit
+    /// floats, in half-inches. A count larger than the bytes present is clamped to what is there.
+    /// </summary>
+    internal static List<double> DecodeColumnWidths(PropertyValue value)
     {
         var result = new List<double>();
-        if (value.Kind != PropertyKind.Bytes)
+        if (value.Kind != PropertyKind.Bytes || value.BytesValue.Length == 0)
         {
             return result;
         }
 
         var bytes = value.BytesValue;
-        for (var offset = 0; offset + 4 <= bytes.Length; offset += 4)
+        var count = Math.Min(bytes[0], (bytes.Length - 1) / 4);
+        for (var column = 0; column < count; column++)
         {
-            result.Add(System.Buffers.Binary.BinaryPrimitives.ReadSingleLittleEndian(bytes.AsSpan(offset)));
+            result.Add(System.Buffers.Binary.BinaryPrimitives.ReadSingleLittleEndian(bytes.AsSpan(1 + (column * 4))));
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Decodes TableColumnsLocked (MS-ONE 2.2.70): a one-byte column count, then one bit per column
+    /// (least significant bit first). Returns <paramref name="columns"/> flags; missing bits are false.
+    /// </summary>
+    internal static List<bool> DecodeColumnLocks(PropertyValue value, int columns)
+    {
+        var result = new List<bool>(columns);
+        var bytes = value.Kind == PropertyKind.Bytes ? value.BytesValue : [];
+        for (var column = 0; column < columns; column++)
+        {
+            var index = 1 + (column / 8);
+            result.Add(index < bytes.Length && (bytes[index] & (1 << (column % 8))) != 0);
         }
 
         return result;

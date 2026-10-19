@@ -26,6 +26,23 @@ internal static class OneStoreParser
 
     private static OneStoreFile ParseCore(byte[] data, string? displayName, Guid expectedType, CancellationToken ct)
     {
+        // A file that is an FSSHTTPB package from its first byte (OneNote online, SharePoint), or a revision
+        // store header whose package follows the transaction log (a OneDrive download).
+        var schema = expectedType == TocFileType ? Fsshttpb.FsshttpbStore.TocSchema : Fsshttpb.FsshttpbStore.SectionSchema;
+        if (Fsshttpb.FsshttpbPackage.IsPackagingAt(data, 0))
+        {
+            return Fsshttpb.FsshttpbStore.Parse(data, 0, displayName, schema, ct);
+        }
+
+        if (data.Length >= 172 && Bytes.Guid(data, 32) == Guid.Empty)
+        {
+            var embedded = EmbeddedPackagingOffset(data);
+            if (embedded is { } offset)
+            {
+                return Fsshttpb.FsshttpbStore.Parse(data, offset, displayName, schema, ct);
+            }
+        }
+
         if (data.Length < 1024)
         {
             throw new FileCorruptedException("File is too small to be a OneNote section");
@@ -40,7 +57,8 @@ internal static class OneStoreParser
 
         var rootOffset = Bytes.U64(span, 172);
         var rootSize = Bytes.U32(span, 180);
-        var rootNodes = ParseFileNodeList(data, rootOffset, rootSize, ct);
+        var limits = ReadCommittedCounts(data, ct);
+        var rootNodes = ParseFileNodeList(data, rootOffset, rootSize, ct, limits);
 
         var fileDataStore = new Dictionary<string, byte[]>(StringComparer.Ordinal);
         var objectSpaces = new List<ObjectSpaceState>();
@@ -50,17 +68,93 @@ internal static class OneStoreParser
             if (node.FileNodeId == 0x090)
             {
                 var (listOffset, listSize, _) = DecodeChunkReference(node, 0);
-                ProcessFileDataStoreList(data, fileDataStore, listOffset, listSize, ct);
+                ProcessFileDataStoreList(data, fileDataStore, listOffset, listSize, ct, limits);
             }
             else if (node.FileNodeId == 0x008)
             {
                 var (listOffset, listSize, refSize) = DecodeChunkReference(node, 0);
                 var gosid = Bytes.ExtendedGuid(node.Payload.Span, refSize);
-                objectSpaces.Add(ParseObjectSpace(data, gosid, listOffset, listSize, ct));
+                objectSpaces.Add(ParseObjectSpace(data, gosid, listOffset, listSize, ct, limits));
             }
         }
 
         return new OneStoreFile { ObjectSpaces = objectSpaces, FileDataStore = fileDataStore, DisplayName = displayName, FileGuid = Bytes.Guid(span, 16), AncestorGuid = Bytes.Guid(span, 128) };
+    }
+
+    /// <summary>
+    /// Where an FSSHTTPB package starts inside a file that has a revision store header with no legacy
+    /// version: right after the transaction log. Null when no packaging header is there.
+    /// </summary>
+    private static int? EmbeddedPackagingOffset(byte[] data)
+    {
+        var start = Bytes.U64(data, 160);
+        var size = Bytes.U32(data, 168);
+        var end = start + size;
+        return end < (ulong)data.Length && Fsshttpb.FsshttpbPackage.IsPackagingAt(data, (long)end) ? (int)end : null;
+    }
+
+    /// <summary>
+    /// Reads the transaction log (2.3.3): for every file node list, how many nodes the committed transactions put in
+    /// it. Null when the log cannot be read, in which case no list is cut short. A transaction counts only once
+    /// Header.cTransactionsInLog reaches its number; entries of later transactions are ignored.
+    /// </summary>
+    internal static CommittedCounts? ReadCommittedCounts(byte[] data, CancellationToken ct)
+    {
+        if (data.Length < 172)
+        {
+            return null;
+        }
+
+        var committedTransactions = Bytes.U32(data, 96);
+        var offset = Bytes.U64(data, 160);
+        var size = Bytes.U32(data, 168);
+        if (committedTransactions == 0 || size < 20 || offset >= (ulong)data.Length)
+        {
+            return null;
+        }
+
+        var counts = new Dictionary<uint, long>();
+        var pending = new List<(uint List, long Count)>();
+        uint transactions = 0;
+        var visited = new HashSet<ulong>();
+        ulong at = offset;
+        ulong length = size;
+        while (length >= 20 && visited.Add(at) && transactions < committedTransactions)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (at + length > (ulong)data.Length)
+            {
+                return null;
+            }
+
+            var fragment = data.AsSpan((int)at, (int)length);
+            var entries = (fragment.Length - 12) / 8;
+            for (var index = 0; index < entries && transactions < committedTransactions; index++)
+            {
+                var source = Bytes.U32(fragment, index * 8L);
+                var value = Bytes.U32(fragment, (index * 8L) + 4);
+                if (source == 1)
+                {
+                    // The sentinel closes a transaction: its entries are committed.
+                    foreach (var (list, count) in pending)
+                    {
+                        counts[list] = count;
+                    }
+
+                    pending.Clear();
+                    transactions++;
+                }
+                else
+                {
+                    pending.Add((source, value));
+                }
+            }
+
+            at = Bytes.U64(fragment, fragment.Length - 12);
+            length = Bytes.U32(fragment, fragment.Length - 4);
+        }
+
+        return transactions == committedTransactions ? new CommittedCounts(counts) : null;
     }
 
     /// <summary>Decodes a FileChunkReference whose field sizes come from the node header.</summary>
@@ -79,13 +173,15 @@ internal static class OneStoreParser
     }
 
     /// <summary>Walks a file node list (2.4.1) across its fragments.</summary>
-    internal static List<FileNode> ParseFileNodeList(byte[] data, ulong startOffset, ulong size, CancellationToken ct = default)
+    internal static List<FileNode> ParseFileNodeList(byte[] data, ulong startOffset, ulong size, CancellationToken ct = default, CommittedCounts? limits = null)
     {
         var result = new List<FileNode>();
         var currentOffset = startOffset;
         var currentSize = size;
         var visited = new HashSet<ulong>();
         var memory = new ReadOnlyMemory<byte>(data);
+        long? remaining = null;
+        var listChecked = false;
 
         while (currentSize != 0)
         {
@@ -109,8 +205,15 @@ internal static class OneStoreParser
                 throw new FileCorruptedException("Invalid FileNodeListFragment magic");
             }
 
+            if (!listChecked)
+            {
+                // The transaction log says how many nodes of this list were committed (2.3.3.2); the rest are not part of the file.
+                listChecked = true;
+                remaining = limits?.For(Bytes.U32(span, 8));
+            }
+
             var offset = 16;
-            while (offset + 4 <= span.Length - 20)
+            while (offset + 4 <= span.Length - 20 && remaining is not 0)
             {
                 var header = Bytes.U32(span, offset);
                 var fileNodeId = header & 0x3FF;
@@ -129,9 +232,15 @@ internal static class OneStoreParser
                 {
                     break;
                 }
+
+                // A chunk terminator is not one of the list's nodes; every other node counts against the committed number.
+                if (remaining is { } left)
+                {
+                    remaining = left - 1;
+                }
             }
 
-            if (Bytes.U64(span, span.Length - 8) != FileNodeListFooterMagic)
+            if (Bytes.U64(span, span.Length - 8) != FileNodeListFooterMagic || remaining is 0)
             {
                 break;
             }
@@ -143,10 +252,24 @@ internal static class OneStoreParser
         return result;
     }
 
-    private static ObjectSpaceState ParseObjectSpace(byte[] data, ExtendedGuid gosid, ulong listOffset, ulong listSize, CancellationToken ct)
+    /// <summary>The section name a section metadata object carries (its SectionDisplayName property), when it has one.</summary>
+    internal static string? SectionNameOf(OneStoreObject obj)
+    {
+        if (obj.JcidName == JcidNames.SectionMetaData
+            && obj.Properties.Contains(PropertyNames.SectionDisplayName)
+            && obj.Properties.Get(PropertyNames.SectionDisplayName) is { Kind: PropertyKind.Bytes } nameValue)
+        {
+            var name = TextDecoding.DecodeUtf16(nameValue.BytesValue);
+            return name.Length > 0 ? name : null;
+        }
+
+        return null;
+    }
+
+    private static ObjectSpaceState ParseObjectSpace(byte[] data, ExtendedGuid gosid, ulong listOffset, ulong listSize, CancellationToken ct, CommittedCounts? limits)
     {
         var state = new ObjectSpaceState(gosid);
-        foreach (var node in ParseFileNodeList(data, listOffset, listSize, ct))
+        foreach (var node in ParseFileNodeList(data, listOffset, listSize, ct, limits))
         {
             ct.ThrowIfCancellationRequested();
             if (node.FileNodeId != 0x010)
@@ -155,17 +278,17 @@ internal static class OneStoreParser
             }
 
             var (revisionOffset, revisionSize, _) = DecodeChunkReference(node, 0);
-            var revisionNodes = ParseFileNodeList(data, revisionOffset, revisionSize, ct);
-            ProcessRevisionManifestList(data, state, revisionNodes, ct);
+            var revisionNodes = ParseFileNodeList(data, revisionOffset, revisionSize, ct, limits);
+            ProcessRevisionManifestList(data, state, revisionNodes, ct, limits);
         }
 
         return state;
     }
 
-    private static void ProcessFileDataStoreList(byte[] data, Dictionary<string, byte[]> store, ulong offset, ulong size, CancellationToken ct)
+    private static void ProcessFileDataStoreList(byte[] data, Dictionary<string, byte[]> store, ulong offset, ulong size, CancellationToken ct, CommittedCounts? limits)
     {
         var memory = new ReadOnlyMemory<byte>(data);
-        foreach (var node in ParseFileNodeList(data, offset, size, ct))
+        foreach (var node in ParseFileNodeList(data, offset, size, ct, limits))
         {
             ct.ThrowIfCancellationRequested();
             if (node.FileNodeId != 0x094)
@@ -193,7 +316,7 @@ internal static class OneStoreParser
         return blob.Slice(dataOffset, (int)Math.Min(length, available)).ToArray();
     }
 
-    private static void ProcessRevisionManifestList(byte[] data, ObjectSpaceState state, List<FileNode> nodes, CancellationToken ct)
+    private static void ProcessRevisionManifestList(byte[] data, ObjectSpaceState state, List<FileNode> nodes, CancellationToken ct, CommittedCounts? limits)
     {
         List<FileNode>? currentManifest = null;
         var orderIndex = 0;
@@ -213,7 +336,7 @@ internal static class OneStoreParser
                 currentManifest.Add(node);
                 if (id == 0x01C)
                 {
-                    var revision = ProcessRevisionManifest(data, state.Gosid, currentManifest, orderIndex, ct);
+                    var revision = ProcessRevisionManifest(data, state, currentManifest, orderIndex, ct, limits);
                     if (revision is not null)
                     {
                         state.Revisions.Add(revision);
@@ -262,12 +385,15 @@ internal static class OneStoreParser
         }
     }
 
-    private static RevisionManifestRecord? ProcessRevisionManifest(byte[] data, ExtendedGuid gosid, List<FileNode> nodes, int orderIndex, CancellationToken ct)
+    private static RevisionManifestRecord? ProcessRevisionManifest(byte[] data, ObjectSpaceState state, List<FileNode> nodes, int orderIndex, CancellationToken ct, CommittedCounts? limits)
     {
         var gidTable = new Dictionary<uint, Guid>();
         var objects = new OrderedDictionary<ExtendedGuid, OneStoreObject>();
         string? sectionDisplayName = null;
         RevisionManifestRecord? revision = null;
+
+        // GlobalIdTableEntry2 and Entry3 define entries from the dependency revision's table (2.5.11, 2.5.12).
+        Dictionary<uint, Guid>? dependencyTable = null;
 
         foreach (var node in nodes)
         {
@@ -287,6 +413,9 @@ internal static class OneStoreParser
                         ContextId = contextId,
                         OrderIndex = orderIndex,
                     };
+                    dependencyTable = ridDependent is { } dependent && !dependent.IsZero
+                        ? state.Revisions.LastOrDefault(item => item.Rid == dependent)?.GidTable
+                        : null;
                     break;
                 }
 
@@ -297,7 +426,7 @@ internal static class OneStoreParser
                 {
                     var source = Bytes.U32(payload, 0);
                     var target = Bytes.U32(payload, 4);
-                    if (gidTable.TryGetValue(source, out var guid))
+                    if ((dependencyTable ?? gidTable).TryGetValue(source, out var guid) || gidTable.TryGetValue(source, out guid))
                     {
                         gidTable[target] = guid;
                     }
@@ -306,7 +435,7 @@ internal static class OneStoreParser
                 }
 
                 case 0x026:
-                    CopyGidRange(gidTable, payload);
+                    CopyGidRange(gidTable, payload, dependencyTable);
                     break;
                 case 0x05A:
                     if (revision is not null)
@@ -333,7 +462,16 @@ internal static class OneStoreParser
                     if (revision is not null)
                     {
                         var (groupOffset, groupSize, _) = DecodeChunkReference(node, 0);
-                        ProcessGroup(data, objects, ref sectionDisplayName, groupOffset, groupSize, gidTable, ct);
+                        ProcessGroup(data, objects, ref sectionDisplayName, groupOffset, groupSize, gidTable, ct, limits);
+                    }
+
+                    break;
+                case 0x02D or 0x02E or 0x041 or 0x042:
+                    // Declarations and revisions of objects directly in the manifest: what table of
+                    // contents files (.onetoc2) use instead of object groups (2.5.13, 2.5.14, 2.5.23, 2.5.24).
+                    if (revision is not null && ParseRefCountObject(node, gidTable, data, state, objects) is { } declared)
+                    {
+                        objects[declared.Oid] = declared;
                     }
 
                     break;
@@ -346,22 +484,84 @@ internal static class OneStoreParser
         }
 
         revision.Objects = objects;
+        revision.GidTable = gidTable;
         revision.SectionDisplayName = sectionDisplayName;
         return revision;
     }
 
-    private static void CopyGidRange(Dictionary<uint, Guid> gidTable, ReadOnlySpan<byte> payload)
+    /// <summary>
+    /// Reads an ObjectDeclarationWithRefCount (0x02D, 0x02E) or ObjectRevisionWithRefCount (0x041, 0x042) node: the
+    /// object's property set is at the chunk reference; a declaration names the JCID, a revision keeps the JCID the
+    /// object already has in this manifest or an earlier revision.
+    /// </summary>
+    private static OneStoreObject? ParseRefCountObject(
+        FileNode node,
+        Dictionary<uint, Guid> gidTable,
+        byte[] data,
+        ObjectSpaceState state,
+        OrderedDictionary<ExtendedGuid, OneStoreObject> declaredHere)
     {
+        var payload = node.Payload.Span;
+        var (blobOffset, blobSize, refSize) = DecodeChunkReference(node, 0);
+        var oid = PropertySetParser.ResolveObjectId(Bytes.U32(payload, refSize), gidTable);
+        if (oid is null)
+        {
+            return null;
+        }
+
+        Jcid jcid;
+        if (node.FileNodeId is 0x02D or 0x02E)
+        {
+            // ObjectDeclarationWithRefCountBody (2.6.15): the JCID index is the low 10 bits.
+            var packed = Bytes.U32(payload, refSize + 4);
+            jcid = new Jcid((ushort)(packed & 0x3FF), false, true, false, false, false);
+        }
+        else
+        {
+            if (declaredHere.TryGetValue(oid.Value, out var current))
+            {
+                jcid = current.Jcid;
+            }
+            else
+            {
+                OneStoreObject? earlier = null;
+                for (var index = state.Revisions.Count - 1; index >= 0 && earlier is null; index--)
+                {
+                    state.Revisions[index].Objects.TryGetValue(oid.Value, out earlier);
+                }
+
+                if (earlier is null)
+                {
+                    return null;
+                }
+
+                jcid = earlier.Jcid;
+            }
+        }
+
+        var blob = Bytes.Slice(data, blobOffset, blobSize);
+        return new OneStoreObject
+        {
+            Oid = oid.Value,
+            Jcid = jcid,
+            JcidName = JcidNames.For(jcid.Index),
+            Properties = PropertySetParser.ParseObjectBlob(blob.Span, gidTable),
+        };
+    }
+
+    private static void CopyGidRange(Dictionary<uint, Guid> gidTable, ReadOnlySpan<byte> payload, Dictionary<uint, Guid>? source = null)
+    {
+        source ??= gidTable;
         var sourceStart = Bytes.U32(payload, 0);
         var count = Bytes.U32(payload, 4);
         var targetStart = Bytes.U32(payload, 8);
 
         // A well-formed range only copies entries the table already holds, so a count far beyond the
         // table size can only come from a damaged node; bounding it keeps such a node from looping.
-        var limit = Math.Min(count, (uint)gidTable.Count + 4096u);
+        var limit = Math.Min(count, (uint)source.Count + 4096u);
         for (uint index = 0; index < limit; index++)
         {
-            if (gidTable.TryGetValue(unchecked(sourceStart + index), out var guid))
+            if (source.TryGetValue(unchecked(sourceStart + index), out var guid))
             {
                 gidTable[unchecked(targetStart + index)] = guid;
             }
@@ -376,10 +576,11 @@ internal static class OneStoreParser
         ulong offset,
         ulong size,
         Dictionary<uint, Guid> gidTable,
-        CancellationToken ct)
+        CancellationToken ct,
+        CommittedCounts? limits)
     {
         var localGidTable = new Dictionary<uint, Guid>(gidTable);
-        foreach (var node in ParseFileNodeList(data, offset, size, ct))
+        foreach (var node in ParseFileNodeList(data, offset, size, ct, limits))
         {
             ct.ThrowIfCancellationRequested();
             var payload = node.Payload.Span;
@@ -416,15 +617,9 @@ internal static class OneStoreParser
             }
 
             objects[parsed.Oid] = parsed;
-            if (parsed.JcidName == JcidNames.SectionMetaData
-                && parsed.Properties.Contains(PropertyNames.SectionDisplayName)
-                && parsed.Properties.Get(PropertyNames.SectionDisplayName) is { Kind: PropertyKind.Bytes } nameValue)
+            if (SectionNameOf(parsed) is { } name)
             {
-                var name = TextDecoding.DecodeUtf16(nameValue.BytesValue);
-                if (name.Length > 0)
-                {
-                    sectionDisplayName = name;
-                }
+                sectionDisplayName = name;
             }
         }
     }
@@ -499,6 +694,24 @@ internal static class OneStoreParser
         offset += byteCount;
         return text;
     }
+}
+
+/// <summary>The number of nodes the committed transactions put in each file node list, by list id (MS-ONESTORE 2.3.3).</summary>
+internal sealed class CommittedCounts
+{
+    private readonly Dictionary<uint, long> _counts;
+
+    public int ListCount => _counts.Count;
+
+    public long Total => _counts.Values.Sum();
+
+    public CommittedCounts(Dictionary<uint, long> counts)
+    {
+        _counts = counts;
+    }
+
+    /// <summary>The committed node count of the list, or null when the log does not mention it.</summary>
+    public long? For(uint listId) => _counts.TryGetValue(listId, out var count) ? count : null;
 }
 
 /// <summary>Revision dependency chains: effective roots and object snapshots of a revision (2.1.8).</summary>

@@ -20,11 +20,12 @@ match only `LICENSE`. Scripts that import the reference discover its package nam
 | Path | What |
 |---|---|
 | `src/XRay.OneNote/*.cs` | Public DOM: `Document`, `Page`, `Title`, `Outline`, `OutlineElement`, `RichText`, `TextRun`, `TextStyle`, `ParagraphStyle`, `Image`, `AttachedFile`, `Table*`, `NumberList`, `NoteTag`, `PageHistory`, `DocumentVisitor`, `LoadOptions`, enums, exceptions |
-| `src/XRay.OneNote/NotebookToc.cs` | `NotebookToc` (.onetoc2 reader, best effort) and `NotebookTocEntry` |
+| `src/XRay.OneNote/NotebookToc.cs` | `NotebookToc` (.onetoc2 reader, nested section groups) and `NotebookTocEntry` |
 | `src/XRay.OneNote/Saving/` | `SaveOptions` (page range, `CancellationToken`), `PdfSaveOptions`, `FontsSubsystem`, `HtmlSaveOptions` + `ImageSavingArgs`/`FileSavingArgs`/`PageSavingArgs` and their callbacks, `HtmlWriter` (low-level entry points, `StyleSheet`) |
 | `src/XRay.OneNote/Internal/Html/` | `HtmlRenderer` (the writer; `ImageFormats` sniffing) and `HtmlStyle` (the shared CSS; class names are output contract) |
 | `src/XRay.OneNote/Internal/TagShapes.cs` | Note tag shape groups shared by the PDF and HTML writers |
-| `src/XRay.OneNote/Internal/OneStore/` | MS-ONESTORE: `OneStoreParser` (header, file node lists, object spaces, revision manifests, object groups, file data store), `PropertySetParser`, `RevisionChains`, `TextDecoding`, value types, property/JCID names |
+| `src/XRay.OneNote/Internal/OneStore/` | MS-ONESTORE: `OneStoreParser` (header, transaction log, file node lists, object spaces, revision manifests, object groups, file data store, container detection), `PropertySetParser`, `RevisionChains`, `TextDecoding`, value types, property/JCID names |
+| `src/XRay.OneNote/Internal/Fsshttpb/` | MS-FSSHTTPB packages (MS-ONESTORE 2.7, 2.8): `FsshttpbReader` (compact integers, extended GUIDs, stream object headers), `FsshttpbPackage` (data elements), `FsshttpbStore` (builds the same `OneStoreFile` the file-node-list reader does) |
 | `src/XRay.OneNote/Internal/MsOne/` | `OneNoteLoader`: object space and revision selection, logical graph, page/outline/text/image/table/tag builders, page history |
 | `src/XRay.OneNote/Internal/Pdf/` | `PdfExporter` (layout), `Flowables` (paragraphs, tables with row splitting), `PdfCanvas` (`IPdfCanvas` + PDF file writer), `PdfFonts` (standard fonts, `FontResolver`, embedded TrueType), `TrueTypeFont` (parse, subset), `ImageDecoder` (PNG, JPEG pass-through, GIF, BMP), `StandardFontMetrics.g.cs` |
 | `src/XRay.OneNote/Internal/Text/PyText.cs` | White space rules of the reference (`str.strip`/`isspace`) |
@@ -76,10 +77,33 @@ python3 tools/regenerate_goldens.py --source <python checkout> --compare-pdfs /t
 - **`Document.Guid`** is the header `guidFile`; MS-ONE says a TOC section entry's `FileIdentityGuid`
   equals it. `NotebookGuid` is the header `guidAncestor`; `EntityGuid` the section node's
   `NotebookManagementEntityGuid`; `CreationTime` the section node's topology time stamp.
-- **`NotebookToc`** is best effort: MS-ONE does not publish the TOC property ids, so entries are
-  recognised by property type (object-reference list, 16-byte GUID, UTF-16 string, integers) and
-  the one known id 0x1CBE (color). Unverified against a OneNote-written file; the tests use
-  `Support/SyntheticToc` (the parser's inverse). The root of a TOC is jcid 0x00020001.
+- **`NotebookToc`**: the root object (jcid 0x00020001, a TocContainer) is the default-content root of the data-root
+  object space; `0x1CF6` lists child TocContainers, each with the file name (`0x1D6B`, UTF-16, `^M` for `+` and
+  `^J` for `,`), order (`0x1CB9`), color (`0x1CBE`, R,G,B and inverted alpha, 0xFFFFFFFF undefined) and identity
+  (`0x1D94`, equal to the section's `Document.Guid`); the root also has `EnableHistory` (`0x1E1E`). Entries are
+  deduplicated by file name keeping the last reference, then ordered by (order, position). These ids are not in the
+  specs this package was built from; they were established from files OneNote wrote and cross-checked with an
+  independent parser (see Validation status). `NotebookToc.Load(path)` recurses into section group directories
+  (`.onetoc2`, else the first `*.onetoc2`) and never enters `OneNote_RecycleBin`.
+- **Containers**: `OneStoreParser.ParseCore` picks the reader. A file whose bytes 48..63 are the package format GUID
+  `638DE92F-...` is an FSSHTTPB package (`Internal/Fsshttpb`); a revision store header whose
+  `guidLegacyFileVersion` is nil and whose package starts right after the transaction log (the OneDrive download
+  layout) is read as that embedded package; anything else is a file-node-list store. A package feeds the same
+  `OneStoreFile` (one object space per cell, one revision per revision manifest, objects with decoded property sets),
+  so `OneNoteLoader` is shared. References in a package come from the object data's arrays, matched by position to
+  the compact ids in the property set streams: object ids to the extended GUID array, object spaces and contexts to
+  the cell id array (a cell of the object's own space is a context, any other an object space).
+- **Pages** come from the section node's page series (in child order) and each series' `ChildGraphSpaceElementNodes`
+  object space references (ObjectSpaceID properties decode into `PropertyKind.ObjectSpaceId`); only when the section
+  names no usable page space does the loader fall back to scoring object spaces and ordering by page metadata.
+- **Transaction log** (MS-ONESTORE 2.3.3): `ReadCommittedCounts` reads how many nodes the committed transactions
+  (`cTransactionsInLog`) put in each file node list and `ParseFileNodeList` stops there (a chunk terminator does not
+  count). An unreadable log cuts nothing. Revision selection still uses the scoring/`GetLatestRevisionIndex` logic of
+  the reference: it was not replaced by pure role/context rules because nothing showed those to be better on the 12
+  corpus fixtures and 32 third-party samples. `.onetoc2` file-node-list files declare objects with 0x02D/0x02E and
+  revise them with 0x041/0x042 directly in the revision manifest, and their Entry2/Entry3 global id table nodes copy
+  from the dependency revision's table; all handled. 0x084 (ObjectInfoDependencyOverrides, reference counts only) is
+  skipped.
 - **Cancellation**: every loop that walks file nodes, revisions, object groups, the logical graph,
   pages, outlines, rows or image rows checks the token (`ThrowIfCancellationRequested`); PDF is
   written to the stream by `PdfCanvas.Save(Stream)` (the trailer hash is incremental).
@@ -117,18 +141,41 @@ python3 tools/regenerate_goldens.py --source <python checkout> --compare-pdfs /t
   `JpegQuality`, `PageSettings`, `PageSplittingAlgorithm`, `Page.Margin`/`SizeType`/
   `PageLayoutSize`/`PageContentRevisionSummary`). `FontsSubsystem` is now a real option (font
   directories); the reference's font environment variable is `XRAY_ONENOTE_PDF_USE_SYSTEM_FONTS`.
+- Table column widths: `TableColumnWidths`/`TableColumnsLocked` carry a one-byte count (the reference reads it as part
+  of the first float), so widths are real half-inch values and the PDF writer uses them proportionally.
+- Note tags are built from the definition plus the tag's own `NoteTagState` (created, completed, `ActionItemStatus`
+  bits); a tag that cannot be checked is open and has no completion time. The reference reports a 1980 completion.
+- Page creation time falls back to the page metadata's topology time stamp; for packages (not section files) an empty
+  title object is filled from the page metadata's cached title.
+- `TextStyle.HyperlinkAddress` is filled from `HYPERLINK "address"` field codes (also when OneNote online splits the
+  code over two runs); the field code stays in `RichText.Text` (offsets match the reference) and the writers hide it.
+- `ParagraphStyle.StyleId`, `Image.LayoutMaxWidth/LayoutMaxHeight/IsBackground`, `TableCell.BackgroundColor`,
+  `Document.Color` and `Page.InkRecognition` are additions; U+FFFC placeholders are dropped from paragraphs that carry
+  inline object data. `DomParityTests` lists the golden fields these change (`DeliberateDifference`).
 
 ## Validation status
 
-- DOM parity: all 12 fixtures equal the Python dumps field for field, page history included.
+- DOM parity: all 12 fixtures equal the Python dumps field for field, page history included, except the fields
+  `DomParityTests.DeliberateDifference` lists (column widths, tag state, page creation time, hyperlink addresses).
 - PDF parity: all 12 match the Python manifests (page count, links, image count, text without
   white space); 2 also match white space exactly.
 - Image decoders match Pillow on PNG (all color types, 1-16 bit, Adam7, tRNS), GIF, BMP.
+- Third-party samples (optional, never copied here; `XRAY_ONENOTE_RS_SAMPLES` points at the folder): 32 section files
+  (25 FSSHTTPB packages, 7 file-node-list files) and 12 table of contents files from the test suite of an independent
+  MPL-2.0 Rust parser, used only as a behavioural oracle. All 32 sections load with the same identity GUID, section
+  name, page count, page order, page levels and section color as that parser; hyperlink addresses, handwriting
+  recognition text, paragraph style ids and image bytes match; remaining differences are things this model does not hold
+  (ink strokes, outline text normalization). `RustSampleExpectations` records what the oracle reported; the tests skip
+  without the folder. FSSHTTPB robustness: prefix and mutation tests on the samples plus `SyntheticPackage`, a writer of
+  minimal packages for corpus-free tests.
 
 ## Gaps
 
-- OneNote 2007, encrypted sections, MS-FSSHTTPB (web) packaging, `.onepkg` (CAB) listing; writing `.one`. `.onetoc2` is best effort (see above).
+- OneNote 2007, encrypted sections, `.onepkg` (CAB) listing; writing `.one`. Data element fragments (MS-FSSHTTPB
+  2.2.1.12.7) are skipped, not reassembled; no sample uses them.
 - Files referenced outside the section (`<file>` references into `onefiles/`) have empty bytes.
-- Ink, equations, page backgrounds and outline positions are not modeled; the PDF lays outlines
-  out in reading order at a fixed origin, as the reference does.
-- PDF images: TIFF, EMF/WMF and other formats print the file name instead.
+- Ink strokes, equations and page backgrounds are not modeled (recognized handwriting is `Page.InkRecognition`);
+  outline positions are kept, but the PDF lays outlines out in reading order at a fixed origin, as the reference does.
+- A page the reference titles from its first text (no title anywhere) stays untitled; for section files an empty title
+  object stays empty.
+- PDF images: TIFF, EMF/WMF and other formats print the file name instead; PDF does not draw cell backgrounds.

@@ -36,6 +36,13 @@ public sealed class ParagraphStyle
     /// <summary>Whether the text is subscript.</summary>
     public bool IsSubscript { get; set; }
 
+    /// <summary>
+    /// The identifier of the named paragraph style (<c>ParagraphStyleId</c>): <c>p</c>, <c>h1</c> to <c>h6</c>,
+    /// <c>code</c>, <c>blockquote</c>, <c>cite</c>, and <c>PageTitle</c>/<c>PageDateTime</c> for the title; null when the
+    /// paragraph names none.
+    /// </summary>
+    public string? StyleId { get; set; }
+
     /// <summary>The style flags as a bit set: 1 bold, 2 italic, 4 underline, 8 strikethrough.</summary>
     public int FontStyle => StyleFlags.Compute(IsBold, IsItalic, IsUnderline, IsStrikethrough);
 
@@ -51,7 +58,11 @@ public sealed class TextStyle
     /// <summary>Whether the run is a hyperlink.</summary>
     public bool IsHyperlink { get; set; }
 
-    /// <summary>The hyperlink target, when the run is a hyperlink with an explicit address.</summary>
+    /// <summary>
+    /// The hyperlink target, when the run is a hyperlink with an address. A hyperlink written as a field code in the
+    /// text (a <c>HYPERLINK "address"</c> run, introduced by U+FDDF, before the displayed text) gives its address
+    /// to the hyperlink runs it governs; the field code itself stays in <see cref="RichText.Text"/>.
+    /// </summary>
     public string? HyperlinkAddress { get; set; }
 
     /// <summary>The font family name, or null for the paragraph default.</summary>

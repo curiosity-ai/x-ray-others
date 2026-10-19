@@ -20,6 +20,13 @@ public sealed class Page : CompositeNode
     /// <summary>The page level: 1 for a page, 2 and deeper for subpages.</summary>
     public int? Level { get; set; }
 
+    /// <summary>
+    /// The text OneNote recognized in the page's handwriting, best candidate of each word, words separated by spaces and
+    /// lines by line feeds; null when the page has none. It is not part of the page's children, so it appears in no
+    /// output unless the caller writes it.
+    /// </summary>
+    public RichText? InkRecognition { get; set; }
+
     /// <summary>The page background color, when known.</summary>
     public uint? BackgroundColor { get; set; }
 
@@ -53,6 +60,7 @@ public sealed class Page : CompositeNode
             LastModifiedTime = LastModifiedTime,
             Level = Level,
             BackgroundColor = BackgroundColor,
+            InkRecognition = InkRecognition is null ? null : context.Clone(InkRecognition),
             IsConflictPage = IsConflictPage,
         };
         context.Register(this, copy);
