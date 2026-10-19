@@ -998,10 +998,14 @@ public sealed partial class XpsRenderer
         {
             case "SolidColorBrush":
             {
+                if (_solidBrushRgbCache.TryGetValue(brush, out var cached))
+                    return cached;
                 string colorValue = OrNull(XmlUtil.Get(brush, "Color")) ?? "#000000";
-                if (Py.Strip(colorValue).StartsWith("ContextColor", StringComparison.Ordinal) && ParseContextColor(colorValue) is { } context)
-                    return context;
-                return ParseColor(colorValue);
+                var rgb = Py.Strip(colorValue).StartsWith("ContextColor", StringComparison.Ordinal) && ParseContextColor(colorValue) is { } context
+                    ? context
+                    : ParseColor(colorValue);
+                _solidBrushRgbCache[brush] = rgb;
+                return rgb;
             }
             case "LinearGradientBrush":
             case "RadialGradientBrush":
