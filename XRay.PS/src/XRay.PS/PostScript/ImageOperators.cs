@@ -264,7 +264,7 @@ public static class ImageOperators
         var filterResult = ExtractFilteredImageSource(ctx, dataSource, expectedBytes, filters ?? []);
         byte[] imageData = filterResult.Data;
         if (filterResult.RemainingFilter is null)
-            imageData = MaybeFlipRows(imageData, width, height, mask ? 1 : bits, colorComponents, mask, imageMatrix, effective);
+            imageData = MaybeFlipRows(imageData, width, height, mask ? 1 : bits, colorComponents, mask);
         string colorSpace = ColorSpaceFromComponents(colorComponents, mask);
         if (!mask && indexedColor is not null && filterResult.RemainingFilter is null)
         {
@@ -276,13 +276,18 @@ public static class ImageOperators
                 colorComponents = ComponentsForColorSpace(colorSpace);
                 bits = 8;
                 decode = null;
-                if (IndexedRowsNeedFlip(imageMatrix))
-                    imageData = FlipImageRows(imageData, width, height, bits, colorComponents, false);
+                // Deviation from the original, which flipped an indexed image's rows again here
+                // when the matrix is top-down ([w 0 0 -h 0 h]) and so drew it upside down; the
+                // rows are already in the order MaybeFlipRows gives every other image.
             }
         }
         bool interpolate = State(ctx).ImageInterpolate;
         if (interpolateOverride is not null)
             interpolate = PsOps.Truthy(interpolateOverride);
+        // Deviation (see MaybeFlipRows): data still encoded (DCT, CCITT) cannot have its rows
+        // reversed, so the placement is flipped instead, top of the unit square to the bottom.
+        if (filterResult.RemainingFilter is not null)
+            effective = TextOperators.Multiply(effective, new Matrix(1.0, 0.0, 0.0, -1.0, 0.0, 1.0));
         var matrix = SnapImageTranslation(effective);
         return new ImagePayload(
             new PsImageResource("", imageData, width, height, mask ? 1 : bits, colorSpace, interpolate, mask, filterResult.RemainingFilter,
@@ -621,29 +626,16 @@ public static class ImageOperators
         return rowBytes * height;
     }
 
-    private static byte[] MaybeFlipRows(byte[] data, int width, int height, int bits, int colorComponents, bool mask, Matrix imageMatrix, Matrix effective)
+    private static byte[] MaybeFlipRows(byte[] data, int width, int height, int bits, int colorComponents, bool mask)
     {
-        // PS image sample rows are interpreted opposite to PDF image row order in several
-        // common matrix configurations used by legacy generators.
-        bool shouldFlip = false;
-        if (imageMatrix.B == 0.0 && imageMatrix.C == 0.0 && imageMatrix.D > 0.0)
-        {
-            // Common matrix: [w 0 0 h 0 0]
-            shouldFlip = true;
-        }
-        else if (imageMatrix.B == 0.0 && imageMatrix.C == 0.0 && imageMatrix.A < 0.0 && imageMatrix.D < 0.0)
-        {
-            // For [-w 0 0 -h w h] under a quarter-turn transform, flipping rows matches the
-            // baseline orientation.
-            if (Math.Abs(effective.A) < 1e-9 && Math.Abs(effective.D) < 1e-9 && Math.Abs(effective.B) > 1e-9 && Math.Abs(effective.C) > 1e-9)
-                shouldFlip = true;
-        }
-        if (!shouldFlip)
-            return data;
+        // Deviation from the original, which reversed the rows only for a bottom-up matrix
+        // ([w 0 0 h 0 0]) and for [-w 0 0 -h w h] under a quarter turn, and so drew every other
+        // image upside down, the common top-down [w 0 0 -h 0 h] above all: the placement matrix
+        // (the CTM times the inverse image matrix, scaled to the sample grid) takes the first
+        // sample row to the bottom of the PDF unit square whatever the image matrix, so the rows
+        // are always reversed to put it at the top.
         return FlipImageRows(data, width, height, bits, colorComponents, mask);
     }
-
-    private static bool IndexedRowsNeedFlip(Matrix m) => m.B == 0.0 && m.C == 0.0 && m.D < 0.0;
 
     private static byte[] FlipImageRows(byte[] data, int width, int height, int bits, int colorComponents, bool mask)
     {
