@@ -156,8 +156,55 @@ inputs: PDFs, PNGs and render models byte-identical apart from the PDF timestamp
   concat y, Type 3 charpath, widthshow operand order) are ported pinning the shared behaviour,
   with a comment at each.
 
+## Deviations from the original (render fixes)
+
+Found by our render benchmark against Ghostscript; each site carries a `Deviation from the
+original` comment and `DeviationTests` pins it. Most sit on paths where the original raised or
+drew nothing, so a job that converted cleanly before is unchanged unless it is in the list below.
+The parity table above predates them. Measured against the build before them on all 645 inputs
+(PDF strict and with `SuppressErrors`, managed PNG): 355 byte-identical; 150 changed PS jobs had
+failed; of 140 that converted, 109 changed through the glyph fix only (69 PS, 38 XPS PNGs, 2 XPS
+opacity masks), 8 through the image, initclip and orientation fixes, 3 through `where` (now
+Ghostscript's text) and 20 in the clip rectangle's vertex order only. PS jobs failing without
+`SuppressErrors`: 183 before, 68 after; with it: 46 before, 0 after.
+
+- **Input**: a DOS EPS binary (`C5 D0 D3 C6`) is read from its PostScript section and a PJL job
+  from `%!` to the next UEL (`PsInput`; `PsDocument.Data` keeps the file as given). `\8`/`\9` in
+  a string are the digits, not a failed octal escape.
+- **Fallback operators** (`ExtraOperators`, `OperatorRegistry.RegisterFallback`): ~120 standard
+  operators the original lacks (`initmatrix`, `currentscreen`, `xor`, `readline`, `ufill`, CMap
+  ranges, `stop`, ...). Consulted after the dictionary stack, where the original raised
+  `undefined`, so a program's own procedure of the same name wins.
+- **Semantics**: `where`/`known`/`get` on systemdict see operators; `//name` is substituted when
+  scanned; `getinterval` of an array writes through; `exec` of a literal pushes it; `token` on a
+  string; `load`/`definefont` take any key; `forall`/`copy` take procedures; grestore at the
+  bottom is a no-op; errordict, statusdict, currenthalftone and font dictionaries
+  (`FontInfo`, a program font's own keys) have the entries prologs read; `currentcolorspace`
+  returns `[/DeviceRGB]`; `scalefont`/`makefont` of a scaled font (the shape kept in
+  `GraphicsState.FontShape`); `execform` per the PLRM; `rectstroke` with a matrix.
+- **Data**: `readstring`/`readline` on `currentfile` skip the white-space byte ending the token,
+  write into the buffer, and an ASCII85 or RunLength filter is decoded once and read
+  incrementally; SubFileDecode takes `count string`, and `flushfile` on it skips to its marker;
+  general image data-source procedures and `MultipleDataSources` dictionaries; tint procedures
+  the arithmetic evaluator cannot run go through the interpreter; Range optional in type 2/3
+  functions.
+- **Changes output of jobs that converted before** (deliberate): image rows are always reversed
+  (the original drew every top-down `[w 0 0 -h 0 h]` image upside down; still-encoded DCT/CCITT
+  data is flipped through its matrix); glyph contours ending in a curve are closed once (the
+  original looped to the segment cap and dropped later contours: charpath and the managed
+  rasterizer's text); `initclip` undoes a clip set at the same gsave level (`RenderModelBuilder.
+  ResetClip` wraps it in q/Q); a `%%ViewingOrientation: 0 1 -1 0` page is turned a quarter
+  clockwise instead of having its axes swapped (which mirrored it); `where` finds operators, so
+  prologs that define `rectfill`, `selectfont`, ... only when missing now use the built-in (the
+  same picture; the clip rectangle's vertices come out in another order).
+- **Not fixed**: Ghostscript's pdfwrite auto-rotates pages with rotated text (`/Rotate 90`), which
+  the benchmark reads as an orientation difference; Type 3 text has no text layer (GS embeds
+  Type 3 fonts); CMYK is still written as naive RGB; VM `save`/`restore` does not roll back
+  composite objects; dvips Type 3 bitmap fonts; Palatino/ZapfDingbats shapes need the fonts.
+
 ## Tests
 
-Test count: 136 xUnit tests before the cancellation work (135 run by default), now 179 (178 run)
-(`CancellationTests` and two robustness cases added); ported from the Python `tests/ps`, `xps`, `pdf` and `image` folders (MCP, build and
+Test count: 136 xUnit tests before the cancellation work (135 run by default), 179 (178 run)
+after it (`CancellationTests` and two robustness cases added), now 218 (217 run) with
+`DeviationTests` and the DOS EPS/PJL robustness cases; ported from the Python `tests/ps`, `xps`, `pdf` and `image` folders (MCP, build and
 metrics tests dropped), plus robustness and an opt-in corpus sweep (`XRAY_PS_PARITY=1`).
