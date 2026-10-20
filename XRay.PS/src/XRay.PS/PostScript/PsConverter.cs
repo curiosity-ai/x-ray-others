@@ -68,11 +68,14 @@ public static partial class PsConverter
         // Common DSC orientation matrix used by PScript: %%ViewingOrientation: 0 1 -1 0
         if (!(Math.Abs(values[0]) < 1e-9 && Math.Abs(values[1] - 1.0) < 1e-9 && Math.Abs(values[2] + 1.0) < 1e-9 && Math.Abs(values[3]) < 1e-9))
             return;
-        var transform = new Matrix(0.0, 1.0, 1.0, 0.0, 0.0, 0.0);
         foreach (var page in renderDoc.Pages)
         {
             if (page.Width >= page.Height)
                 continue;
+            // Deviation from the original, which swapped the axes ([0 1 1 0 0 0]) and so showed
+            // the page mirrored, its text reading backwards: the page is turned a quarter
+            // clockwise instead, (x, y) to (y, width - x), so it reads upright in landscape.
+            var transform = new Matrix(0.0, -1.0, 1.0, 0.0, 0.0, page.Width);
             page.Commands = page.Commands.Select(c => TransformCommand(c, transform)).ToList();
             (page.Width, page.Height) = (page.Height, page.Width);
         }
