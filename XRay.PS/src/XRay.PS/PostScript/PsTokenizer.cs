@@ -17,6 +17,10 @@ public enum PsTokenKind
     ProcedureEnd,
     DictStart,
     DictEnd,
+
+    /// <summary>An immediately evaluated name (<c>//name</c>). Not in the original, which read
+    /// it as two literal names.</summary>
+    ImmediateName,
 }
 
 /// <summary>A token: numbers carry long or double, names a (name, literal) pair, strings bytes,
@@ -56,6 +60,16 @@ public sealed class PsTokenizer
 
     /// <summary>Returns the next token, or null at the end of the input.</summary>
     public PsToken? NextToken()
+    {
+        var token = NextTokenCore();
+        _lastTokenEnd = token is { Kind: PsTokenKind.Name or PsTokenKind.Number or PsTokenKind.ImmediateName } ? _pos : -1;
+        return token;
+    }
+
+    // Where the last name or number token ended (see SkipTokenTerminator), or -1.
+    private int _lastTokenEnd = -1;
+
+    private PsToken? NextTokenCore()
     {
         while (true)
         {
@@ -222,6 +236,8 @@ public sealed class PsTokenizer
         return new PsToken(PsTokenKind.Comment, Py.Latin1String(_data.AsSpan(start, Math.Max(0, _pos - start))));
     }
 
+    private static bool IsOctalDigit(char ch) => ch is >= '0' and <= '7';
+
     private PsToken ReadString()
     {
         _pos++;
@@ -252,12 +268,16 @@ public sealed class PsTokenizer
                 {
                     buf.Add((byte)mapped);
                 }
-                else if (Py.IsDigit(esc))
+                // Deviation from the original: it took any decimal digit as the start of an
+                // octal escape and raised on \8 or \9. Per the PLRM an escape is one to three
+                // octal digits, and a backslash before any other character is dropped, so
+                // (\8) is the string "8". Inputs the original accepted read the same.
+                else if (IsOctalDigit(esc))
                 {
                     string octal = esc.ToString();
                     for (int i = 0; i < 2; i++)
                     {
-                        if (_pos + 1 < _length && Py.IsDigit((char)_data[_pos + 1]))
+                        if (_pos + 1 < _length && IsOctalDigit((char)_data[_pos + 1]))
                         {
                             _pos++;
                             octal += (char)_data[_pos];
@@ -434,6 +454,13 @@ public sealed class PsTokenizer
         {
             literal = true;
             _pos++;
+            // Deviation from the original, which read //name as the literal names / and /name:
+            // per the PLRM it is one name whose value is substituted when it is scanned.
+            if (_pos < _length && _data[_pos] == '/')
+            {
+                _pos++;
+                return new PsToken(PsTokenKind.ImmediateName, ReadUntilDelimiter());
+            }
         }
         int before = _pos;
         string name = ReadUntilDelimiter();
@@ -456,6 +483,19 @@ public sealed class PsTokenizer
             _pos++;
         }
         return Py.Latin1String(_data.AsSpan(start, _pos - start));
+    }
+
+    /// <summary>Steps over the white-space character that ends a name or number token, which the
+    /// PostScript scanner consumes with the token and this tokenizer leaves in place (a CR LF pair
+    /// counts as one). Not in the original: used by the reads it lacked or got wrong.</summary>
+    public void SkipTokenTerminator()
+    {
+        if (_pos != _lastTokenEnd || _pos >= _length || !IsWhitespace(_data[_pos]))
+            return;
+        _lastTokenEnd = -1;
+        _pos++;
+        if (_data[_pos - 1] == '\r' && _pos < _length && _data[_pos] == '\n')
+            _pos++;
     }
 
     // Stream helpers used by runtime operators (image data sources and readstring).
@@ -539,6 +579,21 @@ public sealed class PsTokenizer
         return _data.AsSpan(start, _pos - start).ToArray();
     }
 
+    /// <summary>Reads RunLengthDecode-encoded bytes up to and including the end-of-data byte
+    /// (128). Not in the original, which read a fixed count of encoded bytes.</summary>
+    public byte[] ReadRunLengthSource()
+    {
+        int start = _pos;
+        while (_pos < _length)
+        {
+            int length = _data[_pos++];
+            if (length == 128)
+                break;
+            _pos = (int)Math.Min(_length, (long)_pos + (length < 128 ? length + 1 : 1));
+        }
+        return _data.AsSpan(start, _pos - start).ToArray();
+    }
+
     public byte[] ReadUntilAscii85Eod()
     {
         int start = _pos;
@@ -573,11 +628,19 @@ public sealed class PsTokenizer
 }
 
 /// <summary>Parses tokens into PostScript objects.</summary>
+/// <summary>A parsed <c>//name</c>, replaced by the name's value before the object it belongs to
+/// is executed (deviation from the original; see <see cref="PsTokenKind.ImmediateName"/>).</summary>
+public sealed record PsImmediateName(string Value);
+
 public sealed class PsParser(PsTokenizer tokenizer)
 {
     private readonly Stack<PsToken> _buffer = new();
     private int _depth;
     private int _polls;
+
+    /// <summary>How many <c>//name</c> tokens were parsed; the interpreter resolves them (see
+    /// <see cref="PsImmediateName"/>) only when this moved.</summary>
+    public int ImmediateNames { get; private set; }
 
     /// <summary>The deepest <c>{ }</c> nesting accepted.</summary>
     public int MaxNesting { get; set; } = 10_000;
@@ -611,6 +674,9 @@ public sealed class PsParser(PsTokenizer tokenizer)
                 return new PsName("]", false);
             case PsTokenKind.ProcedureEnd:
                 throw new PsSyntaxError("unexpected token procedure_end");
+            case PsTokenKind.ImmediateName:
+                ImmediateNames++;
+                return new PsImmediateName((string)token.Value!);
         }
         return EndOfInput;
     }

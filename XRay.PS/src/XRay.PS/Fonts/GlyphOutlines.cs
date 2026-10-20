@@ -67,6 +67,12 @@ public static class GlyphOutlines
                     segments.Add(new PathSegment(PathSegmentKind.Curve, [c1, c2, end]));
                     current = nxt;
                     idx = (idx + 1) % expanded.Count;
+                    // Deviation from the original: a curve that ends on the contour's first point
+                    // closes it. The original stepped past that point and went round the contour
+                    // again until the segment cap, which dropped every later contour of the glyph
+                    // (a P, B or D lost its bowl or counter).
+                    if (idx == startIndex)
+                        break;
                 }
                 idx = (idx + 1) % expanded.Count;
             }

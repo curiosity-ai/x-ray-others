@@ -19,11 +19,15 @@ public static class ImageOperators
 
     public static void Register(OperatorRegistry registry, RenderModelBuilder builder, PsImageStore imageStore)
     {
-        registry.Register("image", ctx => OpImage(ctx, builder, imageStore), 1);
-        registry.Register("colorimage", ctx => OpColorImage(ctx, builder, imageStore), 4);
-        registry.Register("imagemask", ctx => OpImageMask(ctx, builder, imageStore), 1);
+        // The interpreter that runs a general data-source procedure (see ExtractFromProcedure).
+        var interpreter = new PsInterpreter(registry);
+        registry.Register("image", ctx => { ctx.Extras[InterpreterKey] = interpreter; OpImage(ctx, builder, imageStore); }, 1);
+        registry.Register("colorimage", ctx => { ctx.Extras[InterpreterKey] = interpreter; OpColorImage(ctx, builder, imageStore); }, 4);
+        registry.Register("imagemask", ctx => { ctx.Extras[InterpreterKey] = interpreter; OpImageMask(ctx, builder, imageStore); }, 1);
         registry.Register("setinterpolation", ctx => State(ctx).ImageInterpolate = PsOps.Truthy(ctx.OperandStack.Pop()), 1);
     }
+
+    private const string InterpreterKey = "__image_interpreter__";
 
     private static GraphicsState State(PsExecutionContext ctx) => ctx.GraphicsStateStack.Peek();
 
@@ -140,7 +144,64 @@ public static class ImageOperators
             if (PsOps.IsNumeric(first) && PsOps.IsNumeric(second))
                 maskPolarity = PsOps.ToDouble(first) <= PsOps.ToDouble(second);
         }
+        // Deviation from the original, which rejected it: a dictionary image with
+        // MultipleDataSources reads one source per component, calling them in turn (they often
+        // share one file), and the planes are interleaved into pixels.
+        if (!mask && bits == 8 && PsOps.Truthy(Get("MultipleDataSources")) && dataSource is PsArray { Items.Count: > 1 } planes
+            && planes.Items.Count == colorComponents)
+        {
+            dataSource = InterleavePlanes(ctx, planes.Items, width, height);
+            filters = [];
+        }
         return BuildImage(ctx, width, height, bits, matrix, dataSource, mask, colorComponents, filters, interpolate, decode, maskPolarity, indexedColor);
+    }
+
+    private static byte[] InterleavePlanes(PsExecutionContext ctx, List<object?> sources, int width, int height)
+    {
+        int count = sources.Count;
+        long perPlane = Math.Max(0, (long)width * height);
+        Guard.Charge(perPlane * count * 2, "image");
+        var planes = new MemoryStream[count];
+        for (int i = 0; i < count; i++)
+            planes[i] = new MemoryStream();
+        var interpreter = ctx.Extras.TryGetValue(InterpreterKey, out var it) ? it as PsInterpreter : null;
+        bool progress = true;
+        while (progress && planes.Any(p => p.Length < perPlane))
+        {
+            Guard.Check();
+            progress = false;
+            for (int i = 0; i < count; i++)
+            {
+                if (planes[i].Length >= perPlane)
+                    continue;
+                byte[] chunk;
+                if (sources[i] is PsProcedure proc && interpreter is not null)
+                {
+                    int depth = ctx.OperandStack.Count;
+                    interpreter.ExecuteProcedure(proc, ctx);
+                    if (ctx.OperandStack.Count <= depth || ctx.OperandStack.Pop() is not PsString s)
+                        throw new PsTypeError("image data source procedure must return a string");
+                    chunk = s.Value;
+                }
+                else
+                {
+                    chunk = ExtractBytes(ctx, sources[i], perPlane, []);
+                }
+                if (chunk.Length == 0)
+                    continue;
+                planes[i].Write(chunk, 0, (int)Math.Min(chunk.Length, perPlane - planes[i].Length));
+                progress = true;
+            }
+        }
+        var interleaved = new byte[perPlane * count];
+        for (int i = 0; i < count; i++)
+        {
+            var plane = planes[i].GetBuffer();
+            long length = planes[i].Length;
+            for (long px = 0; px < length; px++)
+                interleaved[px * count + i] = plane[px];
+        }
+        return interleaved;
     }
 
     private static ImagePayload ImageFromOperandsMulti(PsExecutionContext ctx, List<object?> sources, int colorComponents)
@@ -203,7 +264,7 @@ public static class ImageOperators
         var filterResult = ExtractFilteredImageSource(ctx, dataSource, expectedBytes, filters ?? []);
         byte[] imageData = filterResult.Data;
         if (filterResult.RemainingFilter is null)
-            imageData = MaybeFlipRows(imageData, width, height, mask ? 1 : bits, colorComponents, mask, imageMatrix, effective);
+            imageData = MaybeFlipRows(imageData, width, height, mask ? 1 : bits, colorComponents, mask);
         string colorSpace = ColorSpaceFromComponents(colorComponents, mask);
         if (!mask && indexedColor is not null && filterResult.RemainingFilter is null)
         {
@@ -215,13 +276,18 @@ public static class ImageOperators
                 colorComponents = ComponentsForColorSpace(colorSpace);
                 bits = 8;
                 decode = null;
-                if (IndexedRowsNeedFlip(imageMatrix))
-                    imageData = FlipImageRows(imageData, width, height, bits, colorComponents, false);
+                // Deviation from the original, which flipped an indexed image's rows again here
+                // when the matrix is top-down ([w 0 0 -h 0 h]) and so drew it upside down; the
+                // rows are already in the order MaybeFlipRows gives every other image.
             }
         }
         bool interpolate = State(ctx).ImageInterpolate;
         if (interpolateOverride is not null)
             interpolate = PsOps.Truthy(interpolateOverride);
+        // Deviation (see MaybeFlipRows): data still encoded (DCT, CCITT) cannot have its rows
+        // reversed, so the placement is flipped instead, top of the unit square to the bottom.
+        if (filterResult.RemainingFilter is not null)
+            effective = TextOperators.Multiply(effective, new Matrix(1.0, 0.0, 0.0, -1.0, 0.0, 1.0));
         var matrix = SnapImageTranslation(effective);
         return new ImagePayload(
             new PsImageResource("", imageData, width, height, mask ? 1 : bits, colorSpace, interpolate, mask, filterResult.RemainingFilter,
@@ -560,29 +626,16 @@ public static class ImageOperators
         return rowBytes * height;
     }
 
-    private static byte[] MaybeFlipRows(byte[] data, int width, int height, int bits, int colorComponents, bool mask, Matrix imageMatrix, Matrix effective)
+    private static byte[] MaybeFlipRows(byte[] data, int width, int height, int bits, int colorComponents, bool mask)
     {
-        // PS image sample rows are interpreted opposite to PDF image row order in several
-        // common matrix configurations used by legacy generators.
-        bool shouldFlip = false;
-        if (imageMatrix.B == 0.0 && imageMatrix.C == 0.0 && imageMatrix.D > 0.0)
-        {
-            // Common matrix: [w 0 0 h 0 0]
-            shouldFlip = true;
-        }
-        else if (imageMatrix.B == 0.0 && imageMatrix.C == 0.0 && imageMatrix.A < 0.0 && imageMatrix.D < 0.0)
-        {
-            // For [-w 0 0 -h w h] under a quarter-turn transform, flipping rows matches the
-            // baseline orientation.
-            if (Math.Abs(effective.A) < 1e-9 && Math.Abs(effective.D) < 1e-9 && Math.Abs(effective.B) > 1e-9 && Math.Abs(effective.C) > 1e-9)
-                shouldFlip = true;
-        }
-        if (!shouldFlip)
-            return data;
+        // Deviation from the original, which reversed the rows only for a bottom-up matrix
+        // ([w 0 0 h 0 0]) and for [-w 0 0 -h w h] under a quarter turn, and so drew every other
+        // image upside down, the common top-down [w 0 0 -h 0 h] above all: the placement matrix
+        // (the CTM times the inverse image matrix, scaled to the sample grid) takes the first
+        // sample row to the bottom of the PDF unit square whatever the image matrix, so the rows
+        // are always reversed to put it at the top.
         return FlipImageRows(data, width, height, bits, colorComponents, mask);
     }
-
-    private static bool IndexedRowsNeedFlip(Matrix m) => m.B == 0.0 && m.C == 0.0 && m.D < 0.0;
 
     private static byte[] FlipImageRows(byte[] data, int width, int height, int bits, int colorComponents, bool mask)
     {
@@ -627,7 +680,30 @@ public static class ImageOperators
                     return ExtractBytes(ctx, new PsName(op.Name), expectedBytes, filters);
             }
         }
+        if (ctx.Extras.TryGetValue(InterpreterKey, out var i) && i is PsInterpreter interpreter)
+            return RunDataSourceProcedure(ctx, interpreter, proc, expectedBytes);
         throw new PsTypeError("unsupported image data source procedure");
+    }
+
+    // Deviation from the original, which recognised only procedures shaped like
+    // {currentfile ... readstring pop}: as the PLRM specifies, call the procedure until it has
+    // delivered the image's data, each call leaving one string, and stop early at an empty one.
+    private static byte[] RunDataSourceProcedure(PsExecutionContext ctx, PsInterpreter interpreter, PsProcedure proc, long expectedBytes)
+    {
+        long wanted = Math.Max(0, expectedBytes);
+        using var output = new MemoryStream();
+        while (output.Length < wanted)
+        {
+            Guard.Check();
+            int depth = ctx.OperandStack.Count;
+            interpreter.ExecuteProcedure(proc, ctx);
+            if (ctx.OperandStack.Count <= depth || ctx.OperandStack.Pop() is not PsString chunk)
+                throw new PsTypeError("image data source procedure must return a string");
+            if (chunk.Value.Length == 0)
+                break;
+            output.Write(chunk.Value, 0, (int)Math.Min(chunk.Value.Length, wanted - output.Length));
+        }
+        return output.ToArray();
     }
 
     private static (string ReadOp, List<FilterSpec> Filters)? CurrentfileReadSpec(PsProcedure proc)

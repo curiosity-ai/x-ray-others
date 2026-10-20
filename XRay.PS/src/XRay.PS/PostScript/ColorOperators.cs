@@ -11,6 +11,9 @@ public static class ColorSpaces
 {
     public static ColorSpace Parse(object? obj, RenderModelBuilder builder)
     {
+        // Deviation: a parsed space handed back (currentcolorspace setcolorspace) is itself.
+        if (obj is ColorSpace parsed)
+            return parsed;
         if (obj is PsName name)
             return DeviceSpace(name.Value);
         if (obj is string s)
@@ -87,7 +90,7 @@ public static class ColorSpaces
             throw new PsRangeError("Separation color space requires name, alternate, tint");
         string name = CoerceColorantName(array.Items[1]);
         var alternate = Parse(array.Items[2], builder);
-        var tint = PsFunctions.Parse(array.Items[3], builder);
+        var tint = PsFunctions.Parse(array.Items[3], builder, 1, alternate);
         return new SeparationColorSpace(name, alternate, tint);
     }
 
@@ -99,7 +102,7 @@ public static class ColorSpaces
             throw new PsTypeError("DeviceN names must be array");
         var names = namesValue.Items.Select(CoerceColorantName).ToList();
         var alternate = Parse(array.Items[2], builder);
-        var tint = PsFunctions.Parse(array.Items[3], builder);
+        var tint = PsFunctions.Parse(array.Items[3], builder, names.Count, alternate);
         return new DeviceNColorSpace(names, alternate, tint);
     }
 
@@ -147,12 +150,16 @@ public static class ColorSpaces
 /// <summary>Parses PostScript function dictionaries and tint procedures.</summary>
 public static class PsFunctions
 {
-    public static Function Parse(object? obj, RenderModelBuilder builder)
+    public static Function Parse(object? obj, RenderModelBuilder builder) => Parse(obj, builder, 1, null);
+
+    /// <summary>Parses a tint transform taking <paramref name="inputs"/> inputs (a DeviceN tint
+    /// transform takes one per colorant) into <paramref name="alternate"/>.</summary>
+    public static Function Parse(object? obj, RenderModelBuilder builder, int inputs, ColorSpace? alternate)
     {
         Function function;
         if (obj is PsProcedure proc)
         {
-            function = ParseProcedureTint(proc);
+            function = ParseProcedureTint(proc, inputs, alternate);
             builder.RegisterFunction(function);
             return function;
         }
@@ -173,12 +180,52 @@ public static class PsFunctions
         return function;
     }
 
-    private static ExponentialFunction ParseProcedureTint(PsProcedure proc)
+    // The interpreter that runs a tint procedure the evaluator below cannot (see UseInterpreter).
+    [ThreadStatic]
+    private static (PsExecutionContext Ctx, PsInterpreter Interpreter)? t_interpreter;
+
+    /// <summary>Lets <see cref="Parse(object?, RenderModelBuilder, int, ColorSpace?)"/> run tint procedures with <paramref name="interpreter"/>
+    /// for the extent of the returned scope.</summary>
+    internal static IDisposable UseInterpreter(PsExecutionContext ctx, PsInterpreter interpreter)
+    {
+        var previous = t_interpreter;
+        t_interpreter = (ctx, interpreter);
+        return new Restore(previous);
+    }
+
+    private sealed class Restore((PsExecutionContext, PsInterpreter)? previous) : IDisposable
+    {
+        public void Dispose() => t_interpreter = previous;
+    }
+
+    private static ExponentialFunction ParseProcedureTint(PsProcedure proc, int inputs, ColorSpace? alternate)
     {
         // PostScript tint transforms in Separation/DeviceN are often simple procedures
         // (eg `{ 0 exch 0 0 }`), not PDF function dictionaries.
-        var c0 = EvalTintProcedure(proc, 0.0);
-        var c1 = EvalTintProcedure(proc, 1.0);
+        List<double> c0, c1;
+        try
+        {
+            c0 = EvalTintProcedure(proc, 0.0);
+            c1 = EvalTintProcedure(proc, 1.0);
+        }
+        catch (Exception ex) when (ex is PsTypeError or HostErrorException && t_interpreter is not null)
+        {
+            // Deviation from the original, which gave up on a procedure using anything but
+            // arithmetic and stack operators (a bound procedure, a conditional, a lookup): run
+            // it with the interpreter instead, sampled at the same two points.
+            try
+            {
+                c0 = RunTintProcedure(proc, 0.0, inputs);
+                c1 = RunTintProcedure(proc, 1.0, inputs);
+            }
+            catch (Exception failed) when (failed is PsError or HostErrorException && failed is not PsResourceLimitError
+                && InkRamp(alternate) is { } ramp)
+            {
+                // PostScript runs the procedure only when the colour is painted, so a probe that
+                // sets a space it never paints with must not fail here: no ink to full ink.
+                (c0, c1) = ramp;
+            }
+        }
         if (c0.Count == 0 || c0.Count != c1.Count)
             throw new PsTypeError("unsupported tint transform procedure");
         var range = new List<double>();
@@ -188,6 +235,41 @@ public static class PsFunctions
             range.Add(PyMax3(c0[i], c1[i], 1.0));
         }
         return new ExponentialFunction([0.0, 1.0], [.. range], [.. c0], [.. c1], 1.0);
+    }
+
+    private static (List<double>, List<double>)? InkRamp(ColorSpace? alternate) => alternate switch
+    {
+        DeviceColorSpace { Name: "DeviceGray" } => ([1.0], [0.0]),
+        DeviceColorSpace { Name: "DeviceRGB" } => ([1.0, 1.0, 1.0], [0.0, 0.0, 0.0]),
+        DeviceColorSpace { Name: "DeviceCMYK" } => ([0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0]),
+        _ => null,
+    };
+
+    private static List<double> RunTintProcedure(PsProcedure proc, double tint, int inputs)
+    {
+        var (ctx, interpreter) = t_interpreter!.Value;
+        var scratch = new PsExecutionContext(new PsStack<object?>(), new PsStack<object?>(), ctx.DictionaryStack.Clone(),
+            new PsStack<GraphicsState>([ctx.State.Clone()]), ctx.Userdict, ctx.Systemdict)
+        {
+            Dsc = ctx.Dsc,
+            DefaultPageSize = ctx.DefaultPageSize,
+            ImageStore = ctx.ImageStore,
+            FontResolver = ctx.FontResolver,
+            CharpathMode = true,
+            Limits = ctx.Limits,
+            CancellationToken = ctx.CancellationToken,
+        };
+        for (int i = 0; i < Math.Max(1, inputs); i++)
+            scratch.OperandStack.Push(tint);
+        interpreter.ExecuteProcedure(proc, scratch);
+        var result = new List<double>();
+        foreach (var item in scratch.OperandStack.Items)
+        {
+            if (!PsOps.IsNumeric(item))
+                throw new PsTypeError("unsupported tint transform procedure");
+            result.Add(PsOps.ToDouble(item));
+        }
+        return result;
     }
 
     private static double PyMin3(double a, double b, double c) => GraphicsOperators.PyMin(GraphicsOperators.PyMin(a, b), c);
@@ -303,7 +385,10 @@ public static class PsFunctions
     private static ExponentialFunction ParseExponential(PsDict data)
     {
         var domain = RequireNumberList(data, "Domain");
-        var range = RequireNumberList(data, "Range");
+        // Deviation from the original, which required it: Range is optional for a type 2
+        // function; without it each output is taken as 0..1, as C0 and C1 imply.
+        var range = data.Get("Range") is null ? DefaultRange(OptionalNumberList(data, "C0")?.Count ?? OptionalNumberList(data, "C1")?.Count ?? 1)
+            : RequireNumberList(data, "Range");
         var c0 = OptionalNumberList(data, "C0") is { Count: > 0 } a ? a : Enumerable.Repeat(0.0, range.Count / 2).ToList();
         var c1 = OptionalNumberList(data, "C1") is { Count: > 0 } b ? b : Enumerable.Repeat(1.0, range.Count / 2).ToList();
         var n = data.Get("N");
@@ -315,14 +400,26 @@ public static class PsFunctions
     private static StitchingFunction ParseStitching(PsDict data, RenderModelBuilder builder)
     {
         var domain = RequireNumberList(data, "Domain");
-        var range = RequireNumberList(data, "Range");
         if (data.Get("Functions") is not PsArray functionsObj)
             throw new PsTypeError("Functions must be array");
         var functions = functionsObj.Items.Select(item => Parse(item, builder)).ToList();
+        // Deviation (see ParseExponential): an absent Range is the first sub-function's.
+        var range = data.Get("Range") is null ? FunctionRange(functions.Count > 0 ? functions[0] : null) : RequireNumberList(data, "Range");
         var bounds = RequireNumberList(data, "Bounds");
         var encode = RequireNumberList(data, "Encode");
         return new StitchingFunction([.. domain], [.. range], functions, [.. bounds], [.. encode]);
     }
+
+    private static List<double> DefaultRange(int outputs) =>
+        Enumerable.Range(0, Math.Max(1, outputs) * 2).Select(i => i % 2 == 0 ? 0.0 : 1.0).ToList();
+
+    private static List<double> FunctionRange(Function? function) => function switch
+    {
+        ExponentialFunction e => [.. e.Range],
+        StitchingFunction st => [.. st.Range],
+        SampledFunction sa => [.. sa.Range],
+        _ => DefaultRange(1),
+    };
 
     internal static List<double> RequireNumberList(PsDict data, string key)
     {
@@ -401,6 +498,7 @@ public static class PsPatterns
         ColorOperators.Register(registry, patternBuilder);
         TextOperators.Register(registry, patternBuilder, ctx.FontResolver ?? new FontResolver());
         ImageOperators.Register(registry, patternBuilder, ctx.ImageStore ?? new PsImageStore());
+        ExtraOperators.Register(registry, patternBuilder);
         var interpreter = new PsInterpreter(registry);
 
         var patternCtx = PsPipeline.CreateDefaultContext();
@@ -569,17 +667,34 @@ public static class ColorOperators
         registry.Register("setcolortransfer", OpSetColorTransfer, 4);
         registry.Register("currentcolortransfer", OpCurrentColorTransfer);
         registry.Register("sethalftone", ctx => ctx.Extras["_ps_halftone"] = ctx.OperandStack.Pop(), 1);
-        registry.Register("currenthalftone", ctx => ctx.OperandStack.Push(ctx.Extras.TryGetValue("_ps_halftone", out var v) ? v : null));
-        registry.Register("setcolorspace", ctx => OpSetColorSpace(ctx, builder), 1);
-        registry.Register("currentcolorspace", ctx => ctx.OperandStack.Push(State(ctx).CurrentColorSpace));
+        registry.Register("currenthalftone", ctx => ctx.OperandStack.Push(ctx.Extras.TryGetValue("_ps_halftone", out var v) ? v : DefaultHalftone()));
+        var interpreter = new PsInterpreter(registry);
+        registry.Register("setcolorspace", ctx => { using var _ = PsFunctions.UseInterpreter(ctx, interpreter); OpSetColorSpace(ctx, builder); }, 1);
+        registry.Register("currentcolorspace", ctx => ctx.OperandStack.Push(CurrentColorSpaceOperand(State(ctx))));
         registry.Register("setcolor", ctx => OpSetColor(ctx, builder), 1);
         registry.Register("currentcolor", ctx => { foreach (double v in State(ctx).CurrentColorComponents) ctx.OperandStack.Push(v); });
-        registry.Register("makepattern", ctx => OpMakePattern(ctx, builder), 2);
+        registry.Register("makepattern", ctx => { using var _ = PsFunctions.UseInterpreter(ctx, interpreter); OpMakePattern(ctx, builder); }, 2);
         registry.Register("setpattern", ctx => OpSetPattern(ctx, builder), 1);
-        registry.Register("shfill", ctx => OpShFill(ctx, builder), 1);
+        registry.Register("shfill", ctx => { using var _ = PsFunctions.UseInterpreter(ctx, interpreter); OpShFill(ctx, builder); }, 1);
     }
 
     private static GraphicsState State(PsExecutionContext ctx) => ctx.GraphicsStateStack.Peek();
+
+    // Deviation from the original, whose currenthalftone was null until a program set one: a
+    // device always has a halftone, and prologs read it (currenthalftone /HalftoneType get).
+    private static PsDict DefaultHalftone()
+    {
+        var halftone = new PsDict();
+        halftone.Items["HalftoneType"] = 1L;
+        halftone.Items["Frequency"] = 60.0;
+        halftone.Items["Angle"] = 45.0;
+        halftone.Items["SpotFunction"] = new PsProcedure(
+        [
+            new PsName("dup"), new PsName("mul"), new PsName("exch"), new PsName("dup"), new PsName("mul"),
+            new PsName("add"), 1L, new PsName("exch"), new PsName("sub"),
+        ]);
+        return halftone;
+    }
 
     private static void SetPaint(GraphicsState state, Paint paint)
     {
@@ -697,11 +812,25 @@ public static class ColorOperators
             ctx.OperandStack.Push(proc);
     }
 
+    // Deviation from the original, which pushed its parsed color space object, on which
+    // `currentcolorspace 0 get` failed: a device space is returned as the array [/DeviceRGB] the
+    // PLRM specifies, and any other space as the operand that set it.
+    private static object? CurrentColorSpaceOperand(GraphicsState state)
+    {
+        var space = state.CurrentColorSpace;
+        if (space is DeviceColorSpace device)
+            return new PsArray([new PsName(device.Name, true)]);
+        if (state.ColorSpaceSource is { } source && ReferenceEquals(source.Space, space) && source.Source is PsArray)
+            return source.Source;
+        return space;
+    }
+
     private static void OpSetColorSpace(PsExecutionContext ctx, RenderModelBuilder builder)
     {
         var spaceObj = ResolveColorSpaceObject(ctx.OperandStack.Pop(), ctx);
         var space = ColorSpaces.Parse(spaceObj, builder);
         var state = State(ctx);
+        state.ColorSpaceSource = (space, spaceObj);
         state.CurrentColorSpace = space;
         state.CurrentColorComponents = [];
         state.CurrentPattern = null;

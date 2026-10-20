@@ -261,11 +261,47 @@ public sealed class RenderModelBuilder
     /// <summary>Appends an already-built command to the current page.</summary>
     public void AddCommand(RenderCommand command) => EnsurePage().Commands.Add(command);
 
-    public void Clip(RenderPath path, string fillRule = "nonzero") => EnsurePage().Commands.Add(new ClipCommand(path, fillRule));
+    public void Clip(RenderPath path, string fillRule = "nonzero")
+    {
+        var page = EnsurePage();
+        if (_clipStarts.Count > 0 && _clipStarts[^1] is null)
+            _clipStarts[^1] = (page, page.Commands.Count);
+        else if (_clipStarts.Count == 0)
+            _clipStarts.Add((page, page.Commands.Count));
+        page.Commands.Add(new ClipCommand(path, fillRule));
+    }
 
-    public void SaveState() => EnsurePage().Commands.Add(StateSaveCommand.Instance);
+    public void SaveState()
+    {
+        EnsurePage().Commands.Add(StateSaveCommand.Instance);
+        if (_clipStarts.Count == 0)
+            _clipStarts.Add(null);
+        _clipStarts.Add(null);
+    }
 
-    public void RestoreState() => EnsurePage().Commands.Add(StateRestoreCommand.Instance);
+    public void RestoreState()
+    {
+        EnsurePage().Commands.Add(StateRestoreCommand.Instance);
+        if (_clipStarts.Count > 1)
+            _clipStarts.RemoveAt(_clipStarts.Count - 1);
+    }
+
+    // Deviation from the original, whose initclip could only intersect the clip with the page,
+    // because a PDF clip cannot be widened: for each graphics-state level, where its first clip
+    // was emitted. When initclip arrives, that clip and everything since are wrapped in a
+    // save/restore pair (the commands carry their own state, so only the clip is undone).
+    private readonly List<(RenderPage Page, int Index)?> _clipStarts = [];
+
+    /// <summary>Undoes the clips set at the current graphics-state level (initclip). Nothing is
+    /// emitted when the level has none.</summary>
+    public void ResetClip()
+    {
+        if (_clipStarts.Count == 0 || _clipStarts[^1] is not { } start || !ReferenceEquals(start.Page, _activePage))
+            return;
+        start.Page.Commands.Insert(start.Index, StateSaveCommand.Instance);
+        start.Page.Commands.Add(StateRestoreCommand.Instance);
+        _clipStarts[^1] = null;
+    }
 
     /// <summary>Returns the document, closing the active page if one is open.</summary>
     public RenderDocument Document()

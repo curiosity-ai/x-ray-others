@@ -48,6 +48,39 @@ public class RobustnessTests
     }
 
     [Fact]
+    public void Truncated_and_mutated_dos_eps_fails_cleanly()
+    {
+        byte[] program = "%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 100 100\n0 0 moveto 50 50 lineto stroke showpage\n"u8.ToArray();
+        var header = new byte[30];
+        BitConverter.GetBytes(0xC6D3D0C5u).CopyTo(header, 0);
+        BitConverter.GetBytes(30u).CopyTo(header, 4);
+        BitConverter.GetBytes((uint)program.Length).CopyTo(header, 8);
+        byte[] original = [.. header, .. program, .. "II*\0"u8, .. new byte[16]];
+        foreach (var variant in Variants(original, 4, 200))
+            Guard(() => PsDocument.FromBytes(variant).ToPdf());
+        // The header fields themselves, mutated: offsets and lengths anywhere in the 32-bit range.
+        var random = new Random(5);
+        for (int i = 0; i < 200; i++)
+        {
+            var copy = (byte[])original.Clone();
+            for (int k = 4; k < 12; k++)
+            {
+                if (random.Next(3) == 0)
+                    copy[k] = (byte)random.Next(256);
+            }
+            Guard(() => PsDocument.FromBytes(copy).ToPdf());
+        }
+    }
+
+    [Fact]
+    public void Truncated_and_mutated_pjl_job_fails_cleanly()
+    {
+        byte[] original = "\u001b%-12345X@PJL JOB\r\n@PJL ENTER LANGUAGE = POSTSCRIPT\r\n%!PS\n0 0 moveto 9 9 lineto stroke showpage\n\u001b%-12345X@PJL EOJ\r\n"u8.ToArray();
+        foreach (var variant in Variants(original, 6, 200))
+            Guard(() => PsDocument.FromBytes(variant).ToPdf());
+    }
+
+    [Fact]
     public void Truncated_and_mutated_xps_fails_cleanly()
     {
         string page = "<FixedPage xmlns=\"http://schemas.microsoft.com/xps/2005/06\" Width=\"10\" Height=\"10\"><Path Data=\"M 0,0 L 10,0 L 10,10 Z\" Fill=\"#FF0000\" /></FixedPage>";
