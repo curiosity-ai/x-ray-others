@@ -44,9 +44,12 @@ public sealed class PsInterpreter(OperatorRegistry operators)
             {
                 try
                 {
+                    int immediate = parser.ImmediateNames;
                     var obj = parser.ParseObject();
                     if (ReferenceEquals(obj, PsParser.EndOfInput))
                         break;
+                    if (parser.ImmediateNames != immediate)
+                        obj = ResolveImmediateNames(obj, ctx);
                     ExecuteObject(obj, ctx);
                 }
                 catch (Exception ex) when (ctx.SuppressErrors && IsRecoverable(ex))
@@ -124,6 +127,29 @@ public sealed class PsInterpreter(OperatorRegistry operators)
                 }
                 return true;
             }
+        }
+    }
+
+    // Deviation from the original (see PsImmediateName): substitutes the value of every //name in
+    // a just-parsed object, looked up the way a name is executed: dictionaries, then operators.
+    // A name with no value is left as an executable name, to fail (or not) when it runs.
+    private object? ResolveImmediateNames(object? obj, PsExecutionContext ctx)
+    {
+        switch (obj)
+        {
+            case PsImmediateName immediate:
+                if (LookupDict(immediate.Value, ctx, out var value))
+                    return value;
+                if (operators.Get(immediate.Value) is not null || operators.GetFallback(immediate.Value) is not null)
+                    return new PsOperator(immediate.Value);
+                return new PsName(immediate.Value);
+            case PsProcedure proc:
+                var items = proc.Items;
+                for (int i = 0; i < items.Count; i++)
+                    items[i] = ResolveImmediateNames(items[i], ctx);
+                return proc;
+            default:
+                return obj;
         }
     }
 
@@ -247,7 +273,23 @@ public sealed class PsInterpreter(OperatorRegistry operators)
                 return;
             }
             if (!LookupDict(name, ctx, out var value))
-                throw new PsUndefinedError($"undefined name {name}");
+            {
+                // Deviation: the operators the original lacks, where it raised undefined.
+                var fallback = operators.GetFallback(name) ?? throw new PsUndefinedError($"undefined name {name}");
+                if (ctx.OperandStack.Count < fallback.MinOperands)
+                    throw new PsRangeError($"stack underflow for operator {name}");
+                Enter();
+                Enter();
+                try
+                {
+                    fallback.Fn(ctx);
+                }
+                finally
+                {
+                    t_depth -= 2;
+                }
+                return;
+            }
             if (value is PsProcedure proc)
             {
                 ExecuteProcedure(proc, ctx);

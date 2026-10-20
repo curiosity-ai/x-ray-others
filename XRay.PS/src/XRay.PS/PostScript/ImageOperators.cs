@@ -19,11 +19,15 @@ public static class ImageOperators
 
     public static void Register(OperatorRegistry registry, RenderModelBuilder builder, PsImageStore imageStore)
     {
-        registry.Register("image", ctx => OpImage(ctx, builder, imageStore), 1);
-        registry.Register("colorimage", ctx => OpColorImage(ctx, builder, imageStore), 4);
-        registry.Register("imagemask", ctx => OpImageMask(ctx, builder, imageStore), 1);
+        // The interpreter that runs a general data-source procedure (see ExtractFromProcedure).
+        var interpreter = new PsInterpreter(registry);
+        registry.Register("image", ctx => { ctx.Extras[InterpreterKey] = interpreter; OpImage(ctx, builder, imageStore); }, 1);
+        registry.Register("colorimage", ctx => { ctx.Extras[InterpreterKey] = interpreter; OpColorImage(ctx, builder, imageStore); }, 4);
+        registry.Register("imagemask", ctx => { ctx.Extras[InterpreterKey] = interpreter; OpImageMask(ctx, builder, imageStore); }, 1);
         registry.Register("setinterpolation", ctx => State(ctx).ImageInterpolate = PsOps.Truthy(ctx.OperandStack.Pop()), 1);
     }
+
+    private const string InterpreterKey = "__image_interpreter__";
 
     private static GraphicsState State(PsExecutionContext ctx) => ctx.GraphicsStateStack.Peek();
 
@@ -140,7 +144,64 @@ public static class ImageOperators
             if (PsOps.IsNumeric(first) && PsOps.IsNumeric(second))
                 maskPolarity = PsOps.ToDouble(first) <= PsOps.ToDouble(second);
         }
+        // Deviation from the original, which rejected it: a dictionary image with
+        // MultipleDataSources reads one source per component, calling them in turn (they often
+        // share one file), and the planes are interleaved into pixels.
+        if (!mask && bits == 8 && PsOps.Truthy(Get("MultipleDataSources")) && dataSource is PsArray { Items.Count: > 1 } planes
+            && planes.Items.Count == colorComponents)
+        {
+            dataSource = InterleavePlanes(ctx, planes.Items, width, height);
+            filters = [];
+        }
         return BuildImage(ctx, width, height, bits, matrix, dataSource, mask, colorComponents, filters, interpolate, decode, maskPolarity, indexedColor);
+    }
+
+    private static byte[] InterleavePlanes(PsExecutionContext ctx, List<object?> sources, int width, int height)
+    {
+        int count = sources.Count;
+        long perPlane = Math.Max(0, (long)width * height);
+        Guard.Charge(perPlane * count * 2, "image");
+        var planes = new MemoryStream[count];
+        for (int i = 0; i < count; i++)
+            planes[i] = new MemoryStream();
+        var interpreter = ctx.Extras.TryGetValue(InterpreterKey, out var it) ? it as PsInterpreter : null;
+        bool progress = true;
+        while (progress && planes.Any(p => p.Length < perPlane))
+        {
+            Guard.Check();
+            progress = false;
+            for (int i = 0; i < count; i++)
+            {
+                if (planes[i].Length >= perPlane)
+                    continue;
+                byte[] chunk;
+                if (sources[i] is PsProcedure proc && interpreter is not null)
+                {
+                    int depth = ctx.OperandStack.Count;
+                    interpreter.ExecuteProcedure(proc, ctx);
+                    if (ctx.OperandStack.Count <= depth || ctx.OperandStack.Pop() is not PsString s)
+                        throw new PsTypeError("image data source procedure must return a string");
+                    chunk = s.Value;
+                }
+                else
+                {
+                    chunk = ExtractBytes(ctx, sources[i], perPlane, []);
+                }
+                if (chunk.Length == 0)
+                    continue;
+                planes[i].Write(chunk, 0, (int)Math.Min(chunk.Length, perPlane - planes[i].Length));
+                progress = true;
+            }
+        }
+        var interleaved = new byte[perPlane * count];
+        for (int i = 0; i < count; i++)
+        {
+            var plane = planes[i].GetBuffer();
+            long length = planes[i].Length;
+            for (long px = 0; px < length; px++)
+                interleaved[px * count + i] = plane[px];
+        }
+        return interleaved;
     }
 
     private static ImagePayload ImageFromOperandsMulti(PsExecutionContext ctx, List<object?> sources, int colorComponents)
@@ -627,7 +688,30 @@ public static class ImageOperators
                     return ExtractBytes(ctx, new PsName(op.Name), expectedBytes, filters);
             }
         }
+        if (ctx.Extras.TryGetValue(InterpreterKey, out var i) && i is PsInterpreter interpreter)
+            return RunDataSourceProcedure(ctx, interpreter, proc, expectedBytes);
         throw new PsTypeError("unsupported image data source procedure");
+    }
+
+    // Deviation from the original, which recognised only procedures shaped like
+    // {currentfile ... readstring pop}: as the PLRM specifies, call the procedure until it has
+    // delivered the image's data, each call leaving one string, and stop early at an empty one.
+    private static byte[] RunDataSourceProcedure(PsExecutionContext ctx, PsInterpreter interpreter, PsProcedure proc, long expectedBytes)
+    {
+        long wanted = Math.Max(0, expectedBytes);
+        using var output = new MemoryStream();
+        while (output.Length < wanted)
+        {
+            Guard.Check();
+            int depth = ctx.OperandStack.Count;
+            interpreter.ExecuteProcedure(proc, ctx);
+            if (ctx.OperandStack.Count <= depth || ctx.OperandStack.Pop() is not PsString chunk)
+                throw new PsTypeError("image data source procedure must return a string");
+            if (chunk.Value.Length == 0)
+                break;
+            output.Write(chunk.Value, 0, (int)Math.Min(chunk.Value.Length, wanted - output.Length));
+        }
+        return output.ToArray();
     }
 
     private static (string ReadOp, List<FilterSpec> Filters)? CurrentfileReadSpec(PsProcedure proc)

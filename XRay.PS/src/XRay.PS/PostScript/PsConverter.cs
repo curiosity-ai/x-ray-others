@@ -31,6 +31,7 @@ public static partial class PsConverter
         ColorOperators.Register(registry, builder);
         TextOperators.Register(registry, builder, fontResolver);
         ImageOperators.Register(registry, builder, imageStore);
+        ExtraOperators.Register(registry, builder);
         var interpreter = new PsInterpreter(registry);
         var pipeline = new PsPipeline(interpreter, registry, builder, fontResolver, imageStore);
         var bytes = document.AsBytes();

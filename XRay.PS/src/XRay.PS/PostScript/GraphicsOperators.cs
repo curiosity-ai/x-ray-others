@@ -739,7 +739,21 @@ public static class GraphicsOperators
 
     private static void OpRectStroke(PsExecutionContext ctx, RenderModelBuilder builder, PsInterpreter interpreter)
     {
+        // Deviation from the original, which rejected the form with a matrix: `x y w h matrix
+        // rectstroke` (or `numarray matrix rectstroke`) concatenates the matrix to the CTM for
+        // the stroke only, after the path is built (PLRM), so it shapes the line, not the box.
+        Matrix? strokeMatrix = null;
+        if (ctx.OperandStack.Count >= 2 && ctx.OperandStack.Peek() is PsArray { Items.Count: 6 } m && m.Items.All(PsOps.IsNumeric)
+            && ctx.OperandStack.Items[^2] is long or double or PsArray or PsString)
+        {
+            strokeMatrix = PopMatrix(ctx, interpreter);
+        }
         var numbers = RectNumbersFromOperand(ctx, interpreter, "rect operator expects 4n numbers");
+        if (strokeMatrix is { } extra)
+        {
+            StrokeRectanglesWithMatrix(ctx, builder, numbers, extra);
+            return;
+        }
         var state = State(ctx);
         var originalPath = state.CurrentPath.Clone();
         var originalPoint = state.CurrentPoint;
@@ -762,10 +776,30 @@ public static class GraphicsOperators
         }
     }
 
+    private static void StrokeRectanglesWithMatrix(PsExecutionContext ctx, RenderModelBuilder builder, List<double> numbers, Matrix matrix)
+    {
+        var state = State(ctx);
+        var saved = state.Clone();
+        try
+        {
+            state.CurrentPath = new RenderPath();
+            for (int idx = 0; idx < numbers.Count; idx += 4)
+                state.CurrentPath.Segments.AddRange(RectanglePath(state.Ctm, numbers[idx], numbers[idx + 1], numbers[idx + 2], numbers[idx + 3]).Segments);
+            state.Ctm = MulTuple(state.Ctm, matrix);
+            OpStroke(ctx, builder);
+        }
+        finally
+        {
+            ctx.GraphicsStateStack.Items[^1] = saved;
+        }
+    }
+
     private static void OpGRestore(PsExecutionContext ctx, RenderModelBuilder builder)
     {
+        // Deviation from the original, which raised: with no matching gsave, grestore leaves
+        // the bottom state in place and is not an error (PLRM).
         if (ctx.GraphicsStateStack.Count <= 1)
-            throw new PsRangeError("graphics state stack underflow");
+            return;
         ctx.GraphicsStateStack.Pop();
         builder.RestoreState();
     }

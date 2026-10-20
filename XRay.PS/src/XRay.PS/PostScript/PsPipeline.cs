@@ -66,6 +66,8 @@ public sealed class PsPipeline(PsInterpreter interpreter, OperatorRegistry opera
             if (origin is { } o && (o.X != 0.0 || o.Y != 0.0))
                 ctx.GraphicsStateStack.Peek().Ctm = new Matrix(1.0, 0.0, 0.0, 1.0, -o.X, -o.Y);
         }
+        // What initmatrix and defaultmatrix (fallback operators, not in the original) return.
+        ctx.Extras[ExtraOperators.DefaultMatrixKey] = ctx.GraphicsStateStack.Peek().Ctm;
         builder.SetDefaultPageSize(size.Width, size.Height);
         interpreter.Execute(processed, ctx);
         return builder.Document();
@@ -144,8 +146,8 @@ public sealed class PsPipeline(PsInterpreter interpreter, OperatorRegistry opera
         items["userdict"] = userdict;
         items["globaldict"] = globaldict;
         items["systemdict"] = systemdict;
-        items["statusdict"] = new PsDict();
-        items["errordict"] = new PsDict();
+        items["statusdict"] = BuildStatusDict();
+        items["errordict"] = BuildErrorDict();
         items["$error"] = new PsDict();
         items["FontDirectory"] = new PsDict();
         items["version"] = PsString.FromText("3017");
@@ -166,6 +168,42 @@ public sealed class PsPipeline(PsInterpreter interpreter, OperatorRegistry opera
             ImageStore = imageStore ?? new PsImageStore(),
             FontResolver = fontResolver ?? new FontResolver(),
         };
+    }
+
+    // Deviation from the original, whose statusdict was empty: the Level 1 printer procedures
+    // that print-ready files call unguarded inside %%BeginFeature (0 statusdict /setpapertray get
+    // exec) exist and do nothing; the queries answer as a simple printer would.
+    private static PsDict BuildStatusDict()
+    {
+        static PsProcedure Pops(int count) => new([.. Enumerable.Repeat<object?>(new PsName("pop"), count)]);
+        var statusdict = new PsDict();
+        foreach (string name in (string[])["setpapertray", "setduplexmode", "settumble", "setjobtimeout", "setmanualfeed",
+            "setresolution", "setdostartpage", "setpagetype", "setpage", "setprintername", "setsccbatch"])
+            statusdict.Items[name] = Pops(1);
+        statusdict.Items["setpageparams"] = Pops(4);
+        statusdict.Items["setmargins"] = Pops(2);
+        statusdict.Items["setdefaulttimeouts"] = Pops(3);
+        statusdict.Items["papertray"] = new PsProcedure([1L]);
+        statusdict.Items["duplexmode"] = new PsProcedure([false]);
+        statusdict.Items["manualfeed"] = false;
+        statusdict.Items["jobtimeout"] = new PsProcedure([0L]);
+        statusdict.Items["processcolors"] = new PsProcedure([1L]);
+        return statusdict;
+    }
+
+    // Deviation from the original, whose errordict was empty: every error name maps to a
+    // procedure that stops, and handleerror does nothing, so a prolog that looks a handler up
+    // (errordict /handleerror get) finds one.
+    private static PsDict BuildErrorDict()
+    {
+        var errordict = new PsDict();
+        foreach (string name in (string[])["configurationerror", "dictfull", "dictstackoverflow", "dictstackunderflow", "execstackoverflow",
+            "interrupt", "invalidaccess", "invalidexit", "invalidfileaccess", "invalidfont", "invalidrestore", "ioerror", "limitcheck",
+            "nocurrentpoint", "rangecheck", "stackoverflow", "stackunderflow", "syntaxerror", "timeout", "typecheck", "undefined",
+            "undefinedfilename", "undefinedresource", "undefinedresult", "unmatchedmark", "unregistered", "VMerror"])
+            errordict.Items[name] = new PsProcedure([new PsName("stop")]);
+        errordict.Items["handleerror"] = new PsProcedure([]);
+        return errordict;
     }
 
     private static PsArray BuildEncodingArray(IReadOnlyDictionary<int, string> mapping)

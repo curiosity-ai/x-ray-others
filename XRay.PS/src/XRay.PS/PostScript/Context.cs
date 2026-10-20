@@ -29,6 +29,11 @@ public sealed class GraphicsState
     public Matrix TextLineMatrix { get; set; } = Matrix.Identity;
     public FontResource? Font { get; set; }
     public double FontSize { get; set; }
+
+    /// <summary>The font matrix beyond its size (a flip, a slant), divided by the size, when a font
+    /// already scaled was transformed again (makefont of a scaled font); null otherwise. Not in the
+    /// original, which kept only the size.</summary>
+    public Matrix? FontShape { get; set; }
     public double CharSpacing { get; set; }
     public double WordSpacing { get; set; }
     public double TextLeading { get; set; }
@@ -39,6 +44,10 @@ public sealed class GraphicsState
     public double[] CurrentColorComponents { get; set; } = [0.0];
     public PsPattern? CurrentPattern { get; set; }
     public bool Overprint { get; set; }
+
+    /// <summary>The operand of the last <c>setcolorspace</c> and the space parsed from it, which
+    /// <c>currentcolorspace</c> returns (not in the original, which returned the parsed space).</summary>
+    public (ColorSpace Space, object? Source)? ColorSpaceSource { get; set; }
 
     /// <summary><c>setstrokeadjust</c>; like the original, not carried across gsave.</summary>
     public bool? StrokeAdjust { get; set; }
@@ -64,6 +73,7 @@ public sealed class GraphicsState
         TextLineMatrix = TextLineMatrix,
         Font = Font,
         FontSize = FontSize,
+        FontShape = FontShape,
         CharSpacing = CharSpacing,
         WordSpacing = WordSpacing,
         TextLeading = TextLeading,
@@ -71,6 +81,7 @@ public sealed class GraphicsState
         Type3CharWidth = Type3CharWidth,
         Type3CacheBBox = Type3CacheBBox,
         CurrentColorSpace = CurrentColorSpace,
+        ColorSpaceSource = ColorSpaceSource,
         CurrentColorComponents = CurrentColorComponents,
         CurrentPattern = CurrentPattern,
         Overprint = Overprint,
@@ -161,6 +172,19 @@ public sealed class OperatorRegistry
         _operators[name] = new OperatorEntry(name, minOperands, maxOperands, fn);
 
     public OperatorEntry? Get(string name) => _operators.GetValueOrDefault(name);
+
+    // Deviation from the original: operators it lacks (see ExtraOperators). They are consulted
+    // only after the dictionary stack, where the original raised `undefined`, so a program that
+    // ran to completion before resolves every name as it did, and one that defines a procedure
+    // of the same name keeps its own.
+    private readonly Dictionary<string, OperatorEntry> _fallbacks = new(128, StringComparer.Ordinal);
+
+    /// <summary>Registers an operator that is found only when no dictionary defines the name.</summary>
+    public void RegisterFallback(string name, Action<PsExecutionContext> fn, int minOperands = 0) =>
+        _fallbacks[name] = new OperatorEntry(name, minOperands, null, fn);
+
+    /// <summary>The fallback operator of that name, if any.</summary>
+    public OperatorEntry? GetFallback(string name) => _fallbacks.GetValueOrDefault(name);
 
     public IEnumerable<string> Names => _operators.Keys;
 }

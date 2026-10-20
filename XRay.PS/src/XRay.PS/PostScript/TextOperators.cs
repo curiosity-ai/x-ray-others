@@ -8,7 +8,7 @@ using XRay.PS.Rendering;
 namespace XRay.PS.PostScript;
 
 /// <summary>A font scaled by <c>scalefont</c>/<c>makefont</c>, waiting for <c>setfont</c>.</summary>
-public sealed record ScaledFont(FontResource Font, double Size);
+public sealed record ScaledFont(FontResource Font, double Size, Matrix? Shape = null);
 
 /// <summary>Registers the text and font operators.</summary>
 public static class TextOperators
@@ -261,12 +261,15 @@ public static class TextOperators
             case ScaledFont sf:
                 State(ctx).Font = sf.Font;
                 State(ctx).FontSize = sf.Size;
+                State(ctx).FontShape = sf.Shape;
                 return;
             case PsDict d:
                 State(ctx).Font = FontResourceFromDict(d, ctx.FontResolver);
+                State(ctx).FontShape = null;
                 return;
             case FontResource fr:
                 State(ctx).Font = fr;
+                State(ctx).FontShape = null;
                 return;
         }
         throw new PsTypeError("font expected");
@@ -286,7 +289,11 @@ public static class TextOperators
         {
             PsName n => n.Value,
             string s => s,
-            _ => throw new PsTypeError("definefont expects name key"),
+            // Deviation from the original, which required a name: any object can be the key (dvips
+            // uses the font dictionary itself); it is given a name of its own, stable per job.
+            null or PsMark => throw new PsTypeError("definefont expects name key"),
+            PsString text => text.Text,
+            _ => AnonymousFontName(ctx, key),
         };
         FontResource resource = fontObj switch
         {
@@ -306,6 +313,21 @@ public static class TextOperators
         resolver.Aliases[name] = string.IsNullOrEmpty(baseName) ? resource.Name : baseName;
         resolver.RegisterDefinedFont(name, resource);
         ctx.OperandStack.Push(fontDict);
+    }
+
+    private static string AnonymousFontName(PsExecutionContext ctx, object key)
+    {
+        if (ctx.Extras.TryGetValue("_ps_font_keys", out var v) is false || v is not Dictionary<object, string> names)
+        {
+            names = new Dictionary<object, string>(ReferenceEqualityComparer.Instance);
+            ctx.Extras["_ps_font_keys"] = names;
+        }
+        if (!names.TryGetValue(key, out var name))
+        {
+            name = "XRayAnonymousFont" + (names.Count + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            names[key] = name;
+        }
+        return name;
     }
 
     private static void OpFindFont(PsExecutionContext ctx, FontResolver resolver)
@@ -349,6 +371,13 @@ public static class TextOperators
             ctx.OperandStack.Push(new ScaledFont(fr, size));
             return;
         }
+        // Deviation from the original, which rejected it: scaling a font already scaled
+        // multiplies the sizes (`/F findfont 4 scalefont 2 scalefont` is an 8-point font).
+        if (font is ScaledFont scaled)
+        {
+            ctx.OperandStack.Push(scaled with { Size = scaled.Size * size });
+            return;
+        }
         throw new PsTypeError("font expected");
     }
 
@@ -358,6 +387,20 @@ public static class TextOperators
         var font = ctx.OperandStack.Pop();
         if (font is PsDict d)
             font = FontResourceFromDict(d, ctx.FontResolver);
+        // Deviation (see OpScaleFont): a scaled font is transformed again; the size is the new
+        // matrix's x scale and the rest of it (a flip, a slant) is kept as the font's shape.
+        if (font is ScaledFont scaled)
+        {
+            var old = scaled.Shape ?? Matrix.Identity;
+            var current = new Matrix(old.A * scaled.Size, old.B * scaled.Size, old.C * scaled.Size, old.D * scaled.Size, 0.0, 0.0);
+            var combined = Multiply(matrix, current);
+            double newSize = Py.Hypot(combined.A, combined.B);
+            if (newSize == 0)
+                newSize = 1.0;
+            var shape = new Matrix(combined.A / newSize, combined.B / newSize, combined.C / newSize, combined.D / newSize, 0.0, 0.0);
+            ctx.OperandStack.Push(new ScaledFont(scaled.Font, newSize, shape == Matrix.Identity ? null : shape));
+            return;
+        }
         if (font is not FontResource fr)
             throw new PsTypeError("font expected");
         double size = Py.Hypot(matrix.A, matrix.B);
@@ -383,6 +426,7 @@ public static class TextOperators
         var font = ResolveFontOperand(first, resolver, ctx);
         State(ctx).Font = font;
         State(ctx).FontSize = size;
+        State(ctx).FontShape = null;
     }
 
     private static void OpComposeFont(PsExecutionContext ctx, FontResolver resolver)
@@ -523,7 +567,7 @@ public static class TextOperators
     private static void AddTextRun(PsExecutionContext ctx, RenderModelBuilder builder, GraphicsState state, FontResource renderFont, string text, FontResource? fallbackFont)
     {
         double fontSize = state.FontSize != 0 ? state.FontSize : 1.0;
-        var matrix = Multiply(State(ctx).Ctm, state.TextMatrix);
+        var matrix = GlyphSpace(State(ctx).Ctm, state);
         ctx.TextFontOverrides.TryGetValue(renderFont.Name, out var overrideName);
         string displayText = DisplayTextForFont(renderFont, text);
         if (!string.IsNullOrEmpty(overrideName))
@@ -654,7 +698,7 @@ public static class TextOperators
             var renderFont = descendant.Descendant ?? descendant;
             string visible = string.Concat(Py.Chars(run).Where(c => !IsSkipChar(c)));
             string display = DisplayTextForFont(renderFont, visible);
-            var matrix = Multiply(state.Ctm, state.TextMatrix);
+            var matrix = GlyphSpace(state.Ctm, state);
             ctx.TextFontOverrides.TryGetValue(renderFont.Name, out var overrideName);
             if (overrideName is null && !CanUseRequestedTextFont(ctx, renderFont.Name))
             {
@@ -866,7 +910,7 @@ public static class TextOperators
     {
         var state = State(ctx);
         double height = state.FontSize;
-        var m = Multiply(state.Ctm, state.TextMatrix);
+        var m = GlyphSpace(state.Ctm, state);
         var path = state.CurrentPath;
         path.Segments.Add(PathSegment.MoveTo(m.E, m.F));
         path.Segments.Add(PathSegment.LineTo(m.E + m.A * width, m.F + m.B * width));
@@ -898,7 +942,7 @@ public static class TextOperators
         var outerState = state.Clone();
         state.Type3CharWidth = null;
         state.Type3CacheBBox = null;
-        var textCtm = Multiply(outerState.Ctm, state.TextMatrix);
+        var textCtm = GlyphSpace(outerState.Ctm, state);
         state.Ctm = Multiply(textCtm, scaledFontMatrix);
         PsProcedure? buildGlyph = null;
         PsProcedure? buildChar = null;
@@ -1099,7 +1143,7 @@ public static class TextOperators
         var ttfFont = ResolveTtfFont(ctx, renderFont?.Name ?? "");
         if (ttfFont is not null && renderFont is not null)
         {
-            var m = Multiply(state.Ctm, state.TextMatrix);
+            var m = GlyphSpace(state.Ctm, state);
             double sizeScale = (state.FontSize != 0 ? state.FontSize : 1.0) / Math.Max(1.0, ttfFont.UnitsPerEm);
             int glyphId = ttfFont.GlyphIdForCode(Py.Ord(ch));
             var contours = ttfFont.GlyphOutline(glyphId);
@@ -1518,6 +1562,14 @@ public static class TextOperators
             throw new PsRangeError("matrix must have 6 elements");
         var v = items.Select(ColorOperators.PyFloat).ToArray();
         return Matrix.FromArray(v);
+    }
+
+    // The CTM times the text matrix, and the font's shape (see GraphicsState.FontShape) when it
+    // has one: identical to the original's product for every font it supported.
+    private static Matrix GlyphSpace(Matrix ctm, GraphicsState state)
+    {
+        var m = Multiply(ctm, state.TextMatrix);
+        return state.FontShape is { } shape ? Multiply(m, shape) : m;
     }
 
     /// <summary><c>_multiply_matrix(ctm, matrix)</c>: apply <paramref name="matrix"/>, then

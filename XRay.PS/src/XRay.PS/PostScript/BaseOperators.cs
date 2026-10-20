@@ -66,12 +66,12 @@ public static class BaseOperators
         registry.Register("readhexstring", ctx => OpReadString(ctx, true), 2);
         registry.Register("token", OpToken, 1);
         registry.Register("status", ctx => { ctx.OperandStack.Pop(); ctx.OperandStack.Push(false); }, 1);
-        registry.Register("flushfile", ctx => ctx.OperandStack.Pop(), 1);
+        registry.Register("flushfile", OpFlushFile, 1);
         registry.Register("closefile", ctx => ctx.OperandStack.Pop(), 1);
         registry.Register("currentfile", ctx => ctx.OperandStack.Push(new PsFile("currentfile", null, PsFile.NoFilters)));
         registry.Register("filter", OpFilter, 2);
         registry.Register("length", OpLength, 1);
-        registry.Register("get", OpGet, 2);
+        registry.Register("get", ctx => OpGet(ctx, registry), 2);
         registry.Register("put", OpPut, 3);
         registry.Register("getinterval", OpGetInterval, 3);
         registry.Register("putinterval", OpPutInterval, 3);
@@ -88,7 +88,7 @@ public static class BaseOperators
         registry.Register("load", ctx => OpLoad(ctx, registry), 1);
         registry.Register("currentdict", ctx => ctx.OperandStack.Push(ctx.DictionaryStack.Peek()));
         registry.Register("countdictstack", ctx => ctx.OperandStack.Push((long)ctx.DictionaryStack.Count));
-        registry.Register("known", OpKnown, 2);
+        registry.Register("known", ctx => OpKnown(ctx, registry), 2);
 
         registry.Register("exec", ctx => OpExec(ctx, interpreter), 1);
         registry.Register("if", ctx => OpIf(ctx, interpreter), 2);
@@ -117,7 +117,7 @@ public static class BaseOperators
         registry.Register("xcheck", OpXcheck, 1);
         registry.Register("stopped", ctx => OpStopped(ctx, interpreter), 1);
         registry.Register("execform", ctx => OpExecForm(ctx, interpreter), 1);
-        registry.Register("where", OpWhere, 1);
+        registry.Register("where", ctx => OpWhere(ctx, registry), 1);
         registry.Register("type", OpType, 1);
         registry.Register("round", ctx => ctx.OperandStack.Push(Py.Round(PopNumber(ctx))), 1);
         registry.Register("floor", ctx => ctx.OperandStack.Push(Py.Int(Math.Floor(PopNumber(ctx)))), 1);
@@ -172,7 +172,7 @@ public static class BaseOperators
                     throw new PsRangeError("copy rangecheck");
                 var snapshot = sa.Items.ToList();
                 for (int i = 0; i < snapshot.Count; i++)
-                    da.Items[i] = snapshot[i];
+                    SharedIntervals.Write(da.Items, i, snapshot[i]);
                 ctx.OperandStack.Push(da);
                 return;
             case PsProcedure sp when destination is PsProcedure dp:
@@ -180,9 +180,23 @@ public static class BaseOperators
                     throw new PsRangeError("copy rangecheck");
                 var procSnapshot = sp.Items.ToList();
                 for (int i = 0; i < procSnapshot.Count; i++)
-                    dp.Items[i] = procSnapshot[i];
+                    SharedIntervals.Write(dp.Items, i, procSnapshot[i]);
                 ctx.OperandStack.Push(dp);
                 return;
+            // Deviation from the original, which required the same kind on both sides: an array
+            // and a procedure (an executable array) copy into each other like arrays.
+            case PsArray or PsProcedure when destination is PsArray or PsProcedure:
+            {
+                var from = source is PsArray fa ? fa.Items : ((PsProcedure)source).Items;
+                var into = destination is PsArray ta ? ta.Items : ((PsProcedure)destination!).Items;
+                if (into.Count < from.Count)
+                    throw new PsRangeError("copy rangecheck");
+                var copied = from.ToList();
+                for (int i = 0; i < copied.Count; i++)
+                    SharedIntervals.Write(into, i, copied[i]);
+                ctx.OperandStack.Push(destination);
+                return;
+            }
             case PsString ss when destination is PsString ds:
                 if (ds.Value.Length < ss.Value.Length)
                     throw new PsRangeError("copy rangecheck");
@@ -363,6 +377,16 @@ public static class BaseOperators
             _ => throw new PsTypeError("filter expects name"),
         };
         var paramsDict = parameters is not null ? FilterParamsToDict(parameters) : null;
+        // Deviation from the original, which took the operand below the name for the source:
+        // SubFileDecode reads `source count string /SubFileDecode filter` when no dictionary is
+        // given (PLRM 3.13), and the original then left the count and the source on the stack.
+        if (parameters is null && filterName is "SubFileDecode" && source is PsString eod
+            && ctx.OperandStack.Count >= 2 && PsOps.IsNumeric(ctx.OperandStack.Peek()))
+        {
+            long eodCount = PopInt(ctx);
+            source = ctx.OperandStack.Pop();
+            paramsDict = new Dictionary<string, object?> { ["EODCount"] = eodCount, ["EODString"] = eod.Value };
+        }
         var existing = new List<FilterSpec>();
         if (source is PsFile { Name: "currentfile" } file)
         {
@@ -382,6 +406,36 @@ public static class BaseOperators
         ctx.OperandStack.Push(new PsFile("currentfile", null, existing));
     }
 
+    private static void OpFlushFile(PsExecutionContext ctx)
+    {
+        var file = ctx.OperandStack.Pop();
+        // Deviation from the original, which ignored flushfile: flushing a SubFileDecode filter
+        // over the program skips its data, up to and past the end-of-data string, so the job
+        // goes on after it (Illustrator embeds its XMP packet this way). Plain currentfile is
+        // still left alone.
+        if (file is not PsFile { Name: "currentfile" } f || ctx.Systemdict.Get(PsInterpreter.TokenizerKey) is not PsTokenizer tokenizer)
+            return;
+        foreach (var filter in f.Filters)
+        {
+            if (Filters.NormalizeName(filter.Name) != "SubFileDecode" || filter.Params?.GetValueOrDefault("EODString") is not byte[] { Length: > 0 } eod)
+                continue;
+            long passes = filter.Params.GetValueOrDefault("EODCount") is long l && l > 0 ? l : 0;
+            int pos = tokenizer.Position;
+            for (long i = 0; i <= passes; i++)
+            {
+                int at = tokenizer.Data.AsSpan(pos, tokenizer.Length - pos).IndexOf(eod);
+                if (at < 0)
+                {
+                    pos = tokenizer.Length;
+                    break;
+                }
+                pos += at + eod.Length;
+            }
+            tokenizer.Position = pos;
+            return;
+        }
+    }
+
     private static void OpReadString(PsExecutionContext ctx, bool hexMode)
     {
         var target = ctx.OperandStack.Pop();
@@ -397,6 +451,10 @@ public static class BaseOperators
                 data = [.. data, .. targetString.Value.AsSpan(data.Length)];
             else if (data.Length > count)
                 data = data[..count];
+            // Deviation from the original, which left the string it was given untouched: the
+            // bytes read are stored in it, so a program that reads into a buffer and then uses
+            // the buffer by name sees them. (A new array: strings are copied on write here.)
+            targetString.Value = (byte[])data.Clone();
         }
         ctx.OperandStack.Push(new PsString(data, remainingFilter, filterParams));
         ctx.OperandStack.Push(complete);
@@ -405,6 +463,26 @@ public static class BaseOperators
     private static void OpToken(PsExecutionContext ctx)
     {
         var source = ctx.OperandStack.Pop();
+        if (source is PsString text)
+        {
+            // Deviation from the original, which answered false for a string: scan one object
+            // from it and push the rest of the string, the object and true.
+            var stringTokenizer = new PsTokenizer(text.Value);
+            var parsed = new PsParser(stringTokenizer).ParseObject();
+            if (ReferenceEquals(parsed, PsParser.EndOfInput))
+            {
+                ctx.OperandStack.Push(false);
+                return;
+            }
+            int rest = stringTokenizer.Position;
+            // The scanner consumes the one white-space character that ends a token.
+            if (rest < text.Value.Length && text.Value[rest] is (byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n' or (byte)'\f' or 0)
+                rest++;
+            ctx.OperandStack.Push(new PsString(text.Value[rest..]));
+            ctx.OperandStack.Push(parsed);
+            ctx.OperandStack.Push(true);
+            return;
+        }
         if (source is not PsFile { Name: "currentfile" })
         {
             ctx.OperandStack.Push(false);
@@ -441,7 +519,7 @@ public static class BaseOperators
         ctx.OperandStack.Push(length);
     }
 
-    private static void OpGet(PsExecutionContext ctx)
+    private static void OpGet(PsExecutionContext ctx, OperatorRegistry registry)
     {
         var key = ctx.OperandStack.Pop();
         var container = ctx.OperandStack.Pop();
@@ -459,7 +537,31 @@ public static class BaseOperators
             case PsDict d:
                 var name = CoerceKey(key);
                 if (!d.Items.TryGetValue(name, out var value))
+                {
+                    if (IsSystemOperator(ctx, d, name, registry))
+                    {
+                        ctx.OperandStack.Push(new PsOperator((string)name));
+                        return;
+                    }
+                    // Deviation from the original: findfont hands out a summary of a font defined
+                    // by the program, so a key only the program's dictionary has (a Type 3 font's
+                    // CharProcs, FontBBox, FontInfo) is read from that dictionary.
+                    if (d.Items.TryGetValue("__font_dict__", out var original) && original is PsDict programFont
+                        && programFont.Items.TryGetValue(name, out var fromProgram))
+                    {
+                        ctx.OperandStack.Push(fromProgram);
+                        return;
+                    }
+                    // ... and a font the resolver supplied answers for the entries every font
+                    // dictionary has (FontInfo with its underline metrics, FontBBox, PaintType).
+                    if (d.Items.TryGetValue("__font_resource__", out var supplied) && supplied is Fonts.FontResource font
+                        && SyntheticFontEntry(font, name) is { } synthetic)
+                    {
+                        ctx.OperandStack.Push(synthetic);
+                        return;
+                    }
                     throw new PsUndefinedError($"undefined key {PsOps.Str(name)}");
+                }
                 ctx.OperandStack.Push(value);
                 return;
         }
@@ -481,10 +583,10 @@ public static class BaseOperators
         switch (container)
         {
             case PsArray a:
-                a.Items[CheckIndex(CoerceInt(key), a.Items.Count, "put rangecheck")] = value;
+                SharedIntervals.Write(a.Items, CheckIndex(CoerceInt(key), a.Items.Count, "put rangecheck"), value);
                 return;
             case PsProcedure p:
-                p.Items[CheckIndex(CoerceInt(key), p.Items.Count, "put rangecheck")] = value;
+                SharedIntervals.Write(p.Items, CheckIndex(CoerceInt(key), p.Items.Count, "put rangecheck"), value);
                 return;
             case PsString s:
             {
@@ -524,12 +626,12 @@ public static class BaseOperators
             case PsArray a:
                 if (index + count > a.Items.Count)
                     throw new PsRangeError("getinterval rangecheck");
-                ctx.OperandStack.Push(new PsArray(a.Items.GetRange((int)index, (int)count)));
+                ctx.OperandStack.Push(new PsArray(SharedIntervals.Slice(a.Items, (int)index, (int)count)));
                 return;
             case PsProcedure p:
                 if (index + count > p.Items.Count)
                     throw new PsRangeError("getinterval rangecheck");
-                ctx.OperandStack.Push(new PsProcedure(p.Items.GetRange((int)index, (int)count)));
+                ctx.OperandStack.Push(new PsProcedure(SharedIntervals.Slice(p.Items, (int)index, (int)count)));
                 return;
             case PsString s:
                 if (index + count > s.Value.Length)
@@ -561,7 +663,7 @@ public static class BaseOperators
                 throw new PsRangeError("putinterval rangecheck");
             var snapshot = sourceItems.ToList();
             for (int i = 0; i < snapshot.Count; i++)
-                target[(int)index + i] = snapshot[i];
+                SharedIntervals.Write(target, (int)index + i, snapshot[i]);
             return;
         }
         if (container is PsString s)
@@ -607,7 +709,7 @@ public static class BaseOperators
             _ => throw new PsTypeError("astore expects array"),
         };
         for (int index = items.Count - 1; index >= 0; index--)
-            items[index] = ctx.OperandStack.Pop();
+            SharedIntervals.Write(items, index, ctx.OperandStack.Pop());
         ctx.OperandStack.Push(array);
     }
 
@@ -668,18 +770,44 @@ public static class BaseOperators
     private static void OpLoad(PsExecutionContext ctx, OperatorRegistry registry)
     {
         var key = ctx.OperandStack.Pop();
-        string name = key switch
+        string? keyName = key switch
         {
             PsName n => n.Value,
             string s => s,
-            _ => throw new PsTypeError("load expects name"),
+            PsOperator op => op.Name,
+            _ => null,
         };
+        if (keyName is null)
+        {
+            // Deviation from the original, which accepted only names: any key can be loaded
+            // (a string is looked up as the name it spells, a number as itself).
+            var anyKey = key is null || key is PsDict or PsArray or PsProcedure or PsMark ? throw new PsTypeError("load expects name") : CoerceKey(key);
+            if (anyKey is string spelled)
+            {
+                keyName = spelled;
+            }
+            else
+            {
+                var stack = ctx.DictionaryStack.Items;
+                for (int i = stack.Count - 1; i >= 0; i--)
+                {
+                    if (stack[i].Items.TryGetValue(anyKey, out var found))
+                    {
+                        ctx.OperandStack.Push(found);
+                        return;
+                    }
+                }
+                throw new PsUndefinedError($"undefined key {PsOps.Str(anyKey)}");
+            }
+        }
+        string name = keyName;
         if (PsInterpreter.LookupDict(name, ctx, out var value))
         {
             ctx.OperandStack.Push(value);
             return;
         }
-        if (registry.Get(name) is not null)
+        // Deviation: a fallback operator (see ExtraOperators) loads like a built-in one.
+        if (registry.Get(name) is not null || registry.GetFallback(name) is not null)
         {
             ctx.OperandStack.Push(new PsOperator(name));
             return;
@@ -687,14 +815,45 @@ public static class BaseOperators
         throw new PsUndefinedError($"undefined name {name}");
     }
 
-    private static void OpKnown(PsExecutionContext ctx)
+    private static void OpKnown(PsExecutionContext ctx, OperatorRegistry registry)
     {
         var key = CoerceKey(ctx.OperandStack.Pop());
         var dictionary = ctx.OperandStack.Pop();
         if (dictionary is not PsDict d)
             throw new PsTypeError("known expects dictionary");
-        ctx.OperandStack.Push(d.Items.ContainsKey(key));
+        ctx.OperandStack.Push(d.Items.ContainsKey(key) || IsSystemOperator(ctx, d, key, registry));
     }
+
+    private static object? SyntheticFontEntry(Fonts.FontResource font, object key)
+    {
+        double units = font.UnitsPerEm > 0 ? font.UnitsPerEm : 1000.0;
+        double Em(double thousandths) => thousandths * units / 1000.0;
+        switch (key)
+        {
+            case "FontInfo":
+                var info = new PsDict();
+                info.Items["FamilyName"] = PsString.FromText(font.Name);
+                info.Items["FullName"] = PsString.FromText(font.Name);
+                info.Items["Weight"] = PsString.FromText(font.Name.Contains("Bold", StringComparison.Ordinal) ? "Bold" : "Medium");
+                info.Items["ItalicAngle"] = 0.0;
+                info.Items["isFixedPitch"] = font.Name.StartsWith("Courier", StringComparison.Ordinal);
+                info.Items["UnderlinePosition"] = Em(-100);
+                info.Items["UnderlineThickness"] = Em(50);
+                return info;
+            case "FontBBox":
+                return new PsArray([Em(-200), Em(-250), Em(1200), Em(950)]);
+            case "PaintType":
+                return 0L;
+            case "StrokeWidth":
+                return 0.0;
+            default:
+                return null;
+        }
+    }
+
+    // Deviation (see OpWhere): systemdict answers for the built-in operators too.
+    private static bool IsSystemOperator(PsExecutionContext ctx, PsDict d, object key, OperatorRegistry registry) =>
+        ReferenceEquals(d, ctx.Systemdict) && key is string name && (registry.Get(name) is not null || registry.GetFallback(name) is not null);
 
     private static void OpExec(PsExecutionContext ctx, PsInterpreter interpreter)
     {
@@ -714,7 +873,9 @@ public static class BaseOperators
                 interpreter.ExecuteName(s, ctx);
                 return;
         }
-        throw new PsTypeError("exec expects procedure");
+        // Deviation from the original, which raised a typecheck: per the PLRM, exec of an object
+        // that is not executable (a number, a string, a dictionary) pushes it back.
+        ctx.OperandStack.Push(value);
     }
 
     private static void OpStopped(PsExecutionContext ctx, PsInterpreter interpreter)
@@ -753,8 +914,39 @@ public static class BaseOperators
         var form = ctx.OperandStack.Pop();
         if (form is not PsDict d)
             return;
-        if (d.Get("PaintProc") is PsProcedure paintProc)
+        if (d.Get("PaintProc") is not PsProcedure paintProc)
+            return;
+        // Deviation from the original, which ran PaintProc bare: per the PLRM execform saves the
+        // graphics state, concatenates the form's Matrix, clips to its BBox and hands PaintProc
+        // the form dictionary on the stack.
+        interpreter.ExecuteName("gsave", ctx);
+        int depth = ctx.GraphicsStateStack.Count;
+        try
+        {
+            if (d.Get("Matrix") is PsArray matrix)
+            {
+                ctx.OperandStack.Push(matrix);
+                interpreter.ExecuteName("concat", ctx);
+            }
+            if (d.Get("BBox") is PsArray { Items.Count: 4 } bbox && bbox.Items.All(PsOps.IsNumeric))
+            {
+                double x0 = PsOps.ToDouble(bbox.Items[0]), y0 = PsOps.ToDouble(bbox.Items[1]);
+                double x1 = PsOps.ToDouble(bbox.Items[2]), y1 = PsOps.ToDouble(bbox.Items[3]);
+                interpreter.ExecuteName("newpath", ctx);
+                foreach (double v in (double[])[Math.Min(x0, x1), Math.Min(y0, y1), Math.Abs(x1 - x0), Math.Abs(y1 - y0)])
+                    ctx.OperandStack.Push(v);
+                interpreter.ExecuteName("rectpath", ctx);
+                interpreter.ExecuteName("clip", ctx);
+                interpreter.ExecuteName("newpath", ctx);
+            }
+            ctx.OperandStack.Push(d);
             interpreter.ExecuteProcedure(paintProc, ctx);
+        }
+        finally
+        {
+            while (ctx.GraphicsStateStack.Count >= depth && ctx.GraphicsStateStack.Count > 1)
+                interpreter.ExecuteName("grestore", ctx);
+        }
     }
 
     private static void OpIf(PsExecutionContext ctx, PsInterpreter interpreter)
@@ -832,6 +1024,18 @@ public static class BaseOperators
             case PsArray a:
             {
                 var items = a.Items;
+                for (int i = 0; i < items.Count; i++)
+                {
+                    ctx.OperandStack.Push(items[i]);
+                    interpreter.ExecuteProcedure(p, ctx);
+                }
+                return;
+            }
+            // Deviation from the original, which rejected it: forall over a procedure (an
+            // executable array) visits its elements like an array's.
+            case PsProcedure procedure:
+            {
+                var items = procedure.Items;
                 for (int i = 0; i < items.Count; i++)
                 {
                     ctx.OperandStack.Push(items[i]);
@@ -1065,7 +1269,7 @@ public static class BaseOperators
         ctx.OperandStack.Push(value is PsProcedure or PsOperator || value is PsName { Literal: false });
     }
 
-    private static void OpWhere(PsExecutionContext ctx)
+    private static void OpWhere(PsExecutionContext ctx, OperatorRegistry registry)
     {
         var name = CoerceKey(ctx.OperandStack.Pop());
         var items = ctx.DictionaryStack.Items;
@@ -1077,6 +1281,15 @@ public static class BaseOperators
                 ctx.OperandStack.Push(true);
                 return;
             }
+        }
+        // Deviation from the original, which kept operators outside every dictionary: in
+        // PostScript they live in systemdict, so `/findfont where` finds it there. Answered only
+        // after the dictionaries, so a name a program defined itself is found as before.
+        if (name is string op && (registry.Get(op) is not null || registry.GetFallback(op) is not null))
+        {
+            ctx.OperandStack.Push(ctx.Systemdict);
+            ctx.OperandStack.Push(true);
+            return;
         }
         ctx.OperandStack.Push(false);
     }
@@ -1199,8 +1412,35 @@ public static class BaseOperators
         if (hexMode && filters.Count == 0)
             return (tokenizer.ReadAsciiHexDecoded(count).Data, null, null);
         if (filters.Count == 0)
+        {
+            // Deviation from the original, which started reading at the white-space character
+            // that ended the token before the data, so binary data came out one byte late.
+            tokenizer.SkipTokenTerminator();
             return (tokenizer.ReadRaw(count), null, null);
+        }
         string firstFilter = Filters.NormalizeName(filters[0].Name);
+        // Deviation from the original, which decoded an ASCII85 filter to its end-of-data mark on
+        // every read (so a second read of the same filter decoded the program text after it) and
+        // a RunLengthDecode filter from a fixed count of encoded bytes: the filter's data is read
+        // to its end-of-data mark once, decoded, kept with the filter object, and later reads
+        // continue from where the previous one stopped.
+        if (firstFilter is "ASCII85Decode" or "RunLengthDecode" && source is PsFile filterFile)
+        {
+            if (!DecodedFilters.TryGetValue(filterFile, out var pending))
+            {
+                tokenizer.SkipTokenTerminator();
+                var encodedAll = firstFilter == "ASCII85Decode" ? tokenizer.ReadUntilAscii85Eod() : tokenizer.ReadRunLengthSource();
+                var all = Filters.Decode(encodedAll, filters, allowEncoded: true);
+                if (all.RemainingFilter is not null)
+                    return (all.Data, all.RemainingFilter, all.Params);
+                pending = new DecodedFilter(all.Data);
+                DecodedFilters.AddOrUpdate(filterFile, pending);
+            }
+            int take = Math.Min(count, pending.Data.Length - pending.Offset);
+            var chunk = pending.Data.AsSpan(pending.Offset, take).ToArray();
+            pending.Offset += take;
+            return (chunk, null, null);
+        }
         byte[] encoded;
         if (firstFilter == "ASCIIHexDecode")
             encoded = count > 0 ? tokenizer.ReadAsciiHexSource(count) : tokenizer.ReadUntilAsciiHexEod();
@@ -1211,6 +1451,15 @@ public static class BaseOperators
         var decoded = Filters.Decode(encoded, filters, allowEncoded: true);
         return (decoded.Data, decoded.RemainingFilter, decoded.Params);
     }
+
+    private sealed class DecodedFilter(byte[] data)
+    {
+        public byte[] Data { get; } = data;
+
+        public int Offset { get; set; }
+    }
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<PsFile, DecodedFilter> DecodedFilters = new();
 
     internal static Dictionary<string, object?> FilterParamsToDict(PsDict value)
     {
@@ -1344,7 +1593,7 @@ public static class BaseOperators
         return sign * number;
     }
 
-    private static Dictionary<object, PsDict> ResourceStore(PsExecutionContext ctx)
+    internal static Dictionary<object, PsDict> ResourceStore(PsExecutionContext ctx)
     {
         if (ctx.Systemdict.Get("__resources__") is Dictionary<object, PsDict> existing)
             return existing;
