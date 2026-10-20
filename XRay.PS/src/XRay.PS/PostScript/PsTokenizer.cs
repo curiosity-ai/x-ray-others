@@ -222,6 +222,8 @@ public sealed class PsTokenizer
         return new PsToken(PsTokenKind.Comment, Py.Latin1String(_data.AsSpan(start, Math.Max(0, _pos - start))));
     }
 
+    private static bool IsOctalDigit(char ch) => ch is >= '0' and <= '7';
+
     private PsToken ReadString()
     {
         _pos++;
@@ -252,12 +254,16 @@ public sealed class PsTokenizer
                 {
                     buf.Add((byte)mapped);
                 }
-                else if (Py.IsDigit(esc))
+                // Deviation from the original: it took any decimal digit as the start of an
+                // octal escape and raised on \8 or \9. Per the PLRM an escape is one to three
+                // octal digits, and a backslash before any other character is dropped, so
+                // (\8) is the string "8". Inputs the original accepted read the same.
+                else if (IsOctalDigit(esc))
                 {
                     string octal = esc.ToString();
                     for (int i = 0; i < 2; i++)
                     {
-                        if (_pos + 1 < _length && Py.IsDigit((char)_data[_pos + 1]))
+                        if (_pos + 1 < _length && IsOctalDigit((char)_data[_pos + 1]))
                         {
                             _pos++;
                             octal += (char)_data[_pos];

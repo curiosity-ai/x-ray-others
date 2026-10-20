@@ -35,6 +35,9 @@ public sealed class PsPipeline(PsInterpreter interpreter, OperatorRegistry opera
         List<ConversionWarning>? warnings, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        // Deviation from the original: interpret the PostScript inside a DOS EPS binary file or a
+        // PJL job rather than the wrapper's bytes. Any other input is passed through unchanged.
+        data = PsInput.Unwrap(data);
         var ctx = CreateDefaultContext(fontResolver, imageStore);
         ctx.Limits = limits ?? PsInterpreterLimits.Default;
         ctx.SuppressErrors = suppressErrors;

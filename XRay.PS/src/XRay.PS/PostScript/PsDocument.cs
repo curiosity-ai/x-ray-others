@@ -49,9 +49,13 @@ public sealed class PsDocument
     /// <summary>Loads a document from bytes and reads its DSC metadata.</summary>
     public static PsDocument FromBytes(byte[] data)
     {
-        bool isEps = DetectEps(data);
-        var dsc = DscMetadata.Parse(data);
-        var (header, lines) = ExtractHeader(data);
+        // Deviation from the original: the metadata and pages are read from the PostScript inside
+        // a DOS EPS binary file or a PJL job, not from the wrapper (see PsInput). Data keeps the
+        // file as it was.
+        byte[] program = PsInput.Unwrap(data);
+        bool isEps = DetectEps(program);
+        var dsc = DscMetadata.Parse(program);
+        var (header, lines) = ExtractHeader(program);
         var (pages, prolog, trailer) = ParsePages(lines, dsc, isEps);
         return new PsDocument(data, isEps)
         {
