@@ -472,6 +472,7 @@ public static class GraphicsOperators
             return;
         // initclip resets clipping to the full page in device space.
         var path = PageBox(ctx.DefaultPageSize.Value.Width, ctx.DefaultPageSize.Value.Height);
+        builder.ResetClip();
         builder.Clip(path);
         State(ctx).ClipPath = path;
         State(ctx).CurrentPath = new RenderPath();
