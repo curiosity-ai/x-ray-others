@@ -52,6 +52,62 @@ public sealed partial class XpsRenderer
 
     internal static bool IsStaticResource(string text) => Py.Strip(text).StartsWith("{StaticResource", StringComparison.Ordinal);
 
+    // ---- markup extensions ---------------------------------------------------------------------
+
+    /// <summary>The image and ICC profile URIs an <c>ImageSource</c> names: a plain URI (returned
+    /// as given, with no profile), or the ECMA-388 markup extension
+    /// <c>{ColorConvertedBitmap image profile}</c>. Either URI may be relative or absolute.</summary>
+    /// <remarks>Deviation from the original, which read the attribute as a URI only: the extension
+    /// became a missing part named after the whole attribute, so the element failed and the image
+    /// was dropped. A value that opens a brace but is not a well-formed extension is malformed and
+    /// raises <see cref="XpsFormatException"/>.</remarks>
+    internal static (string Image, string? Profile) ParseImageSource(string source)
+    {
+        string text = Py.Strip(source);
+        if (!text.StartsWith('{'))
+            return (source, null);
+        if (!text.EndsWith('}'))
+            throw new XpsFormatException($"malformed ImageSource markup extension: unbalanced braces in '{source}'");
+        string[] tokens = text[1..^1].Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        if (tokens.Length == 0 || tokens[0] != "ColorConvertedBitmap")
+            throw new XpsFormatException($"unsupported ImageSource markup extension '{source}'");
+        if (tokens.Length != 3)
+            throw new XpsFormatException($"malformed ColorConvertedBitmap '{source}': expected an image and a profile URI");
+        if (tokens[1].AsSpan().IndexOfAny('{', '}') >= 0 || tokens[2].AsSpan().IndexOfAny('{', '}') >= 0)
+            throw new XpsFormatException($"malformed ColorConvertedBitmap '{source}': unbalanced braces");
+        return (tokens[1], tokens[2]);
+    }
+
+    /// <summary>The clip path of a <c>Clip</c> attribute: abbreviated geometry, or a
+    /// <c>{StaticResource key}</c> reference to a <c>PathGeometry</c>, as ECMA-388 allows. For a
+    /// reference the fill rule is the geometry's (EvenOdd by default); otherwise it is null and the
+    /// caller keeps its own.</summary>
+    /// <remarks>Deviation from the original, which parsed a reference as path data and failed the
+    /// element (or the whole conversion). An unresolved reference raises
+    /// <see cref="XpsFormatException"/>.</remarks>
+    internal static (RenderPath Path, string? FillRule) ParseClip(string clip, XpsResourceDictionary? resources, Matrix transform)
+    {
+        if (!IsStaticResource(clip))
+            return (ParsePathData(clip, transform), null);
+        string key = StaticResourceKey(clip);
+        var resource = resources?.Resolve(key) ?? throw new XpsFormatException($"unresolved clip resource '{key}'");
+        var geometry = (resource.Name.LocalName == "PathGeometry" ? resource : XmlUtil.FindDescendant(resource, "PathGeometry"))
+            ?? throw new XpsFormatException($"clip resource '{key}' is not a PathGeometry");
+        string rule = Py.Strip(XmlUtil.Get(geometry, "FillRule") ?? "").ToLowerInvariant() == "nonzero" ? "nonzero" : "evenodd";
+        string? figures = OrNull(XmlUtil.Get(geometry, "Figures"));
+        if (figures is not null)
+        {
+            string compact = Py.LStrip(figures);
+            if (compact.StartsWith("F1", StringComparison.Ordinal))
+                rule = "nonzero";
+            else if (compact.StartsWith("F0", StringComparison.Ordinal))
+                rule = "evenodd";
+            return (ParsePathData(figures, transform), rule);
+        }
+        var (fill, stroke) = ParsePathGeometryVariants(geometry, transform);
+        return (fill ?? stroke ?? new RenderPath(), rule);
+    }
+
     // ---- resource dictionaries -------------------------------------------------------------
 
     internal static XpsResourceDictionary MergeResources(XElement element, XpsResourceDictionary? parent, XpsPackage? package, string? currentPart)

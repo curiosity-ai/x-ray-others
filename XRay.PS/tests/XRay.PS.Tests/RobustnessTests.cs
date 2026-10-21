@@ -123,6 +123,46 @@ public class RobustnessTests
         }
     }
 
+    [Fact]
+    public void Malformed_markup_extensions_fail_cleanly()
+    {
+        const string ns = "http://schemas.microsoft.com/xps/2005/06";
+        const string key = "http://schemas.microsoft.com/xps/2005/06/resourcedictionary-key";
+        string[] imageSources =
+        [
+            "{ColorConvertedBitmap ../Resources/Images/red.png", "{ColorConvertedBitmap ../Resources/Images/red.png}", "{ColorConvertedBitmap}",
+            "{ColorConvertedBitmap", "{}", "{", "}", "{ColorConvertedBitmap a b c}", "{ColorConvertedBitmap {a} b}", "{ColorConvertedBitmap a} b}",
+            "{ColorConvertedBitmap ../Resources/Images/missing.png p.icc}", "{ColorConvertedBitmap ../../../../x.png p.icc}",
+            "{ColorConvertedBitmap ../Resources/Images/red.png ../Resources/Images/red.png}", "{colorconvertedbitmap a b}", "{StaticResource x}",
+            "ColorConvertedBitmap a b}", "{ColorConvertedBitmap ../Resources/Images/bad.png p.icc}",
+        ];
+        string[] references = ["{StaticResource missing}", "{StaticResource brush}", "{StaticResource", "{StaticResource}", "{StaticResource geometry"];
+        var pages = imageSources.Select(DeviationTests.ImageBrushPage).ToList();
+        foreach (string reference in references)
+        {
+            string resources = $"<FixedPage.Resources><ResourceDictionary><SolidColorBrush x:Key=\"brush\" Color=\"#00000000\" /></ResourceDictionary></FixedPage.Resources>";
+            pages.Add($"<FixedPage xmlns=\"{ns}\" xmlns:x=\"{key}\" Width=\"10\" Height=\"10\">{resources}<Canvas Clip=\"{reference}\"><Path Data=\"M 0,0 L 10,0 L 10,10 Z\" Fill=\"#FF0000\" /></Canvas></FixedPage>");
+            pages.Add($"<FixedPage xmlns=\"{ns}\" xmlns:x=\"{key}\" Width=\"10\" Height=\"10\">{resources}<Path Clip=\"{reference}\" OpacityMask=\"{reference}\" Data=\"M 0,0 L 10,0 L 10,10 Z\" Fill=\"#FF0000\" /></FixedPage>");
+        }
+        foreach (string page in pages)
+        {
+            byte[] package = XpsTests.Package(page, ("Documents/1/Resources/Images/red.png", DeviationTests.RedPng(4)), ("Documents/1/Resources/Images/bad.png", [0x89, 0x50, 0x4E, 0x47, 1, 2, 3]));
+            Guard(() => XpsDocument.FromBytes(package).ToPdf());
+            Guard(() => XpsDocument.FromBytes(package).ToImage(new ImageSaveOptions(ImageFormat.Png, 36)));
+            // Suppressed, every malformed reference is skipped and the document still converts.
+            byte[] pdf = XpsDocument.FromBytes(package, TestContext.Current.CancellationToken).ToPdf(new PdfSaveOptions { SuppressErrors = true }, null, TestContext.Current.CancellationToken);
+            Assert.StartsWith("%PDF", System.Text.Encoding.Latin1.GetString(pdf, 0, 4), StringComparison.Ordinal);
+        }
+        // A well-formed ColorConvertedBitmap package, truncated and mutated.
+        byte[] original = XpsTests.Package(DeviationTests.ImageBrushPage("{ColorConvertedBitmap ../Resources/Images/red.png ../Resources/p.icc}"),
+            ("Documents/1/Resources/Images/red.png", DeviationTests.RedPng(4)), ("Documents/1/Resources/p.icc", new byte[16]));
+        foreach (var variant in Variants(original, 7, 100))
+        {
+            Guard(() => XpsDocument.FromBytes(variant).ToPdf());
+            Guard(() => XpsDocument.FromBytes(variant).ToPdf(new PdfSaveOptions { SuppressErrors = true }));
+        }
+    }
+
     [Theory]
     [InlineData("ps/functional/INTRO01/CIRCLE.PS")]
     [InlineData("ps/integration/minimal.ps")]

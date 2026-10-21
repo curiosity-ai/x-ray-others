@@ -11,10 +11,17 @@ namespace XRay.PS.Xps;
 
 public sealed partial class XpsRenderer
 {
-    private static XElement? ExtractOpacityMaskBrush(XElement element, string wrapperName)
+    private static XElement? ExtractOpacityMaskBrush(XElement element, string wrapperName, XpsResourceDictionary? resources)
     {
         var wrapper = XmlUtil.FindChild(element, wrapperName);
-        return wrapper?.Elements().FirstOrDefault();
+        if (wrapper is not null)
+            return wrapper.Elements().FirstOrDefault();
+        // Deviation from the original, which read only the property element: ECMA-388 also allows
+        // OpacityMask="{StaticResource key}", which it ignored, drawing the element unmasked.
+        string? value = XmlUtil.Get(element, "OpacityMask");
+        if (string.IsNullOrEmpty(value) || !IsStaticResource(value))
+            return null;
+        return resources?.Resolve(StaticResourceKey(value));
     }
 
     /// <summary>Renders the canvas children to an image whose alpha is multiplied by the mask.</summary>
@@ -22,7 +29,7 @@ public sealed partial class XpsRenderer
     {
         if (_package is null)
             return false;
-        var maskBrush = ExtractOpacityMaskBrush(element, "Canvas.OpacityMask");
+        var maskBrush = ExtractOpacityMaskBrush(element, "Canvas.OpacityMask", resources);
         if (maskBrush is null)
             return false;
         var page = _builder.ActivePage;
@@ -40,7 +47,8 @@ public sealed partial class XpsRenderer
         if (clip)
         {
             tempBuilder.SaveState();
-            tempBuilder.Clip(ParsePathData(clipData!, paintTransform), ExtractFillRule(element, resources));
+            var (clipPath, clipRule) = ParseClip(clipData!, resources, paintTransform);
+            tempBuilder.Clip(clipPath, clipRule ?? ExtractFillRule(element, resources));
         }
         foreach (var child in XmlUtil.Children(element))
             tempRenderer.RenderElement(child, resources, paintTransform);
@@ -826,7 +834,7 @@ public sealed partial class XpsRenderer
             return 1.0;
         if (!_maskBrushImageCache.TryGetValue(brush, out var cached))
         {
-            var pil = DecodedImage.Open(_package.Read(ResolvePart(_currentPart ?? "/", source))) ?? throw new XpsFormatException("cannot identify image file");
+            var pil = DecodedImage.Open(_package.Read(ResolveImageSource(source))) ?? throw new XpsFormatException("cannot identify image file");
             double dpiX = pil.XDpi ?? 96.0;
             double dpiY = pil.YDpi ?? dpiX;
             var viewbox = ParseRect(XmlUtil.Get(brush, "Viewbox"), (0.0, 0.0, pil.Width, pil.Height));

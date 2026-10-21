@@ -197,6 +197,18 @@ Ghostscript's text) and 20 in the clip rectangle's vertex order only. PS jobs fa
   clockwise instead of having its axes swapped (which mirrored it); `where` finds operators, so
   prologs that define `rectfill`, `selectfont`, ... only when missing now use the built-in (the
   same picture; the clip rectangle's vertices come out in another order).
+- **XPS markup extensions** (ECMA-388; the original read these attributes literally):
+  `ImageSource="{ColorConvertedBitmap image profile}"` draws the image part (relative or absolute,
+  resolved like a plain URI; `ParseImageSource`, `ResolveImageSource`); the profile is not applied
+  (no ICC path for images, as for `ContextColor`), which a `color-profile` `ConversionWarning`
+  records with or without `SuppressErrors`. A malformed extension is an `XpsFormatException`.
+  `Clip="{StaticResource key}"` resolves a `PathGeometry` (`ParseClip`; it failed the element);
+  `OpacityMask="{StaticResource key}"` is applied as the property element is (it was ignored).
+  Not handled (no fixture uses them): a resource reference in a brush `Transform` or in
+  `VisualBrush.Visual`. Of the 62 XPS inputs (PDF strict and suppressed, managed PNG, render
+  model), 59 are byte-identical; `PDFNET-52495` draws its image (it failed, or was blank when
+  suppressed), `print_Problematic` converts without `SuppressErrors` (same picture: the clipped
+  canvases are empty), and `PDFNET-47529`'s checkmark is masked (PDF and model; PNG unchanged).
 - **Not fixed**: Ghostscript's pdfwrite auto-rotates pages with rotated text (`/Rotate 90`), which
   the benchmark reads as an orientation difference; Type 3 text has no text layer (GS embeds
   Type 3 fonts); CMYK is still written as naive RGB; VM `save`/`restore` does not roll back
@@ -205,6 +217,7 @@ Ghostscript's text) and 20 in the clip rectangle's vertex order only. PS jobs fa
 ## Tests
 
 Test count: 136 xUnit tests before the cancellation work (135 run by default), 179 (178 run)
-after it (`CancellationTests` and two robustness cases added), now 218 (217 run) with
-`DeviationTests` and the DOS EPS/PJL robustness cases; ported from the Python `tests/ps`, `xps`, `pdf` and `image` folders (MCP, build and
+after it (`CancellationTests` and two robustness cases added), 218 (217 run) with
+`DeviationTests` and the DOS EPS/PJL robustness cases, now 236 (235 run) with the XPS markup
+extension cases; ported from the Python `tests/ps`, `xps`, `pdf` and `image` folders (MCP, build and
 metrics tests dropped), plus robustness and an opt-in corpus sweep (`XRAY_PS_PARITY=1`).
