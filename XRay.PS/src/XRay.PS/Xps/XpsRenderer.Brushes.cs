@@ -379,7 +379,7 @@ public sealed partial class XpsRenderer
             return null;
         try
         {
-            string partName = ResolvePart(_currentPart ?? "/", source);
+            string partName = ResolveImageSource(source);
             return DecodedImage.Open(_package.Read(partName));
         }
         catch (XpsFormatException)

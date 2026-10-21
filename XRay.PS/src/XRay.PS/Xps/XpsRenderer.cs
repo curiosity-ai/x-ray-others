@@ -31,6 +31,7 @@ public sealed partial class XpsRenderer
     // A solid brush is sampled once per pixel when a stroke is drawn as an image, and parsing its
     // colour every time was most of what an XPS page with such strokes allocated.
     private readonly Dictionary<XElement, (double R, double G, double B)> _solidBrushRgbCache = new(ReferenceEqualityComparer.Instance);
+    private readonly HashSet<(int?, string)> _unappliedProfiles = [];
     private int _depth;
 
     /// <summary>Observed per element.</summary>
@@ -39,7 +40,8 @@ public sealed partial class XpsRenderer
     /// <summary>Skip (with a warning) an element that throws instead of failing the page.</summary>
     public bool SuppressErrors { get; set; }
 
-    /// <summary>Receives a warning for every skipped element.</summary>
+    /// <summary>Receives a warning for every skipped element, and for a colour profile that was
+    /// not applied (code <c>color-profile</c>, recorded whether or not errors are suppressed).</summary>
     public List<ConversionWarning>? Warnings { get; set; }
 
     /// <summary>The one-based number of the page being rendered, for warnings.</summary>
@@ -161,7 +163,7 @@ public sealed partial class XpsRenderer
     private void RenderCanvas(XElement element, XpsResourceDictionary? resources, Matrix combined)
     {
         var canvasResources = MergeResources(element, resources, _package, _currentPart);
-        if (ExtractOpacityMaskBrush(element, "Canvas.OpacityMask") is not null &&
+        if (ExtractOpacityMaskBrush(element, "Canvas.OpacityMask", canvasResources) is not null &&
             TryRenderCanvasOpacityMaskAsImage(element, canvasResources, combined))
         {
             return;
@@ -171,7 +173,8 @@ public sealed partial class XpsRenderer
         if (clip)
         {
             _builder.SaveState();
-            _builder.Clip(ParsePathData(clipData!, combined), ExtractFillRule(element, resources));
+            var (clipPath, clipRule) = ParseClip(clipData!, canvasResources, combined);
+            _builder.Clip(clipPath, clipRule ?? ExtractFillRule(element, resources));
         }
         foreach (var child in XmlUtil.Children(element))
             RenderElement(child, canvasResources, combined);
@@ -204,7 +207,8 @@ public sealed partial class XpsRenderer
         if (clip)
         {
             _builder.SaveState();
-            _builder.Clip(ParsePathData(clipData!, combined), ExtractFillRule(element, resources));
+            var (clipPath, clipRule) = ParseClip(clipData!, resources, combined);
+            _builder.Clip(clipPath, clipRule ?? ExtractFillRule(element, resources));
         }
         void RestoreClip()
         {
@@ -222,7 +226,7 @@ public sealed partial class XpsRenderer
         double? opacity = ParseFloat(XmlUtil.Get(element, "Opacity"));
         if (opacity is double op)
             opacity = Clamp(op, 0.0, 1.0);
-        var maskBrush = fillPath is not null ? ExtractOpacityMaskBrush(element, "Path.OpacityMask") : null;
+        var maskBrush = fillPath is not null ? ExtractOpacityMaskBrush(element, "Path.OpacityMask", resources) : null;
         if (fillPath is not null && maskBrush is not null && stroke is null &&
             TryRenderMaskedSolidFillAsImage(fillPath, pathBBox, fillBrush, maskBrush, combined, opacity ?? 1.0))
         {
@@ -321,13 +325,14 @@ public sealed partial class XpsRenderer
         double fillOpacity = 1.0;
         if (BrushAlpha(ExtractPaintValue(element, "Fill"), resources) is double fillAlpha)
             fillOpacity *= fillAlpha;
-        var maskBrush = ExtractOpacityMaskBrush(element, "Glyphs.OpacityMask");
+        var maskBrush = ExtractOpacityMaskBrush(element, "Glyphs.OpacityMask", resources);
         string? clipData = XmlUtil.Get(element, "Clip");
         bool clip = !string.IsNullOrEmpty(clipData);
         if (clip)
         {
             _builder.SaveState();
-            _builder.Clip(ParsePathData(clipData!, combined), ExtractFillRule(element, resources));
+            var (clipPath, clipRule) = ParseClip(clipData!, resources, combined);
+            _builder.Clip(clipPath, clipRule ?? ExtractFillRule(element, resources));
         }
         bool isSideways = IsTrue(XmlUtil.Get(element, "IsSideways"));
         string style = Py.Strip(XmlUtil.Get(element, "StyleSimulations") ?? "");
@@ -369,11 +374,28 @@ public sealed partial class XpsRenderer
             _builder.RestoreState();
     }
 
+    /// <summary>The package part an image source draws, resolved against the current part. A
+    /// <c>{ColorConvertedBitmap image profile}</c> source draws its image part; the port has no ICC
+    /// transform for images, so the image is drawn as stored and a <c>color-profile</c> warning
+    /// records the profile that was not applied (once per page and profile).</summary>
+    internal string ResolveImageSource(string source)
+    {
+        var (image, profile) = ParseImageSource(source);
+        if (profile is not null)
+        {
+            // Deviation from the original (see ParseImageSource): the image is drawn, unconverted.
+            string profilePart = ResolvePart(_currentPart ?? "/", profile);
+            if (Warnings is not null && _unappliedProfiles.Add((PageNumber, profilePart)))
+                Warnings.Add(new ConversionWarning("xps", "color-profile", $"ColorConvertedBitmap profile {profilePart} not applied; the image is drawn as stored", PageNumber));
+        }
+        return ResolvePart(_currentPart ?? "/", image);
+    }
+
     internal XpsImageResource? LoadImage(string source)
     {
         if (_package is null)
             return null;
-        string partName = ResolvePart(_currentPart ?? "/", source);
+        string partName = ResolveImageSource(source);
         byte[] data = _package.Read(partName);
         if (data.Length >= 8 && data[0] == 0x89 && data[1] == (byte)'P' && data[2] == (byte)'N' && data[3] == (byte)'G' && data[4] == 0x0D && data[5] == 0x0A && data[6] == 0x1A && data[7] == 0x0A)
             return XpsImageDecoders.DecodePng(data);

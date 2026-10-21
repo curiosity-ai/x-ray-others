@@ -2,11 +2,13 @@
 // ("Deviations from the original"): each failure class our render benchmark against Ghostscript
 // found, pinned with a small synthetic input and, where the corpus has one, a real file.
 
+using System.Globalization;
 using System.Text;
 using XRay.PS.Fonts;
 using XRay.PS.Imaging;
 using XRay.PS.PostScript;
 using XRay.PS.Rendering;
+using XRay.PS.Xps;
 
 namespace XRay.PS.Tests;
 
@@ -331,5 +333,164 @@ public class DeviationTests
         string text = string.Concat(model.Pages[0].Commands.OfType<TextCommand>().Select(t => t.Text));
         Assert.Contains("special eggs", text, StringComparison.Ordinal);
         Assert.Contains("Today", text, StringComparison.Ordinal);
+    }
+
+    // ---- XPS markup extensions -------------------------------------------------------------
+
+    private const string XpsNs = "http://schemas.microsoft.com/xps/2005/06";
+    private const string XpsKeyNs = "http://schemas.microsoft.com/xps/2005/06/resourcedictionary-key";
+
+    private static byte[] Utf8(string text) => Encoding.UTF8.GetBytes(text);
+
+    // An opaque red PNG, the image a ColorConvertedBitmap names.
+    internal static byte[] RedPng(int size) => RasterEncoders.EncodePng(RasterSurface.Create(size, size, (255, 0, 0, 255)));
+
+    // A 96x96-unit page whose one path fills the whole page with an image brush.
+    internal static string ImageBrushPage(string imageSource) =>
+        $"<FixedPage xmlns=\"{XpsNs}\" Width=\"96\" Height=\"96\"><Path Data=\"M 0,0 L 96,0 L 96,96 L 0,96 Z\"><Path.Fill>" +
+        $"<ImageBrush ImageSource=\"{imageSource}\" Viewbox=\"0,0,8,8\" ViewboxUnits=\"Absolute\" Viewport=\"0,0,96,96\" ViewportUnits=\"Absolute\" TileMode=\"None\" />" +
+        "</Path.Fill></Path></FixedPage>";
+
+    private static DecodedImage RenderXps(byte[] package, ImageSaveOptions options) =>
+        DecodedImage.Open(XpsDocument.FromBytes(package, Token).ToImage(options, null, Token))!;
+
+    private static (byte R, byte G, byte B) Pixel(DecodedImage image, int x, int y)
+    {
+        byte[] rgb = image.ToRgb();
+        int i = (y * image.Width + x) * 3;
+        return (rgb[i], rgb[i + 1], rgb[i + 2]);
+    }
+
+    private static bool IsRed((byte R, byte G, byte B) p) => p.R > 200 && p.G < 60 && p.B < 60;
+
+    private static bool IsWhite((byte R, byte G, byte B) p) => p.R > 240 && p.G > 240 && p.B > 240;
+
+    [Theory]
+    [InlineData("{ColorConvertedBitmap ../Resources/Images/red.png /Documents/1/Resources/Profiles/p.icc}", true)]
+    [InlineData("{ColorConvertedBitmap /Documents/1/Resources/Images/red.png ../Resources/Profiles/p.icc}", true)]
+    [InlineData("  {ColorConvertedBitmap   ../Resources/Images/red.png\t../Resources/Profiles/p.icc }  ", false)]
+    public void Color_converted_bitmap_image_sources_draw_their_image(string imageSource, bool withProfilePart)
+    {
+        var extra = new List<(string, byte[])> { ("Documents/1/Resources/Images/red.png", RedPng(8)) };
+        if (withProfilePart)
+            extra.Add(("Documents/1/Resources/Profiles/p.icc", new byte[128]));
+        byte[] package = XpsTests.Package(ImageBrushPage(imageSource), [.. extra]);
+        var options = new ImageSaveOptions(ImageFormat.Png, 96);
+        var image = RenderXps(package, options);
+        Assert.True(IsRed(Pixel(image, image.Width / 2, image.Height / 2)));
+        Assert.True(IsRed(Pixel(image, 2, 2)));
+        // The profile is not applied, and the conversion says so, once.
+        var warning = Assert.Single(options.Warnings);
+        Assert.Equal("color-profile", warning.Code);
+        Assert.Contains("/Documents/1/Resources/Profiles/p.icc", warning.Message, StringComparison.Ordinal);
+
+        var pdfOptions = new PdfSaveOptions();
+        byte[] pdf = XpsDocument.FromBytes(package, Token).ToPdf(pdfOptions, null, Token);
+        Assert.Contains("/Subtype /Image", Encoding.Latin1.GetString(pdf), StringComparison.Ordinal);
+        Assert.Equal("color-profile", Assert.Single(pdfOptions.Warnings).Code);
+    }
+
+    [Fact]
+    public void Plain_image_sources_record_no_profile_warning()
+    {
+        byte[] package = XpsTests.Package(ImageBrushPage("../Resources/Images/red.png"), ("Documents/1/Resources/Images/red.png", RedPng(8)));
+        var options = new ImageSaveOptions(ImageFormat.Png, 96);
+        var image = RenderXps(package, options);
+        Assert.True(IsRed(Pixel(image, image.Width / 2, image.Height / 2)));
+        Assert.Empty(options.Warnings);
+    }
+
+    [Theory]
+    [InlineData("{ColorConvertedBitmap ../Resources/Images/red.png")] // unbalanced
+    [InlineData("{ColorConvertedBitmap ../Resources/Images/red.png}")] // no profile
+    [InlineData("{ColorConvertedBitmap}")]
+    [InlineData("{}")]
+    [InlineData("{ColorConvertedBitmap a b c}")]
+    [InlineData("{ColorConvertedBitmap {../Resources/Images/red.png} p.icc}")]
+    [InlineData("{StaticResource red}")] // not allowed for an image source
+    [InlineData("{ColorConvertedBitmap ../Resources/Images/missing.png p.icc}")] // missing image part
+    public void Malformed_color_converted_bitmaps_fail_as_xps_errors_or_are_skipped(string imageSource)
+    {
+        byte[] package = XpsTests.Package(ImageBrushPage(imageSource), ("Documents/1/Resources/Images/red.png", RedPng(8)));
+        Assert.Throws<XpsFormatException>(() => XpsDocument.FromBytes(package, Token).ToPdf(new PdfSaveOptions(), null, Token));
+        // With SuppressErrors the path is skipped with a warning and the page stays blank.
+        var options = new ImageSaveOptions(ImageFormat.Png, 96) { SuppressErrors = true };
+        var image = RenderXps(package, options);
+        Assert.True(IsWhite(Pixel(image, image.Width / 2, image.Height / 2)));
+        Assert.Contains(options.Warnings, w => w.Code == "element");
+    }
+
+    [Fact]
+    public void Color_converted_bitmap_corpus_page_draws_its_image()
+    {
+        var doc = XpsDocument.FromFile(Corpus.File("xps/integration/PDFNET-52495.xps"), Token);
+        var options = new ImageSaveOptions(ImageFormat.Png, 48);
+        var image = DecodedImage.Open(doc.ToImage(options, null, Token))!;
+        byte[] rgb = image.ToRgb();
+        int ink = 0;
+        for (int i = 0; i < rgb.Length; i += 3)
+        {
+            if (rgb[i] < 200 || rgb[i + 1] < 200 || rgb[i + 2] < 200)
+                ink++;
+        }
+        Assert.True(ink > rgb.Length / 3 / 2, $"only {ink} inked pixels");
+        Assert.Equal("color-profile", Assert.Single(options.Warnings).Code);
+        var (_, images) = XpsConverter.BuildRenderDocument(doc, null, true, null, false, null, Token);
+        Assert.NotEmpty(images.Items);
+        Assert.All(images.Items, item => Assert.Equal((1024, 768), (item.Value.Width, item.Value.Height)));
+    }
+
+    [Fact]
+    public void Clip_attributes_resolve_static_resources()
+    {
+        // Was parsed as path data: "could not convert string to float", failing the conversion.
+        string page = $"<FixedPage xmlns=\"{XpsNs}\" xmlns:x=\"{XpsKeyNs}\" Width=\"96\" Height=\"96\"><FixedPage.Resources><ResourceDictionary>" +
+            "<PathGeometry x:Key=\"left\" Figures=\"M 0,0 L 48,0 L 48,96 L 0,96 Z\" /></ResourceDictionary></FixedPage.Resources>" +
+            "<Canvas Clip=\"{StaticResource left}\"><Path Data=\"M 0,0 L 96,0 L 96,96 L 0,96 Z\" Fill=\"#FF0000\" /></Canvas></FixedPage>";
+        var image = RenderXps(XpsTests.Package(page), new ImageSaveOptions(ImageFormat.Png, 96));
+        Assert.True(IsRed(Pixel(image, 10, image.Height / 2)));
+        Assert.True(IsWhite(Pixel(image, image.Width - 10, image.Height / 2)));
+    }
+
+    [Fact]
+    public void Clip_attributes_resolve_static_resource_figures_elements()
+    {
+        string page = $"<FixedPage xmlns=\"{XpsNs}\" xmlns:x=\"{XpsKeyNs}\" Width=\"96\" Height=\"96\"><FixedPage.Resources><ResourceDictionary>" +
+            "<PathGeometry x:Key=\"top\"><PathFigure StartPoint=\"0,0\" IsClosed=\"true\"><PolyLineSegment Points=\"96,0 96,48 0,48\" /></PathFigure></PathGeometry>" +
+            "</ResourceDictionary></FixedPage.Resources>" +
+            "<Path Clip=\"{StaticResource top}\" Data=\"M 0,0 L 96,0 L 96,96 L 0,96 Z\" Fill=\"#FF0000\" /></FixedPage>";
+        var image = RenderXps(XpsTests.Package(page), new ImageSaveOptions(ImageFormat.Png, 96));
+        Assert.True(IsRed(Pixel(image, image.Width / 2, 10)));
+        Assert.True(IsWhite(Pixel(image, image.Width / 2, image.Height - 10)));
+    }
+
+    [Fact]
+    public void Clip_attribute_corpus_file_converts_without_errors()
+    {
+        var options = new PdfSaveOptions();
+        byte[] pdf = XpsDocument.FromFile(Corpus.File("xps/integration/print_Problematic.xps"), Token).ToPdf(options, null, Token);
+        Assert.StartsWith("%PDF", Encoding.Latin1.GetString(pdf, 0, 4), StringComparison.Ordinal);
+        Assert.Empty(options.Warnings);
+    }
+
+    [Fact]
+    public void Opacity_mask_attributes_resolve_static_resources()
+    {
+        // Was ignored: the path was drawn unmasked. Resolved, it renders as the property element does.
+        const string mask = "<LinearGradientBrush{0} MappingMode=\"Absolute\" StartPoint=\"0,0\" EndPoint=\"96,0\"><LinearGradientBrush.GradientStops>" +
+            "<GradientStop Color=\"#FF000000\" Offset=\"0\" /><GradientStop Color=\"#00000000\" Offset=\"1\" /></LinearGradientBrush.GradientStops></LinearGradientBrush>";
+        string head = $"<FixedPage xmlns=\"{XpsNs}\" xmlns:x=\"{XpsKeyNs}\" Width=\"96\" Height=\"96\">";
+        string attribute = head + "<FixedPage.Resources><ResourceDictionary>" + string.Format(CultureInfo.InvariantCulture, mask, " x:Key=\"fade\"") +
+            "</ResourceDictionary></FixedPage.Resources><Path OpacityMask=\"{StaticResource fade}\" Data=\"M 0,0 L 96,0 L 96,96 L 0,96 Z\" Fill=\"#FF0000\" /></FixedPage>";
+        string property = head + "<Path Data=\"M 0,0 L 96,0 L 96,96 L 0,96 Z\" Fill=\"#FF0000\"><Path.OpacityMask>" +
+            string.Format(CultureInfo.InvariantCulture, mask, "") + "</Path.OpacityMask></Path></FixedPage>";
+        string unmasked = head + "<Path Data=\"M 0,0 L 96,0 L 96,96 L 0,96 Z\" Fill=\"#FF0000\" /></FixedPage>";
+        string Model(string page)
+        {
+            var (model, images) = XpsConverter.BuildRenderDocument(XpsDocument.FromBytes(XpsTests.Package(page), Token), null, true, null, false, null, Token);
+            return CanonicalDump.Dump(model) + string.Concat(images.Items.Select(i => Convert.ToHexString(i.Value.Data)));
+        }
+        Assert.Equal(Model(property), Model(attribute));
+        Assert.NotEqual(Model(unmasked), Model(attribute));
     }
 }

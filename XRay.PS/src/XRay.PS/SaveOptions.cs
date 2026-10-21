@@ -35,8 +35,9 @@ public sealed class PdfSaveOptions
     public bool SuppressErrors { get; set; }
 
     /// <summary>Receives a <see cref="ConversionWarning"/> for every error suppressed by
-    /// <see cref="SuppressErrors"/>. Entries are appended, never cleared, so use a fresh
-    /// options object (or clear the list) per document.</summary>
+    /// <see cref="SuppressErrors"/>, and (with or without it) for an XPS colour profile the
+    /// conversion did not apply (code <c>color-profile</c>). Entries are appended, never cleared,
+    /// so use a fresh options object (or clear the list) per document.</summary>
     public List<ConversionWarning> Warnings { get; set; } = [];
 
     /// <summary>Ceilings on the work and memory of a PostScript job (not used for XPS). The
@@ -91,7 +92,8 @@ public sealed class ImageSaveOptions
     /// <see cref="PdfSaveOptions.SuppressErrors"/>. XPS: skip unrenderable elements.</summary>
     public bool SuppressErrors { get; set; }
 
-    /// <summary>Receives a warning for every error suppressed by <see cref="SuppressErrors"/>.</summary>
+    /// <summary>Receives a warning for every error suppressed by <see cref="SuppressErrors"/>, and
+    /// for an XPS colour profile the conversion did not apply (code <c>color-profile</c>).</summary>
     public List<ConversionWarning> Warnings { get; set; } = [];
 
     /// <summary>Ceilings on the work and memory of a PostScript job; the defaults when null. For
