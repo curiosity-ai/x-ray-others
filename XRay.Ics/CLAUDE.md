@@ -12,6 +12,14 @@ Parity with the commercial library that consumer used is **unverified**: no refe
 available. `GoldenTests` compares against reference JSON/HTML when it is dropped into
 `test_documents/ics/golden/` (or `XRAY_ICS_GOLDEN`); the format is in that file's comment.
 
+## Documentation lives in curiosity-ai/documentation
+
+The docs for X-Ray.Ics are the `x-ray/ics/` folder of
+[curiosity-ai/documentation](https://github.com/curiosity-ai/documentation), not this repository.
+A change to its public API, options, defaults, behavior, limits or licence is not finished until
+that page is updated; open that PR there and link it from the code PR. The root `CLAUDE.md` has
+the full rule.
+
 ## Layout
 
 | Path | What |

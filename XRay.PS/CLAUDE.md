@@ -6,6 +6,14 @@ Read this file before any task here. Keep it under 20,000 bytes.
 PostScript/XPS library (see `LICENSE`, kept verbatim, and `NOTICE`). The Python source is a separate checkout (agents find it next to the other family clones; ask the
 coordinator for its path). It is the behavioural reference: read it, never edit it.
 
+## Documentation lives in curiosity-ai/documentation
+
+The docs for X-Ray.PS are the `x-ray/ps/` folder of
+[curiosity-ai/documentation](https://github.com/curiosity-ai/documentation), not this repository.
+A change to its public API, options, defaults, behavior, limits or licence is not finished until
+that page is updated; open that PR there and link it from the code PR. The root `CLAUDE.md` has
+the full rule.
+
 ## Packages and layout
 
 | Path | What |

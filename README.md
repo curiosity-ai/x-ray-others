@@ -1,6 +1,6 @@
 # X-Ray: other formats
 
-[![Docs](https://img.shields.io/badge/docs-xray.curiosity.ai-007ec6)](https://xray.curiosity.ai/)
+[![Docs](https://img.shields.io/badge/docs-docs.curiosity.ai%2Fx--ray-007ec6)](https://docs.curiosity.ai/x-ray/)
 
 Part of the [X-Ray](https://github.com/curiosity-ai/x-ray) family: modern, pure C# NuGet packages
 for .NET 10 that extract content from documents, render them to PDF and images, and handle
