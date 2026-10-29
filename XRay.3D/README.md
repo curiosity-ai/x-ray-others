@@ -41,6 +41,7 @@ A command line tool lives in `tools/XRay.ThreeD.Cli`: `xray3d info <file> [--jso
 | 3MF | `.3mf` | title, designer, units, materials | objects, components, build transforms, base-material colours |
 | AutoCAD DXF | `.dxf` (ASCII) | version, units, layers (colour, visibility), blocks, text, entity counts, dates | one node per layer; lines, polylines, arcs, splines, hatch outlines as lines; 3D faces, polyface meshes, MESH, solids as triangles; blocks and arrays expanded |
 | STEP | `.step` `.stp` `.p21` | header, product tree, descriptions, versions, materials, layers, units | B-rep faces triangulated (planes, quadrics, tori, B-spline, revolution, extrusion; faceted B-reps), NAUO assembly instances, STYLED_ITEM colours; area and volume match OpenCASCADE within 0.3% |
+| IFC | `.ifc` `.ifczip` (STEP physical file) | header, schema, units, project/site/building/storey tree, GlobalIds, property sets and quantities (node extras), materials | face sets (triangulated, polygonal), faceted B-reps and surface models, extruded solids (rectangle, circle, hollow, polyline and indexed-curve profiles with voids), mapped items, local placement chains; other representations leave a node and a warning |
 | FBX | `.fbx` (binary, ASCII) | scene, node and material names | meshes, node transforms, materials |
 | COLLADA | `.dae` | asset, units, up axis, node names | geometry, scene graph, effect colours |
 | X3D / VRML | `.x3d` `.wrl` | titles, meta, DEF names | shapes, transforms, colours |

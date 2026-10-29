@@ -42,6 +42,8 @@ public static class ModelFormats
 
     public static FormatInfo Step { get; } = new("step", "STEP (ISO 10303-21)", "cad", [".step", ".stp", ".p21"], FormatSupport.Full);
 
+    public static FormatInfo Ifc { get; } = new("ifc", "IFC (BIM)", "bim", [".ifc", ".ifczip"], FormatSupport.Full);
+
     public static FormatInfo Dxf { get; } = new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Full);
 
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
@@ -54,7 +56,7 @@ public static class ModelFormats
         new("parasolid", "Parasolid", "cad", [".x_t", ".x_b", ".xmt_txt", ".xmt_bin"], FormatSupport.Identified),
         new("jt", "JT", "cad", [".jt"], FormatSupport.Identified),
         new("dwg", "AutoCAD DWG", "cad", [".dwg"], FormatSupport.Identified),
-        new("ifc", "IFC (BIM)", "bim", [".ifc", ".ifcxml", ".ifczip"], FormatSupport.Identified),
+        new("ifcxml", "IFC XML", "bim", [".ifcxml"], FormatSupport.Identified),
         new("rhino", "Rhino 3DM", "cad", [".3dm"], FormatSupport.Identified),
         new("x3dv", "X3D classic encoding", "scene", [".x3dv"], FormatSupport.Identified),
         new("sketchup", "SketchUp", "cad", [".skp"], FormatSupport.Identified),
@@ -82,7 +84,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows. Entries are not searched yet.</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Identified);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -165,7 +167,7 @@ public static class ModelFormats
 
         if (StartsWith(head, "ISO-10303-21"))
         {
-            return Contains(data.Span, "FILE_SCHEMA", "IFC") ? Find("ifc") : Step;
+            return Contains(data.Span, "FILE_SCHEMA", "IFC") ? Ifc : Step;
         }
 
         if (head.Length >= 2 && head[0] == 'P' && head[1] == 'K')
@@ -247,6 +249,11 @@ public static class ModelFormats
             if (names.Any(n => n.EndsWith(".amf", StringComparison.OrdinalIgnoreCase)) && names.Count <= 3)
             {
                 return Amf;
+            }
+
+            if (names.Count <= 3 && names.Any(n => n.EndsWith(".ifc", StringComparison.OrdinalIgnoreCase)))
+            {
+                return Ifc;
             }
 
             if (names.Contains("Document.xml", StringComparer.Ordinal))

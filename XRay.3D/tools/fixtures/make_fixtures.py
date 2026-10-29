@@ -469,3 +469,131 @@ def fbx_ascii_node(node, indent=0):
     return line + '\n'
 
 write('scene-ascii.fbx', '; FBX 7.4.0 project file\n' + ''.join(fbx_ascii_node(nd) for nd in fbx_tree(False)))
+
+# ---- IFC: a small building (millimetres). Project > site > building > storey; a wall and a slab and a column (extruded profiles),
+# a cube as a triangulated face set, a faceted B-rep tetrahedron, a polygonal face set, a mapped item used twice, a pipe the reader
+# cannot draw (swept disk), property sets and quantities, a surface colour and a material.
+class Ifc:
+    def __init__(self): self.lines = []
+    def add(self, text):
+        self.lines.append(text)
+        return '#%d' % len(self.lines)
+
+def make_ifc():
+    f = Ifc(); a = f.add
+    owner = a("IFCOWNERHISTORY($,$,$,.ADDED.,$,$,$,0)")
+    origin = a("IFCCARTESIANPOINT((0.,0.,0.))")
+    z = a("IFCDIRECTION((0.,0.,1.))"); x = a("IFCDIRECTION((1.,0.,0.))")
+    world = a("IFCAXIS2PLACEMENT3D(%s,%s,%s)" % (origin, z, x))
+    ctx = a("IFCGEOMETRICREPRESENTATIONCONTEXT($,'Model',3,1.E-05,%s,$)" % world)
+    length = a("IFCSIUNIT(*,.LENGTHUNIT.,.MILLI.,.METRE.)")
+    area = a("IFCSIUNIT(*,.AREAUNIT.,$,.SQUARE_METRE.)")
+    units = a("IFCUNITASSIGNMENT((%s,%s))" % (length, area))
+    project = a("IFCPROJECT('0Fixture000000000000P1',%s,'Fixture house','A small test building',$,'Fixture house, long name',$,(%s),%s)" % (owner, ctx, units))
+
+    def place(rel, loc, axis=None, ref=None):
+        pt = a("IFCCARTESIANPOINT((%s))" % ','.join('%g.' % c if float(c) == int(c) else repr(c) for c in loc))
+        ax = a("IFCAXIS2PLACEMENT3D(%s,%s,%s)" % (pt, axis or '$', ref or '$'))
+        return a("IFCLOCALPLACEMENT(%s,%s)" % (rel or '$', ax))
+
+    site_p = place(None, (0, 0, 0))
+    site = a("IFCSITE('0Fixture00000000000S01',%s,'Plot',$,$,%s,$,$,.ELEMENT.,$,$,$,$,$)" % (owner, site_p))
+    bld_p = place(site_p, (1000, 2000, 0))
+    bld = a("IFCBUILDING('0Fixture0000000000B001',%s,'House',$,$,%s,$,$,.ELEMENT.,$,$,$)" % (owner, bld_p))
+    st_p = place(bld_p, (0, 0, 3000))
+    storey = a("IFCBUILDINGSTOREY('0Fixture00000000000ST1',%s,'Level 1',$,$,%s,$,$,.ELEMENT.,3000.)" % (owner, st_p))
+    a("IFCRELAGGREGATES('0FixtureRel00000000A01',%s,$,$,%s,(%s))" % (owner, project, site))
+    a("IFCRELAGGREGATES('0FixtureRel00000000A02',%s,$,$,%s,(%s))" % (owner, site, bld))
+    a("IFCRELAGGREGATES('0FixtureRel00000000A03',%s,$,$,%s,(%s))" % (owner, bld, storey))
+
+    def body(items, kind='SweptSolid'):
+        rep = a("IFCSHAPEREPRESENTATION(%s,'Body','%s',(%s))" % (ctx, kind, ','.join(items)))
+        return a("IFCPRODUCTDEFINITIONSHAPE($,$,(%s))" % rep)
+
+    def pl2(x0=0., y0=0.):
+        p = a("IFCCARTESIANPOINT((%g.,%g.))" % (x0, y0))
+        return a("IFCAXIS2PLACEMENT2D(%s,$)" % p)
+
+    def extrude(profile, depth, direction=None):
+        d = direction or z
+        return a("IFCEXTRUDEDAREASOLID(%s,%s,%s,%g.)" % (profile, world, d, depth))
+
+    products = []
+    # Wall: 4000 x 200 rectangle, 3000 high, at the storey origin; colour and material
+    wall_shape = body([extrude(a("IFCRECTANGLEPROFILEDEF(.AREA.,'Wall 4000x200',%s,4000.,200.)" % pl2(2000., 100.)), 3000)])
+    wall = a("IFCWALL('0Fixture00000000WALL01',%s,'Exterior wall','North wall','Basic Wall:Exterior',%s,%s,'W-01',.STANDARD.)" % (owner, place(st_p, (0, 0, 0)), wall_shape))
+    products.append(wall)
+    # Slab: an L-shaped polyline profile, 250 thick, hanging below the storey level
+    pts = [(0, 0), (6000, 0), (6000, 3000), (3000, 3000), (3000, 5000), (0, 5000), (0, 0)]
+    poly = a("IFCPOLYLINE((%s))" % ','.join(a("IFCCARTESIANPOINT((%g.,%g.))" % p) for p in pts))
+    slab_shape = body([extrude(a("IFCARBITRARYCLOSEDPROFILEDEF(.AREA.,'L slab',%s)" % poly), 250, a("IFCDIRECTION((0.,0.,-1.))"))])
+    slab = a("IFCSLAB('0Fixture0000000SLAB001',%s,'Floor slab',$,$,%s,%s,$,.FLOOR.)" % (owner, place(st_p, (0, 0, 0)), slab_shape))
+    products.append(slab)
+    # Column: circle profile r=150, 2800 high, with a rotated placement
+    col_shape = body([extrude(a("IFCCIRCLEPROFILEDEF(.AREA.,'Round 300',%s,150.)" % pl2()), 2800)])
+    column = a("IFCCOLUMN('0Fixture000000COLUMN01',%s,'Column C1',$,$,%s,%s,$,$)" % (owner, place(st_p, (5800, 2800, 0)), col_shape))
+    products.append(column)
+    # A cube of 500 as a triangulated face set
+    V = [(0,0,0),(500,0,0),(500,500,0),(0,500,0),(0,0,500),(500,0,500),(500,500,500),(0,500,500)]
+    coords = a("IFCCARTESIANPOINTLIST3D((%s))" % ','.join('(%g.,%g.,%g.)' % v for v in V))
+    tri = a("IFCTRIANGULATEDFACESET(%s,$,.T.,(%s),$)" % (coords, ','.join('(%d,%d,%d)' % (i+1, j+1, k+1) for i, j, k in T)))
+    box = a("IFCBUILDINGELEMENTPROXY('0Fixture0000000PROXY01',%s,'Crate',$,$,%s,%s,$,$)" % (owner, place(st_p, (1000, 1000, 0)), body([tri], 'Tessellation')))
+    products.append(box)
+    # Tetrahedron as a faceted B-rep (outward winding)
+    tv = [a("IFCCARTESIANPOINT((%s))" % c) for c in ('0.,0.,0.', '600.,0.,0.', '0.,600.,0.', '0.,0.,600.')]
+    def face(i, j, k):
+        loop = a("IFCPOLYLOOP((%s,%s,%s))" % (tv[i], tv[j], tv[k]))
+        return a("IFCFACE((%s))" % a("IFCFACEOUTERBOUND(%s,.T.)" % loop))
+    shell = a("IFCCLOSEDSHELL((%s))" % ','.join([face(0, 2, 1), face(0, 1, 3), face(0, 3, 2), face(1, 2, 3)]))
+    brep = a("IFCFACETEDBREP(%s)" % shell)
+    tetra = a("IFCBUILDINGELEMENTPROXY('0Fixture00000000BREP001',%s,'Tetrahedron',$,$,%s,%s,$,$)" % (owner, place(st_p, (2500, 1000, 0)), body([brep], 'Brep')))
+    products.append(tetra)
+    # A square pyramid base as a polygonal face set (IFC4): one quad and four triangles
+    pc = a("IFCCARTESIANPOINTLIST3D(((0.,0.,0.),(400.,0.,0.),(400.,400.,0.),(0.,400.,0.),(200.,200.,300.)))")
+    faces = [a("IFCINDEXEDPOLYGONALFACE((%s))" % c) for c in ('1,4,3,2', '1,2,5', '2,3,5', '3,4,5', '4,1,5')]
+    pfs = a("IFCPOLYGONALFACESET(%s,.T.,(%s),$)" % (pc, ','.join(faces)))
+    pyramid = a("IFCBUILDINGELEMENTPROXY('0Fixture000000PYRAMID01',%s,'Pyramid',$,$,%s,%s,$,$)" % (owner, place(st_p, (3500, 1000, 0)), body([pfs], 'Tessellation')))
+    products.append(pyramid)
+    # A mapped item, instanced twice: a 300 x 300 x 500 post
+    post = extrude(a("IFCRECTANGLEPROFILEDEF(.AREA.,'Post',%s,300.,300.)" % pl2()), 500)
+    rep = a("IFCSHAPEREPRESENTATION(%s,'Body','SweptSolid',(%s))" % (ctx, post))
+    source = a("IFCREPRESENTATIONMAP(%s,%s)" % (world, rep))
+    for n, (px, py) in enumerate([(4500, 4000), (5200, 4000)]):
+        op = a("IFCCARTESIANTRANSFORMATIONOPERATOR3D($,$,%s,1.,$)" % a("IFCCARTESIANPOINT((%g.,%g.,0.))" % (px, py)))
+        mapped = a("IFCMAPPEDITEM(%s,%s)" % (source, op))
+        products.append(a("IFCFURNISHINGELEMENT('0Fixture00000000POST%03d',%s,'Post %d',$,$,%s,%s,$)" % (n + 1, owner, n + 1, place(st_p, (0, 0, 0)), body([mapped], 'MappedRepresentation'))))
+    # A pipe: a swept disk solid the reader reports and does not draw
+    cpts = a("IFCPOLYLINE((%s))" % ','.join(a("IFCCARTESIANPOINT((%s))" % c) for c in ('0.,0.,0.', '0.,0.,1000.', '800.,0.,1000.')))
+    swept = a("IFCSWEPTDISKSOLID(%s,50.,$,$,$)" % cpts)
+    products.append(a("IFCPIPESEGMENT('0Fixture0000000PIPE0001',%s,'Pipe',$,$,%s,%s,$,.RIGIDSEGMENT.)" % (owner, place(st_p, (500, 3500, 100)), body([swept], 'AdvancedSweptSolid'))))
+    # A product without any representation, outside the spatial tree's geometry
+    products.append(a("IFCFURNISHINGELEMENT('0Fixture0000000EMPTY001',%s,'Placeholder',$,$,%s,$,$)" % (owner, place(st_p, (0, 0, 0)))))
+    a("IFCRELCONTAINEDINSPATIALSTRUCTURE('0FixtureRel00000000C01',%s,$,$,(%s),%s)" % (owner, ','.join(products), storey))
+
+    # Properties: wall common set and base quantities
+    fire = a("IFCPROPERTYSINGLEVALUE('FireRating',$,IFCLABEL('2HR'),$)")
+    ext = a("IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.T.),$)")
+    u = a("IFCPROPERTYSINGLEVALUE('ThermalTransmittance',$,IFCTHERMALTRANSMITTANCEMEASURE(0.35),$)")
+    pset = a("IFCPROPERTYSET('0FixturePset0000000001',%s,'Pset_WallCommon',$,(%s,%s,%s))" % (owner, fire, ext, u))
+    q1 = a("IFCQUANTITYLENGTH('Length',$,$,4000.,$)")
+    q2 = a("IFCQUANTITYAREA('NetSideArea',$,$,12.,$)")
+    qto = a("IFCELEMENTQUANTITY('0FixtureQto0000000001',%s,'Qto_WallBaseQuantities',$,$,(%s,%s))" % (owner, q1, q2))
+    a("IFCRELDEFINESBYPROPERTIES('0FixtureRel00000000D01',%s,$,$,(%s),%s)" % (owner, wall, pset))
+    a("IFCRELDEFINESBYPROPERTIES('0FixtureRel00000000D02',%s,$,$,(%s),%s)" % (owner, wall, qto))
+    mat = a("IFCMATERIAL('Brick',$,$)")
+    a("IFCRELASSOCIATESMATERIAL('0FixtureRel00000000M01',%s,$,$,(%s),%s)" % (owner, wall, mat))
+    # Colour the wall's solid
+    solid = [l for l in f.lines if l.startswith('IFCEXTRUDEDAREASOLID')][0]
+    colour = a("IFCCOLOURRGB($,0.8,0.3,0.2)")
+    rendering = a("IFCSURFACESTYLERENDERING(%s,0.,$,$,$,$,$,$,.FLAT.)" % colour)
+    style = a("IFCSURFACESTYLE('Brick red',.BOTH.,(%s))" % rendering)
+    wall_solid = '#%d' % (1 + [i for i, l in enumerate(f.lines) if l.startswith('IFCEXTRUDEDAREASOLID')][0])
+    a("IFCSTYLEDITEM(%s,(%s),$)" % (wall_solid, style))
+
+    text = ("ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');\n"
+            "FILE_NAME('building.ifc','2025-03-04T10:20:30',('Fixture Author'),('Fixture Org'),'Fixture preprocessor','Fixture Modeller 1.0','');\n"
+            "FILE_SCHEMA(('IFC4'));\nENDSEC;\nDATA;\n")
+    text += ''.join('#%d=%s;\n' % (i + 1, l) for i, l in enumerate(f.lines))
+    return text + "ENDSEC;\nEND-ISO-10303-21;\n"
+
+write('building.ifc', make_ifc())

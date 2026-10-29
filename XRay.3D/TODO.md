@@ -30,7 +30,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 - [x] STEP (B-rep, assembly, colours, layers, units; open: AP242 tessellated entities, mapped items): assembly tree (PRODUCT, NEXT_ASSEMBLY_USAGE_OCCURRENCE), names, units, colours, layers, properties; metadata first (S-M), then a B-rep tessellator (XL: NURBS, trimmed surfaces); start with faceted and AP242 tessellated geometry
 - [x] DXF (ASCII): layers, units (`$INSUNITS` per the AutoCAD table; the reference viewer maps 4, 5 and 6 all to mm), blocks and arrays, lines/polylines/arcs/splines/hatch outlines, 3D faces, polyface and MESH; checked against ezdxf. Open: binary DXF, hatch fills, text as geometry, ACIS solids
 - [ ] DWG: wrap or port a pure-C# reader (the viewer's own TypeScript fallback decoder is a readable reference); layers, blocks, units
-- [ ] IFC (STEP physical file): names, GUIDs, property sets, spatial tree (the reference viewer drops these); geometry needs an extrusion/CSG kernel (XL)
+- [x] IFC (STEP physical file): spatial tree, names, GUIDs, property sets and quantities, units, styles; face sets, faceted B-reps, extrusions, mapped items. Open: openings and boolean operations (first operand drawn), swept disks, revolved and B-spline solids, IfcXML
 - [x] FBX, COLLADA, 3DS, USDA, VRML/X3D, OFF, AMF (open: USDC/USDZ)
 - [ ] FreeCAD (`.FCStd`: zip with `Document.xml` and BREP/mesh parts), OpenSCAD (needs a CSG kernel; metadata only first), Sweet Home 3D (zip of Java-serialised home, models as OBJ)
 - [ ] Rhino 3DM: layers, materials, block instances, stored render meshes; warn rather than mesh B-reps

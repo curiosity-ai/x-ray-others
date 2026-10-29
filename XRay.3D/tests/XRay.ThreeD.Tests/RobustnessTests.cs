@@ -36,6 +36,7 @@ public class RobustnessTests
         "synthetic/cloud-compressed.pcd",
         "synthetic/cloud-ascii.pcd",
         "synthetic/cloud.pts",
+        "synthetic/building.ifc",
     ];
 
     public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });

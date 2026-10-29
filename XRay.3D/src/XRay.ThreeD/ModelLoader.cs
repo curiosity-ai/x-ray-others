@@ -39,6 +39,7 @@ public static class ModelLoader
             "solidworks" => SolidWorksReader.ReadMetadata(d, o.Cancellation),
             "las" => Formats.PointCloud.LasReader.ReadMetadata(d),
             "step" => Formats.Step.StepReader.ReadMetadata(d, o),
+            "ifc" => Formats.Bim.IfcReader.ReadMetadata(d, o),
             _ => Dispatch(format, d, o).Metadata,
         });
     }
@@ -174,6 +175,7 @@ public static class ModelLoader
         "fbx" => FbxReader.Read(data, options),
         "usd" => UsdaReader.Read(data, options),
         "step" => Formats.Step.StepReader.Read(data, options),
+        "ifc" => Formats.Bim.IfcReader.Read(data, options),
         "x3d" => X3dReader.ReadXml(data, options),
         "vrml" => X3dReader.ReadVrml(data, options),
         "off" => OffReader.Read(data, options),
