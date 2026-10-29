@@ -37,6 +37,8 @@ public class RobustnessTests
         "synthetic/cloud-ascii.pcd",
         "synthetic/cloud.pts",
         "synthetic/building.ifc",
+        "synthetic/part.igs",
+        "iges/slewing-ring.iges",
     ];
 
     public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });

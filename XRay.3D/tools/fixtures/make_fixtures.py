@@ -597,3 +597,42 @@ def make_ifc():
     return text + "ENDSEC;\nEND-ISO-10303-21;\n"
 
 write('building.ifc', make_ifc())
+
+# ---- IGES: fixed 80-column records. A line moved by a transformation matrix (red, level 1), a blue line on level 2, a full circle,
+# a 3D path (copious data form 12), a rational quadratic quarter circle (exact, so the sampled radius can be checked), and a line flagged
+# as a 2D parametric curve that must not be drawn. Global section with explicit delimiters and hollerith strings.
+def make_iges():
+    def h(t): return '%dH%s' % (len(t), t)
+    def rec(body, section, n): return '%-72s%s%7d\n' % (body, section, n)
+    start = ['IGES fixture: lines, an arc, a path and a spline', 'written by tools/fixtures/make_fixtures.py']
+    fields = ['1H,', '1H;', h('fixture-part'), h('fixture.igs'), h('XRay fixture'), h('v1.0.0'), '32', '38', '6', '308', '15', h('fixture-part'),
+              '1.', '2', h('MM'), '1', '0.1', h('20250304.102030'), '1.E-06', '1000.', h('Author Doe'), h('Org Corp'), '11', '0', h('20250305.000000')]
+    g = ','.join(fields) + ';'
+    g_lines = [g[i:i + 72] for i in range(0, len(g), 72)]
+    entities = []  # (type, params, level, color, xform, form, use)
+    def ent(t, params, level=0, color=0, xform=0, form=0, use=0): entities.append((t, params, level, color, xform, form, use))
+    ent(124, [1., 0., 0., 100., 0., 1., 0., 0., 0., 0., 1., 0.])
+    ent(110, [0., 0., 0., 10., 0., 0.], level=1, color=2, xform=1)
+    ent(110, [0., 0., 0., 0., 10., 0.], level=2, color=4)
+    ent(100, [5., 0., 0., 10., 0., 10., 0.])
+    ent(106, [2, 3, 0., 0., 0., 5., 0., 5., 10., 0., 0.], form=12)
+    ent(126, [2, 2, 0, 0, 0, 0, 0., 0., 0., 1., 1., 1., 1., 0.7071067811865476, 1., 1., 0., 0., 1., 1., 0., 0., 1., 0., 0., 1., 0., 0., 1.], level=3, color=3)
+    ent(110, [50., 50., 0., 60., 60., 0.], use=5)
+    d_lines = []; p_lines = []; seq = 1
+    for i, (t, params, level, color, xform, form, use) in enumerate(entities):
+        de = 2 * i + 1
+        text = ','.join([str(t)] + [('%d' % v) if isinstance(v, int) else repr(v) for v in params]) + ';'
+        chunks = [text[k:k + 64] for k in range(0, len(text), 64)]
+        first = seq
+        for c in chunks:
+            p_lines.append('%-64s%8d' % (c, de) + 'P%7d\n' % seq)
+            seq += 1
+        d_lines.append('%8d%8d%8d%8d%8d%8d%8d%8d%08d' % (t, first, 0, 0, level, 0, xform, 0, use * 100) + 'D%7d\n' % de)
+        d_lines.append('%8d%8d%8d%8d%8d%8d%8d%-8s%8d' % (t, 0, color, len(chunks), form, 0, 0, '', 0) + 'D%7d\n' % (de + 1))
+    out = ''.join(rec(s, 'S', i + 1) for i, s in enumerate(start))
+    out += ''.join(rec(l, 'G', i + 1) for i, l in enumerate(g_lines))
+    out += ''.join(d_lines) + ''.join(p_lines)
+    out += 'S%7dG%7dD%7dP%7d%40sT%7d\n' % (len(start), len(g_lines), len(d_lines), len(p_lines), '', 1)
+    return out
+
+write('part.igs', make_iges())

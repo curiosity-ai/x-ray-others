@@ -42,13 +42,14 @@ A command line tool lives in `tools/XRay.ThreeD.Cli`: `xray3d info <file> [--jso
 | AutoCAD DXF | `.dxf` (ASCII) | version, units, layers (colour, visibility), blocks, text, entity counts, dates | one node per layer; lines, polylines, arcs, splines, hatch outlines as lines; 3D faces, polyface meshes, MESH, solids as triangles; blocks and arrays expanded |
 | STEP | `.step` `.stp` `.p21` | header, product tree, descriptions, versions, materials, layers, units | B-rep faces triangulated (planes, quadrics, tori, B-spline, revolution, extrusion; faceted B-reps), NAUO assembly instances, STYLED_ITEM colours; area and volume match OpenCASCADE within 0.3% |
 | IFC | `.ifc` `.ifczip` (STEP physical file) | header, schema, units, project/site/building/storey tree, GlobalIds, property sets and quantities (node extras), materials | face sets (triangulated, polygonal), faceted B-reps and surface models, extruded solids (rectangle, circle, hollow, polyline and indexed-curve profiles with voids), mapped items, local placement chains; other representations leave a node and a warning |
+| IGES | `.igs` `.iges` | start and global sections (names, units, author, dates, version), entity counts by type | lines, arcs, copious-data paths and rational B-spline curves sampled as line meshes by level and colour, placed by transformation matrices; surfaces and B-rep faces are counted and reported, not tessellated |
 | FBX | `.fbx` (binary, ASCII) | scene, node and material names | meshes, node transforms, materials |
 | COLLADA | `.dae` | asset, units, up axis, node names | geometry, scene graph, effect colours |
 | X3D / VRML | `.x3d` `.wrl` | titles, meta, DEF names | shapes, transforms, colours |
 | USD | `.usda` | stage metadata, prim names, units | meshes, xforms, display colours |
 | 3DS, AMF, OFF | `.3ds` `.amf` `.off` | names, units, materials | triangles, colours |
 | Point clouds | `.las` `.pcd` `.xyz` `.pts` | header, point counts, bounds, CRS where given | points with colours |
-| Recognised only | IGES, DWG, IFC, 3DM, ... | the format is named | `UnsupportedModelFormatException` |
+| Recognised only | DWG, 3DM, ... | the format is named | `UnsupportedModelFormatException` |
 
 `ModelFormats.All` lists everything the library can name. Detection looks at the content first (magic bytes, ZIP
 entry names) and the file name second.

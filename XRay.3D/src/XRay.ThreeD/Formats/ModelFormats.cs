@@ -44,6 +44,8 @@ public static class ModelFormats
 
     public static FormatInfo Ifc { get; } = new("ifc", "IFC (BIM)", "bim", [".ifc", ".ifczip"], FormatSupport.Full);
 
+    public static FormatInfo Iges { get; } = new("iges", "IGES", "cad", [".iges", ".igs"], FormatSupport.Full);
+
     public static FormatInfo Dxf { get; } = new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Full);
 
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
@@ -51,7 +53,6 @@ public static class ModelFormats
     /// <summary>Formats that are recognised but not yet read. See TODO.md for the order they are planned in.</summary>
     private static readonly FormatInfo[] Identified =
     [
-        new("iges", "IGES", "cad", [".iges", ".igs"], FormatSupport.Identified),
         new("sat", "ACIS SAT", "cad", [".sat", ".sab"], FormatSupport.Identified),
         new("parasolid", "Parasolid", "cad", [".x_t", ".x_b", ".xmt_txt", ".xmt_bin"], FormatSupport.Identified),
         new("jt", "JT", "cad", [".jt"], FormatSupport.Identified),
@@ -84,7 +85,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows. Entries are not searched yet.</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Identified);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -118,6 +119,11 @@ public static class ModelFormats
         if (StartsWith(head, "AutoCAD Binary DXF") || LooksLikeDxf(head))
         {
             return Dxf;
+        }
+
+        if (Formats.Cad.IgesReader.Sniff(head))
+        {
+            return Iges;
         }
 
         if (StartsWith(head, "LASF"))
