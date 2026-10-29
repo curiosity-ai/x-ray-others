@@ -111,6 +111,7 @@ static object Summary(ModelMetadata m) => new
     title = m.Title,
     units = m.Units?.ToString(),
     hasGeometry = m.HasGeometry,
+    bounds = m.Bounds is { } b ? new { min = new[] { b.Min.X, b.Min.Y, b.Min.Z }, max = new[] { b.Max.X, b.Max.Y, b.Max.Z } } : null,
     statistics = m.Statistics,
     parts = m.PartNames,
     layers = m.LayerNames,
@@ -128,6 +129,11 @@ static void Print(ModelMetadata m)
     Console.WriteLine($"Title:        {m.Title}");
     Console.WriteLine($"Units / up:   {m.Units?.ToString() ?? "?"} / {m.UpAxis?.ToString() ?? "?"}");
     Console.WriteLine($"Geometry:     {(m.HasGeometry ? "yes" : "no")}  {m.Statistics}");
+    if (m.Bounds is { } box)
+    {
+        Console.WriteLine($"Bounds:       {box.Min} .. {box.Max}");
+    }
+
     PrintList("Parts", m.PartNames);
     PrintList("Layers", m.LayerNames);
     PrintList("Sheets", m.Sheets);

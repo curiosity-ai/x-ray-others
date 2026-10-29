@@ -16,6 +16,8 @@ public static class ModelFormats
 
     public static FormatInfo Gltf { get; } = new("gltf", "glTF 2.0", "scene", [".gltf", ".glb"], FormatSupport.Full);
 
+    public static FormatInfo Dxf { get; } = new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Full);
+
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
 
     /// <summary>Formats that are recognised but not yet read. See TODO.md for the order they are planned in.</summary>
@@ -26,7 +28,6 @@ public static class ModelFormats
         new("sat", "ACIS SAT", "cad", [".sat", ".sab"], FormatSupport.Identified),
         new("parasolid", "Parasolid", "cad", [".x_t", ".x_b", ".xmt_txt", ".xmt_bin"], FormatSupport.Identified),
         new("jt", "JT", "cad", [".jt"], FormatSupport.Identified),
-        new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Identified),
         new("dwg", "AutoCAD DWG", "cad", [".dwg"], FormatSupport.Identified),
         new("ifc", "IFC (BIM)", "bim", [".ifc", ".ifcxml", ".ifczip"], FormatSupport.Identified),
         new("rhino", "Rhino 3DM", "cad", [".3dm"], FormatSupport.Identified),
@@ -60,7 +61,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows. Entries are not searched yet.</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Identified);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -89,6 +90,11 @@ public static class ModelFormats
         if (head.Length >= 4 && head[0] == 'g' && head[1] == 'l' && head[2] == 'T' && head[3] == 'F')
         {
             return Gltf;
+        }
+
+        if (StartsWith(head, "AutoCAD Binary DXF") || LooksLikeDxf(head))
+        {
+            return Dxf;
         }
 
         if (StartsWith(head, "ply"))
@@ -137,6 +143,12 @@ public static class ModelFormats
         }
 
         return FormatInfo.Unknown;
+    }
+
+    private static bool LooksLikeDxf(ReadOnlySpan<byte> head)
+    {
+        var text = Encoding.ASCII.GetString(head).TrimStart('\uFEFF', ' ', '\r', '\n', '\t');
+        return text.StartsWith("0", StringComparison.Ordinal) && System.Text.RegularExpressions.Regex.IsMatch(text, @"^0\s*\r?\n\s*SECTION\b", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromMilliseconds(50));
     }
 
     internal static bool LooksLikeStl(ReadOnlySpan<byte> data)

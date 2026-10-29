@@ -135,6 +135,9 @@ public sealed class MeshData
     /// <summary>Feature edges as index pairs into <see cref="Positions"/>, when precomputed (see <see cref="MeshEdges"/>); empty otherwise.</summary>
     public uint[] EdgeIndices { get; set; } = [];
 
+    /// <summary>Material for the edge lines of a line-only mesh (<see cref="Indices"/> empty, <see cref="EdgeIndices"/> set), or -1.</summary>
+    public int EdgeMaterial { get; set; } = -1;
+
     /// <summary>Contiguous index ranges that share a material. Empty means one group over all indices.</summary>
     public List<MeshGroup> Groups { get; } = new();
 

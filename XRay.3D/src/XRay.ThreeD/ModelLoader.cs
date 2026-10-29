@@ -129,6 +129,7 @@ public static class ModelLoader
         "ply" => PlyReader.Read(data, options),
         "gltf" => GltfReader.Read(data, options),
         "3mf" => ThreeMfReader.Read(data, options),
+        "dxf" => Formats.Cad.DxfReader.Read(data, options),
         _ => throw new UnsupportedModelFormatException(
             format,
             format.IsUnknown

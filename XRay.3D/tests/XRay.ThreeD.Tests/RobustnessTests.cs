@@ -16,6 +16,8 @@ public class RobustnessTests
         "synthetic/two-cubes.3mf",
         "synthetic/instances.gltf",
         "khronos/Box.glb",
+        "synthetic/entities.dxf",
+        "dxf/flange-drawing.dxf",
     ];
 
     public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });

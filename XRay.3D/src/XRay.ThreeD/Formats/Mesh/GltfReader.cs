@@ -328,6 +328,9 @@ internal static class GltfReader
             var allNormals = true;
             var pointsOnly = false;
             var trianglesSeen = false;
+            var linesSeen = false;
+            var edgeIndices = new List<uint>();
+            var edgeMaterial = -1;
             foreach (var primitive in Array(element, "primitives"))
             {
                 _options.Cancellation.ThrowIfCancellationRequested();
@@ -335,6 +338,13 @@ internal static class GltfReader
                 if (mode == 1 && primitive.TryGetProperty("extras", out var primitiveExtras) && Str(primitiveExtras, "role") == "edges")
                 {
                     continue; // feature edges written by this library: derived data, recomputed on demand
+                }
+
+                if (mode == 1)
+                {
+                    linesSeen = true;
+                    AddLines(primitive, positions, edgeIndices, ref edgeMaterial);
+                    continue;
                 }
 
                 if (mode == 0)
@@ -425,6 +435,7 @@ internal static class GltfReader
                 return null;
             }
 
+            _ = linesSeen;
             var mesh = new MeshData { Name = Str(element, "name"), Positions = positions.ToArray(), Indices = indices.ToArray() };
             if (allNormals)
             {
@@ -436,12 +447,61 @@ internal static class GltfReader
                 mesh.Groups.AddRange(groups);
             }
 
+            if (edgeIndices.Count > 0)
+            {
+                // Line primitives (a 2D drawing, a toolpath) keep their lines as edges of the mesh; the vertices of every primitive share one array.
+                mesh.EdgeIndices = edgeIndices.ToArray();
+                mesh.EdgeMaterial = edgeMaterial;
+                if (normals.Count != positions.Count)
+                {
+                    mesh.Normals = [];
+                }
+            }
+
             if (pointsOnly && trianglesSeen)
             {
                 _model.Warnings.Add("A mesh mixes points and triangles; only the triangles are kept.");
             }
 
             return mesh;
+        }
+
+        /// <summary>A LINES primitive: its vertices join the mesh's array and its index pairs become edges.</summary>
+        private void AddLines(JsonElement primitive, List<float> positions, List<uint> edgeIndices, ref int edgeMaterial)
+        {
+            if (!primitive.TryGetProperty("attributes", out var attributes) || !attributes.TryGetProperty("POSITION", out var pa) || !pa.TryGetInt32(out var positionAccessor))
+            {
+                return;
+            }
+
+            var p = ReadAccessor(positionAccessor, 3);
+            if (p is null)
+            {
+                return;
+            }
+
+            var vertexCount = p.Length / 3;
+            uint[] local = primitive.TryGetProperty("indices", out var ia) && ia.TryGetInt32(out var iai)
+                ? ReadIndices(iai) ?? []
+                : Enumerable.Range(0, vertexCount).Select(i => (uint)i).ToArray();
+            if (local.Any(i => i >= vertexCount))
+            {
+                _model.Warnings.Add("A line primitive has indices outside its vertex range and was skipped.");
+                return;
+            }
+
+            var baseVertex = (uint)(positions.Count / 3);
+            positions.AddRange(p);
+            for (var i = 0; i + 1 < local.Length; i += 2)
+            {
+                edgeIndices.Add(baseVertex + local[i]);
+                edgeIndices.Add(baseVertex + local[i + 1]);
+            }
+
+            if (edgeMaterial < 0 && primitive.TryGetProperty("material", out var mat) && mat.TryGetInt32(out var mi) && mi >= 0 && mi < _model.Materials.Count)
+            {
+                edgeMaterial = mi;
+            }
         }
 
         private static uint[] Strip(uint[] s)

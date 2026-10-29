@@ -39,7 +39,8 @@ A command line tool lives in `tools/XRay.ThreeD.Cli`: `xray3d info <file> [--jso
 | PLY | `.ply` (ASCII, binary LE/BE) | comments | triangles, vertex colours, normals; no faces = point cloud |
 | glTF 2.0 | `.glb` `.gltf` | scene, node names, extras, materials, generator | node tree, shared meshes, PBR base colours |
 | 3MF | `.3mf` | title, designer, units, materials | objects, components, build transforms, base-material colours |
-| Recognised only | STEP, IGES, DXF, DWG, IFC, 3DM, FBX, DAE, USD, ... | the format is named | `UnsupportedModelFormatException` |
+| AutoCAD DXF | `.dxf` (ASCII) | version, units, layers (colour, visibility), blocks, text, entity counts, dates | one node per layer; lines, polylines, arcs, splines, hatch outlines as lines; 3D faces, polyface meshes, MESH, solids as triangles; blocks and arrays expanded |
+| Recognised only | STEP, IGES, DWG, IFC, 3DM, FBX, DAE, USD, ... | the format is named | `UnsupportedModelFormatException` |
 
 `ModelFormats.All` lists everything the library can name. Detection looks at the content first (magic bytes, ZIP
 entry names) and the file name second.

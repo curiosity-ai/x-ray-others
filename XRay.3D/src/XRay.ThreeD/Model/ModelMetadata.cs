@@ -96,6 +96,10 @@ public enum LengthUnit
     Yard,
     Mile,
     Micrometer,
+    Nanometer,
+    Decimeter,
+    Mil,
+    Microinch,
 }
 
 public enum UpAxis
@@ -117,6 +121,10 @@ public static class LengthUnitExtensions
         LengthUnit.Yard => 0.9144,
         LengthUnit.Mile => 1609.344,
         LengthUnit.Micrometer => 1e-6,
+        LengthUnit.Nanometer => 1e-9,
+        LengthUnit.Decimeter => 0.1,
+        LengthUnit.Mil => 2.54e-5,
+        LengthUnit.Microinch => 2.54e-8,
         _ => 1,
     };
 }

@@ -28,7 +28,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 ## Next: more formats, in order of value / effort (see `docs/research/formats.md` for the viewer's approach)
 
 - [ ] STEP: assembly tree (PRODUCT, NEXT_ASSEMBLY_USAGE_OCCURRENCE), names, units, colours, layers, properties; metadata first (S-M), then a B-rep tessellator (XL: NURBS, trimmed surfaces); start with faceted and AP242 tessellated geometry
-- [ ] DXF (text): layers, units (`$INSUNITS`, note the reference viewer maps 4, 5 and 6 all to mm), blocks, 3D faces / polylines / meshes
+- [x] DXF (ASCII): layers, units (`$INSUNITS` per the AutoCAD table; the reference viewer maps 4, 5 and 6 all to mm), blocks and arrays, lines/polylines/arcs/splines/hatch outlines, 3D faces, polyface and MESH; checked against ezdxf. Open: binary DXF, hatch fills, text as geometry, ACIS solids
 - [ ] DWG: wrap or port a pure-C# reader (the viewer's own TypeScript fallback decoder is a readable reference); layers, blocks, units
 - [ ] IFC (STEP physical file): names, GUIDs, property sets, spatial tree (the reference viewer drops these); geometry needs an extrusion/CSG kernel (XL)
 - [ ] FBX, COLLADA, 3DS, USD(A/Z), VRML/X3D, OFF, AMF

@@ -460,8 +460,13 @@ public static class GlbWriter
                     if (isEdges)
                     {
                         w.WriteNumber("mode", 1);
+                        if (material >= 0)
+                        {
+                            w.WriteNumber("material", material);
+                        }
+
                         w.WriteStartObject("extras");
-                        w.WriteString("role", "edges");
+                        w.WriteString("role", model.Meshes[i].Indices.Length == 0 ? "lines" : "edges");
                         w.WriteEndObject();
                     }
                     else
@@ -924,7 +929,17 @@ public static class GlbWriter
 
         if (indices.Length == 0)
         {
-            primitives.Add((position, normal, color, -1, -1, false));
+            if (edges.Length > 0 && mesh.EdgeIndices.Length > 0)
+            {
+                // A line-only mesh (a 2D drawing, a toolpath): its edges are the content.
+                var lines = AddIndices(accessors, bin, edges, vertexCount, compress, triangles: false);
+                primitives.Add((position, -1, color, lines, mesh.EdgeMaterial >= 0 && mesh.EdgeMaterial < materialCount ? mesh.EdgeMaterial : -1, true));
+            }
+            else
+            {
+                primitives.Add((position, normal, color, -1, -1, false));
+            }
+
             return primitives;
         }
 
@@ -951,6 +966,11 @@ public static class GlbWriter
 
     private static uint[] EdgesFor(MeshData mesh, GlbWriteOptions options)
     {
+        if (mesh.Indices.Length == 0 && mesh.EdgeIndices.Length > 0)
+        {
+            return mesh.EdgeIndices;
+        }
+
         if (options.Edges == EdgeMode.All || (options.Edges == EdgeMode.Auto && mesh.Faces.Length > 0))
         {
             return mesh.EdgeIndices.Length > 0 ? mesh.EdgeIndices : MeshEdges.Extract(mesh, options.EdgeCreaseAngle);
