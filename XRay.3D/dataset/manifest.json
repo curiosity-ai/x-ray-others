@@ -1,0 +1,812 @@
+[
+ {
+  "file": "pln/parametric-table.gsm",
+  "format": "pln",
+  "title": "Parametric table, Archicad GDL object (.gsm)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 10420,
+  "sha256": "4b77c8d1d2a2576c37cbc28045b2fce5b7a1feff229a2bfb4a5b7eead02ac5b9"
+ },
+ {
+  "file": "pln/table-lamp.gsm",
+  "format": "pln",
+  "title": "Table lamp, Archicad GDL object (.gsm)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 94401,
+  "sha256": "d540499879471acd45d8dce17d6ac247930c902aa221f27c20b17b5d3dc4adc4"
+ },
+ {
+  "file": "sh3d/sweet-home-cottage.sh3d",
+  "format": "sh3d",
+  "title": "Cottage, furnished",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 7861,
+  "sha256": "87c0e1924073b24d3724e4c1bbf47fd1ecf0fcfcba48ce9be3d3be7604924dc5"
+ },
+ {
+  "file": "b3d/bazis-wall-cabinet.b3d",
+  "format": "b3d",
+  "title": "Wall cabinet with two doors, Bazis furniture model (.b3d)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 645,
+  "sha256": "0479622a4245826ec539aa37d4fd7742d4a101e9d74f5f9d1d3db7128980c805"
+ },
+ {
+  "file": "b3d/bazis-writing-desk.b3d",
+  "format": "b3d",
+  "title": "Writing desk, Bazis furniture model (.b3d)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 675,
+  "sha256": "b2a2c84cd65101464d717991d48f8a41ac05e1b6ce675da1d82c90ab3f270c3c"
+ },
+ {
+  "file": "b3d/blitz3d-arcade-cabinet.b3d",
+  "format": "b3d",
+  "title": "Arcade cabinet, Blitz3D model (.b3d)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 8090,
+  "sha256": "2ba303ee6ab639a50a16dd6bd202422cdee55893fef4ddccac3b65c751fddf81"
+ },
+ {
+  "file": "zip/datasmith-living-room.zip",
+  "format": "zip",
+  "title": "Furnished living room, Unreal Datasmith scene (.udatasmith in .zip)",
+  "license": "CC0-1.0",
+  "source": "Written by CC0 sample library from Kenney Furniture Kit models",
+  "bytes": 27463,
+  "sha256": "02139c1bd8cb7238f15b85a100b2d35a95ea05684b922b5792617f34e1390cae"
+ },
+ {
+  "file": "dwg/studio-floor-plan.dwg",
+  "format": "dwg",
+  "title": "Studio floor plan",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 26224,
+  "sha256": "e2dd2e3b9b88022dddd73ad3dee88e99986613165393ddf2c6ff70453a4897ce"
+ },
+ {
+  "file": "dwg/flange-drawing.dwg",
+  "format": "dwg",
+  "title": "Hub flange drawing",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 27579,
+  "sha256": "68be6d5bad0ccc41ee454834d9118b8f8d18489c2c800c338d2202ff0770a3ee"
+ },
+ {
+  "file": "dxf/studio-floor-plan.dxf",
+  "format": "dxf",
+  "title": "Studio apartment floor plan",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 61555,
+  "sha256": "caab055977a0e32639c794eacb1d6ecff7123fce94799b11c035d7f70984aa58"
+ },
+ {
+  "file": "dxf/flange-drawing.dxf",
+  "format": "dxf",
+  "title": "Hub flange drawing (dimensioned)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 61618,
+  "sha256": "62dbda40083f6fef4a550c2a79849d25ce0f884c6ebde3d171828b08158b05e1"
+ },
+ {
+  "file": "zip/opengameart-lowpoly-dummy-prefab.zip",
+  "format": "zip",
+  "title": "Low poly dummy character, Unity prefab with Assets folder (.prefab in .zip)",
+  "license": "CC0-1.0",
+  "source": "OpenGameArt",
+  "bytes": 133072,
+  "sha256": "78ed097a190917683af5cbc1b42ecf5adef09d32f76d3539b07c5d62d7c56496"
+ },
+ {
+  "file": "psu/astronaut.psu",
+  "format": "psu",
+  "title": "Astronaut save icon, PlayStation 2 save (.psu)",
+  "license": "CC0-1.0",
+  "source": "Kenney, Space Kit",
+  "bytes": 62464,
+  "sha256": "25b4425df6998878db61b31df9c215e62a24cb8aadb5042c72737c939d55bcb5"
+ },
+ {
+  "file": "glb/abstract-white-woman-abstract_woman_walking.glb",
+  "format": "glb",
+  "title": "Abstract white woman - 3D Person, Walking",
+  "license": "CC0-1.0",
+  "source": "adapted from MakeHuman CC0 assets",
+  "bytes": 3003436,
+  "sha256": "782a34de0c221646b93ebae22281f5011a69db6aceab461b84a756cb53a87179"
+ },
+ {
+  "file": "glb/abstract-white-man-abstract_man_walking.glb",
+  "format": "glb",
+  "title": "Abstract white man - 3D Person, Walking",
+  "license": "CC0-1.0",
+  "source": "adapted from MakeHuman CC0 assets",
+  "bytes": 3218356,
+  "sha256": "6b2e615f1fbf288aba8a7ce60bc900c4a0c73d28260cebedf3a5a1e0aea4bacf"
+ },
+ {
+  "file": "step/feather-esp8266.step",
+  "format": "step",
+  "title": "Adafruit Feather ESP8266",
+  "license": "MIT",
+  "source": "Adafruit Industries",
+  "bytes": 3210730,
+  "sha256": "342673b30bb7f2cdd324371f91efc22ead4a67443ab5d8f39134658197438ba2"
+ },
+ {
+  "file": "step/adafruit-motor-hat.step",
+  "format": "step",
+  "title": "Adafruit Motor HAT",
+  "license": "MIT",
+  "source": "Adafruit Industries",
+  "bytes": 2099145,
+  "sha256": "f9f27aa23ef0c10d128e065940c03e371379acaed7988c752f42fafdc2ad7ce7"
+ },
+ {
+  "file": "step/neopixel-ring.step",
+  "format": "step",
+  "title": "NeoPixel Ring (16 LED)",
+  "license": "MIT",
+  "source": "Adafruit Industries",
+  "bytes": 116896,
+  "sha256": "efa482766325989f3a1c53c083ffc157a1c3cf0d8d3d3c6b6100c0427d344838"
+ },
+ {
+  "file": "zip/led-driver-gerbers.zip",
+  "format": "zip",
+  "title": "LED driver board (fab package)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 17266,
+  "sha256": "ac15638a036ede9018869668b19ec59ac72de036d8eefd636a94a3d3a8bd910c"
+ },
+ {
+  "file": "zip/led-ring-gerbers.zip",
+  "format": "zip",
+  "title": "Round LED ring board (fab package)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 20527,
+  "sha256": "0df040d1e6eaf0fe9b25be7a2ae5021e4bf0505823db3c9148081aa522b24a22"
+ },
+ {
+  "file": "zip/pcb-board.zip",
+  "format": "zip",
+  "title": "Demo board (fab package)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 3352,
+  "sha256": "cdac2f7b7a8cea642cb6feff3b9cd162812e3dc281f5b5ad929c50416caecadc"
+ },
+ {
+  "file": "cad/led-driver.cad",
+  "format": "cad",
+  "title": "LED driver board",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 13984,
+  "sha256": "548b7ba77a9fb9f7452fec731060a898a0d59448b1a13d017ec8f9d037efca63"
+ },
+ {
+  "file": "cad/led-ring.cad",
+  "format": "cad",
+  "title": "Round LED ring board",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 23119,
+  "sha256": "681b2c97744a913ac4c930539e79fbe588758503c3b001b96b4aa5ae6364e7ed"
+ },
+ {
+  "file": "iges/jetracer-cam-mount.iges",
+  "format": "iges",
+  "title": "Camera mount (JetRacer)",
+  "license": "MIT",
+  "source": "NVIDIA JetRacer",
+  "bytes": 300366,
+  "sha256": "a8e666d69dd887e42cbd1c65bed2d71bf08e428e08de7ce55fe52f59b68c1a26"
+ },
+ {
+  "file": "iges/slewing-ring.iges",
+  "format": "iges",
+  "title": "Slewing ring bearing",
+  "license": "MIT",
+  "source": "F\u00e9lix Chenette-Stewart, B.O.R.A.T. robot arm",
+  "bytes": 126198,
+  "sha256": "8fbe3f58aa85f073eeb99a895f7d143a027735fb97385921f6e8ec71846446f2"
+ },
+ {
+  "file": "sldasm/nist-mtc-assembly.sldasm",
+  "format": "sldasm",
+  "title": "NIST MTC box assembly",
+  "license": "PD-USGov",
+  "source": "NIST MBE PMI CAD models",
+  "bytes": 2183071,
+  "sha256": "92d18bdaca461f3bcc1d50ff838e32b678dd14ff5ab13161809b0d0dfb244f76"
+ },
+ {
+  "file": "sldprt/nist-ctc-02-part.sldprt",
+  "format": "sldprt",
+  "title": "NIST test part CTC 02",
+  "license": "PD-USGov",
+  "source": "NIST MBE PMI CAD models",
+  "bytes": 1211931,
+  "sha256": "a6297b96be3fc01d3967178b9929506b982144f759f6eae171eebb16bd7918a4"
+ },
+ {
+  "file": "sldprt/nist-ftc-10-part.sldprt",
+  "format": "sldprt",
+  "title": "NIST test part FTC 10",
+  "license": "PD-USGov",
+  "source": "NIST MBE PMI CAD models",
+  "bytes": 977559,
+  "sha256": "0db9f445acab24028cabe56b1110bf9b27419dbdd89d3c3b79e319604f013530"
+ },
+ {
+  "file": "sldprt/servo-mount.sldprt",
+  "format": "sldprt",
+  "title": "Servo mount bracket",
+  "license": "MIT",
+  "source": "UND Advanced Rocketry Club",
+  "bytes": 309853,
+  "sha256": "d753195d19e6f649876fa93d6caed5249a31ba5c9e0375f2d5cabfbee9a40aff"
+ },
+ {
+  "file": "sldprt/muon-detector-case.sldprt",
+  "format": "sldprt",
+  "title": "Muon detector case",
+  "license": "MIT",
+  "source": "UND Advanced Rocketry Club",
+  "bytes": 243785,
+  "sha256": "d5d57d9179c9ab58b6b6b70b8bc5ed838912e5278016e4b4e12563e9efa06ddb"
+ },
+ {
+  "file": "slddrw/rocket-fin-set.slddrw",
+  "format": "slddrw",
+  "title": "Fin set drawing",
+  "license": "MIT",
+  "source": "UND Advanced Rocketry Club",
+  "bytes": 96065,
+  "sha256": "312801563ac7b884c55d9517180d5615c45711f6c8513d15dc34aec765ad5124"
+ },
+ {
+  "file": "unitypackage/opengameart-key-collection.unitypackage",
+  "format": "unitypackage",
+  "title": "Key collection, Unity package (.unitypackage)",
+  "license": "CC0-1.0",
+  "source": "OpenGameArt",
+  "bytes": 2739233,
+  "sha256": "8ee9a302cccce87eaee8f4fdc2cb1e8f83fc4eb4e4efd07d3880e1bd1dd0b38a"
+ },
+ {
+  "file": "uasset/DoorCloser.uasset",
+  "format": "uasset",
+  "title": "Door closer, Unreal Engine static mesh (.uasset, UE 4.8)",
+  "license": "CC0-1.0",
+  "source": "sitin_diner_scene (GitHub, jazzman81)",
+  "bytes": 155505,
+  "sha256": "5cf0ea32dab2131e1c4b39c9be3193c5e4231aa78f7cd00d139d14f6b18c6f64"
+ },
+ {
+  "file": "uasset/Faucet.uasset",
+  "format": "uasset",
+  "title": "Gooseneck faucet, Unreal Engine static mesh (.uasset, UE 4.8)",
+  "license": "CC0-1.0",
+  "source": "sitin_diner_scene (GitHub, jazzman81)",
+  "bytes": 227768,
+  "sha256": "88ba71a1d35b0e1379c005cec2dffd8a5ae81f437325e116660e040c10e45791"
+ },
+ {
+  "file": "scad/wall-bracket.scad",
+  "format": "scad",
+  "title": "Wall shelf bracket (OpenSCAD)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 1995,
+  "sha256": "448840f03ff7f7eb458e15b28711f034cf04bf2ec45647bfc5f273a50313fd7c"
+ },
+ {
+  "file": "scad/hex-bolt-and-nut.scad",
+  "format": "scad",
+  "title": "Hex bolt with thread, nut and washer (OpenSCAD)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 2649,
+  "sha256": "87910d3ca10c8e97115cd7949237aa576d243d238afc5987d689e6992d9cdaa2"
+ },
+ {
+  "file": "fcstd/butt-hinge.FCStd",
+  "format": "fcstd",
+  "title": "Butt hinge",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 11358,
+  "sha256": "27976973f2f4e392fc85c78d18bdb9b2fabfef6bf9716c81c4745883d339fcc9"
+ },
+ {
+  "file": "fcstd/swivel-caster-wheel.FCStd",
+  "format": "fcstd",
+  "title": "Swivel caster wheel",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 13263,
+  "sha256": "d178fbcaf04fc1764eb979547e287682c88ad1dd8c8c4c5119c412634f36ccd4"
+ },
+ {
+  "file": "ply/gsplat-measuring-tape.ply",
+  "format": "ply",
+  "title": "Measuring tape (.ply)",
+  "license": "CC0-1.0",
+  "source": "DX.GL multi-view datasets, splats trained from Poly Haven CC0 models",
+  "bytes": 1324307,
+  "sha256": "1f6323c7ac68c8a4076789fdf0d67d6a7459412de4971c2f1e6a4b7470feff10"
+ },
+ {
+  "file": "glb/watering-can.glb",
+  "format": "glb",
+  "title": "Watering can",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 3490600,
+  "sha256": "3b590c5389f2b875a4f2cce4e9fd98d21340a2e0164758fa44fc7af78757be61"
+ },
+ {
+  "file": "scad/twisted-vase.scad",
+  "format": "scad",
+  "title": "Twisted star vase (OpenSCAD)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 1432,
+  "sha256": "9e81a60cb716965a5da180d1554bbaa55e5b282905ae61fd3d91c46170ab04cd"
+ },
+ {
+  "file": "scad/chess-rook.scad",
+  "format": "scad",
+  "title": "Chess rook (OpenSCAD)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 850,
+  "sha256": "51710de43ff86d968aff90732322c466753a4e7b2bd2297e026071cb5fa162fb"
+ },
+ {
+  "file": "rlf/horse-statue-relief.rlf",
+  "format": "rlf",
+  "title": "Horse statue relief",
+  "license": "CC0-1.0",
+  "source": "Poly Haven \"horse_statue_01\" by Rico Cilliers, relief written by CC0 sample library",
+  "bytes": 1096928,
+  "sha256": "0f410ea7963f253bfa56e91e712e105dede7e500cb130c10faac2d8cd35cac77"
+ },
+ {
+  "file": "rlf/lion-head-relief.rlf",
+  "format": "rlf",
+  "title": "Lion head relief",
+  "license": "CC0-1.0",
+  "source": "Poly Haven \"lion_head\" by Tina, relief written by CC0 sample library",
+  "bytes": 1030100,
+  "sha256": "185c5406640dccc0badb2d1bcfb5e4b313204c98516687d8f38b6c37b940e907"
+ },
+ {
+  "file": "rlf/scallop-shell.rlf",
+  "format": "rlf",
+  "title": "Scallop shell relief",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 614778,
+  "sha256": "0b05e54b681490171172f5c81864e0aa4f0c900aefc459abfb04e406c7cc6563"
+ },
+ {
+  "file": "rlf/compass-rose.rlf",
+  "format": "rlf",
+  "title": "Compass rose medallion",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 809334,
+  "sha256": "0e87ad22e8a9834750e5e127a712b0d9d15cf6b249fb316784f1e99c5b0f59a0"
+ },
+ {
+  "file": "unitypackage/opengameart-forest-arena.unitypackage",
+  "format": "unitypackage",
+  "title": "Forest battle arena, low poly Unity package (.unitypackage)",
+  "license": "CC0-1.0",
+  "source": "BenjaTheMaker (AurynSky), Forest Low Poly Toon Battle Arena pack",
+  "bytes": 1361655,
+  "sha256": "114dc2ac386795f177e0075ef60cee14911049ff88e2edaecbda250811f59b0d"
+ },
+ {
+  "file": "zip/unity-forest-demo-scene.zip",
+  "format": "zip",
+  "title": "Forest arena demo scene, Unity scene with Assets folder (.unity in .zip)",
+  "license": "CC0-1.0",
+  "source": "BenjaTheMaker (AurynSky), Forest Low Poly Toon Battle Arena pack",
+  "bytes": 1013180,
+  "sha256": "9d635c79fead5ad5f5121045a8f6dda73392d09fe67bba31caae945600903709"
+ },
+ {
+  "file": "3dm/terrain-contours.3dm",
+  "format": "3dm",
+  "title": "Terrain with 5 m contours",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 832616,
+  "sha256": "43a740beb707d1f51e45949b48a33b704beb80e21a4dea091ae70a8637f47d61"
+ },
+ {
+  "file": "zip/natural-earth-states-provinces.zip",
+  "format": "zip",
+  "title": "States and provinces (zipped set)",
+  "license": "PD",
+  "source": "Natural Earth",
+  "bytes": 39116,
+  "sha256": "c1db4297d0ac25d6996f6a44e661951da8fe2808018ba108ea50049ef9ddb8d2"
+ },
+ {
+  "file": "zip/world-countries.zip",
+  "format": "zip",
+  "title": "World countries (zipped set)",
+  "license": "PD",
+  "source": "Natural Earth",
+  "bytes": 204479,
+  "sha256": "151b24e0853051c908fbd5be46c6357dc025f591c80bbec19e3f2c99d9b35362"
+ },
+ {
+  "file": "zip/natural-earth-rivers.zip",
+  "format": "zip",
+  "title": "World rivers (zipped set)",
+  "license": "PD",
+  "source": "Natural Earth",
+  "bytes": 486457,
+  "sha256": "1e6a7b407ac30e966f66945bcedc5d47f335a88279fb37f2b623a92001d3e786"
+ },
+ {
+  "file": "dxf/godown-warehouse-30-x-20-m-with-loading-dock-plan-drawing.dxf",
+  "format": "dxf",
+  "title": "Godown warehouse 30 x 20 m with loading dock plan drawing",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 165456,
+  "sha256": "12dddb3f8b29c4b0f7df1ae5fecb46aa7be51b7969050b949c52f162ae8b8fa2"
+ },
+ {
+  "file": "dwf/usfs-rwp2_a-fishing-pier-boardwalk-deck.dwf",
+  "format": "dwf",
+  "title": "Fishing pier, boardwalk and deck (USFS RWP2_A)",
+  "license": "PD-USGov",
+  "source": "USDA Forest Service Engineering Drawing Library, plotted to DWF",
+  "bytes": 18198,
+  "sha256": "2be3e0cf58ba111f0dc76e0c82e9a670da99c8edeb1b0e2152881e674ba49093"
+ },
+ {
+  "file": "dwf/usfs-rwfc1-fish-cleaning-station.dwf",
+  "format": "dwf",
+  "title": "Fish cleaning station (USFS RWFC1)",
+  "license": "PD-USGov",
+  "source": "USDA Forest Service Engineering Drawing Library, plotted to DWF",
+  "bytes": 12154,
+  "sha256": "50121ae1e38097ac50f93b9695fabe919b9b4ff1db462904a13dea12f6f27a90"
+ },
+ {
+  "file": "dwf/usfs-rtr2-tent-platform.dwf",
+  "format": "dwf",
+  "title": "Tent platform (USFS RTR2)",
+  "license": "PD-USGov",
+  "source": "USDA Forest Service Engineering Drawing Library, plotted to DWF",
+  "bytes": 15414,
+  "sha256": "f8c3ae8a241039b2139bbfa22ea7c56aab5145a3fac7bcd1373e08361925f5bf"
+ },
+ {
+  "file": "dwf/usfs-rpsl1-play-structure.dwf",
+  "format": "dwf",
+  "title": "Play structure (USFS RPSL1)",
+  "license": "PD-USGov",
+  "source": "USDA Forest Service Engineering Drawing Library, plotted to DWF",
+  "bytes": 70166,
+  "sha256": "f213e83e29d55a1edcaad935130f7baadb2a3d18520122895ef528ffe4a2d830"
+ },
+ {
+  "file": "dwf/usfs-ro1-observation-deck.dwf",
+  "format": "dwf",
+  "title": "Observation deck (USFS RO1)",
+  "license": "PD-USGov",
+  "source": "USDA Forest Service Engineering Drawing Library, plotted to DWF",
+  "bytes": 30073,
+  "sha256": "94925c4bd7d1d2dc5bdca10d6e4dd3f332519049be81999985dcac8aa12f5d58"
+ },
+ {
+  "file": "dwf/usfs-rhc3-horse-corral.dwf",
+  "format": "dwf",
+  "title": "Horse corral (USFS RHC3)",
+  "license": "PD-USGov",
+  "source": "USDA Forest Service Engineering Drawing Library, plotted to DWF",
+  "bytes": 22489,
+  "sha256": "b879996d82c43fe07d4671d748d218598888a54763af3e99ae192674280eda8a"
+ },
+ {
+  "file": "dwf/usfs-rec00020-foot-bridge.dwf",
+  "format": "dwf",
+  "title": "Foot bridge (USFS REC00020)",
+  "license": "PD-USGov",
+  "source": "USDA Forest Service Engineering Drawing Library, plotted to DWF",
+  "bytes": 74920,
+  "sha256": "b657e572adb82da9fddb11a953e72ad3a6625b64349e032a30777d223c29ae22"
+ },
+ {
+  "file": "dwf/usfs-ldfp6005-steel-flip-top-fireplace.dwf",
+  "format": "dwf",
+  "title": "Steel flip-top fireplace (USFS LDFP6005)",
+  "license": "PD-USGov",
+  "source": "USDA Forest Service Engineering Drawing Library, plotted to DWF",
+  "bytes": 26231,
+  "sha256": "ba4969a4b5090943b2b49a3242bd00405039bc6ebeb7f4b92c78188d26252494"
+ },
+ {
+  "file": "dxf/a4-symbol-unisex-toilet-wayfinding.dxf",
+  "format": "dxf",
+  "title": "A4 symbol: Unisex toilet wayfinding",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 66633,
+  "sha256": "717e5c17b82b092fbb491e08f3f4a216b7994df13192ba49cc2d6dc9e7917eb3"
+ },
+ {
+  "file": "dxf/a4-symbol-stairs-wayfinding.dxf",
+  "format": "dxf",
+  "title": "A4 symbol: Stairs wayfinding",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 117202,
+  "sha256": "c3c781dab2446df26385ed5916e38429319b944fc740856b87a70ffdb6a58ed2"
+ },
+ {
+  "file": "dxf/a4-symbol-room-102-wayfinding.dxf",
+  "format": "dxf",
+  "title": "A4 symbol: Room 102 wayfinding",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 42793,
+  "sha256": "336d41d997803ac8b091266ead110f5221584bcd9aaa699a8336e93d94140cca"
+ },
+ {
+  "file": "dxf/a4-symbol-room-101-wayfinding.dxf",
+  "format": "dxf",
+  "title": "A4 symbol: Room 101 wayfinding",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 42793,
+  "sha256": "b86c6f833336011da6d3dec74a35883624ac962ab763c114e358325b7a23011d"
+ },
+ {
+  "file": "dxf/a4-symbol-male-toilet-wayfinding.dxf",
+  "format": "dxf",
+  "title": "A4 symbol: Male toilet wayfinding",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 54516,
+  "sha256": "cd710ae30b899e8c051496fac4d0b785bc40282cae4a68d65e68bd26b41a3c5a"
+ },
+ {
+  "file": "dxf/a4-symbol-lift-wayfinding.dxf",
+  "format": "dxf",
+  "title": "A4 symbol: Lift wayfinding",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 87269,
+  "sha256": "b759e370d1d8063e505e6c5f9065605fc602eaf79ea8e1818f4c031de382e253"
+ },
+ {
+  "file": "dxf/a4-symbol-first-aid-wayfinding.dxf",
+  "format": "dxf",
+  "title": "A4 symbol: First aid wayfinding",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 44654,
+  "sha256": "b6efb881c551984b80362d5575216335c8ce84bebff711c418eedc1c593c678c"
+ },
+ {
+  "file": "dxf/a4-symbol-fire-extinguisher-location-wayfinding.dxf",
+  "format": "dxf",
+  "title": "A4 symbol: Fire extinguisher location wayfinding",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 71078,
+  "sha256": "b695012772350fa59e602c25a157ef84ae9310dd05bbe6a56966eeea63345978"
+ },
+ {
+  "file": "dxf/wall-hung-wc-plan-plumbing-and-hvac-cad-symbol.dxf",
+  "format": "dxf",
+  "title": "Wall hung WC plan - Plumbing and HVAC CAD Symbol",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 24171,
+  "sha256": "13846edb97916b452643f9d4489dfe8cf9fe97747cb6d500d62ea491704e954e"
+ },
+ {
+  "file": "dxf/wall-extractor-fan-plumbing-and-hvac-cad-symbol.dxf",
+  "format": "dxf",
+  "title": "Wall extractor fan - Plumbing and HVAC CAD Symbol",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 22694,
+  "sha256": "b9d73057cd3b1b5d7e70835c15dc50e2a270ded8fa1e8d0486914dc23e06c8dc"
+ },
+ {
+  "file": "dxf/wall-basin-plan-plumbing-and-hvac-cad-symbol.dxf",
+  "format": "dxf",
+  "title": "Wall basin plan - Plumbing and HVAC CAD Symbol",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 23917,
+  "sha256": "63ee7225434c5b6663c9e035e60c97de0e6705f9159d4fc2135c741c64c05721"
+ },
+ {
+  "file": "dxf/volume-control-damper-plumbing-and-hvac-cad-symbol.dxf",
+  "format": "dxf",
+  "title": "Volume control damper - Plumbing and HVAC CAD Symbol",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 22239,
+  "sha256": "83e80cf5a87c3d40e2d68c805f2fb41225e5a3a397a015c3829ee6dc32b699c5"
+ },
+ {
+  "file": "dxf/utility-sink-plan-plumbing-and-hvac-cad-symbol.dxf",
+  "format": "dxf",
+  "title": "Utility sink plan - Plumbing and HVAC CAD Symbol",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 23919,
+  "sha256": "bd777ed152e64d0d092b95f433933b8e302bd5d6731b32224d53185e03b22194"
+ },
+ {
+  "file": "dxf/urinal-plan-plumbing-and-hvac-cad-symbol.dxf",
+  "format": "dxf",
+  "title": "Urinal plan - Plumbing and HVAC CAD Symbol",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library - original model",
+  "bytes": 22274,
+  "sha256": "a814a528404a588ecb6eb461dd6dcf49fed6b18ee7ab824c287e965548181966"
+ },
+ {
+  "file": "pln/planogram-breakfast-cereal.pln",
+  "format": "pln",
+  "title": "Breakfast cereal shelves",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 5456,
+  "sha256": "f7a3d72ceb977c0ba1d3ee3571109712c65f92f7dafdb510a23ee31ffd27414f"
+ },
+ {
+  "file": "pln/planogram-drinks-aisle.pln",
+  "format": "pln",
+  "title": "Drinks aisle",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 10423,
+  "sha256": "3d5f9a2dd5eee399872cc2857376613af14618ad620d17a4c3a782e279edd48f"
+ },
+ {
+  "file": "pln/planogram-personal-care.pln",
+  "format": "pln",
+  "title": "Personal care shelf",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 5472,
+  "sha256": "51af799a1724db1d73396ea96928d9b340100547ba87cefedd59865af81e1f94"
+ },
+ {
+  "file": "b3d/blitz3d-swaying-tentacle.b3d",
+  "format": "b3d",
+  "title": "Swaying tentacle, animated Blitz3D model (.b3d)",
+  "license": "CC0-1.0",
+  "source": "CC0 sample library",
+  "bytes": 6958,
+  "sha256": "9e8e10504117d4068d2d0c301b63e5a3d17954bc8ac5ea13750d42e1d953a111"
+ },
+ {
+  "file": "zip/unity-forest-catapult.zip",
+  "format": "zip",
+  "title": "Red catapult, Unity prefab with Assets folder (.prefab in .zip)",
+  "license": "CC0-1.0",
+  "source": "BenjaTheMaker (AurynSky), Forest Low Poly Toon Battle Arena pack",
+  "bytes": 53722,
+  "sha256": "d6a88fbcf99453467880304f16721343c9f42f6b3c2d35f44022e52c8f0340f3"
+ },
+ {
+  "file": "khronos/Box.glb",
+  "format": "glb",
+  "title": "Box (glTF sample asset)",
+  "license": "CC-BY-4.0",
+  "source": "Cesium / Khronos glTF-Sample-Assets, Models/Box",
+  "bytes": 1664,
+  "sha256": "ed52f7192b8311d700ac0ce80644e3852cd01537e4d62241b9acba023da3d54e"
+ },
+ {
+  "file": "synthetic/cube-ascii.ply",
+  "format": "ply",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 465,
+  "sha256": "4e2bf38b867e240cb9458dd71194182d8dabf505673a9d4dcc2f9dcd15a53ab5"
+ },
+ {
+  "file": "synthetic/cube-ascii.stl",
+  "format": "stl",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 1433,
+  "sha256": "0c3996b7cfdc835c0159ea20cd315b2d6bdca19495338eeda97ab0518820ef5b"
+ },
+ {
+  "file": "synthetic/cube-binary-big.ply",
+  "format": "ply",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 521,
+  "sha256": "68c82b629731c8cc90d624ac1e552a524115ae2ee62bd1dde05741386234ee44"
+ },
+ {
+  "file": "synthetic/cube-binary-little.ply",
+  "format": "ply",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 524,
+  "sha256": "9111bc53e360548e425d5a039ff86e83b4e8f2e2dd9552a97dd696386253d5ad"
+ },
+ {
+  "file": "synthetic/cube-binary.stl",
+  "format": "stl",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 684,
+  "sha256": "4892d94ad0a2e2eb2870eb01ccde1d91f480639164f4800788672500ebcd51c6"
+ },
+ {
+  "file": "synthetic/instances.gltf",
+  "format": "gltf",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 1546,
+  "sha256": "e3ed889108ddee699a3323e72a75d859cd3910395b6d8c91a0d35dc97ed4e30c"
+ },
+ {
+  "file": "synthetic/points.ply",
+  "format": "ply",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 118,
+  "sha256": "f00fe27bcf1d2dc0daafe7bcb7585954fb8f00b44657494266aeb7acfe7a7fcb"
+ },
+ {
+  "file": "synthetic/scene.obj",
+  "format": "obj",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 258,
+  "sha256": "b71a584d5a95f4a5b4854faf8cfe5ed14de694ce009b590e44c567e1910dc1d5"
+ },
+ {
+  "file": "synthetic/two-cubes.3mf",
+  "format": "3mf",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 1199,
+  "sha256": "9967baa4d196d3413601d78e74f407f9791e6cc55452610bf5ad7e749e57985a"
+ }
+]

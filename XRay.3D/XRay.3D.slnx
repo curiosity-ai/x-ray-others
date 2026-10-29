@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/XRay.ThreeD/XRay.ThreeD.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/XRay.ThreeD.Tests/XRay.ThreeD.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/XRay.ThreeD.Cli/XRay.ThreeD.Cli.csproj" />
+  </Folder>
+</Solution>

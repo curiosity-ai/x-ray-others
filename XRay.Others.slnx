@@ -57,4 +57,13 @@
   <Folder Name="/XRay.OneNote/tools/">
     <Project Path="XRay.OneNote/tools/XRay.OneNote.Cli/XRay.OneNote.Cli.csproj" />
   </Folder>
+  <Folder Name="/XRay.3D/src/">
+    <Project Path="XRay.3D/src/XRay.ThreeD/XRay.ThreeD.csproj" />
+  </Folder>
+  <Folder Name="/XRay.3D/tests/">
+    <Project Path="XRay.3D/tests/XRay.ThreeD.Tests/XRay.ThreeD.Tests.csproj" />
+  </Folder>
+  <Folder Name="/XRay.3D/tools/">
+    <Project Path="XRay.3D/tools/XRay.ThreeD.Cli/XRay.ThreeD.Cli.csproj" />
+  </Folder>
 </Solution>

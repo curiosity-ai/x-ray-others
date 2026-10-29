@@ -1,0 +1,116 @@
+using System.Text.Json;
+using XRay.ThreeD;
+
+// xray3d info <file> [--json]      metadata
+// xray3d convert <file> [out.glb]  convert to binary glTF
+// xray3d formats                   list known formats
+if (args.Length == 0)
+{
+    Console.Error.WriteLine("usage: xray3d info <file> [--json] | convert <file> [out.glb] | formats");
+    return 2;
+}
+
+try
+{
+    switch (args[0])
+    {
+        case "formats":
+            foreach (var f in ModelFormats.All)
+            {
+                Console.WriteLine($"{f.Id,-12} {f.Support,-10} {string.Join(' ', f.Extensions),-30} {f.Name}");
+            }
+
+            return 0;
+        case "info" when args.Length >= 2:
+            {
+                var meta = ModelLoader.ReadMetadata(args[1]);
+                if (args.Contains("--json"))
+                {
+                    Console.WriteLine(JsonSerializer.Serialize(Summary(meta), new JsonSerializerOptions { WriteIndented = true }));
+                }
+                else
+                {
+                    Print(meta);
+                }
+
+                return 0;
+            }
+
+        case "convert" when args.Length >= 2:
+            {
+                var model = ModelLoader.Load(args[1]);
+                var output = args.Length >= 3 ? args[2] : Path.ChangeExtension(args[1], ".glb");
+                File.WriteAllBytes(output, GlbWriter.ToArray(model));
+                Console.WriteLine($"{output}: {model.Metadata.Statistics?.Triangles:N0} triangles, {model.Meshes.Count} meshes, {model.Nodes().Count()} nodes");
+                foreach (var w in model.Warnings)
+                {
+                    Console.Error.WriteLine("warning: " + w);
+                }
+
+                return 0;
+            }
+    }
+}
+catch (ModelFormatException ex)
+{
+    Console.Error.WriteLine(ex.Message);
+    return 1;
+}
+
+Console.Error.WriteLine("unknown command");
+return 2;
+
+static object Summary(ModelMetadata m) => new
+{
+    format = m.Format.Id,
+    kind = m.DocumentKind,
+    application = m.Application,
+    title = m.Title,
+    units = m.Units?.ToString(),
+    hasGeometry = m.HasGeometry,
+    statistics = m.Statistics,
+    parts = m.PartNames,
+    layers = m.LayerNames,
+    sheets = m.Sheets,
+    configurations = m.Configurations,
+    componentFiles = m.ComponentFiles,
+    properties = m.Properties,
+    notes = m.Notes,
+};
+
+static void Print(ModelMetadata m)
+{
+    Console.WriteLine($"Format:       {m.Format.Name} ({m.DocumentKind})");
+    Console.WriteLine($"Application:  {m.Application}");
+    Console.WriteLine($"Title:        {m.Title}");
+    Console.WriteLine($"Units / up:   {m.Units?.ToString() ?? "?"} / {m.UpAxis?.ToString() ?? "?"}");
+    Console.WriteLine($"Geometry:     {(m.HasGeometry ? "yes" : "no")}  {m.Statistics}");
+    PrintList("Parts", m.PartNames);
+    PrintList("Layers", m.LayerNames);
+    PrintList("Sheets", m.Sheets);
+    PrintList("Configurations", m.Configurations);
+    PrintList("Component files", m.ComponentFiles);
+    foreach (var p in m.Properties)
+    {
+        Console.WriteLine($"  [{p.Group}] {p.Name} = {p.Value}");
+    }
+
+    foreach (var n in m.Notes)
+    {
+        Console.WriteLine("Note: " + n);
+    }
+}
+
+static void PrintList(string title, List<string> items)
+{
+    if (items.Count == 0)
+    {
+        return;
+    }
+
+    Console.WriteLine($"{title}:");
+    foreach (var i in items)
+    {
+        Console.WriteLine("  " + i);
+    }
+}

@@ -5,7 +5,7 @@
 Part of the [X-Ray](https://github.com/curiosity-ai/x-ray) family: modern, pure C# NuGet packages
 for .NET 10 that extract content from documents, render them to PDF and images, and handle
 specific file types. This repository holds the packages for formats outside the Office and
-content-extraction cores: Photoshop, email, PostScript/XPS and OneNote.
+content-extraction cores: Photoshop, email, calendars, PostScript/XPS, OneNote and 3D/CAD.
 
 Every package is pure managed code with no native dependencies in its core. Where a feature needs
 native code (SkiaSharp, HarfBuzz), it ships as a separate optional package.
@@ -21,6 +21,7 @@ native code (SkiaSharp, HarfBuzz), it ships as a separate optional package.
 | `X-Ray.Ics` | [`XRay.Ics/`](XRay.Ics/) | iCalendar (.ics) and vCalendar: parse, recurrence expansion, extraction of organizer, attendees and description, HTML, text and Markdown renderings, writer. No dependencies. | MIT |
 | `X-Ray.PS` | [`XRay.PS/`](XRay.PS/) | PostScript, EPS and XPS: interpret, inspect, edit and convert to PDF and raster images. Core is pure managed. | MIT AND OFL-1.1 |
 | `X-Ray.PS.Skia` | [`XRay.PS/`](XRay.PS/) | Optional SkiaSharp raster writer for X-Ray.PS (anti-aliased output, XPS opacity masks). | MIT |
+| `X-Ray.3D` | [`XRay.3D/`](XRay.3D/) | 3D and CAD files: format detection, metadata (parts, assemblies, component files, properties, previews) and conversion to GLB. SolidWorks, STL, OBJ, PLY, glTF, 3MF. No dependencies. | MIT |
 | `X-Ray.OneNote` | [`XRay.OneNote/`](XRay.OneNote/) | OneNote section files (.one): pages, outlines, rich text, images, tables, attachments, tags, page history; PDF export. No dependencies. | MIT |
 
 Install one with `dotnet add package X-Ray.Psd` (and so on), or install the whole family with

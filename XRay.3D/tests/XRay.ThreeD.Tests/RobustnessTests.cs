@@ -1,0 +1,103 @@
+namespace XRay.ThreeD.Tests;
+
+/// <summary>Every reader takes hostile files: damaged input may fail, but only with <see cref="ModelFormatException"/>.</summary>
+public class RobustnessTests
+{
+    private static readonly string[] Fixtures =
+    [
+        "sldprt/servo-mount.sldprt",
+        "slddrw/rocket-fin-set.slddrw",
+        "synthetic/cube-ascii.stl",
+        "synthetic/cube-binary.stl",
+        "synthetic/scene.obj",
+        "synthetic/cube-ascii.ply",
+        "synthetic/cube-binary-little.ply",
+        "synthetic/cube-binary-big.ply",
+        "synthetic/two-cubes.3mf",
+        "synthetic/instances.gltf",
+        "khronos/Box.glb",
+    ];
+
+    public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });
+
+    private static void MustFailCleanly(byte[] data, string name)
+    {
+        try
+        {
+            var model = ModelLoader.Load(data, name);
+            // A load that succeeds must also write.
+            _ = GlbWriter.ToArray(model);
+            _ = ModelLoader.ReadMetadata(data, name);
+        }
+        catch (ModelFormatException)
+        {
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(Files))]
+    public void Truncated_files_fail_cleanly(string relative)
+    {
+        var data = File.ReadAllBytes(DatasetPaths.File(relative));
+        var name = Path.GetFileName(relative);
+        var step = Math.Max(1, data.Length / 60);
+        for (var length = 0; length < data.Length; length += step)
+        {
+            MustFailCleanly(data[..length], name);
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(Files))]
+    public void Mutated_files_fail_cleanly(string relative)
+    {
+        var original = File.ReadAllBytes(DatasetPaths.File(relative));
+        var name = Path.GetFileName(relative);
+        var rounds = int.TryParse(Environment.GetEnvironmentVariable("XRAY_3D_MUTATIONS"), out var n) ? n : 40;
+        var random = new Random(relative.GetHashCode(StringComparison.Ordinal) ^ 12345);
+        for (var round = 0; round < rounds; round++)
+        {
+            var data = (byte[])original.Clone();
+            for (var k = 0; k < 1 + random.Next(8); k++)
+            {
+                data[random.Next(data.Length)] = (byte)random.Next(256);
+            }
+
+            MustFailCleanly(data, name);
+        }
+    }
+
+    [Fact]
+    public void Garbage_and_empty_input_fail_cleanly()
+    {
+        var random = new Random(7);
+        foreach (var length in new[] { 0, 1, 3, 12, 84, 1000, 100_000 })
+        {
+            var data = new byte[length];
+            random.NextBytes(data);
+            foreach (var name in new[] { "a.stl", "a.obj", "a.ply", "a.glb", "a.3mf", "a.sldprt", "a.bin" })
+            {
+                MustFailCleanly(data, name);
+            }
+        }
+    }
+
+    [Fact]
+    public void Input_over_the_size_limit_is_refused()
+    {
+        var data = File.ReadAllBytes(DatasetPaths.File("synthetic/cube-binary.stl"));
+
+        Assert.Throws<ModelFormatException>(() => ModelLoader.Load(data, "x.stl", new LoadOptions { MaxInputBytes = 100 }));
+        Assert.Throws<ModelFormatException>(() => ModelLoader.Load(data, "x.stl", new LoadOptions { MaxTriangles = 5 }));
+    }
+
+    [Fact]
+    public void Cancellation_is_honoured()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        var data = File.ReadAllBytes(DatasetPaths.File("sldasm/nist-mtc-assembly.sldasm"));
+
+        Assert.ThrowsAny<OperationCanceledException>(() => ModelLoader.Load(data, "x.sldasm", new LoadOptions { Cancellation = cts.Token }));
+    }
+}

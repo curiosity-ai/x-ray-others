@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>xray3d</AssemblyName>
+    <RootNamespace>XRay.ThreeD.Cli</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/XRay.ThreeD/XRay.ThreeD.csproj" />
+  </ItemGroup>
+</Project>
