@@ -39,6 +39,8 @@ public class RobustnessTests
         "synthetic/building.ifc",
         "synthetic/part.igs",
         "iges/slewing-ring.iges",
+        "synthetic/assembly.FCStd",
+        "fcstd/butt-hinge.FCStd",
     ];
 
     public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });

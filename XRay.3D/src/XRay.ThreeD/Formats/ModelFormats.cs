@@ -46,6 +46,8 @@ public static class ModelFormats
 
     public static FormatInfo Iges { get; } = new("iges", "IGES", "cad", [".iges", ".igs"], FormatSupport.Full);
 
+    public static FormatInfo FreeCad { get; } = new("freecad", "FreeCAD", "cad", [".fcstd"], FormatSupport.Full);
+
     public static FormatInfo Dxf { get; } = new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Full);
 
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
@@ -68,7 +70,6 @@ public static class ModelFormats
         new("nx", "Siemens NX", "cad", [".prt"], FormatSupport.Identified),
         new("solidedge", "Solid Edge", "cad", [".par", ".psm", ".asm"], FormatSupport.Identified),
         new("fusion", "Fusion 360", "cad", [".f3d", ".f3z"], FormatSupport.Identified),
-        new("freecad", "FreeCAD", "cad", [".fcstd"], FormatSupport.Identified),
         new("openscad", "OpenSCAD", "cad", [".scad"], FormatSupport.Identified),
         new("blender", "Blender", "scene", [".blend"], FormatSupport.Identified),
         new("archicad", "Archicad", "bim", [".pln", ".pla", ".gsm"], FormatSupport.Identified),
@@ -85,7 +86,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows. Entries are not searched yet.</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Identified);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -264,7 +265,7 @@ public static class ModelFormats
 
             if (names.Contains("Document.xml", StringComparer.Ordinal))
             {
-                return Find("freecad");
+                return FreeCad;
             }
 
             if (names.Any(n => n.EndsWith(".home", StringComparison.OrdinalIgnoreCase) || n == "Home"))

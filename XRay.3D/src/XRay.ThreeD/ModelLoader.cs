@@ -178,6 +178,7 @@ public static class ModelLoader
         "step" => Formats.Step.StepReader.Read(data, options),
         "ifc" => Formats.Bim.IfcReader.Read(data, options),
         "iges" => Formats.Cad.IgesReader.Read(data, options),
+        "freecad" => Formats.Cad.FreecadReader.Read(data, options),
         "x3d" => X3dReader.ReadXml(data, options),
         "vrml" => X3dReader.ReadVrml(data, options),
         "off" => OffReader.Read(data, options),

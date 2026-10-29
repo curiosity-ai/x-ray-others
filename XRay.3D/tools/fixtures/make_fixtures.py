@@ -636,3 +636,51 @@ def make_iges():
     return out
 
 write('part.igs', make_iges())
+
+# ---- zip helper for the package fixtures below
+def make_zip(name, entries):
+    with zipfile.ZipFile(os.path.join(out, name), 'w', zipfile.ZIP_DEFLATED) as z:
+        for entry_name, payload in entries:
+            zi = zipfile.ZipInfo(entry_name, (2026, 1, 1, 0, 0, 0)); zi.compress_type = zipfile.ZIP_DEFLATED
+            z.writestr(zi, payload)
+
+PNG_1X1 = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==')
+
+def stl_cube_ascii(size):
+    s = ['solid cube']
+    for t in T:
+        pts = [tuple(c * size for c in V[i]) for i in t]
+        s.append('facet normal %g %g %g\n outer loop' % tuple(normal(*pts)))
+        for p in pts: s.append('  vertex %g %g %g' % p)
+        s.append(' endloop\nendfacet')
+    s.append('endsolid cube')
+    return '\n'.join(s) + '\n'
+
+# ---- FreeCAD: an App::Part with a placement (translated, turned 90 degrees about Z), a group holding a Mesh::Feature whose mesh is an
+# embedded STL cube (10 mm), a Part::Feature with a B-rep shape (listed, not drawn), a colour from the GUI document, a thumbnail.
+def make_fcstd():
+    def prop(name, type_, body, status=''): return '<Property name="%s" type="%s"%s>%s</Property>' % (name, type_, status, body)
+    def string(name, value): return prop(name, 'App::PropertyString', '<String value="%s"/>' % value)
+    def placement(px, py, pz, q): return prop('Placement', 'App::PropertyPlacement', '<PropertyPlacement Px="%g" Py="%g" Pz="%g" Q0="%g" Q1="%g" Q2="%g" Q3="%g" A="0" Ox="0" Oy="0" Oz="1"/>' % ((px, py, pz) + q))
+    def links(name, names): return prop(name, 'App::PropertyLinkList', '<LinkList count="%d">%s</LinkList>' % (len(names), ''.join('<Link value="%s"/>' % n for n in names)))
+    def obj(name, props): return '<Object name="%s"><Properties Count="%d" TransientCount="0">%s</Properties></Object>' % (name, len(props), ''.join(props))
+    h = 0.7071067811865476
+    doc = ("<?xml version='1.0' encoding='utf-8'?>\n"
+           '<Document SchemaVersion="4" ProgramVersion="1.0.2R12345 (Git)" FileVersion="1">\n<Properties Count="5" TransientCount="0">'
+           + string('Label', 'Fixture assembly') + string('CreatedBy', 'Fixture Author') + string('Company', 'Fixture Org')
+           + string('CreationDate', '2025-03-04T10:20:30Z') + string('LastModifiedBy', 'Reviewer')
+           + '</Properties>\n<Objects Count="4">'
+           '<Object type="App::Part" name="Part"/><Object type="Mesh::Feature" name="Mesh"/><Object type="Part::Feature" name="Cylinder"/><Object type="App::Origin" name="Origin"/>'
+           '</Objects>\n<ObjectData Count="4">'
+           + obj('Part', [links('Group', ['Mesh', 'Cylinder']), string('Label', 'Fixture assembly'), placement(100, 0, 0, (0, 0, h, h)),
+                          prop('Origin', 'App::PropertyLink', '<Link value="Origin"/>')])
+           + obj('Mesh', [string('Label', 'Cube mesh'), placement(0, 20, 0, (0, 0, 0, 1)), prop('Mesh', 'Mesh::PropertyMeshKernel', '<Mesh file="cube.stl"/>')])
+           + obj('Cylinder', [string('Label', 'Cylinder'), placement(0, 0, 0, (0, 0, 0, 1)), prop('Shape', 'Part::PropertyPartShape', '<Part file="Cylinder.Shape.brp"/>')])
+           + obj('Origin', [string('Label', 'Origin')])
+           + '</ObjectData>\n</Document>\n')
+    gui = ("<?xml version='1.0' encoding='utf-8'?>\n<Document SchemaVersion=\"1\"><ViewProviderData Count=\"1\"><ViewProvider name=\"Cylinder\"><Properties Count=\"1\">"
+           '<Property name="DiffuseColor" type="App::PropertyColorList"><ColorList file="DiffuseColor"/></Property></Properties></ViewProvider></ViewProviderData></Document>\n')
+    make_zip('assembly.FCStd', [('Document.xml', doc), ('GuiDocument.xml', gui), ('DiffuseColor', struct.pack('<II', 1, 0xCC9E4700)),
+                                ('cube.stl', stl_cube_ascii(10)), ('Cylinder.Shape.brp', b'DBRep_DrawableShape\n'), ('thumbnails/Thumbnail.png', PNG_1X1)])
+
+make_fcstd()

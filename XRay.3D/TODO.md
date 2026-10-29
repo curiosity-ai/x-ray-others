@@ -33,7 +33,8 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 - [ ] DWG: wrap or port a pure-C# reader (the viewer's own TypeScript fallback decoder is a readable reference); layers, blocks, units
 - [x] IFC (STEP physical file): spatial tree, names, GUIDs, property sets and quantities, units, styles; face sets, faceted B-reps, extrusions, mapped items. Open: openings and boolean operations (first operand drawn), swept disks, revolved and B-spline solids, IfcXML
 - [x] FBX, COLLADA, 3DS, USDA, VRML/X3D, OFF, AMF (open: USDC/USDZ)
-- [ ] FreeCAD (`.FCStd`: zip with `Document.xml` and BREP/mesh parts), OpenSCAD (needs a CSG kernel; metadata only first), Sweet Home 3D (zip of Java-serialised home, models as OBJ)
+- [x] FreeCAD (`.FCStd`): document, object tree, properties, placements, colours, thumbnail, embedded STL/OBJ meshes. Open: tessellating `.brp` (OpenCASCADE text BREP), decoding `.bms` meshes, Link/App::Link placement
+- [ ] OpenSCAD (needs a CSG kernel; metadata only first)
 - [ ] Rhino 3DM: layers, materials, block instances, stored render meshes; warn rather than mesh B-reps
 - [ ] SketchUp, Revit, Inventor, JT, Parasolid, ACIS: metadata and thumbnails first, as the reference viewer shows geometry only
 - [x] Point clouds: LAS, PCD, XYZ/PTS (open: LAZ, PLY splats)
