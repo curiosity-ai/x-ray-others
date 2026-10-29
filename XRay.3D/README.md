@@ -40,7 +40,14 @@ A command line tool lives in `tools/XRay.ThreeD.Cli`: `xray3d info <file> [--jso
 | glTF 2.0 | `.glb` `.gltf` | scene, node names, extras, materials, generator | node tree, shared meshes, PBR base colours |
 | 3MF | `.3mf` | title, designer, units, materials | objects, components, build transforms, base-material colours |
 | AutoCAD DXF | `.dxf` (ASCII) | version, units, layers (colour, visibility), blocks, text, entity counts, dates | one node per layer; lines, polylines, arcs, splines, hatch outlines as lines; 3D faces, polyface meshes, MESH, solids as triangles; blocks and arrays expanded |
-| Recognised only | STEP, IGES, DWG, IFC, 3DM, FBX, DAE, USD, ... | the format is named | `UnsupportedModelFormatException` |
+| STEP | `.step` `.stp` `.p21` | header, product tree, descriptions, versions, materials, layers, units | B-rep faces triangulated (planes, quadrics, tori, B-spline, revolution, extrusion; faceted B-reps), NAUO assembly instances, STYLED_ITEM colours; area and volume match OpenCASCADE within 0.3% |
+| FBX | `.fbx` (binary, ASCII) | scene, node and material names | meshes, node transforms, materials |
+| COLLADA | `.dae` | asset, units, up axis, node names | geometry, scene graph, effect colours |
+| X3D / VRML | `.x3d` `.wrl` | titles, meta, DEF names | shapes, transforms, colours |
+| USD | `.usda` | stage metadata, prim names, units | meshes, xforms, display colours |
+| 3DS, AMF, OFF | `.3ds` `.amf` `.off` | names, units, materials | triangles, colours |
+| Point clouds | `.las` `.pcd` `.xyz` `.pts` | header, point counts, bounds, CRS where given | points with colours |
+| Recognised only | IGES, DWG, IFC, 3DM, ... | the format is named | `UnsupportedModelFormatException` |
 
 `ModelFormats.All` lists everything the library can name. Detection looks at the content first (magic bytes, ZIP
 entry names) and the file name second.

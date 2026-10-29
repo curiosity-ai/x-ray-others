@@ -16,9 +16,9 @@ in this repository. `LICENSE` is MIT for Curiosity GmbH.
 | Path | What |
 |---|---|
 | `src/XRay.ThreeD/Model/` | `Model3D`, `SceneNode`, `MeshData`, `ModelMetadata`, `FormatInfo`, exceptions |
-| `src/XRay.ThreeD/Formats/` | `ModelFormats` (registry + detection), `SolidWorks/`, `Mesh/` (STL, OBJ, PLY, glTF, 3MF), `Cad/` (DXF) |
+| `src/XRay.ThreeD/Formats/` | `ModelFormats` (registry + detection), `SolidWorks/`, `Mesh/` (STL, OBJ, PLY, glTF, 3MF, OFF, AMF, 3DS, COLLADA, X3D/VRML, FBX, USDA), `Cad/` (DXF), `PointCloud/` (LAS, PCD, XYZ), `Step/` (Part 21 parser, geometry, tessellator, reader) |
 | `src/XRay.ThreeD/Output/` | `GlbWriter` (the output format and its profile), `AssemblyPackage` (manifest + per-part GLBs) |
-| `src/XRay.ThreeD/Internal/` | `MeshoptEncoder`/`MeshoptDecoder` (ports, see `THIRD_PARTY_NOTICES.md`), CRC and binary helpers |
+| `src/XRay.ThreeD/Internal/` | `Triangulator` (constrained Delaunay), `MeshoptEncoder`/`MeshoptDecoder` (ports, see `THIRD_PARTY_NOTICES.md`), CRC and binary helpers |
 | `src/XRay.ThreeD/ModelLoader.cs` | entry point: `Detect`, `ReadMetadata`, `Load`, `ConvertToGlb`; the exception guard and sanitiser |
 | `tests/XRay.ThreeD.Tests/` | `SolidWorksTests` (golden), `MeshFormatTests`, `GlbWriterTests`, `FormatTests`, `RobustnessTests` |
 | `dataset/` | committed fixtures (about 30 MB); `manifest.json` has licence, source and sha256 of each |

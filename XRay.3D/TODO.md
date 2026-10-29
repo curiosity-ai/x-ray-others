@@ -27,15 +27,15 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 
 ## Next: more formats, in order of value / effort (see `docs/research/formats.md` for the viewer's approach)
 
-- [ ] STEP: assembly tree (PRODUCT, NEXT_ASSEMBLY_USAGE_OCCURRENCE), names, units, colours, layers, properties; metadata first (S-M), then a B-rep tessellator (XL: NURBS, trimmed surfaces); start with faceted and AP242 tessellated geometry
+- [x] STEP (B-rep, assembly, colours, layers, units; open: AP242 tessellated entities, mapped items): assembly tree (PRODUCT, NEXT_ASSEMBLY_USAGE_OCCURRENCE), names, units, colours, layers, properties; metadata first (S-M), then a B-rep tessellator (XL: NURBS, trimmed surfaces); start with faceted and AP242 tessellated geometry
 - [x] DXF (ASCII): layers, units (`$INSUNITS` per the AutoCAD table; the reference viewer maps 4, 5 and 6 all to mm), blocks and arrays, lines/polylines/arcs/splines/hatch outlines, 3D faces, polyface and MESH; checked against ezdxf. Open: binary DXF, hatch fills, text as geometry, ACIS solids
 - [ ] DWG: wrap or port a pure-C# reader (the viewer's own TypeScript fallback decoder is a readable reference); layers, blocks, units
 - [ ] IFC (STEP physical file): names, GUIDs, property sets, spatial tree (the reference viewer drops these); geometry needs an extrusion/CSG kernel (XL)
-- [ ] FBX, COLLADA, 3DS, USD(A/Z), VRML/X3D, OFF, AMF
+- [x] FBX, COLLADA, 3DS, USDA, VRML/X3D, OFF, AMF (open: USDC/USDZ)
 - [ ] FreeCAD (`.FCStd`: zip with `Document.xml` and BREP/mesh parts), OpenSCAD (needs a CSG kernel; metadata only first), Sweet Home 3D (zip of Java-serialised home, models as OBJ)
 - [ ] Rhino 3DM: layers, materials, block instances, stored render meshes; warn rather than mesh B-reps
 - [ ] SketchUp, Revit, Inventor, JT, Parasolid, ACIS: metadata and thumbnails first, as the reference viewer shows geometry only
-- [ ] Point clouds: LAS (trivial), LAZ (LASzip spec), PLY with splat properties, PCD, XYZ/PTS
+- [x] Point clouds: LAS, PCD, XYZ/PTS (open: LAZ, PLY splats)
 - [ ] Archives: look inside ZIP/RAR/7z/tar for the primary model (extension priority list) and companions (OBJ+MTL+textures)
 - [ ] G-code toolpath preview; Archicad (metadata and thumbnail only; the reference reader is itself partial)
 
