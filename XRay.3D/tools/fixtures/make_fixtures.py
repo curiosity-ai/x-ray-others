@@ -739,3 +739,36 @@ G1 X1 Y0
 G0 Z0.5
 M30
 ''')
+
+# ---- ZIP package: an OBJ with its MTL next to it (red, and half-transparent blue), a texture, a readme, a junk resource-fork entry and a lower
+# priority STL; the primary model is the OBJ and the STL is listed as another model.
+make_zip('package-obj-mtl.zip', [
+    ('readme.txt', 'A package with an OBJ, its MTL and a texture.\n'),
+    ('__MACOSX/box/._model.obj', b'\x00\x05\x16\x07'),
+    ('box/model.obj', '''# a red quad and a blue triangle
+mtllib model.mtl
+o plate
+v 0 0 0
+v 2 0 0
+v 2 2 0
+v 0 2 0
+usemtl Red
+f 1 2 3 4
+o wedge
+v 0 0 1
+v 2 0 1
+v 1 2 1
+usemtl Blue
+f 5 6 7
+'''),
+    ('box/model.mtl', '''newmtl Red
+Kd 1.0 0.0 0.0
+Ns 250
+newmtl Blue
+Kd 0.0 0.0 1.0
+d 0.5
+map_Kd ../textures/wood.png
+'''),
+    ('textures/wood.png', PNG_1X1),
+    ('other/cube.stl', stl_cube_ascii(1)),
+])

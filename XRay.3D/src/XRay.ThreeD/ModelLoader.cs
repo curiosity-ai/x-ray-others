@@ -22,6 +22,17 @@ public sealed class LoadOptions
     public long MaxTriangles { get; set; } = 100_000_000;
 
     public CancellationToken Cancellation { get; set; }
+
+    /// <summary>
+    /// Supplies files a model refers to but does not contain (the .mtl of an OBJ, for example), given the name as the model writes it. Returns
+    /// null when there is no such file. ZIP archives set this to look among their own entries.
+    /// </summary>
+    public Func<string, byte[]?>? ResolveCompanion { get; set; }
+
+    /// <summary>How many archives deep this load is; nested packages stop at three.</summary>
+    internal int ArchiveDepth { get; set; }
+
+    internal LoadOptions Clone() => (LoadOptions)MemberwiseClone();
 }
 
 /// <summary>
@@ -177,6 +188,7 @@ public static class ModelLoader
         "usd" => UsdaReader.Read(data, options),
         "step" => Formats.Step.StepReader.Read(data, options),
         "ifc" => Formats.Bim.IfcReader.Read(data, options),
+        "archive" => Formats.Packages.ArchiveReader.Read(data, options),
         "iges" => Formats.Cad.IgesReader.Read(data, options),
         "freecad" => Formats.Cad.FreecadReader.Read(data, options),
         "gcode" => Formats.Toolpath.GcodeReader.Read(data, options),

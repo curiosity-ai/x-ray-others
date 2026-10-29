@@ -38,7 +38,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 - [ ] Rhino 3DM: layers, materials, block instances, stored render meshes; warn rather than mesh B-reps
 - [ ] SketchUp, Revit, Inventor, JT, Parasolid, ACIS: metadata and thumbnails first, as the reference viewer shows geometry only
 - [x] Point clouds: LAS, PCD, XYZ/PTS (open: LAZ, PLY splats)
-- [ ] Archives: look inside ZIP/RAR/7z/tar for the primary model (extension priority list) and companions (OBJ+MTL+textures)
+- [x] Archives: ZIP packages (primary model by extension priority, companions, OBJ+MTL colours). Open: RAR/7z/tar, MTL textures, loading every model of a package as one scene
 - [x] G-code toolpath preview (lines by extrusion/travel or cut/rapid). Open: per-layer nodes, feature-type colours, tool numbers, canned cycles
 - [ ] Archicad (metadata and thumbnail only; the reference reader is itself partial)
 

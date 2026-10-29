@@ -84,8 +84,8 @@ public static class ModelFormats
         new("unreal", "Unreal asset", "scene", [".uasset", ".umap"], FormatSupport.Identified),
     ];
 
-    /// <summary>A ZIP package that is not a 3D format this library knows. Entries are not searched yet.</summary>
-    public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Identified);
+    /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
+    public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
     private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode];
 
@@ -280,7 +280,7 @@ public static class ModelFormats
                 return FreeCad;
             }
 
-            if (names.Any(n => n.EndsWith(".home", StringComparison.OrdinalIgnoreCase) || n == "Home"))
+            if (names.Any(n => n.EndsWith(".home", StringComparison.OrdinalIgnoreCase) || n == "Home" || n == "Home.xml"))
             {
                 return Find("sh3d");
             }

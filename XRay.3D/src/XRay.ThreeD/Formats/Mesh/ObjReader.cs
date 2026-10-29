@@ -5,8 +5,9 @@ namespace XRay.ThreeD.Formats.Mesh;
 
 /// <summary>
 /// Wavefront OBJ: every <c>o</c>/<c>g</c> object becomes a node with its own mesh, <c>usemtl</c> splits it into
-/// material groups. The .mtl file is a separate file the loader does not see, so materials get names and a
-/// neutral colour; the library file name is kept in the metadata.
+/// material groups. The .mtl file is a separate file: when the caller supplies companions
+/// (<see cref="LoadOptions.ResolveCompanion"/>, as ZIP archives do) its diffuse colour, opacity and shininess fill the materials;
+/// otherwise materials keep their names and a neutral colour. The library file name is kept in the metadata.
 /// </summary>
 internal static class ObjReader
 {
@@ -37,6 +38,7 @@ internal static class ObjReader
         groups.Add(current);
         var material = -1;
         long triangles = 0;
+        var libraries = new List<string>();
 
         string text = Encoding.UTF8.GetString(data.Span);
         foreach (var raw in text.AsSpan().EnumerateLines())
@@ -90,6 +92,7 @@ internal static class ObjReader
 
                 case "mtllib":
                     model.Metadata.Properties.Add(new ModelProperty("mtllib", rest.ToString(), "obj"));
+                    libraries.Add(rest.ToString());
                     break;
                 case "f":
                     triangles += AddFace(rest, current, material, positions, normals);
@@ -143,12 +146,92 @@ internal static class ObjReader
             model.Roots.Add(root);
         }
 
+        if (options.ResolveCompanion is { } resolve)
+        {
+            ApplyLibraries(model, libraries, resolve, materialIndex);
+        }
+
         model.Metadata.PartNames.AddRange(model.Meshes.Select(m => m.Name).Where(n => !string.IsNullOrEmpty(n))!);
         model.Metadata.MaterialNames.AddRange(model.Materials.Select(m => m.Name!));
         model.Metadata.HasGeometry = true;
         model.Metadata.Statistics = model.ComputeStatistics();
         model.Metadata.Bounds = model.ComputeBounds();
         return model;
+    }
+
+    /// <summary>Reads the .mtl files named by <c>mtllib</c>: newmtl, Kd (diffuse), d or Tr (opacity), Ns (shininess), Pm and Pr (PBR extension).</summary>
+    private static void ApplyLibraries(Model3D model, List<string> libraries, Func<string, byte[]?> resolve, Dictionary<string, int> materialIndex)
+    {
+        foreach (var entry in libraries.SelectMany(l => l.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries)).Distinct(StringComparer.Ordinal).Take(16))
+        {
+            var bytes = resolve(entry);
+            if (bytes is null)
+            {
+                model.Warnings.Add($"The material library '{entry}' was not found; materials keep neutral colours.");
+                continue;
+            }
+
+            ModelMaterial? current = null;
+            foreach (var raw in Encoding.UTF8.GetString(bytes).AsSpan().EnumerateLines())
+            {
+                var line = raw.Trim();
+                if (line.Length == 0 || line[0] == '#')
+                {
+                    continue;
+                }
+
+                var space = line.IndexOfAny(' ', '\t');
+                var keyword = space < 0 ? line : line[..space];
+                var rest = space < 0 ? default : line[(space + 1)..].Trim();
+                if (keyword.Equals("newmtl", StringComparison.OrdinalIgnoreCase))
+                {
+                    current = materialIndex.TryGetValue(rest.ToString(), out var index) ? model.Materials[index] : null;
+                    continue;
+                }
+
+                if (current is null)
+                {
+                    continue;
+                }
+
+                var values = new List<float>(3);
+                foreach (var range in rest.Split(' '))
+                {
+                    if (float.TryParse(rest[range], NumberStyles.Float, CultureInfo.InvariantCulture, out var v) && float.IsFinite(v))
+                    {
+                        values.Add(v);
+                    }
+                }
+
+                if (values.Count == 0)
+                {
+                    continue;
+                }
+
+                var colour = current.BaseColor;
+                switch (keyword.ToString().ToLowerInvariant())
+                {
+                    case "kd" when values.Count >= 3:
+                        current.BaseColor = new System.Numerics.Vector4(Math.Clamp(values[0], 0, 1), Math.Clamp(values[1], 0, 1), Math.Clamp(values[2], 0, 1), colour.W);
+                        break;
+                    case "d":
+                        current.BaseColor = colour with { W = Math.Clamp(values[0], 0, 1) };
+                        break;
+                    case "tr":
+                        current.BaseColor = colour with { W = Math.Clamp(1 - values[0], 0, 1) };
+                        break;
+                    case "ns":
+                        current.Roughness = (float)(1 - Math.Sqrt(Math.Clamp(values[0], 0, 1000) / 1000));
+                        break;
+                    case "pr":
+                        current.Roughness = Math.Clamp(values[0], 0, 1);
+                        break;
+                    case "pm":
+                        current.Metallic = Math.Clamp(values[0], 0, 1);
+                        break;
+                }
+            }
+        }
     }
 
     private static void AddFloats(ReadOnlySpan<char> text, int count, List<float> into)
