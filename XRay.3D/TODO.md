@@ -5,6 +5,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 
 ## Done
 
+- [x] Rendering profile: face ranges, feature edges, PBR materials, quantisation, meshopt, GPU instancing, assembly package (manifest + one GLB per unique part)
 - [x] Review of the reference viewer: formats, features, export menu, WebAssembly readers (`docs/research/`)
 - [x] Target format decision: GLB, normalised to meters and Y-up by a root node, metadata in `extras`
 - [x] Scene model, metadata model, format registry and detection (content first)
@@ -17,7 +18,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 
 ## Next: finish SolidWorks
 
-- [ ] Per-face colours and materials (the reference reader reports a colour per face; records are located, link not decoded)
+- [x] Per-face colours and materials (colour is stateful: a face takes the latest appearance record before it; matches the reference reader on every face)
 - [ ] 2024+ saves: the `FaceTessellations/` store when `DisplayLists` is absent
 - [ ] Compound-file envelope (SolidWorks 2014 and before; `__ZLB` zlib streams): a small CFB reader. Needs a fixture
 - [ ] Drawings: extract `Images/Sheet_*` (and `Preview` DIB to PNG with the letterbox trim)
@@ -41,7 +42,8 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 ## Next: conversion quality
 
 - [ ] Textures and UVs (OBJ+MTL with companions, glTF, 3MF textures); `KHR_texture_transform`
-- [ ] Draco / meshopt decode for glTF input; meshopt compression and `KHR_mesh_quantization` for output (meshopt is portable to pure C#)
+- [x] Meshopt decode for glTF input; meshopt compression and `KHR_mesh_quantization` for output (ported codecs, checked against an independent decoder)
+- [ ] Draco decode for glTF input
 - [ ] Smooth/flat normal policy for welded STL (currently left to the viewer)
 - [ ] Unit/up-axis hints from the caller for formats that do not say (STL, OBJ)
 - [ ] Far-from-origin recentring (the viewer does it; record the offset in extras)

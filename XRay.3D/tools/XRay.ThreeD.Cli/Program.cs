@@ -4,6 +4,7 @@ using XRay.ThreeD;
 // xray3d info <file> [--json]      metadata
 // xray3d convert <file> [out.glb] [--compress none|quantize|meshopt] [--edges none|auto|all]
 //                                  convert to binary glTF
+// xray3d package <file> <out-dir|out.zip> [--compress ...]  assembly.json + one GLB per unique part
 // xray3d formats                   list known formats
 if (args.Length == 0)
 {
@@ -34,6 +35,29 @@ try
                     Print(meta);
                 }
 
+                return 0;
+            }
+
+        case "package" when args.Length >= 3:
+            {
+                var model = ModelLoader.Load(args[1]);
+                var glb = new GlbWriteOptions();
+                if (Option(args, "--compress") is { } c)
+                {
+                    glb.Compression = Enum.Parse<GlbCompression>(c, ignoreCase: true);
+                }
+
+                var package = AssemblyPackage.Create(model, new AssemblyPackageOptions { Glb = glb });
+                if (args[2].EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                {
+                    File.WriteAllBytes(args[2], package.ToZip());
+                }
+                else
+                {
+                    package.WriteToDirectory(args[2]);
+                }
+
+                Console.WriteLine($"{args[2]}: {package.Files.Count - 1} parts, manifest {package.Files[AssemblyPackage.ManifestName].Length:N0} bytes, total {package.Files.Values.Sum(f => (long)f.Length):N0} bytes");
                 return 0;
             }
 

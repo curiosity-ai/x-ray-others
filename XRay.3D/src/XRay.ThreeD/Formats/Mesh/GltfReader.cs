@@ -202,6 +202,13 @@ internal static class GltfReader
                 }
             }
 
+            if (node.Mesh is not null && element.TryGetProperty("extensions", out var extensions)
+                && extensions.TryGetProperty("EXT_mesh_gpu_instancing", out var instancing)
+                && instancing.TryGetProperty("attributes", out var instanceAttributes))
+            {
+                ExpandInstances(node, element, instanceAttributes);
+            }
+
             foreach (var child in Ints(element, "children"))
             {
                 if (BuildNode(nodes, child, depth + 1) is { } built)
@@ -211,6 +218,54 @@ internal static class GltfReader
             }
 
             return node;
+        }
+
+        /// <summary>
+        /// EXT_mesh_gpu_instancing: the node becomes a group and each instance a child node with the mesh. Names and properties come
+        /// from <c>extras.instances</c> when the writer (this library) stored them there.
+        /// </summary>
+        private void ExpandInstances(SceneNode node, JsonElement element, JsonElement attributes)
+        {
+            float[]? Attribute(string name, int width) =>
+                attributes.TryGetProperty(name, out var a) && a.TryGetInt32(out var index) ? ReadAccessor(index, width) : null;
+
+            var translation = Attribute("TRANSLATION", 3);
+            var rotation = Attribute("ROTATION", 4);
+            var scale = Attribute("SCALE", 3);
+            var count = Math.Max(translation?.Length / 3 ?? 0, Math.Max(rotation?.Length / 4 ?? 0, scale?.Length / 3 ?? 0));
+            if (count == 0 || count > 10_000_000)
+            {
+                return;
+            }
+
+            var names = new List<JsonElement>();
+            if (element.TryGetProperty("extras", out var extras) && extras.ValueKind == JsonValueKind.Object)
+            {
+                names = Array(extras, "instances");
+            }
+
+            var mesh = node.Mesh!;
+            node.Mesh = null;
+            for (var i = 0; i < count; i++)
+            {
+                var t = translation is not null && translation.Length >= 3 * (i + 1) ? new Vector3(translation[3 * i], translation[3 * i + 1], translation[3 * i + 2]) : Vector3.Zero;
+                var r = rotation is not null && rotation.Length >= 4 * (i + 1) ? Quaternion.Normalize(new Quaternion(rotation[4 * i], rotation[4 * i + 1], rotation[4 * i + 2], rotation[4 * i + 3])) : Quaternion.Identity;
+                var s = scale is not null && scale.Length >= 3 * (i + 1) ? new Vector3(scale[3 * i], scale[3 * i + 1], scale[3 * i + 2]) : Vector3.One;
+                var instance = new SceneNode(i < names.Count ? Str(names[i], "name") : null)
+                {
+                    Mesh = mesh,
+                    Transform = Matrix4x4.CreateScale(s) * Matrix4x4.CreateFromQuaternion(r) * Matrix4x4.CreateTranslation(t),
+                };
+                if (i < names.Count && names[i].ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var property in names[i].EnumerateObject().Where(p => p.Name != "name" && p.Value.ValueKind == JsonValueKind.String))
+                    {
+                        instance.Properties[property.Name] = property.Value.GetString()!;
+                    }
+                }
+
+                node.Children.Add(instance);
+            }
         }
 
         private static Matrix4x4 ReadTransform(JsonElement element)

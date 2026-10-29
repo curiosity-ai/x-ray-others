@@ -142,3 +142,96 @@ public class CompressionTests
         }
     }
 }
+
+public class InstancingTests
+{
+    private static Model3D Screws()
+    {
+        var model = new Model3D();
+        var mesh = new MeshData { Name = "screw", Positions = [0, 0, 0, 1, 0, 0, 0, 1, 0], Indices = [0, 1, 2] };
+        model.Meshes.Add(mesh);
+        var root = new SceneNode("fixture");
+        for (var i = 0; i < 6; i++)
+        {
+            var node = new SceneNode($"screw-{i + 1}")
+            {
+                Mesh = mesh,
+                Transform = Matrix4x4.CreateRotationZ(i * 0.3f) * Matrix4x4.CreateTranslation(i, 2 * i, 0),
+            };
+            node.Properties["partNumber"] = $"PN-{i}";
+            root.Children.Add(node);
+        }
+
+        var other = new MeshData { Name = "other", Positions = [0, 0, 0, 1, 0, 0, 0, 1, 0], Indices = [0, 1, 2] };
+        model.Meshes.Add(other);
+        root.Children.Add(new SceneNode("lonely") { Mesh = other });
+        model.Roots.Add(root);
+        return model;
+    }
+
+    [Fact]
+    public void Gpu_instancing_merges_siblings_and_keeps_their_names_in_extras()
+    {
+        var glb = GlbWriter.ToArray(Screws(), new GlbWriteOptions { Instancing = GlbInstancing.Gpu });
+        GlbValidation.Validate(glb);
+        var json = JsonDocument.Parse(glb.AsMemory(20, BitConverter.ToInt32(glb, 12))).RootElement;
+
+        var nodes = json.GetProperty("nodes").EnumerateArray().ToList();
+        Assert.Contains("EXT_mesh_gpu_instancing", json.GetProperty("extensionsRequired").EnumerateArray().Select(e => e.GetString()));
+        var merged = Assert.Single(nodes, n => n.TryGetProperty("extensions", out _));
+        Assert.Equal("screw (instances)", merged.GetProperty("name").GetString());
+        var instances = merged.GetProperty("extras").GetProperty("instances");
+        Assert.Equal(6, instances.GetArrayLength());
+        Assert.Equal("screw-3", instances[2].GetProperty("name").GetString());
+        Assert.Equal("PN-3", instances[3].GetProperty("partNumber").GetString());
+        Assert.Equal(6, json.GetProperty("accessors")[merged.GetProperty("extensions").GetProperty("EXT_mesh_gpu_instancing").GetProperty("attributes").GetProperty("TRANSLATION").GetInt32()].GetProperty("count").GetInt32());
+        Assert.Equal(1, nodes.Count(n => n.TryGetProperty("name", out var name) && name.GetString() == "lonely"));
+    }
+
+    [Fact]
+    public void Gpu_instances_read_back_as_the_same_placements()
+    {
+        var original = Screws();
+        var back = ModelLoader.Load(GlbWriter.ToArray(original, new GlbWriteOptions { Instancing = GlbInstancing.Gpu, ConvertToMeters = false, ConvertToYUp = false }), "x.glb");
+
+        Assert.Equal(original.ComputeStatistics().Triangles, back.ComputeStatistics().Triangles);
+        var o = original.ComputeBounds()!.Value;
+        var b = back.ComputeBounds()!.Value;
+        Assert.True(Vector3.Distance(o.Min, b.Min) < 1e-4f && Vector3.Distance(o.Max, b.Max) < 1e-4f);
+        Assert.Contains(back.Nodes(), n => n.Name == "screw-4" && n.Properties["partNumber"] == "PN-3");
+    }
+
+    [Fact]
+    public void Gpu_instancing_is_off_by_default_and_ignored_for_compressed_output()
+    {
+        var plain = GlbWriter.ToArray(Screws());
+        Assert.DoesNotContain("EXT_mesh_gpu_instancing", System.Text.Encoding.UTF8.GetString(plain));
+
+        var compressed = GlbWriter.ToArray(Screws(), new GlbWriteOptions { Instancing = GlbInstancing.Gpu, Compression = GlbCompression.Quantize });
+        Assert.DoesNotContain("EXT_mesh_gpu_instancing", System.Text.Encoding.UTF8.GetString(compressed));
+    }
+
+    [Fact]
+    public void Instances_that_cannot_be_decomposed_stay_as_nodes()
+    {
+        var model = Screws();
+        // Shear cannot be expressed as translation, rotation and scale.
+        foreach (var node in model.Roots[0].Children.Take(2))
+        {
+            node.Transform = new Matrix4x4(1, 0.5f, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+        }
+
+        var glb = GlbWriter.ToArray(model, new GlbWriteOptions { Instancing = GlbInstancing.Gpu });
+        Assert.DoesNotContain("EXT_mesh_gpu_instancing", System.Text.Encoding.UTF8.GetString(glb));
+    }
+
+    [Fact]
+    public void Assembly_instancing_round_trips_whatever_it_can_merge()
+    {
+        var model = ModelLoader.Load(DatasetPaths.File("sldasm/nist-mtc-assembly.sldasm"));
+        var glb = GlbWriter.ToArray(model, new GlbWriteOptions { Instancing = GlbInstancing.Gpu, Edges = EdgeMode.None });
+        var back = ModelLoader.Load(glb, "x.glb");
+
+        Assert.Equal(model.ComputeStatistics().Triangles, back.ComputeStatistics().Triangles);
+    }
+}

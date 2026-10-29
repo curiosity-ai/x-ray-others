@@ -7,6 +7,12 @@ using XRay.ThreeD.Internal;
 
 namespace XRay.ThreeD;
 
+public enum GlbInstancing
+{
+    Nodes,
+    Gpu,
+}
+
 public enum GlbCompression
 {
     None,
@@ -39,6 +45,16 @@ public sealed class GlbWriteOptions
     /// compresses vertices and indices (EXT_meshopt_compression, required by the file). Viewers need the extensions: three.js loads both.
     /// </summary>
     public GlbCompression Compression { get; set; } = GlbCompression.None;
+
+    /// <summary>
+    /// <see cref="GlbInstancing.Gpu"/> merges sibling nodes that share a mesh into one node with EXT_mesh_gpu_instancing (one draw call
+    /// for all of them); the instance names and properties move to the node's <c>extras</c>. Only for uncompressed output, and the
+    /// file requires the extension. <see cref="GlbInstancing.Nodes"/> (the default) keeps one named node per instance.
+    /// </summary>
+    public GlbInstancing Instancing { get; set; } = GlbInstancing.Nodes;
+
+    /// <summary>Smallest group of sibling instances that <see cref="GlbInstancing.Gpu"/> merges.</summary>
+    public int MinGpuInstances { get; set; } = 4;
 
     /// <summary>Feature edges as a separate line primitive per mesh. <see cref="EdgeMode.Auto"/> draws them for meshes that have source faces (CAD).</summary>
     public EdgeMode Edges { get; set; } = EdgeMode.Auto;
@@ -147,6 +163,110 @@ public static class GlbWriter
         public readonly Dictionary<MeshData, Matrix4x4> Dequantise = new(ReferenceEqualityComparer.Instance);
     }
 
+    private sealed record SyntheticNode(int Translation, int Rotation, int Scale, List<SceneNode> Sources);
+
+    private sealed class InstancePlan
+    {
+        public readonly Dictionary<SceneNode, List<SceneNode>> Children = new(ReferenceEqualityComparer.Instance);
+        public readonly Dictionary<SceneNode, SyntheticNode> Synthetic = new(ReferenceEqualityComparer.Instance);
+        public List<SceneNode> Roots = new();
+    }
+
+    private static InstancePlan PlanInstancing(Model3D model, Accessors accessors, MemoryStream bin, GlbWriteOptions options)
+    {
+        var plan = new InstancePlan();
+
+        List<SceneNode> Process(IReadOnlyList<SceneNode> siblings)
+        {
+            var result = new List<SceneNode>();
+            var byMesh = new Dictionary<MeshData, List<SceneNode>>(ReferenceEqualityComparer.Instance);
+            foreach (var node in siblings)
+            {
+                if (node.Mesh is not null && node.Children.Count == 0)
+                {
+                    if (!byMesh.TryGetValue(node.Mesh, out var list))
+                    {
+                        byMesh[node.Mesh] = list = new List<SceneNode>();
+                    }
+
+                    list.Add(node);
+                }
+            }
+
+            var merged = new Dictionary<MeshData, SceneNode>(ReferenceEqualityComparer.Instance);
+            foreach (var node in siblings)
+            {
+                if (node.Mesh is not null && node.Children.Count == 0 && byMesh[node.Mesh] is { } members
+                    && members.Count >= Math.Max(2, options.MinGpuInstances) && TryDecompose(members, out var trs))
+                {
+                    if (merged.ContainsKey(node.Mesh))
+                    {
+                        continue;
+                    }
+
+                    var synthetic = new SceneNode((node.Mesh.Name ?? node.Name) + " (instances)") { Mesh = node.Mesh };
+                    var t = new float[members.Count * 3];
+                    var r = new float[members.Count * 4];
+                    var sc = new float[members.Count * 3];
+                    for (var i = 0; i < members.Count; i++)
+                    {
+                        trs[i].Translation.CopyTo(t.AsSpan(3 * i));
+                        r[4 * i] = trs[i].Rotation.X;
+                        r[4 * i + 1] = trs[i].Rotation.Y;
+                        r[4 * i + 2] = trs[i].Rotation.Z;
+                        r[4 * i + 3] = trs[i].Rotation.W;
+                        trs[i].Scale.CopyTo(sc.AsSpan(3 * i));
+                    }
+
+                    var ta = AddAccessor(accessors, bin, MemoryMarshal.AsBytes(t.AsSpan()), 5126, members.Count, "VEC3", 0, null, null);
+                    var ra = AddAccessor(accessors, bin, MemoryMarshal.AsBytes(r.AsSpan()), 5126, members.Count, "VEC4", 0, null, null);
+                    var sa = AddAccessor(accessors, bin, MemoryMarshal.AsBytes(sc.AsSpan()), 5126, members.Count, "VEC3", 0, null, null);
+                    plan.Synthetic[synthetic] = new SyntheticNode(ta, ra, sa, members);
+                    merged[node.Mesh] = synthetic;
+                    result.Add(synthetic);
+                }
+                else
+                {
+                    result.Add(node);
+                    plan.Children[node] = Process(node.Children);
+                }
+            }
+
+            return result;
+        }
+
+        plan.Roots = Process(model.Roots);
+        return plan;
+    }
+
+    private static bool TryDecompose(List<SceneNode> members, out (Vector3 Translation, Quaternion Rotation, Vector3 Scale)[] result)
+    {
+        result = new (Vector3, Quaternion, Vector3)[members.Count];
+        for (var i = 0; i < members.Count; i++)
+        {
+            var m = members[i].Transform;
+            if (!Matrix4x4.Decompose(m, out var scale, out var rotation, out var translation))
+            {
+                return false;
+            }
+
+            var back = Matrix4x4.CreateScale(scale) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(translation);
+            var limit = 1e-4f * Math.Max(1f, Math.Max(MathF.Abs(m.M41), Math.Max(MathF.Abs(m.M42), MathF.Abs(m.M43))));
+            if (!(Matrix4x4.Equals(back, m) || MaxDifference(back, m) <= limit))
+            {
+                return false;
+            }
+
+            result[i] = (translation, rotation, scale);
+        }
+
+        return true;
+    }
+
+    private static float MaxDifference(Matrix4x4 a, Matrix4x4 b) =>
+        new[] { a.M11 - b.M11, a.M12 - b.M12, a.M13 - b.M13, a.M21 - b.M21, a.M22 - b.M22, a.M23 - b.M23, a.M31 - b.M31, a.M32 - b.M32, a.M33 - b.M33, a.M41 - b.M41, a.M42 - b.M42, a.M43 - b.M43 }
+            .Max(MathF.Abs);
+
     private static void WriteJson(Model3D model, GlbWriteOptions options, Utf8JsonWriter w, MemoryStream bin)
     {
         var accessors = new Accessors();
@@ -157,6 +277,7 @@ public static class GlbWriter
             meshPrimitives.Add(AddMesh(mesh, accessors, bin, model.Materials.Count, options));
         }
 
+        var plan = options.Instancing == GlbInstancing.Gpu && options.Compression == GlbCompression.None ? PlanInstancing(model, accessors, bin, options) : null;
         var anyDefaultMaterial = model.Meshes.Any(m => m.Groups.Count == 0 || m.Groups.Any(g => g.Material < 0));
         var materialCount = model.Materials.Count + (anyDefaultMaterial ? 1 : 0);
 
@@ -170,6 +291,16 @@ public static class GlbWriter
         }
 
         w.WriteEndObject();
+
+        if (plan is { Synthetic.Count: > 0 })
+        {
+            w.WriteStartArray("extensionsUsed");
+            w.WriteStringValue("EXT_mesh_gpu_instancing");
+            w.WriteEndArray();
+            w.WriteStartArray("extensionsRequired");
+            w.WriteStringValue("EXT_mesh_gpu_instancing");
+            w.WriteEndArray();
+        }
 
         if (accessors.AnyQuantized)
         {
@@ -198,13 +329,15 @@ public static class GlbWriter
         {
             indexOf[node] = flat.Count;
             flat.Add(node);
-            foreach (var child in node.Children)
+            foreach (var child in ChildrenOf(node))
             {
                 Collect(child);
             }
         }
 
-        foreach (var root in model.Roots)
+        IReadOnlyList<SceneNode> ChildrenOf(SceneNode node) => plan is not null && plan.Children.TryGetValue(node, out var c) ? c : node.Children;
+        IReadOnlyList<SceneNode> roots = plan?.Roots ?? model.Roots;
+        foreach (var root in roots)
         {
             Collect(root);
         }
@@ -219,7 +352,7 @@ public static class GlbWriter
         }
         else
         {
-            foreach (var root in model.Roots)
+            foreach (var root in roots)
             {
                 w.WriteNumberValue(indexOf[root]);
             }
@@ -232,7 +365,7 @@ public static class GlbWriter
         w.WriteStartArray("nodes");
         foreach (var node in flat)
         {
-            WriteNode(w, node, indexOf, model, options, accessors);
+            WriteNode(w, node, indexOf, model, options, accessors, plan);
         }
 
         if (wrap)
@@ -260,7 +393,7 @@ public static class GlbWriter
             }
 
             w.WriteStartArray("children");
-            foreach (var root in model.Roots)
+            foreach (var root in roots)
             {
                 w.WriteNumberValue(indexOf[root]);
             }
@@ -462,7 +595,7 @@ public static class GlbWriter
         w.WriteEndObject();
     }
 
-    private static (double Scale, Quaternion Rotation, bool Wrap) RootTransform(Model3D model, GlbWriteOptions options)
+    internal static (double Scale, Quaternion Rotation, bool Wrap) RootTransform(Model3D model, GlbWriteOptions options)
     {
         var scale = 1.0;
         if (options.ConvertToMeters && model.Metadata.Units is { } unit)
@@ -509,7 +642,7 @@ public static class GlbWriter
     /// <summary>glTF base colours are linear; model colours are sRGB.</summary>
     private static float Srgb(float c) => c <= 0.04045f ? c / 12.92f : MathF.Pow((c + 0.055f) / 1.055f, 2.4f);
 
-    private static void WriteNode(Utf8JsonWriter w, SceneNode node, Dictionary<SceneNode, int> indexOf, Model3D model, GlbWriteOptions options, Accessors accessors)
+    private static void WriteNode(Utf8JsonWriter w, SceneNode node, Dictionary<SceneNode, int> indexOf, Model3D model, GlbWriteOptions options, Accessors accessors, InstancePlan? plan)
     {
         w.WriteStartObject();
         if (!string.IsNullOrEmpty(node.Name))
@@ -522,10 +655,11 @@ public static class GlbWriter
             w.WriteNumber("mesh", model.Meshes.IndexOf(mesh));
         }
 
-        if (node.Children.Count > 0)
+        var children = plan is not null && plan.Children.TryGetValue(node, out var planned) ? planned : node.Children;
+        if (children.Count > 0)
         {
             w.WriteStartArray("children");
-            foreach (var child in node.Children)
+            foreach (var child in children)
             {
                 w.WriteNumberValue(indexOf[child]);
             }
@@ -552,7 +686,43 @@ public static class GlbWriter
             w.WriteEndArray();
         }
 
-        if (options.IncludeMetadata && (node.Properties.Count > 0 || node.Layer >= 0))
+        if (plan is not null && plan.Synthetic.TryGetValue(node, out var synthetic))
+        {
+            w.WriteStartObject("extensions");
+            w.WriteStartObject("EXT_mesh_gpu_instancing");
+            w.WriteStartObject("attributes");
+            w.WriteNumber("TRANSLATION", synthetic.Translation);
+            w.WriteNumber("ROTATION", synthetic.Rotation);
+            w.WriteNumber("SCALE", synthetic.Scale);
+            w.WriteEndObject();
+            w.WriteEndObject();
+            w.WriteEndObject();
+            if (options.IncludeMetadata)
+            {
+                // What the merged nodes carried: instance i of the extension is entry i here.
+                w.WriteStartObject("extras");
+                w.WriteStartArray("instances");
+                foreach (var source in synthetic.Sources)
+                {
+                    w.WriteStartObject();
+                    if (!string.IsNullOrEmpty(source.Name))
+                    {
+                        w.WriteString("name", source.Name);
+                    }
+
+                    foreach (var (key, value) in source.Properties)
+                    {
+                        w.WriteString(key, value);
+                    }
+
+                    w.WriteEndObject();
+                }
+
+                w.WriteEndArray();
+                w.WriteEndObject();
+            }
+        }
+        else if (options.IncludeMetadata && (node.Properties.Count > 0 || node.Layer >= 0))
         {
             w.WriteStartObject("extras");
             foreach (var (key, value) in node.Properties)
@@ -571,10 +741,10 @@ public static class GlbWriter
         w.WriteEndObject();
     }
 
-    private static void WriteModelExtras(Utf8JsonWriter w, Model3D model, GlbWriteOptions options)
+    internal static void WriteModelExtras(Utf8JsonWriter w, Model3D model, GlbWriteOptions options, string propertyName = "extras")
     {
         var meta = model.Metadata;
-        w.WriteStartObject("extras");
+        w.WriteStartObject(propertyName);
         w.WriteString("format", meta.Format.Id);
         WriteIfSet(w, "formatName", meta.Format.Name);
         WriteIfSet(w, "documentKind", meta.DocumentKind);

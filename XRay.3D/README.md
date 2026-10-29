@@ -59,6 +59,23 @@ What goes where in the GLB:
 * `node.extras`: per-node properties (SolidWorks: `instancePath`, `file`; 3MF: `partNumber`; glTF: the source extras), `layer`.
 * An instanced part is one glTF mesh referenced by several nodes.
 
+## Output profile for a renderer
+
+`GlbWriteOptions` selects what the GLB carries; the defaults suit CAD:
+
+| Feature | How | Option |
+|---|---|---|
+| Assembly structure | one node per component instance with its transform and properties; one mesh per unique part shared by its instances | always |
+| Face identity (picking, highlighting) | `mesh.extras.faceRanges`: `(first index, index count)` per source face, indices in primitive order | `IncludeMetadata` |
+| Colours and materials | one primitive per material, PBR base colour, metallic/roughness (SolidWorks: from the saved appearance, metals detected by family) | always |
+| Edges | a `LINES` primitive per CAD mesh (`extras.role = "edges"`): face boundaries, open borders, creases over the crease angle | `Edges` (`Auto`, `None`, `All`) |
+| Size | `Quantize`: 16-bit positions with the dequantisation folded into the node matrices, 8-bit normals and colours. `Meshopt`: also meshopt-compressed vertices and indices with octahedral normals (about 4x smaller than plain for the sample assembly) | `Compression` |
+| Draw calls | `Gpu`: sibling instances of one mesh merged with `EXT_mesh_gpu_instancing`; names and properties move to `extras.instances` | `Instancing` (uncompressed output only) |
+| Lazy loading | `AssemblyPackage`: `assembly.json` (instance tree, metadata) plus one GLB per unique part | `AssemblyPackage.Create` |
+
+`Quantize`, `Meshopt` and `Gpu` files declare their extensions as required (three.js loads them with the meshopt decoder set).
+Reading handles them all, so `ModelLoader.Load` accepts what `GlbWriter` writes.
+
 ## Robustness
 
 Every reader takes hostile input: bounds-checked reads, limits on size and triangle count (`LoadOptions`),
