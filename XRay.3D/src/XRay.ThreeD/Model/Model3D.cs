@@ -126,6 +126,15 @@ public sealed class MeshData
     /// <summary>Three indices per triangle. Empty for a point cloud (the vertices are drawn as points).</summary>
     public uint[] Indices { get; set; } = [];
 
+    /// <summary>
+    /// The source faces (a CAD face is a patch of triangles), as index ranges, in the order of the source's face list.
+    /// Empty when the format has no faces. A renderer maps a picked triangle to its face by searching these ranges.
+    /// </summary>
+    public MeshFace[] Faces { get; set; } = [];
+
+    /// <summary>Feature edges as index pairs into <see cref="Positions"/>, when precomputed (see <see cref="MeshEdges"/>); empty otherwise.</summary>
+    public uint[] EdgeIndices { get; set; } = [];
+
     /// <summary>Contiguous index ranges that share a material. Empty means one group over all indices.</summary>
     public List<MeshGroup> Groups { get; } = new();
 
@@ -145,6 +154,9 @@ public sealed class MeshData
         return box;
     }
 }
+
+/// <summary>A source face: <see cref="IndexCount"/> indices starting at <see cref="FirstIndex"/> in <see cref="MeshData.Indices"/>.</summary>
+public readonly record struct MeshFace(int FirstIndex, int IndexCount);
 
 /// <summary>A run of <see cref="Count"/> indices starting at <see cref="Start"/> drawn with one material.</summary>
 public readonly record struct MeshGroup(int Start, int Count, int Material);

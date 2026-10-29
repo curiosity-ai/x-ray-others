@@ -4,6 +4,9 @@
   "streams": 45,
   "componentFiles": [],
   "sheets": [],
+  "faceColors": {
+   "cad1ee": 92
+  },
   "faces": 92,
   "vertices": 1990,
   "triangles": 1440,
@@ -29,6 +32,9 @@
   "streams": 52,
   "componentFiles": [],
   "sheets": [],
+  "faceColors": {
+   "b7e8ff": 488
+  },
   "faces": 488,
   "vertices": 30676,
   "triangles": 21232,
@@ -54,6 +60,11 @@
   "streams": 56,
   "componentFiles": [],
   "sheets": [],
+  "faceColors": {
+   "cad1ee": 1,
+   "e4e4e4": 82,
+   "008000": 123
+  },
   "faces": 206,
   "vertices": 14932,
   "triangles": 10954,
@@ -79,6 +90,9 @@
   "streams": 42,
   "componentFiles": [],
   "sheets": [],
+  "faceColors": {
+   "cad1ee": 90
+  },
   "faces": 90,
   "vertices": 3250,
   "triangles": 2432,
@@ -113,6 +127,13 @@
    "90591A141_ZINC PLATED STEEL HEX NUT.SLDPRT"
   ],
   "sheets": [],
+  "faceColors": {
+   "none": 408,
+   "dde8ff": 108,
+   "c0c0c0": 96,
+   "fff2e8": 869,
+   "ffffff": 350
+  },
   "faces": 1831,
   "vertices": 617027,
   "triangles": 436251,

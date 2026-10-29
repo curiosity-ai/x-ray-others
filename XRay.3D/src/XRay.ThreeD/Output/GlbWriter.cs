@@ -6,6 +6,13 @@ using System.Text.Json;
 
 namespace XRay.ThreeD;
 
+public enum EdgeMode
+{
+    None,
+    Auto,
+    All,
+}
+
 /// <summary>What <see cref="GlbWriter"/> does to the model on the way out.</summary>
 public sealed class GlbWriteOptions
 {
@@ -17,6 +24,12 @@ public sealed class GlbWriteOptions
 
     /// <summary>Write model metadata (<c>asset.extras</c>) and per-node properties (<c>extras</c>).</summary>
     public bool IncludeMetadata { get; set; } = true;
+
+    /// <summary>Feature edges as a separate line primitive per mesh. <see cref="EdgeMode.Auto"/> draws them for meshes that have source faces (CAD).</summary>
+    public EdgeMode Edges { get; set; } = EdgeMode.Auto;
+
+    /// <summary>Crease angle in degrees for edges between triangles of one face (and of meshes without faces in <see cref="EdgeMode.All"/>).</summary>
+    public float EdgeCreaseAngle { get; set; } = 30f;
 
     /// <summary>Embed the file's preview image as a texture-less extra (base64) in <c>asset.extras</c>. Off by default: it can be large.</summary>
     public bool IncludePreview { get; set; }
@@ -96,11 +109,11 @@ public static class GlbWriter
     private static void WriteJson(Model3D model, GlbWriteOptions options, Utf8JsonWriter w, MemoryStream bin)
     {
         var accessors = new Accessors();
-        var meshPrimitives = new List<List<(int Position, int Normal, int Color, int Indices, int Material)>>();
+        var meshPrimitives = new List<List<(int Position, int Normal, int Color, int Indices, int Material, bool IsEdges)>>();
 
         foreach (var mesh in model.Meshes)
         {
-            meshPrimitives.Add(AddMesh(mesh, accessors, bin, model.Materials.Count));
+            meshPrimitives.Add(AddMesh(mesh, accessors, bin, model.Materials.Count, options));
         }
 
         var anyDefaultMaterial = model.Meshes.Any(m => m.Groups.Count == 0 || m.Groups.Any(g => g.Material < 0));
@@ -208,8 +221,24 @@ public static class GlbWriter
                     w.WriteString("name", name);
                 }
 
+                if (options.IncludeMetadata && model.Meshes[i].Faces.Length > 0)
+                {
+                    // Source faces as (first index, index count) pairs over the mesh's triangle primitives, in order.
+                    w.WriteStartObject("extras");
+                    w.WriteNumber("faceCount", model.Meshes[i].Faces.Length);
+                    w.WriteStartArray("faceRanges");
+                    foreach (var face in model.Meshes[i].Faces)
+                    {
+                        w.WriteNumberValue(face.FirstIndex);
+                        w.WriteNumberValue(face.IndexCount);
+                    }
+
+                    w.WriteEndArray();
+                    w.WriteEndObject();
+                }
+
                 w.WriteStartArray("primitives");
-                foreach (var (position, normal, color, indices, material) in meshPrimitives[i])
+                foreach (var (position, normal, color, indices, material, isEdges) in meshPrimitives[i])
                 {
                     w.WriteStartObject();
                     w.WriteStartObject("attributes");
@@ -229,12 +258,23 @@ public static class GlbWriter
                     {
                         w.WriteNumber("indices", indices);
                     }
-                    else
+                    else if (!isEdges)
                     {
                         w.WriteNumber("mode", 0);
                     }
 
-                    w.WriteNumber("material", material < 0 ? model.Materials.Count : material);
+                    if (isEdges)
+                    {
+                        w.WriteNumber("mode", 1);
+                        w.WriteStartObject("extras");
+                        w.WriteString("role", "edges");
+                        w.WriteEndObject();
+                    }
+                    else
+                    {
+                        w.WriteNumber("material", material < 0 ? model.Materials.Count : material);
+                    }
+
                     w.WriteEndObject();
                 }
 
@@ -499,9 +539,9 @@ public static class GlbWriter
         w.WriteEndArray();
     }
 
-    private static List<(int Position, int Normal, int Color, int Indices, int Material)> AddMesh(MeshData mesh, Accessors accessors, MemoryStream bin, int materialCount)
+    private static List<(int Position, int Normal, int Color, int Indices, int Material, bool IsEdges)> AddMesh(MeshData mesh, Accessors accessors, MemoryStream bin, int materialCount, GlbWriteOptions options)
     {
-        var primitives = new List<(int, int, int, int, int)>();
+        var primitives = new List<(int, int, int, int, int, bool)>();
         if (mesh.VertexCount == 0)
         {
             return primitives;
@@ -533,7 +573,7 @@ public static class GlbWriter
         var groups = mesh.Groups.Count > 0 ? mesh.Groups : [new MeshGroup(0, mesh.Indices.Length, -1)];
         if (mesh.Indices.Length == 0)
         {
-            primitives.Add((position, normal, color, -1, -1));
+            primitives.Add((position, normal, color, -1, -1, false));
             return primitives;
         }
 
@@ -562,7 +602,17 @@ public static class GlbWriter
                 indices = AddAccessor(accessors, bin, MemoryMarshal.AsBytes(slice), 5125, slice.Length, "SCALAR", 34963, null, null);
             }
 
-            primitives.Add((position, normal, color, indices, group.Material >= 0 && group.Material < materialCount ? group.Material : -1));
+            primitives.Add((position, normal, color, indices, group.Material >= 0 && group.Material < materialCount ? group.Material : -1, false));
+        }
+
+        if (options.Edges == EdgeMode.All || (options.Edges == EdgeMode.Auto && mesh.Faces.Length > 0))
+        {
+            var edges = mesh.EdgeIndices.Length > 0 ? mesh.EdgeIndices : MeshEdges.Extract(mesh, options.EdgeCreaseAngle);
+            if (edges.Length > 0)
+            {
+                var edgeIndices = AddAccessor(accessors, bin, MemoryMarshal.AsBytes(edges.AsSpan()), 5125, edges.Length, "SCALAR", 34963, null, null);
+                primitives.Add((position, -1, -1, edgeIndices, -1, true));
+            }
         }
 
         return primitives;

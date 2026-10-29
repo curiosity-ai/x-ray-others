@@ -23,7 +23,9 @@ for (const ext of ['sldprt', 'sldasm', 'slddrw']) {
       const p = m.take_positions(), i = m.take_indices();
       const min = [1e30, 1e30, 1e30], max = [-1e30, -1e30, -1e30], sum = [0, 0, 0];
       for (let k = 0; k < p.length; k++) { const a = k % 3; min[a] = Math.min(min[a], p[k]); max[a] = Math.max(max[a], p[k]); sum[a] += p[k]; }
-      Object.assign(e, { faces: m.face_count(), vertices: p.length / 3, triangles: i.length / 3, instances: JSON.parse(m.parts_json()).length, min, max, sum });
+      const cols = m.take_face_colors(), hist = {};
+      for (const c of cols) { const k = c === 0xffffffff ? 'none' : c.toString(16).padStart(6, '0'); hist[k] = (hist[k] || 0) + 1; }
+      Object.assign(e, { faceColors: hist, faces: m.face_count(), vertices: p.length / 3, triangles: i.length / 3, instances: JSON.parse(m.parts_json()).length, min, max, sum });
     }
     out[f] = e;
   }

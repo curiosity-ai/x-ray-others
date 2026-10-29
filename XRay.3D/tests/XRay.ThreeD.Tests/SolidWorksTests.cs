@@ -73,6 +73,26 @@ public class SolidWorksTests
             Assert.InRange(sum[axis] - expectedSum[axis], -0.05, 0.05);
         }
 
+        // Face colours: one entry per drawn face, instances counted per use.
+        var histogram = new Dictionary<string, int>();
+        foreach (var node in model.Nodes().Where(n => n.Mesh is not null))
+        {
+            var mesh = node.Mesh!;
+            Assert.Equal(mesh.Faces.Sum(f => f.IndexCount), mesh.Indices.Length);
+            foreach (var face in mesh.Faces)
+            {
+                var group = mesh.Groups.First(g => face.FirstIndex >= g.Start && face.FirstIndex < g.Start + g.Count);
+                var key = group.Material < 0
+                    ? "none"
+                    : ((int)Math.Round(model.Materials[group.Material].BaseColor.X * 255) << 16 | (int)Math.Round(model.Materials[group.Material].BaseColor.Y * 255) << 8 | (int)Math.Round(model.Materials[group.Material].BaseColor.Z * 255)).ToString("x6");
+                histogram[key] = histogram.GetValueOrDefault(key) + 1;
+            }
+        }
+
+        var expectedColors = expected.GetProperty("faceColors").EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetInt32());
+        Assert.Equal(expectedColors.OrderBy(k => k.Key), histogram.OrderBy(k => k.Key));
+        Assert.Equal(expected.GetProperty("faces").GetInt32(), histogram.Values.Sum());
+
         var bounds = model.ComputeBounds()!.Value;
         var min = expected.GetProperty("min").EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();
         var max = expected.GetProperty("max").EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();

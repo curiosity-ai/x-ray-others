@@ -31,7 +31,13 @@ internal static class SwDisplayLists
         public int PositionOffset;
         public int NormalOffset;
         public int Offset;
+
+        /// <summary>Index into <see cref="Result.Appearances"/>, or -1 when the file saved no colour for it.</summary>
+        public int Appearance = -1;
     }
+
+    /// <summary>A material the document saved: its name, colour and texture category ("metal", "plastic"...).</summary>
+    internal sealed record Appearance(string Name, int Rgb, string? Category);
 
     internal sealed class Geometry
     {
@@ -50,6 +56,8 @@ internal static class SwDisplayLists
         public List<Geometry> Geometries { get; } = new();
 
         public List<Instance> Instances { get; } = new();
+
+        public List<Appearance> Appearances { get; } = new();
     }
 
     /// <summary>Finds faces and instances. With <paramref name="useInstances"/> false (a part) everything is one geometry.</summary>
@@ -62,7 +70,9 @@ internal static class SwDisplayLists
             return result;
         }
 
-        var instances = useInstances ? FindInstances(stream) : [];
+        var (instances, appearances) = FindStringRecords(stream, useInstances);
+        result.Appearances.AddRange(appearances.Select(a => a.Appearance));
+        AssignAppearances(faces, appearances);
         if (instances.Count == 0)
         {
             var geometry = new Geometry();
@@ -111,6 +121,24 @@ internal static class SwDisplayLists
     }
 
     private sealed record InstanceRecord(int Offset, string Name, Matrix4x4 Transform);
+
+    private sealed record AppearanceRecord(int Offset, Appearance Appearance);
+
+    /// <summary>Colour is stateful: a face takes the latest appearance record before it in the stream.</summary>
+    private static void AssignAppearances(List<Face> faces, List<AppearanceRecord> appearances)
+    {
+        var next = 0;
+        var current = -1;
+        foreach (var face in faces)
+        {
+            while (next < appearances.Count && appearances[next].Offset < face.Offset)
+            {
+                current = next++;
+            }
+
+            face.Appearance = current;
+        }
+    }
 
     private static List<Face> FindFaces(byte[] data, CancellationToken cancellation)
     {
@@ -201,9 +229,10 @@ internal static class SwDisplayLists
         return true;
     }
 
-    private static List<InstanceRecord> FindInstances(byte[] data)
+    private static (List<InstanceRecord> Instances, List<AppearanceRecord> Appearances) FindStringRecords(byte[] data, bool wantInstances)
     {
-        var records = new List<InstanceRecord>();
+        var instances = new List<InstanceRecord>();
+        var appearances = new List<AppearanceRecord>();
         var span = data.AsSpan();
         var position = 0;
         while (position < span.Length - 8)
@@ -230,30 +259,71 @@ internal static class SwDisplayLists
                 o += 2;
             }
 
-            if (length < 3 || o + 2L * length + 1 > span.Length)
+            if (length < 1 || o + 2L * length + 1 > span.Length)
             {
                 continue;
             }
 
             var raw = span.Slice(o, 2 * length);
-            if (!ContainsAt(raw))
+            var end = o + 2 * length;
+            if (wantInstances && length >= 3 && ContainsAt(raw) && TryReadTransform(span, end, out var transform))
             {
-                continue;
+                var name = Encoding.Unicode.GetString(raw);
+                if (name.Contains('@') && !name.Any(char.IsControl))
+                {
+                    instances.Add(new InstanceRecord(at, name, transform));
+                    continue;
+                }
             }
 
-            var name = Encoding.Unicode.GetString(raw);
-            if (!name.Contains('@') || name.Any(char.IsControl))
+            // Appearance: name, type byte 2 or 3, RGB, then the float 1.0.
+            if (end + 9 <= span.Length && (span[end] is 2 or 3) && span.Slice(end + 4, 5).SequenceEqual(AppearanceTail))
             {
-                continue;
-            }
-
-            if (TryReadTransform(span, o + 2 * length, out var transform))
-            {
-                records.Add(new InstanceRecord(at, name, transform));
+                var name = Encoding.Unicode.GetString(raw);
+                if (!name.Any(char.IsControl))
+                {
+                    var rgb = (span[end + 1] << 16) | (span[end + 2] << 8) | span[end + 3];
+                    appearances.Add(new AppearanceRecord(at, new Appearance(name, rgb, FindTextureCategory(span, end + 9))));
+                }
             }
         }
 
-        return records;
+        return (instances, appearances);
+    }
+
+    private static readonly byte[] AppearanceTail = [0, 0, 0, 0x80, 0x3F];
+
+    /// <summary>The texture path that follows an appearance ("&lt;SystemTexture&gt;\graphics\materials\metal\aluminum\x.p2m") names its family.</summary>
+    private static string? FindTextureCategory(ReadOnlySpan<byte> span, int from)
+    {
+        var limit = Math.Min(span.Length - 4, from + 400);
+        for (var i = from; i < limit; i++)
+        {
+            if (span[i] != 0xFF || span[i + 1] != 0xFE || span[i + 2] != 0xFF)
+            {
+                continue;
+            }
+
+            int length = span[i + 3];
+            if (length is 0 or 0xFF || i + 4 + 2 * length > span.Length)
+            {
+                return null;
+            }
+
+            var path = Encoding.Unicode.GetString(span.Slice(i + 4, 2 * length));
+            const string marker = "materials\\";
+            var at = path.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (at < 0)
+            {
+                return null;
+            }
+
+            var rest = path[(at + marker.Length)..];
+            var slash = rest.IndexOf('\\');
+            return slash > 0 ? rest[..slash].ToLowerInvariant() : null;
+        }
+
+        return null;
     }
 
     private static bool ContainsAt(ReadOnlySpan<byte> utf16)
@@ -323,31 +393,61 @@ internal static class SwDisplayLists
         return true;
     }
 
-    /// <summary>Builds one mesh from a geometry's faces, unrolling each strip into triangles.</summary>
-    public static MeshData BuildMesh(byte[] stream, Geometry geometry, string? name)
+    /// <summary>
+    /// Builds one mesh from a geometry's faces, unrolling each strip into triangles. Faces are grouped by material
+    /// (<paramref name="materialOf"/> maps a face's appearance index, or -1, to a material index, or -1); each face keeps its own index range.
+    /// </summary>
+    public static MeshData BuildMesh(byte[] stream, Geometry geometry, string? name, Func<int, int>? materialOf = null)
     {
         var vertexTotal = 0;
-        var triangleTotal = 0;
-        foreach (var face in geometry.Faces)
+        var faces = geometry.Faces;
+        var indexCounts = new int[faces.Count];
+        var materials = new int[faces.Count];
+        for (var f = 0; f < faces.Count; f++)
         {
-            vertexTotal += face.VertexCount;
-            foreach (var length in face.StripLengths)
+            vertexTotal += faces[f].VertexCount;
+            var triangles = 0;
+            foreach (var length in faces[f].StripLengths)
             {
-                triangleTotal += Math.Max(0, length - 2);
+                triangles += Math.Max(0, length - 2);
             }
+
+            indexCounts[f] = triangles * 3;
+            materials[f] = materialOf?.Invoke(faces[f].Appearance) ?? -1;
         }
 
+        // Stable order by material so each material is one contiguous index range.
+        var order = Enumerable.Range(0, faces.Count).OrderBy(f => materials[f]).ToArray();
         var positions = new float[vertexTotal * 3];
         var normals = new float[vertexTotal * 3];
-        var indices = new uint[triangleTotal * 3];
+        var indices = new uint[indexCounts.Sum()];
+        var meshFaces = new MeshFace[faces.Count];
+        var vertexStart = new int[faces.Count];
         var vertex = 0;
-        var index = 0;
-        foreach (var face in geometry.Faces)
+        for (var f = 0; f < faces.Count; f++)
         {
-            MemoryMarshal.Cast<byte, float>(stream.AsSpan(face.PositionOffset, face.VertexCount * 12)).CopyTo(positions.AsSpan(vertex * 3));
-            MemoryMarshal.Cast<byte, float>(stream.AsSpan(face.NormalOffset, face.VertexCount * 12)).CopyTo(normals.AsSpan(vertex * 3));
-            var v = vertex;
-            foreach (var length in face.StripLengths)
+            vertexStart[f] = vertex;
+            MemoryMarshal.Cast<byte, float>(stream.AsSpan(faces[f].PositionOffset, faces[f].VertexCount * 12)).CopyTo(positions.AsSpan(vertex * 3));
+            MemoryMarshal.Cast<byte, float>(stream.AsSpan(faces[f].NormalOffset, faces[f].VertexCount * 12)).CopyTo(normals.AsSpan(vertex * 3));
+            vertex += faces[f].VertexCount;
+        }
+
+        var mesh = new MeshData { Name = name, Positions = positions, Normals = normals, Indices = indices };
+        var index = 0;
+        var groupStart = 0;
+        var groupMaterial = order.Length > 0 ? materials[order[0]] : -1;
+        foreach (var f in order)
+        {
+            if (materials[f] != groupMaterial)
+            {
+                mesh.Groups.Add(new MeshGroup(groupStart, index - groupStart, groupMaterial));
+                groupStart = index;
+                groupMaterial = materials[f];
+            }
+
+            meshFaces[f] = new MeshFace(index, indexCounts[f]);
+            var v = vertexStart[f];
+            foreach (var length in faces[f].StripLengths)
             {
                 for (var i = 0; i < length - 2; i++)
                 {
@@ -370,11 +470,15 @@ internal static class SwDisplayLists
 
                 v += length;
             }
-
-            vertex += face.VertexCount;
         }
 
-        return new MeshData { Name = name, Positions = positions, Normals = normals, Indices = indices };
+        if (index > groupStart)
+        {
+            mesh.Groups.Add(new MeshGroup(groupStart, index - groupStart, groupMaterial));
+        }
+
+        mesh.Faces = meshFaces;
+        return mesh;
     }
 
     private static uint U32(ReadOnlySpan<byte> s, int o) => BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(o, 4));

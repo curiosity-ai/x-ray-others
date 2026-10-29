@@ -47,6 +47,12 @@ public static class ModelLoader
         foreach (var mesh in model.Meshes)
         {
             repaired |= ReplaceNonFinite(mesh.Positions) | ReplaceNonFinite(mesh.Normals) | ReplaceNonFinite(mesh.Colors);
+            if (mesh.Normals.Length > 0 && !NormaliseNormals(mesh))
+            {
+                mesh.Normals = [];
+                model.Warnings.Add("A mesh had zero-length normals; they were dropped so the viewer computes its own.");
+            }
+
             if (mesh.Indices.Any(i => i >= (uint)mesh.VertexCount))
             {
                 throw new ModelFormatException("A mesh has indices outside its vertex range.");
@@ -60,6 +66,34 @@ public static class ModelLoader
         }
 
         return model;
+    }
+
+    /// <summary>glTF requires unit-length normals. Returns false when a normal has no direction (and the set cannot be used).</summary>
+    private static bool NormaliseNormals(MeshData mesh)
+    {
+        var n = mesh.Normals;
+        if (n.Length != mesh.Positions.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i + 2 < n.Length; i += 3)
+        {
+            var length = MathF.Sqrt(n[i] * n[i] + n[i + 1] * n[i + 1] + n[i + 2] * n[i + 2]);
+            if (!(length > 1e-12f))
+            {
+                return false;
+            }
+
+            if (MathF.Abs(length - 1f) > 1e-5f)
+            {
+                n[i] /= length;
+                n[i + 1] /= length;
+                n[i + 2] /= length;
+            }
+        }
+
+        return true;
     }
 
     private static bool ReplaceNonFinite(float[] values)

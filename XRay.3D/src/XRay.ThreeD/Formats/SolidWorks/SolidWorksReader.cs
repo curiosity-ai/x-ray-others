@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Numerics;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
@@ -102,15 +103,49 @@ internal static class SolidWorksReader
             return;
         }
 
+        var appearanceMaterial = new int[decoded.Appearances.Count];
+        Array.Fill(appearanceMaterial, -1);
+        var byKey = new Dictionary<(string, int), int>();
+        int MaterialOf(int appearance)
+        {
+            if (appearance < 0)
+            {
+                return -1;
+            }
+
+            if (appearanceMaterial[appearance] < 0)
+            {
+                var a = decoded.Appearances[appearance];
+                if (!byKey.TryGetValue((a.Name, a.Rgb), out var index))
+                {
+                    index = model.Materials.Count;
+                    byKey[(a.Name, a.Rgb)] = index;
+                    model.Materials.Add(ToMaterial(a));
+                }
+
+                appearanceMaterial[appearance] = index;
+            }
+
+            return appearanceMaterial[appearance];
+        }
+
         var meshes = new MeshData[decoded.Geometries.Count];
         for (var i = 0; i < meshes.Length; i++)
         {
             var firstInstance = decoded.Instances.FirstOrDefault(x => x.Geometry == i);
-            meshes[i] = SwDisplayLists.BuildMesh(stream, decoded.Geometries[i], PartName(firstInstance?.Name) ?? metadata.Title);
+            meshes[i] = SwDisplayLists.BuildMesh(stream, decoded.Geometries[i], PartName(firstInstance?.Name) ?? metadata.Title, MaterialOf);
             model.Meshes.Add(meshes[i]);
         }
 
         var named = decoded.Instances.Any(i => i.Name is not null);
+        foreach (var materialName in model.Materials.Select(m => m.Name!).Where(n => !string.IsNullOrEmpty(n)))
+        {
+            if (!model.Metadata.MaterialNames.Contains(materialName))
+            {
+                model.Metadata.MaterialNames.Add(materialName);
+            }
+        }
+
         if (!named)
         {
             model.Roots.Add(new SceneNode(metadata.Title) { Mesh = meshes[decoded.Instances[0].Geometry] });
@@ -142,6 +177,34 @@ internal static class SolidWorksReader
         }
 
         model.Roots.Add(root);
+    }
+
+    private static readonly string[] MetalWords = ["metal", "steel", "aluminum", "aluminium", "chrome", "brass", "copper", "iron", "titanium", "nickel", "zinc"];
+
+    /// <summary>
+    /// Appearance to PBR. SolidWorks stores a colour and a texture family, not PBR factors, so metallic and roughness are
+    /// a heuristic from the family and name: metals are 0.9 metallic, 0.35 rough; glass and clear plastic are translucent.
+    /// </summary>
+    private static ModelMaterial ToMaterial(SwDisplayLists.Appearance a)
+    {
+        var text = (a.Category + " " + a.Name).ToLowerInvariant();
+        var material = new ModelMaterial
+        {
+            Name = a.Name,
+            BaseColor = new Vector4(((a.Rgb >> 16) & 255) / 255f, ((a.Rgb >> 8) & 255) / 255f, (a.Rgb & 255) / 255f, 1f),
+        };
+        if (MetalWords.Any(text.Contains) && !text.Contains("plastic", StringComparison.Ordinal))
+        {
+            material.Metallic = 0.9f;
+            material.Roughness = text.Contains("polish", StringComparison.Ordinal) || text.Contains("chrome", StringComparison.Ordinal) ? 0.15f : 0.35f;
+        }
+        else if (text.Contains("glass", StringComparison.Ordinal) || text.Contains("transparent", StringComparison.Ordinal))
+        {
+            material.BaseColor = new Vector4(material.BaseColor.X, material.BaseColor.Y, material.BaseColor.Z, 0.35f);
+            material.Roughness = 0.05f;
+        }
+
+        return material;
     }
 
     /// <summary>"Pin-1@Gear" is instance 1 of Pin inside Gear: the node is called "Pin-1".</summary>
