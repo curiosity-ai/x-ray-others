@@ -2,7 +2,8 @@ using System.Text.Json;
 using XRay.ThreeD;
 
 // xray3d info <file> [--json]      metadata
-// xray3d convert <file> [out.glb]  convert to binary glTF
+// xray3d convert <file> [out.glb] [--compress none|quantize|meshopt] [--edges none|auto|all]
+//                                  convert to binary glTF
 // xray3d formats                   list known formats
 if (args.Length == 0)
 {
@@ -39,8 +40,20 @@ try
         case "convert" when args.Length >= 2:
             {
                 var model = ModelLoader.Load(args[1]);
-                var output = args.Length >= 3 ? args[2] : Path.ChangeExtension(args[1], ".glb");
-                File.WriteAllBytes(output, GlbWriter.ToArray(model));
+                var positional = args.Skip(2).TakeWhile(a => !a.StartsWith("--", StringComparison.Ordinal)).ToList();
+                var output = positional.Count > 0 ? positional[0] : Path.ChangeExtension(args[1], ".glb");
+                var options = new GlbWriteOptions();
+                if (Option(args, "--compress") is { } compress)
+                {
+                    options.Compression = Enum.Parse<GlbCompression>(compress, ignoreCase: true);
+                }
+
+                if (Option(args, "--edges") is { } edges)
+                {
+                    options.Edges = Enum.Parse<EdgeMode>(edges, ignoreCase: true);
+                }
+
+                File.WriteAllBytes(output, GlbWriter.ToArray(model, options));
                 Console.WriteLine($"{output}: {model.Metadata.Statistics?.Triangles:N0} triangles, {model.Meshes.Count} meshes, {model.Nodes().Count()} nodes");
                 foreach (var w in model.Warnings)
                 {
@@ -59,6 +72,12 @@ catch (ModelFormatException ex)
 
 Console.Error.WriteLine("unknown command");
 return 2;
+
+static string? Option(string[] args, string name)
+{
+    var i = Array.IndexOf(args, name);
+    return i >= 0 && i + 1 < args.Length ? args[i + 1] : null;
+}
 
 static object Summary(ModelMetadata m) => new
 {

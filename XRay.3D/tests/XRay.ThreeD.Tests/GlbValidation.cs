@@ -10,7 +10,7 @@ namespace XRay.ThreeD.Tests;
 /// </summary>
 internal static class GlbValidation
 {
-    public static void Validate(byte[] glb)
+    public static void Validate(byte[] glb, bool allowCompressed = false)
     {
         Assert.Equal(0x46546C67u, BinaryPrimitives.ReadUInt32LittleEndian(glb));
         Assert.Equal((uint)glb.Length, BinaryPrimitives.ReadUInt32LittleEndian(glb.AsSpan(8)));
@@ -22,7 +22,7 @@ internal static class GlbValidation
 
         var views = json.TryGetProperty("bufferViews", out var v) ? v.EnumerateArray().ToList() : [];
         var accessors = json.TryGetProperty("accessors", out var a) ? a.EnumerateArray().ToList() : [];
-        foreach (var view in views)
+        foreach (var view in views.Where(v => !(allowCompressed && v.TryGetProperty("extensions", out _))))
         {
             Assert.InRange(view.GetProperty("byteOffset").GetInt32() + view.GetProperty("byteLength").GetInt32(), 0, bin.Length);
             Assert.Equal(0, view.GetProperty("byteOffset").GetInt32() % 4);
@@ -31,6 +31,7 @@ internal static class GlbValidation
         foreach (var accessor in accessors)
         {
             var view = views[accessor.GetProperty("bufferView").GetInt32()];
+            Assert.True(view.TryGetProperty("byteLength", out _));
             var componentType = accessor.GetProperty("componentType").GetInt32();
             var size = componentType is 5126 or 5125 ? 4 : componentType is 5123 ? 2 : 1;
             var width = accessor.GetProperty("type").GetString() switch { "SCALAR" => 1, "VEC2" => 2, "VEC3" => 3, "VEC4" => 4, _ => throw new InvalidDataException() };
@@ -75,7 +76,7 @@ internal static class GlbValidation
                 }
 
                 var mode = primitive.TryGetProperty("mode", out var modeValue) ? modeValue.GetInt32() : 4;
-                if (primitive.TryGetProperty("indices", out var indexRef))
+                if (primitive.TryGetProperty("indices", out var indexRef) && !(allowCompressed && views[accessors[indexRef.GetInt32()].GetProperty("bufferView").GetInt32()].TryGetProperty("extensions", out _)))
                 {
                     var accessor = accessors[indexRef.GetInt32()];
                     var view = views[accessor.GetProperty("bufferView").GetInt32()];
@@ -90,7 +91,7 @@ internal static class GlbValidation
                     }
                 }
 
-                if (attributes.TryGetProperty("NORMAL", out var normalRef))
+                if (attributes.TryGetProperty("NORMAL", out var normalRef) && accessors[normalRef.GetInt32()].GetProperty("componentType").GetInt32() == 5126)
                 {
                     var accessor = accessors[normalRef.GetInt32()];
                     var offset = views[accessor.GetProperty("bufferView").GetInt32()].GetProperty("byteOffset").GetInt32();

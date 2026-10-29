@@ -98,7 +98,7 @@ internal static class GltfReader
 
             foreach (var required in Strings(_root, "extensionsRequired"))
             {
-                if (required is "KHR_draco_mesh_compression" or "EXT_meshopt_compression" or "KHR_meshopt_compression")
+                if (required == "KHR_draco_mesh_compression")
                 {
                     _geometryBlocked = true;
                     _model.Warnings.Add($"Geometry uses {required}, which this library does not decode; only the node tree is read.");
@@ -271,11 +271,27 @@ internal static class GltfReader
             var indices = new List<uint>();
             var groups = new List<MeshGroup>();
             var allNormals = true;
+            var pointsOnly = false;
+            var trianglesSeen = false;
             foreach (var primitive in Array(element, "primitives"))
             {
                 _options.Cancellation.ThrowIfCancellationRequested();
                 var mode = primitive.TryGetProperty("mode", out var m) && m.TryGetInt32(out var mm) ? mm : 4;
-                if (mode is not (4 or 5 or 6) || !primitive.TryGetProperty("attributes", out var attributes) || !attributes.TryGetProperty("POSITION", out var pa) || !pa.TryGetInt32(out var positionAccessor))
+                if (mode == 1 && primitive.TryGetProperty("extras", out var primitiveExtras) && Str(primitiveExtras, "role") == "edges")
+                {
+                    continue; // feature edges written by this library: derived data, recomputed on demand
+                }
+
+                if (mode == 0)
+                {
+                    pointsOnly = true;
+                }
+                else
+                {
+                    trianglesSeen = true;
+                }
+
+                if (mode is not (0 or 4 or 5 or 6) || !primitive.TryGetProperty("attributes", out var attributes) || !attributes.TryGetProperty("POSITION", out var pa) || !pa.TryGetInt32(out var positionAccessor))
                 {
                     _model.Warnings.Add("A primitive that is not a triangle list was skipped.");
                     continue;
@@ -317,6 +333,13 @@ internal static class GltfReader
                     continue;
                 }
 
+                if (mode == 0)
+                {
+                    positions.AddRange(p);
+                    normals.AddRange(n is not null && n.Length == p.Length ? n : new float[p.Length]);
+                    continue;
+                }
+
                 var triangles = mode switch
                 {
                     5 => Strip(local),
@@ -353,7 +376,16 @@ internal static class GltfReader
                 mesh.Normals = normals.ToArray();
             }
 
-            mesh.Groups.AddRange(groups);
+            if (groups.Count > 1 || groups.Any(g => g.Material >= 0))
+            {
+                mesh.Groups.AddRange(groups);
+            }
+
+            if (pointsOnly && trianglesSeen)
+            {
+                _model.Warnings.Add("A mesh mixes points and triangles; only the triangles are kept.");
+            }
+
             return mesh;
         }
 
@@ -444,13 +476,25 @@ internal static class GltfReader
             }
 
             var v = views[viewIndex];
-            var data = v.TryGetProperty("buffer", out var b) && b.TryGetInt32(out var bi) ? Buffer(bi) : null;
+            byte[]? data;
+            var viewOffset = Int(v, "byteOffset");
+            var stride = Int(v, "byteStride");
+            if (v.TryGetProperty("extensions", out var viewExtensions) && viewExtensions.TryGetProperty("EXT_meshopt_compression", out var meshopt))
+            {
+                data = DecodeMeshoptView(viewIndex, meshopt);
+                viewOffset = 0;
+                stride = Int(meshopt, "byteStride");
+            }
+            else
+            {
+                data = v.TryGetProperty("buffer", out var b) && b.TryGetInt32(out var bi) ? Buffer(bi) : null;
+            }
+
             if (data is null)
             {
                 return null;
             }
 
-            var viewOffset = Int(v, "byteOffset");
             var accessorOffset = Int(a, "byteOffset");
             var count = Int(a, "count");
             var componentType = Int(a, "componentType");
@@ -473,7 +517,6 @@ internal static class GltfReader
                 return null;
             }
 
-            var stride = Int(v, "byteStride");
             if (stride == 0)
             {
                 stride = size * components;
@@ -486,6 +529,39 @@ internal static class GltfReader
             }
 
             return (data, (int)offset, stride, count, componentType, components, a.TryGetProperty("normalized", out var nz) && nz.ValueKind == JsonValueKind.True);
+        }
+
+        private readonly Dictionary<int, byte[]?> _meshoptViews = new();
+
+        /// <summary>Decompresses a buffer view stored with EXT_meshopt_compression (cached: several accessors can share it).</summary>
+        private byte[]? DecodeMeshoptView(int viewIndex, JsonElement extension)
+        {
+            if (_meshoptViews.TryGetValue(viewIndex, out var cached))
+            {
+                return cached;
+            }
+
+            byte[]? decoded = null;
+            var source = extension.TryGetProperty("buffer", out var bufferIndex) && bufferIndex.TryGetInt32(out var bi) ? Buffer(bi) : null;
+            if (source is not null)
+            {
+                var offset = Int(extension, "byteOffset");
+                var length = Int(extension, "byteLength");
+                if (offset < 0 || length < 0 || (long)offset + length > source.Length)
+                {
+                    throw new ModelFormatException("A meshopt buffer view lies outside its buffer.");
+                }
+
+                decoded = Internal.MeshoptDecoder.Decode(
+                    Str(extension, "mode") ?? "",
+                    Str(extension, "filter"),
+                    source.AsSpan(offset, length),
+                    Int(extension, "count"),
+                    Int(extension, "byteStride"));
+            }
+
+            _meshoptViews[viewIndex] = decoded;
+            return decoded;
         }
 
         private float[]? ReadAccessor(int index, int expectedComponents)
