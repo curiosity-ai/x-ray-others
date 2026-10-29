@@ -40,6 +40,8 @@ public class RobustnessTests
         "synthetic/part.igs",
         "iges/slewing-ring.iges",
         "synthetic/assembly.FCStd",
+        "synthetic/print.gcode",
+        "synthetic/profile.nc",
         "fcstd/butt-hinge.FCStd",
     ];
 

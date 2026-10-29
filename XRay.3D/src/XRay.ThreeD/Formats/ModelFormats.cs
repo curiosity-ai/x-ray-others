@@ -48,6 +48,8 @@ public static class ModelFormats
 
     public static FormatInfo FreeCad { get; } = new("freecad", "FreeCAD", "cad", [".fcstd"], FormatSupport.Full);
 
+    public static FormatInfo Gcode { get; } = new("gcode", "G-code", "toolpath", [".gcode", ".gco", ".nc", ".ngc"], FormatSupport.Full);
+
     public static FormatInfo Dxf { get; } = new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Full);
 
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
@@ -78,7 +80,6 @@ public static class ModelFormats
         new("e57", "ASTM E57", "pointcloud", [".e57"], FormatSupport.Identified),
         new("dwf", "Autodesk DWF", "cad", [".dwf", ".dwfx"], FormatSupport.Identified),
         new("b3d", "Blitz3D / Bazis", "scene", [".b3d"], FormatSupport.Identified),
-        new("gcode", "G-code", "toolpath", [".gcode", ".gco", ".nc"], FormatSupport.Identified),
         new("unity", "Unity package", "scene", [".unitypackage"], FormatSupport.Identified),
         new("unreal", "Unreal asset", "scene", [".uasset", ".umap"], FormatSupport.Identified),
     ];
@@ -86,7 +87,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows. Entries are not searched yet.</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Identified);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -207,6 +208,12 @@ public static class ModelFormats
             return SolidWorksReader.Sniff(data, cancellation) ? SolidWorks : byExtension ?? SolidWorks;
         }
 
+        if (byExtension is { Id: "gcode" })
+        {
+            // ".nc" is also NetCDF: only text counts as G-code.
+            return Formats.Toolpath.GcodeReader.IsText(head) ? Gcode : FormatInfo.Unknown;
+        }
+
         if (byExtension is not null)
         {
             return byExtension;
@@ -215,6 +222,11 @@ public static class ModelFormats
         if (LooksLikeStl(data.Span))
         {
             return Stl;
+        }
+
+        if (Formats.Toolpath.GcodeReader.LooksLikeGcode(data.Span[..Math.Min(data.Length, 4096)]))
+        {
+            return Gcode;
         }
 
         return FormatInfo.Unknown;

@@ -39,7 +39,8 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 - [ ] SketchUp, Revit, Inventor, JT, Parasolid, ACIS: metadata and thumbnails first, as the reference viewer shows geometry only
 - [x] Point clouds: LAS, PCD, XYZ/PTS (open: LAZ, PLY splats)
 - [ ] Archives: look inside ZIP/RAR/7z/tar for the primary model (extension priority list) and companions (OBJ+MTL+textures)
-- [ ] G-code toolpath preview; Archicad (metadata and thumbnail only; the reference reader is itself partial)
+- [x] G-code toolpath preview (lines by extrusion/travel or cut/rapid). Open: per-layer nodes, feature-type colours, tool numbers, canned cycles
+- [ ] Archicad (metadata and thumbnail only; the reference reader is itself partial)
 
 ## Next: conversion quality
 
