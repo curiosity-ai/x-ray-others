@@ -63,9 +63,31 @@ public static class ModelLoader
             }
         }
 
+        foreach (var node in model.Nodes())
+        {
+            var m = node.Transform;
+            if (!IsFinite(m))
+            {
+                node.Transform = System.Numerics.Matrix4x4.Identity;
+                repaired = true;
+            }
+        }
+
+        foreach (var material in model.Materials)
+        {
+            var c = material.BaseColor;
+            if (!float.IsFinite(c.X) || !float.IsFinite(c.Y) || !float.IsFinite(c.Z) || !float.IsFinite(c.W) || !float.IsFinite(material.Metallic) || !float.IsFinite(material.Roughness))
+            {
+                material.BaseColor = new System.Numerics.Vector4(0.8f, 0.8f, 0.8f, 1f);
+                material.Metallic = 0;
+                material.Roughness = 0.6f;
+                repaired = true;
+            }
+        }
+
         if (repaired)
         {
-            model.Warnings.Add("Some coordinates were not finite numbers and were set to zero.");
+            model.Warnings.Add("Some numbers in the file were not finite (coordinates, transforms or colours) and were replaced by neutral values.");
             model.Metadata.Bounds = model.ComputeBounds();
         }
 
@@ -99,6 +121,12 @@ public static class ModelLoader
 
         return true;
     }
+
+    private static bool IsFinite(System.Numerics.Matrix4x4 m) =>
+        float.IsFinite(m.M11) && float.IsFinite(m.M12) && float.IsFinite(m.M13) && float.IsFinite(m.M14)
+        && float.IsFinite(m.M21) && float.IsFinite(m.M22) && float.IsFinite(m.M23) && float.IsFinite(m.M24)
+        && float.IsFinite(m.M31) && float.IsFinite(m.M32) && float.IsFinite(m.M33) && float.IsFinite(m.M34)
+        && float.IsFinite(m.M41) && float.IsFinite(m.M42) && float.IsFinite(m.M43) && float.IsFinite(m.M44);
 
     private static bool ReplaceNonFinite(float[] values)
     {
@@ -136,6 +164,8 @@ public static class ModelLoader
         "dxf" => Formats.Cad.DxfReader.Read(data, options),
         "3ds" => Max3dsReader.Read(data, options),
         "collada" => ColladaReader.Read(data, options),
+        "fbx" => FbxReader.Read(data, options),
+        "usd" => UsdaReader.Read(data, options),
         "x3d" => X3dReader.ReadXml(data, options),
         "vrml" => X3dReader.ReadVrml(data, options),
         "off" => OffReader.Read(data, options),

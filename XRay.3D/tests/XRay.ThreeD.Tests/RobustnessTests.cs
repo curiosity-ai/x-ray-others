@@ -26,6 +26,11 @@ public class RobustnessTests
         "synthetic/scene.dae",
         "synthetic/scene.x3d",
         "synthetic/scene.wrl",
+        "synthetic/scene-7400.fbx",
+        "synthetic/scene-7700.fbx",
+        "synthetic/scene-ascii.fbx",
+        "synthetic/scene.usda",
+        "synthetic/scene.usdz",
         "synthetic/cloud-binary.pcd",
         "synthetic/cloud-compressed.pcd",
         "synthetic/cloud-ascii.pcd",
@@ -68,7 +73,8 @@ public class RobustnessTests
         var original = File.ReadAllBytes(DatasetPaths.File(relative));
         var name = Path.GetFileName(relative);
         var rounds = int.TryParse(Environment.GetEnvironmentVariable("XRAY_3D_MUTATIONS"), out var n) ? n : 40;
-        var random = new Random(relative.GetHashCode(StringComparison.Ordinal) ^ 12345);
+        var seed = int.TryParse(Environment.GetEnvironmentVariable("XRAY_3D_SEED"), out var configured) ? configured : 12345;
+        var random = new Random(relative.Aggregate(seed, (h, c) => unchecked(h * 31 + c)));
         for (var round = 0; round < rounds; round++)
         {
             var data = (byte[])original.Clone();
@@ -77,7 +83,14 @@ public class RobustnessTests
                 data[random.Next(data.Length)] = (byte)random.Next(256);
             }
 
-            MustFailCleanly(data, name);
+            try
+            {
+                MustFailCleanly(data, name);
+            }
+            catch (Exception ex) when (ex is not Xunit.Sdk.XunitException)
+            {
+                throw new InvalidOperationException($"{relative} seed {seed} round {round}: {ex.GetType().Name}: {ex.Message}", ex);
+            }
         }
     }
 

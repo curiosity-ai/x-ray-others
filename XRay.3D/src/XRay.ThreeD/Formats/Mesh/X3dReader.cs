@@ -1015,7 +1015,7 @@ internal static class X3dReader
     }
 
     /// <summary>The X3D/VRML primitives, tessellated with enough segments to look round.</summary>
-    private static class Primitive
+    internal static class Primitive
     {
         private const int Segments = 32;
 

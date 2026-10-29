@@ -36,6 +36,10 @@ public static class ModelFormats
 
     public static FormatInfo Vrml { get; } = new("vrml", "VRML97", "scene", [".wrl", ".vrml"], FormatSupport.Full);
 
+    public static FormatInfo Fbx { get; } = new("fbx", "Autodesk FBX", "scene", [".fbx"], FormatSupport.Full);
+
+    public static FormatInfo Usd { get; } = new("usd", "Universal Scene Description (USDA text, USDZ)", "scene", [".usda", ".usd", ".usdz", ".usdc"], FormatSupport.Full);
+
     public static FormatInfo Dxf { get; } = new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Full);
 
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
@@ -51,8 +55,6 @@ public static class ModelFormats
         new("dwg", "AutoCAD DWG", "cad", [".dwg"], FormatSupport.Identified),
         new("ifc", "IFC (BIM)", "bim", [".ifc", ".ifcxml", ".ifczip"], FormatSupport.Identified),
         new("rhino", "Rhino 3DM", "cad", [".3dm"], FormatSupport.Identified),
-        new("fbx", "Autodesk FBX", "scene", [".fbx"], FormatSupport.Identified),
-        new("usd", "Universal Scene Description", "scene", [".usd", ".usda", ".usdc", ".usdz"], FormatSupport.Identified),
         new("x3dv", "X3D classic encoding", "scene", [".x3dv"], FormatSupport.Identified),
         new("sketchup", "SketchUp", "cad", [".skp"], FormatSupport.Identified),
         new("revit", "Revit", "bim", [".rvt", ".rfa", ".rft"], FormatSupport.Identified),
@@ -79,7 +81,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows. Entries are not searched yet.</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Identified);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -135,14 +137,19 @@ public static class ModelFormats
             return Max3ds;
         }
 
+        if (StartsWith(head, "#usda") || StartsWith(head, "PXR-USDC"))
+        {
+            return Usd;
+        }
+
         if (StartsWith(head, "ply"))
         {
             return Ply;
         }
 
-        if (StartsWith(head, "Kaydara FBX Binary"))
+        if (StartsWith(head, "Kaydara FBX Binary") || (head.Length > 0 && head[0] == ';' && Contains(head, "FBX", "")))
         {
-            return Find("fbx");
+            return Fbx;
         }
 
         if (StartsWith(head, "3D Geometry File Format"))
@@ -251,9 +258,9 @@ public static class ModelFormats
                 return Find("sh3d");
             }
 
-            if (names.Contains("model.gltf", StringComparer.OrdinalIgnoreCase) || names.Any(n => n.EndsWith(".usdc", StringComparison.OrdinalIgnoreCase)))
+            if (names.Any(n => n.EndsWith(".usdc", StringComparison.OrdinalIgnoreCase) || n.EndsWith(".usda", StringComparison.OrdinalIgnoreCase) || n.EndsWith(".usd", StringComparison.OrdinalIgnoreCase)))
             {
-                return Find("usd");
+                return Usd;
             }
 
             return null;

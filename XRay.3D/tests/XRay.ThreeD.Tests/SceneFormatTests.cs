@@ -145,3 +145,134 @@ public class SceneFormatTests
         }
     }
 }
+
+public class FbxTests
+{
+    [Theory]
+    [InlineData("synthetic/scene-7400.fbx")]
+    [InlineData("synthetic/scene-7700.fbx")]
+    [InlineData("synthetic/scene-ascii.fbx")]
+    public void Hierarchy_transforms_materials_and_settings_in_every_encoding(string file)
+    {
+        var model = ModelLoader.Load(DatasetPaths.File(file));
+        var meta = model.Metadata;
+
+        Assert.Equal("fbx", meta.Format.Id);
+        Assert.Equal(LengthUnit.Meter, meta.Units);
+        Assert.Equal(UpAxis.Z, meta.UpAxis);
+        Assert.Equal(["Group", "Pyramid"], model.Roots.Select(r => r.Name));
+        var cube = Assert.Single(model.Roots[0].Children);
+        Assert.Equal("Cube", cube.Name);
+        Assert.Equal(12, cube.Mesh!.TriangleCount);
+        Assert.Equal(6, model.Roots[1].Mesh!.TriangleCount);
+        Assert.Equal(["Red", "Green", "Blue"], meta.MaterialNames);
+
+        // Cube faces 0..2 use Red, 3..5 use Green; the pyramid is Blue.
+        Assert.Equal(2, cube.Mesh.Groups.Count);
+        Assert.Equal(new Vector4(1, 0, 0, 1), model.Materials[cube.Mesh.Groups[0].Material].BaseColor);
+        Assert.Equal(new Vector4(0, 1, 0, 1), model.Materials[cube.Mesh.Groups[1].Material].BaseColor);
+        Assert.Equal(new Vector4(0, 0, 1, 1), model.Materials[model.Roots[1].Mesh!.Groups[0].Material].BaseColor);
+
+        // Per-polygon-vertex normals survive as unit vectors.
+        Assert.Equal(24, cube.Mesh.VertexCount);
+        Assert.Equal(72, cube.Mesh.Normals.Length);
+
+        // Group: translate (1,0,0), rotate 90 degrees about Z, scale 2. Pyramid at (5,0,0).
+        var bounds = model.ComputeBounds()!.Value;
+        Assert.True(Vector3.Distance(bounds.Min, new Vector3(-1, 0, 0)) < 1e-3f, bounds.Min.ToString());
+        Assert.True(Vector3.Distance(bounds.Max, new Vector3(7, 2, 3)) < 1e-3f, bounds.Max.ToString());
+    }
+
+    [Fact]
+    public void Header_metadata_is_read_from_the_binary_file()
+    {
+        var meta = ModelLoader.ReadMetadata(DatasetPaths.File("synthetic/scene-7700.fbx"));
+
+        Assert.Equal("fixture script", meta.Application);
+        Assert.Equal("fixture fbx", meta.Title);
+        Assert.Equal("nobody", meta.Author);
+        Assert.Equal("7700", meta.FormatVersion);
+        Assert.Equal(["Cube", "Pyramid"], meta.PartNames);
+    }
+
+    [Fact]
+    public void Written_as_glb_and_detected_by_content()
+    {
+        var data = File.ReadAllBytes(DatasetPaths.File("synthetic/scene-7400.fbx"));
+
+        Assert.Equal("fbx", ModelLoader.Detect(data, null).Id);
+        Assert.Equal("fbx", ModelLoader.Detect(File.ReadAllBytes(DatasetPaths.File("synthetic/scene-ascii.fbx")), null).Id);
+        GlbValidation.Validate(ModelLoader.ConvertToGlb(data, "x.fbx"));
+    }
+}
+
+public class UsdTests
+{
+    private static readonly System.Text.Json.JsonElement Golden =
+        System.Text.Json.JsonDocument.Parse(File.ReadAllText(DatasetPaths.CorpusFile("usd-golden.json"))).RootElement.GetProperty("scene.usda");
+
+    [Theory]
+    [InlineData("synthetic/scene.usda")]
+    [InlineData("synthetic/scene.usdz")]
+    public void Stage_matches_the_reference_library(string file)
+    {
+        var model = ModelLoader.Load(DatasetPaths.File(file));
+        var meta = model.Metadata;
+
+        Assert.Equal("usd", meta.Format.Id);
+        Assert.Equal(UpAxis.Z, meta.UpAxis);
+        Assert.Equal(LengthUnit.Centimeter, meta.Units);
+        Assert.Equal("World", meta.Title);
+
+        // World bounds, in the file's units, against pxr's UsdGeomBBoxCache.
+        var b = model.ComputeBounds()!.Value;
+        var min = Golden.GetProperty("min").EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();
+        var max = Golden.GetProperty("max").EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();
+        Assert.True(Vector3.Distance(b.Min, new Vector3(min[0], min[1], min[2])) < 1e-3f, $"min {b.Min} vs {string.Join(',', min)}");
+        Assert.True(Vector3.Distance(b.Max, new Vector3(max[0], max[1], max[2])) < 1e-3f, $"max {b.Max} vs {string.Join(',', max)}");
+    }
+
+    [Fact]
+    public void Meshes_materials_references_and_primitives()
+    {
+        var model = ModelLoader.Load(DatasetPaths.File("synthetic/scene.usda"));
+        var world = model.Roots.First(r => r.Name == "World");
+
+        Assert.Equal(["Cube", "Pyramid", "Ball"], world.Children.Select(c => c.Name));
+        var cube = world.Children[0].Mesh!;
+        Assert.Equal(12, cube.TriangleCount);
+        var pyramid = world.Children[1].Mesh!;
+        Assert.Equal(6, pyramid.TriangleCount);          // one quad and four triangles
+        Assert.Equal(16 * 3, pyramid.Normals.Length);     // faceVarying normals: one vertex per face corner (4 + 4 x 3)
+        var steel = model.Materials[pyramid.Groups[0].Material];
+        Assert.Equal("Steel", steel.Name);
+        Assert.Equal(1f, steel.Metallic);
+        Assert.Equal(0.25f, steel.Roughness);
+        Assert.Equal(0.6f, steel.BaseColor.X, 3);
+        Assert.NotEmpty(world.Children[2].Mesh!.Indices);   // the sphere primitive is tessellated
+        Assert.Equal("Red", model.Materials[world.Children[2].Mesh!.Groups[0].Material].Name);
+
+        // /Copy references /World/Cube: the same mesh, at its own place.
+        var copy = model.Roots.First(r => r.Name == "Copy");
+        Assert.Same(cube, copy.Mesh);
+        Assert.Equal(new Vector3(0, -10, 0), copy.Transform.Translation);
+
+        // displayColor with uniform interpolation: per-face colours become vertex colours.
+        Assert.Equal(cube.VertexCount * 4, cube.Colors.Length);
+    }
+
+    [Fact]
+    public void Binary_usd_is_recognised_and_refused()
+    {
+        var crate = File.ReadAllBytes(DatasetPaths.File("synthetic/scene.usdc"));
+
+        Assert.Equal("usd", ModelLoader.Detect(crate, "x.usdc").Id);
+        Assert.Throws<UnsupportedModelFormatException>(() => ModelLoader.Load(crate, "x.usdc"));
+    }
+
+    [Fact]
+    public void Output_is_valid_glb()
+    {
+        GlbValidation.Validate(ModelLoader.ConvertToGlb(File.ReadAllBytes(DatasetPaths.File("synthetic/scene.usda")), "scene.usda"));
+    }
+}

@@ -1,0 +1,21 @@
+{
+ "scene.usda": {
+  "metersPerUnit": 0.01,
+  "upAxis": "Z",
+  "min": [
+   -3.0,
+   -10.0,
+   0.0
+  ],
+  "max": [
+   2.0,
+   16.0,
+   12.0
+  ],
+  "primitives": {
+   "cube": 12,
+   "pyramid": 6,
+   "copy": 12
+  }
+ }
+}

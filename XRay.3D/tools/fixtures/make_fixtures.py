@@ -355,3 +355,117 @@ Shape { appearance Appearance { material Material { diffuseColor 0 0 1 transpare
 Shape { geometry IndexedLineSet { coord Coordinate { point [ %s ] } coordIndex [ 0 1 2 -1 4 5 ] } }
 ''' % (', '.join('%g %g %g' % v for v in V), ', '.join(' '.join(str(i) for i in q) + ' -1' for q in CUBE_QUADS), ', '.join('%g %g %g' % v for v in V))
 write('scene.wrl', vrml)
+
+# ---- FBX: the same scene as binary 7.4 (32 bit headers, deflated arrays), binary 7.7 (64 bit headers) and ASCII 7.4
+import zlib
+
+def P(kind, value): return (kind, value)
+
+def n(name, props=(), children=()): return (name, list(props), list(children))
+
+cube_normals = []
+for q in CUBE_QUADS:
+    a, b, c = (V[q[0]], V[q[1]], V[q[2]])
+    nrm = normal(a, b, c)
+    cube_normals += [nrm] * 4
+poly = []
+for q in CUBE_QUADS: poly += [q[0], q[1], q[2], -q[3] - 1]
+pyr_poly = []
+for t in PYRAMID_T: pyr_poly += [t[0], t[1], -t[2] - 1]
+
+def fbx_tree(wide):
+    ids = lambda v: ('L', v)
+    objects = n('Objects', [], [
+        n('Geometry', [ids(2001), ('S', 'Geometry::Cube'), ('S', 'Mesh')], [
+            n('Vertices', [('d', [c for v in V for c in v])]),
+            n('PolygonVertexIndex', [('i', poly)]),
+            n('LayerElementNormal', [('I', 0)], [
+                n('MappingInformationType', [('S', 'ByPolygonVertex')]), n('ReferenceInformationType', [('S', 'Direct')]),
+                n('Normals', [('d', [c for v in cube_normals for c in v])])]),
+            n('LayerElementMaterial', [('I', 0)], [
+                n('MappingInformationType', [('S', 'ByPolygon')]), n('ReferenceInformationType', [('S', 'IndexToDirect')]),
+                n('Materials', [('i', [0, 0, 0, 1, 1, 1])])])]),
+        n('Geometry', [ids(2002), ('S', 'Geometry::Pyramid'), ('S', 'Mesh')], [
+            n('Vertices', [('d', [c for v in PYRAMID_V for c in v])]),
+            n('PolygonVertexIndex', [('i', pyr_poly)]),
+            n('LayerElementMaterial', [('I', 0)], [n('MappingInformationType', [('S', 'AllSame')]), n('Materials', [('i', [0])])])]),
+        n('Model', [ids(1001), ('S', 'Model::Group'), ('S', 'Null')], [
+            n('Properties70', [], [
+                n('P', [('S', 'Lcl Translation'), ('S', 'Lcl Translation'), ('S', ''), ('S', 'A'), ('D', 1.0), ('D', 0.0), ('D', 0.0)]),
+                n('P', [('S', 'Lcl Rotation'), ('S', 'Lcl Rotation'), ('S', ''), ('S', 'A'), ('D', 0.0), ('D', 0.0), ('D', 90.0)]),
+                n('P', [('S', 'Lcl Scaling'), ('S', 'Lcl Scaling'), ('S', ''), ('S', 'A'), ('D', 2.0), ('D', 2.0), ('D', 2.0)])])]),
+        n('Model', [ids(1002), ('S', 'Model::Cube'), ('S', 'Mesh')], [n('Properties70')]),
+        n('Model', [ids(1003), ('S', 'Model::Pyramid'), ('S', 'Mesh')], [
+            n('Properties70', [], [n('P', [('S', 'Lcl Translation'), ('S', 'Lcl Translation'), ('S', ''), ('S', 'A'), ('D', 5.0), ('D', 0.0), ('D', 0.0)])])]),
+    ] + [n('Material', [ids(i), ('S', 'Material::' + name), ('S', '')], [
+        n('Properties70', [], [n('P', [('S', 'DiffuseColor'), ('S', 'Color'), ('S', ''), ('S', 'A'), ('D', r), ('D', g), ('D', b)])])])
+        for i, name, (r, g, b) in ((3001, 'Red', (1.0, 0.0, 0.0)), (3002, 'Green', (0.0, 1.0, 0.0)), (3003, 'Blue', (0.0, 0.0, 1.0)))])
+    connections = n('Connections', [], [n('C', [('S', 'OO'), ids(c), ids(pa)]) for c, pa in
+        ((1001, 0), (1002, 1001), (2001, 1002), (3001, 1002), (3002, 1002), (1003, 0), (2002, 1003), (3003, 1003))])
+    return [
+        n('FBXHeaderExtension', [], [n('FBXVersion', [('I', 7700 if wide else 7400)]), n('Creator', [('S', 'fixture script')]),
+            n('SceneInfo', [('S', 'SceneInfo::GlobalInfo'), ('S', 'UserData')], [n('MetaData', [], [n('Title', [('S', 'fixture fbx')]), n('Author', [('S', 'nobody')])])])]),
+        n('GlobalSettings', [], [n('Properties70', [], [
+            n('P', [('S', 'UpAxis'), ('S', 'int'), ('S', 'Integer'), ('S', ''), ('I', 2)]),
+            n('P', [('S', 'UnitScaleFactor'), ('S', 'double'), ('S', 'Number'), ('S', ''), ('D', 100.0)])])]),
+        objects, connections]
+
+def fbx_prop(prop):
+    kind, v = prop
+    if kind == 'S':
+        b = v.encode(); return b'S' + struct.pack('<I', len(b)) + b
+    if kind == 'L': return b'L' + struct.pack('<q', v)
+    if kind == 'I': return b'I' + struct.pack('<i', v)
+    if kind == 'D': return b'D' + struct.pack('<d', v)
+    code = {'d': 'd', 'i': 'i'}[kind]
+    raw = struct.pack('<%d%s' % (len(v), code), *v)
+    packed = zlib.compress(raw)
+    return kind.encode() + struct.pack('<III', len(v), 1, len(packed)) + packed
+
+def fbx_node(node, base, wide):
+    name, props, children = node
+    pb = b''.join(fbx_prop(p) for p in props)
+    hdr = 25 if wide else 13
+    nb = name.encode()
+    body_start = base + hdr + len(nb) + len(pb)
+    kids = b''; pos = body_start
+    for c in children:
+        cb = fbx_node(c, pos, wide); kids += cb; pos += len(cb)
+    if children:
+        kids += b'\0' * hdr; pos += hdr
+    end = pos
+    head = struct.pack('<QQQB', end, len(props), len(pb), len(nb)) if wide else struct.pack('<IIIB', end, len(props), len(pb), len(nb))
+    return head + nb + pb + kids
+
+def fbx_binary(version, tree):
+    wide = version >= 7500
+    out = b'Kaydara FBX Binary  \0\x1a\0' + struct.pack('<I', version); pos = len(out)
+    for node in tree:
+        nb = fbx_node(node, pos, wide); out += nb; pos += len(nb)
+    return out + b'\0' * (25 if wide else 13)
+
+write('scene-7400.fbx', fbx_binary(7400, fbx_tree(False)))
+write('scene-7700.fbx', fbx_binary(7700, fbx_tree(True)))
+
+def fbx_ascii_value(prop):
+    kind, v = prop
+    if kind == 'S': return '"%s"' % v
+    if kind in ('L', 'I'): return str(v)
+    if kind == 'D': return '%g' % v
+    return None
+
+def fbx_ascii_node(node, indent=0):
+    name, props, children = node
+    pad = '\t' * indent
+    scalars = [fbx_ascii_value(p) for p in props if p[0] in 'SLID']
+    arrays = [p for p in props if p[0] in 'di']
+    if arrays:
+        vals = arrays[0][1]
+        text = '%s%s: *%d {\n%s\ta: %s\n%s}\n' % (pad, name, len(vals), pad, ','.join('%g' % x if arrays[0][0] == 'd' else str(x) for x in vals), pad)
+        return text
+    line = '%s%s: %s' % (pad, name, ', '.join(scalars))
+    if children:
+        return line + ' {\n' + ''.join(fbx_ascii_node(c, indent + 1) for c in children) + pad + '}\n'
+    return line + '\n'
+
+write('scene-ascii.fbx', '; FBX 7.4.0 project file\n' + ''.join(fbx_ascii_node(nd) for nd in fbx_tree(False)))
