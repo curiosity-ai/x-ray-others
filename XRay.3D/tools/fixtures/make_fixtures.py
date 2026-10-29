@@ -772,3 +772,27 @@ map_Kd ../textures/wood.png
     ('textures/wood.png', PNG_1X1),
     ('other/cube.stl', stl_cube_ascii(1)),
 ])
+
+# ---- Sweet Home 3D: two levels, walls (one red), a room, a piece whose OBJ model (2 x 4 x 6, with an MTL) is fitted to 60 x 20 x 40 and
+# turned a quarter circle, a group on the upper level holding a piece with no model (a blue box) and a light using the same model.
+make_zip('home.sh3d', [
+    ('Home.xml', '''<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE home PUBLIC "-//eTeks//DTD Sweet Home 3D 7.0//EN" "http://www.sweethome3d.com/dtd/SweetHome3D.dtd">
+<home version="7200" name="fixture-home.sh3d" wallHeight="250">
+<property name="com.eteks.sweethome3d.SweetHome3D.Author" value="Fixture Author"/>
+<level id="level-1" name="First floor" elevation="262" floorThickness="12" height="250" elevationIndex="1" visible="true" viewable="true"/>
+<level id="level-0" name="Ground" elevation="0" floorThickness="12" height="250" elevationIndex="0" visible="true" viewable="true"/>
+<wall id="w1" level="level-0" xStart="0" yStart="0" xEnd="400" yEnd="0" thickness="20" height="250" leftSideColor="FFFF0000"/>
+<wall id="w2" level="level-1" xStart="0" yStart="0" xEnd="0" yEnd="300" thickness="10"/>
+<room id="r1" level="level-0" name="Hall" floorColor="FF00FF00"><point x="0" y="0"/><point x="400" y="0"/><point x="400" y="300"/><point x="0" y="300"/></room>
+<pieceOfFurniture id="p1" level="level-0" name="Block" catalogId="fixture#block" model="0/block.obj" x="100" y="100" elevation="10" angle="1.5708" width="60" depth="20" height="40" price="12.5" movable="true"/>
+<furnitureGroup id="g1" level="level-1" name="Set" x="200" y="150" width="100" depth="50" height="110">
+<pieceOfFurniture id="p2" name="Missing model" model="9/none.obj" x="200" y="150" elevation="0" angle="0" width="50" depth="50" height="50" color="FF0000FF"/>
+<light id="l1" name="Lamp" model="0/block.obj" x="250" y="150" elevation="100" angle="0" width="10" depth="10" height="10" power="0.5"/>
+</furnitureGroup>
+</home>
+'''),
+    ('0/block.obj', 'mtllib block.mtl\nv 0 0 0\nv 2 0 0\nv 2 4 0\nv 0 4 0\nv 0 0 6\nv 2 0 6\nv 2 4 6\nv 0 4 6\nusemtl M\n'
+                    'f 1 4 3 2\nf 5 6 7 8\nf 1 2 6 5\nf 2 3 7 6\nf 3 4 8 7\nf 4 1 5 8\n'),
+    ('0/block.mtl', 'newmtl M\nKd 0.2 0.4 0.6\n'),
+])

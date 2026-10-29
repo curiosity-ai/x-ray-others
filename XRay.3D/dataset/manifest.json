@@ -808,5 +808,68 @@
   "source": "tools/fixtures/make_fixtures.py",
   "bytes": 1199,
   "sha256": "9967baa4d196d3413601d78e74f407f9791e6cc55452610bf5ad7e749e57985a"
+ },
+ {
+  "file": "synthetic/building.ifc",
+  "format": "ifc",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 8109,
+  "sha256": "58245973a40be9a351baeb85ec3f59fd186aaf9d8481834fb2a6d066e1fdaa2e"
+ },
+ {
+  "file": "synthetic/part.igs",
+  "format": "iges",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 2268,
+  "sha256": "9f69ce0ff80768f9a4ea655b62926946ebaa41d58c181624abce4f61d799c075"
+ },
+ {
+  "file": "synthetic/assembly.FCStd",
+  "format": "fcstd",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 1680,
+  "sha256": "398067c9737697f67de0215817128938132895807a6d716978753c6f9a6ee4fb"
+ },
+ {
+  "file": "synthetic/print.gcode",
+  "format": "gcode",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 676,
+  "sha256": "4306929424980669d3177c7057d18b0fd8b112d1e2f2c77a2c60f989a69d16da"
+ },
+ {
+  "file": "synthetic/profile.nc",
+  "format": "gcode",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 168,
+  "sha256": "6a69d8bbf6b166021024b90b03fdf4b96fe9de753513f989febd2856388e04da"
+ },
+ {
+  "file": "synthetic/package-obj-mtl.zip",
+  "format": "zip",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 1121,
+  "sha256": "e0b041973b356df5878e8d20c85923aa103689dfe5096e6c214d6e5eb97de63c"
+ },
+ {
+  "file": "synthetic/home.sh3d",
+  "format": "sh3d",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 1068,
+  "sha256": "482e112a1e7afe774b8cf6d59bab4c79d184a7219e2e39f646fafcea70889985"
  }
 ]

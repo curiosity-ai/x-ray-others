@@ -35,6 +35,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 - [x] FBX, COLLADA, 3DS, USDA, VRML/X3D, OFF, AMF (open: USDC/USDZ)
 - [x] FreeCAD (`.FCStd`): document, object tree, properties, placements, colours, thumbnail, embedded STL/OBJ meshes. Open: tessellating `.brp` (OpenCASCADE text BREP), decoding `.bms` meshes, Link/App::Link placement
 - [ ] OpenSCAD (needs a CSG kernel; metadata only first)
+- [x] Sweet Home 3D (`Home.xml`, 5.3+): levels, walls, rooms, furniture with fitted OBJ models. Open: the Java-serialised `Home` of older files, curved walls, doors cut into walls, textures
 - [ ] Rhino 3DM: layers, materials, block instances, stored render meshes; warn rather than mesh B-reps
 - [ ] SketchUp, Revit, Inventor, JT, Parasolid, ACIS: metadata and thumbnails first, as the reference viewer shows geometry only
 - [x] Point clouds: LAS, PCD, XYZ/PTS (open: LAZ, PLY splats)

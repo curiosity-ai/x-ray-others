@@ -50,6 +50,8 @@ public static class ModelFormats
 
     public static FormatInfo Gcode { get; } = new("gcode", "G-code", "toolpath", [".gcode", ".gco", ".nc", ".ngc"], FormatSupport.Full);
 
+    public static FormatInfo Sh3d { get; } = new("sh3d", "Sweet Home 3D", "bim", [".sh3d"], FormatSupport.Full);
+
     public static FormatInfo Dxf { get; } = new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Full);
 
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
@@ -75,7 +77,6 @@ public static class ModelFormats
         new("openscad", "OpenSCAD", "cad", [".scad"], FormatSupport.Identified),
         new("blender", "Blender", "scene", [".blend"], FormatSupport.Identified),
         new("archicad", "Archicad", "bim", [".pln", ".pla", ".gsm"], FormatSupport.Identified),
-        new("sh3d", "Sweet Home 3D", "bim", [".sh3d"], FormatSupport.Identified),
         new("laz", "LAZ (compressed LAS)", "pointcloud", [".laz"], FormatSupport.Identified),
         new("e57", "ASTM E57", "pointcloud", [".e57"], FormatSupport.Identified),
         new("dwf", "Autodesk DWF", "cad", [".dwf", ".dwfx"], FormatSupport.Identified),
@@ -87,7 +88,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -282,7 +283,7 @@ public static class ModelFormats
 
             if (names.Any(n => n.EndsWith(".home", StringComparison.OrdinalIgnoreCase) || n == "Home" || n == "Home.xml"))
             {
-                return Find("sh3d");
+                return Sh3d;
             }
 
             if (names.Any(n => n.EndsWith(".usdc", StringComparison.OrdinalIgnoreCase) || n.EndsWith(".usda", StringComparison.OrdinalIgnoreCase) || n.EndsWith(".usd", StringComparison.OrdinalIgnoreCase)))

@@ -192,6 +192,7 @@ public static class ModelLoader
         "iges" => Formats.Cad.IgesReader.Read(data, options),
         "freecad" => Formats.Cad.FreecadReader.Read(data, options),
         "gcode" => Formats.Toolpath.GcodeReader.Read(data, options),
+        "sh3d" => Formats.Bim.Sh3dReader.Read(data, options),
         "x3d" => X3dReader.ReadXml(data, options),
         "vrml" => X3dReader.ReadVrml(data, options),
         "off" => OffReader.Read(data, options),
@@ -222,7 +223,7 @@ public static class ModelLoader
         }
         catch (Exception ex) when (ex is IndexOutOfRangeException or ArgumentException or InvalidDataException or InvalidOperationException
             or OverflowException or FormatException or XmlException or System.Text.Json.JsonException or KeyNotFoundException
-            or NullReferenceException or OutOfMemoryException or EndOfStreamException or NotSupportedException)
+            or NullReferenceException or OutOfMemoryException or IOException or NotSupportedException)
         {
             throw new ModelFormatException($"The {format.Name} file is damaged or uses a form this library cannot read: {ex.Message}", ex);
         }
