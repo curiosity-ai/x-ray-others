@@ -43,8 +43,8 @@ public class FormatTests
     [Fact]
     public void Recognised_but_unread_formats_throw_the_unsupported_exception()
     {
-        var ex = Assert.Throws<UnsupportedModelFormatException>(() => ModelLoader.Load(DatasetPaths.File("step/adafruit-motor-hat.step")));
-        Assert.Equal("step", ex.Format.Id);
+        var ex = Assert.Throws<UnsupportedModelFormatException>(() => ModelLoader.Load(DatasetPaths.File("iges/slewing-ring.iges")));
+        Assert.Equal("iges", ex.Format.Id);
         Assert.Equal(FormatSupport.Identified, ex.Format.Support);
     }
 

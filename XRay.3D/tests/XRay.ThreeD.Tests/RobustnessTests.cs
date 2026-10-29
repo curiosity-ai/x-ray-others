@@ -30,6 +30,7 @@ public class RobustnessTests
         "synthetic/scene-7700.fbx",
         "synthetic/scene-ascii.fbx",
         "synthetic/scene.usda",
+        "step/neopixel-ring.step",
         "synthetic/scene.usdz",
         "synthetic/cloud-binary.pcd",
         "synthetic/cloud-compressed.pcd",

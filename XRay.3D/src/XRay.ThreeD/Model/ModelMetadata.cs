@@ -89,7 +89,17 @@ public sealed record ModelFeature(string Name, string Type);
 /// Geometry counts. <see cref="Vertices"/> and <see cref="Triangles"/> count what is drawn (an instanced part counts
 /// once per instance); the Unique counts are what is stored.
 /// </summary>
-public sealed record ModelStatistics(int Nodes, int Meshes, long Vertices, long Triangles, int Materials, long UniqueVertices = 0, long UniqueTriangles = 0);
+public sealed record ModelStatistics(int Nodes, int Meshes, long Vertices, long Triangles, int Materials, long UniqueVertices = 0, long UniqueTriangles = 0)
+{
+    /// <summary>Surface area of everything drawn (instances counted per use), in the model's units squared. Zero when not computed.</summary>
+    public double SurfaceArea { get; init; }
+
+    /// <summary>
+    /// Volume enclosed by the triangles (signed sum over the surface), in the model's units cubed. Meaningful for closed, consistently
+    /// oriented solids such as B-reps; zero when not computed.
+    /// </summary>
+    public double Volume { get; init; }
+}
 
 public enum LengthUnit
 {

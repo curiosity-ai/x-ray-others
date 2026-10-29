@@ -40,6 +40,8 @@ public static class ModelFormats
 
     public static FormatInfo Usd { get; } = new("usd", "Universal Scene Description (USDA text, USDZ)", "scene", [".usda", ".usd", ".usdz", ".usdc"], FormatSupport.Full);
 
+    public static FormatInfo Step { get; } = new("step", "STEP (ISO 10303-21)", "cad", [".step", ".stp", ".p21"], FormatSupport.Full);
+
     public static FormatInfo Dxf { get; } = new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Full);
 
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
@@ -47,7 +49,6 @@ public static class ModelFormats
     /// <summary>Formats that are recognised but not yet read. See TODO.md for the order they are planned in.</summary>
     private static readonly FormatInfo[] Identified =
     [
-        new("step", "STEP (ISO 10303)", "cad", [".step", ".stp", ".p21"], FormatSupport.Identified),
         new("iges", "IGES", "cad", [".iges", ".igs"], FormatSupport.Identified),
         new("sat", "ACIS SAT", "cad", [".sat", ".sab"], FormatSupport.Identified),
         new("parasolid", "Parasolid", "cad", [".x_t", ".x_b", ".xmt_txt", ".xmt_bin"], FormatSupport.Identified),
@@ -81,7 +82,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows. Entries are not searched yet.</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Identified);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -164,7 +165,7 @@ public static class ModelFormats
 
         if (StartsWith(head, "ISO-10303-21"))
         {
-            return Contains(data.Span, "FILE_SCHEMA", "IFC") ? Find("ifc") : Find("step");
+            return Contains(data.Span, "FILE_SCHEMA", "IFC") ? Find("ifc") : Step;
         }
 
         if (head.Length >= 2 && head[0] == 'P' && head[1] == 'K')

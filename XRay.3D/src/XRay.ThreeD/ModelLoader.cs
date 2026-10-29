@@ -12,6 +12,12 @@ public sealed class LoadOptions
     /// <summary>Point clouds with more points than this are thinned evenly (default 20 million).</summary>
     public long MaxPoints { get; set; } = 20_000_000;
 
+    /// <summary>B-rep tessellation: the largest distance between the curved surface and its triangles, relative to the model's size (default 0.001).</summary>
+    public double LinearDeflection { get; set; } = 0.001;
+
+    /// <summary>B-rep tessellation: the largest angle in radians between neighbouring samples on a curve or surface (default 0.25).</summary>
+    public double AngularDeflection { get; set; } = 0.25;
+
     /// <summary>Refuse models with more triangles than this (default 100 million).</summary>
     public long MaxTriangles { get; set; } = 100_000_000;
 
@@ -32,6 +38,7 @@ public static class ModelLoader
         {
             "solidworks" => SolidWorksReader.ReadMetadata(d, o.Cancellation),
             "las" => Formats.PointCloud.LasReader.ReadMetadata(d),
+            "step" => Formats.Step.StepReader.ReadMetadata(d, o),
             _ => Dispatch(format, d, o).Metadata,
         });
     }
@@ -166,6 +173,7 @@ public static class ModelLoader
         "collada" => ColladaReader.Read(data, options),
         "fbx" => FbxReader.Read(data, options),
         "usd" => UsdaReader.Read(data, options),
+        "step" => Formats.Step.StepReader.Read(data, options),
         "x3d" => X3dReader.ReadXml(data, options),
         "vrml" => X3dReader.ReadVrml(data, options),
         "off" => OffReader.Read(data, options),

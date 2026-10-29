@@ -1,0 +1,65 @@
+{
+ "adafruit-motor-hat.step": {
+  "faces": {
+   "cylinder": 631,
+   "plane": 1270,
+   "torus": 10,
+   "sphere": 4
+  },
+  "solids": 103,
+  "area": 9701.0872,
+  "volume": 5946.9135,
+  "min": [
+   0.0,
+   -1.27,
+   0.0
+  ],
+  "max": [
+   65.0,
+   55.23,
+   7.211
+  ]
+ },
+ "feather-esp8266.step": {
+  "faces": {
+   "cylinder": 367,
+   "plane": 1633,
+   "sphere": 8,
+   "bspline": 201,
+   "torus": 6,
+   "cone": 6
+  },
+  "solids": 45,
+  "area": 4832.0116,
+  "volume": 2626.4697,
+  "min": [
+   -0.455,
+   0.0,
+   0.0
+  ],
+  "max": [
+   50.8,
+   22.86,
+   6.37
+  ]
+ },
+ "neopixel-ring.step": {
+  "faces": {
+   "cylinder": 2,
+   "plane": 98
+  },
+  "solids": 17,
+  "area": 3247.1454,
+  "volume": 1896.0979,
+  "min": [
+   -22.225,
+   -22.225,
+   0.0
+  ],
+  "max": [
+   22.225,
+   22.225,
+   3.3
+  ]
+ }
+}

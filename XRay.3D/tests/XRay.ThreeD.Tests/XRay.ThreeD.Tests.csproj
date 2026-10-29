@@ -15,6 +15,7 @@
     <None Include="Corpus/solidworks-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/dxf-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/usd-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/step-golden.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/XRay.ThreeD/XRay.ThreeD.csproj" />

@@ -79,6 +79,10 @@ try
 
                 File.WriteAllBytes(output, GlbWriter.ToArray(model, options));
                 Console.WriteLine($"{output}: {model.Metadata.Statistics?.Triangles:N0} triangles, {model.Meshes.Count} meshes, {model.Nodes().Count()} nodes");
+                if (model.Metadata.Statistics is { SurfaceArea: > 0 } stats)
+                {
+                    Console.WriteLine($"area {stats.SurfaceArea:F3}, volume {stats.Volume:F3}");
+                }
                 foreach (var w in model.Warnings)
                 {
                     Console.Error.WriteLine("warning: " + w);
@@ -129,6 +133,11 @@ static void Print(ModelMetadata m)
     Console.WriteLine($"Title:        {m.Title}");
     Console.WriteLine($"Units / up:   {m.Units?.ToString() ?? "?"} / {m.UpAxis?.ToString() ?? "?"}");
     Console.WriteLine($"Geometry:     {(m.HasGeometry ? "yes" : "no")}  {m.Statistics}");
+    if (m.Statistics is { SurfaceArea: > 0 } stats)
+    {
+        Console.WriteLine($"Area/volume:  {stats.SurfaceArea:F3} / {stats.Volume:F3}");
+    }
+
     if (m.Bounds is { } box)
     {
         Console.WriteLine($"Bounds:       {box.Min} .. {box.Max}");

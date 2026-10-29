@@ -54,7 +54,66 @@ public sealed class Model3D
             }
         }
 
-        return new ModelStatistics(nodes, Meshes.Count, vertices, triangles, Materials.Count, Meshes.Sum(m => (long)m.VertexCount), Meshes.Sum(m => (long)m.TriangleCount));
+        // Area and volume per unique mesh, then scaled by each instance's transform (the determinant scales volumes, area by the
+        // area scale of the linear part; both are exact for similarity transforms and good for the rest).
+        var perMesh = new Dictionary<MeshData, (double Area, double Volume)>(ReferenceEqualityComparer.Instance);
+        double totalArea = 0;
+        double totalVolume = 0;
+        void Visit(SceneNode node, Matrix4x4 parent)
+        {
+            var world = node.Transform * parent;
+            if (node.Mesh is { } mesh && mesh.Indices.Length > 0)
+            {
+                if (!perMesh.TryGetValue(mesh, out var m))
+                {
+                    m = AreaAndVolume(mesh);
+                    perMesh[mesh] = m;
+                }
+
+                var det = (double)world.GetDeterminant();
+                var linear = new Matrix4x4(world.M11, world.M12, world.M13, 0, world.M21, world.M22, world.M23, 0, world.M31, world.M32, world.M33, 0, 0, 0, 0, 1);
+                var scale = Math.Pow(Math.Abs(det), 1.0 / 3.0);
+                _ = linear;
+                totalArea += m.Area * scale * scale;
+                totalVolume += m.Volume * det;
+            }
+
+            foreach (var child in node.Children)
+            {
+                Visit(child, world);
+            }
+        }
+
+        foreach (var root in Roots)
+        {
+            Visit(root, Matrix4x4.Identity);
+        }
+
+        return new ModelStatistics(nodes, Meshes.Count, vertices, triangles, Materials.Count, Meshes.Sum(m => (long)m.VertexCount), Meshes.Sum(m => (long)m.TriangleCount))
+        {
+            SurfaceArea = totalArea,
+            Volume = totalVolume,
+        };
+    }
+
+    private static (double Area, double Volume) AreaAndVolume(MeshData mesh)
+    {
+        double area = 0;
+        double volume = 0;
+        var p = mesh.Positions;
+        for (var t = 0; t + 2 < mesh.Indices.Length; t += 3)
+        {
+            int a = (int)mesh.Indices[t] * 3, b = (int)mesh.Indices[t + 1] * 3, c = (int)mesh.Indices[t + 2] * 3;
+            double ax = p[a], ay = p[a + 1], az = p[a + 2];
+            double bx = p[b], by = p[b + 1], bz = p[b + 2];
+            double cx = p[c], cy = p[c + 1], cz = p[c + 2];
+            double ux = bx - ax, uy = by - ay, uz = bz - az, vx = cx - ax, vy = cy - ay, vz = cz - az;
+            double nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+            area += 0.5 * Math.Sqrt(nx * nx + ny * ny + nz * nz);
+            volume += (ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx)) / 6.0;
+        }
+
+        return (area, volume);
     }
 
     /// <summary>Axis-aligned bounds of every mesh under its node's world transform, or null for an empty model.</summary>
