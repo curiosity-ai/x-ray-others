@@ -1,0 +1,9 @@
+#VRML V2.0 utf8
+# fixture vrml
+DEF outer Transform { translation 1 0 0 children [
+  DEF cubeShape Shape { appearance Appearance { material DEF red Material { diffuseColor 1 0 0 } }
+    geometry IndexedFaceSet { coord Coordinate { point [ 0 0 0, 1 0 0, 1 1 0, 0 1 0, 0 0 1, 1 0 1, 1 1 1, 0 1 1 ] } coordIndex [ 0 3 2 1 -1, 4 5 6 7 -1, 0 1 5 4 -1, 1 2 6 5 -1, 2 3 7 6 -1, 3 0 4 7 -1 ] } }
+  Transform { translation 0 5 0 rotation 0 0 1 1.5707963 scale 2 2 2 children [ USE cubeShape ] }
+] }
+Shape { appearance Appearance { material Material { diffuseColor 0 0 1 transparency 0.25 } } geometry Box { size 1 2 3 } }
+Shape { geometry IndexedLineSet { coord Coordinate { point [ 0 0 0, 1 0 0, 1 1 0, 0 1 0, 0 0 1, 1 0 1, 1 1 1, 0 1 1 ] } coordIndex [ 0 1 2 -1 4 5 ] } }

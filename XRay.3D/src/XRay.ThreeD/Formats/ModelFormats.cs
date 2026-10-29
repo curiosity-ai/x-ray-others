@@ -24,6 +24,18 @@ public static class ModelFormats
 
     public static FormatInfo Pts { get; } = new("pts", "PTS text point cloud", "pointcloud", [".pts"], FormatSupport.Full);
 
+    public static FormatInfo Off { get; } = new("off", "Object File Format (OFF)", "mesh", [".off"], FormatSupport.Full);
+
+    public static FormatInfo Amf { get; } = new("amf", "Additive Manufacturing File (AMF)", "mesh", [".amf"], FormatSupport.Full);
+
+    public static FormatInfo Max3ds { get; } = new("3ds", "3D Studio (3DS)", "scene", [".3ds"], FormatSupport.Full);
+
+    public static FormatInfo Collada { get; } = new("collada", "COLLADA", "scene", [".dae"], FormatSupport.Full);
+
+    public static FormatInfo X3d { get; } = new("x3d", "X3D (XML)", "scene", [".x3d"], FormatSupport.Full);
+
+    public static FormatInfo Vrml { get; } = new("vrml", "VRML97", "scene", [".wrl", ".vrml"], FormatSupport.Full);
+
     public static FormatInfo Dxf { get; } = new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Full);
 
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
@@ -40,11 +52,8 @@ public static class ModelFormats
         new("ifc", "IFC (BIM)", "bim", [".ifc", ".ifcxml", ".ifczip"], FormatSupport.Identified),
         new("rhino", "Rhino 3DM", "cad", [".3dm"], FormatSupport.Identified),
         new("fbx", "Autodesk FBX", "scene", [".fbx"], FormatSupport.Identified),
-        new("collada", "COLLADA", "scene", [".dae"], FormatSupport.Identified),
         new("usd", "Universal Scene Description", "scene", [".usd", ".usda", ".usdc", ".usdz"], FormatSupport.Identified),
-        new("3ds", "3D Studio", "scene", [".3ds"], FormatSupport.Identified),
-        new("vrml", "VRML / X3D", "scene", [".wrl", ".vrml", ".x3d", ".x3dv"], FormatSupport.Identified),
-        new("off", "Object File Format", "mesh", [".off"], FormatSupport.Identified),
+        new("x3dv", "X3D classic encoding", "scene", [".x3dv"], FormatSupport.Identified),
         new("sketchup", "SketchUp", "cad", [".skp"], FormatSupport.Identified),
         new("revit", "Revit", "bim", [".rvt", ".rfa", ".rft"], FormatSupport.Identified),
         new("inventor", "Autodesk Inventor", "cad", [".ipt", ".iam", ".idw"], FormatSupport.Identified),
@@ -70,7 +79,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows. Entries are not searched yet.</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Identified);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -116,6 +125,16 @@ public static class ModelFormats
             return Pcd;
         }
 
+        if (StartsWith(head, "OFF") || StartsWith(head, "COFF") || StartsWith(head, "NOFF"))
+        {
+            return Off;
+        }
+
+        if (head.Length >= 6 && head[0] == 0x4D && head[1] == 0x4D && byExtension?.Id == "3ds")
+        {
+            return Max3ds;
+        }
+
         if (StartsWith(head, "ply"))
         {
             return Ply;
@@ -144,6 +163,26 @@ public static class ModelFormats
         if (head.Length >= 2 && head[0] == 'P' && head[1] == 'K')
         {
             return DetectZip(data) ?? (byExtension is { Id: not ("solidworks" or "3mf") } zipExtension ? zipExtension : Archive);
+        }
+
+        if (StartsWith(head, "#VRML V2.0") || StartsWith(head, "#VRML V1.0"))
+        {
+            return Vrml;
+        }
+
+        if (head.Length > 0 && head[0] == '<' && Contains(head, "<X3D", ""))
+        {
+            return X3d;
+        }
+
+        if (head.Length > 0 && head[0] == '<' && Contains(head, "<COLLADA", ""))
+        {
+            return Collada;
+        }
+
+        if (byExtension?.Id == "amf" && head.Length > 0 && head[0] == '<')
+        {
+            return Amf;
         }
 
         if (byExtension?.Id == "solidworks" || (byExtension is null && SolidWorksReader.Sniff(data, cancellation)))
@@ -195,6 +234,11 @@ public static class ModelFormats
             if (names.Any(n => n.EndsWith(".model", StringComparison.OrdinalIgnoreCase) && n.StartsWith("3D/", StringComparison.OrdinalIgnoreCase)))
             {
                 return ThreeMf;
+            }
+
+            if (names.Any(n => n.EndsWith(".amf", StringComparison.OrdinalIgnoreCase)) && names.Count <= 3)
+            {
+                return Amf;
             }
 
             if (names.Contains("Document.xml", StringComparer.Ordinal))

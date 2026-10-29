@@ -241,3 +241,117 @@ write('cloud-compressed.pcd', pcd_header(['x', 'y', 'z', 'rgb'], [4, 4, 4, 4], [
 
 write('cloud.xyz', '# x y z r g b\n' + ''.join('%.4f %.4f %.4f %d %d %d\n' % (p + c) for p, c in zip(pts, colour)))
 write('cloud.pts', '100\n' + ''.join('%.4f %.4f %.4f %d %d %d %d\n' % (p + (500,) + c) for p, c in zip(pts, colour)))
+
+# ---- OFF, AMF, 3DS, COLLADA, X3D and VRML scenes built from the same cube and a pyramid
+CUBE_QUADS = [(0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)]
+write('cube.off', 'OFF\n8 6 12\n' + ''.join('%g %g %g\n' % v for v in V) + ''.join('4 %d %d %d %d\n' % q for q in CUBE_QUADS))
+write('cube-colored.off', 'COFF\n# vertex colours\n8 6 0\n' + ''.join('%g %g %g %d %d %d 255\n' % (v + (40 * i, 255 - 30 * i, 128)) for i, v in enumerate(V)) + ''.join('4 %d %d %d %d\n' % q for q in CUBE_QUADS))
+write('cube-facecolors.off', 'COFF\n8 6 0\n' + ''.join('%g %g %g 255 255 255 255\n' % v for v in V)
+      + ''.join('4 %d %d %d %d %d %d %d 255\n' % (q + ((255, 0, 0) if i < 3 else (0, 0, 255))) for i, q in enumerate(CUBE_QUADS)))
+
+PYRAMID_V = [(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0), (1, 1, 3)]
+PYRAMID_T = [(0, 2, 1), (0, 3, 2), (0, 1, 4), (1, 2, 4), (2, 3, 4), (3, 0, 4)]
+
+amf = '''<?xml version="1.0" encoding="UTF-8"?>
+<amf unit="millimeter" version="1.1">
+ <metadata type="name">fixture amf</metadata>
+ <material id="1"><metadata type="name">Red</metadata><color><r>1</r><g>0</g><b>0</b><a>1</a></color></material>
+ <material id="2"><metadata type="name">Blue</metadata><color><r>0</r><g>0</g><b>1</b><a>1</a></color></material>
+ <object id="0"><metadata type="name">cube</metadata><mesh>
+  <vertices>%s</vertices>
+  <volume materialid="1">%s</volume>
+  <volume materialid="2">%s</volume>
+ </mesh></object>
+ <constellation id="0">
+  <instance objectid="0"><deltax>0</deltax><deltay>0</deltay><deltaz>0</deltaz><rx>0</rx><ry>0</ry><rz>0</rz></instance>
+  <instance objectid="0"><deltax>5</deltax><deltay>0</deltay><deltaz>0</deltaz><rx>0</rx><ry>0</ry><rz>90</rz></instance>
+ </constellation>
+</amf>
+''' % (''.join('<vertex><coordinates><x>%g</x><y>%g</y><z>%g</z></coordinates></vertex>' % v for v in V),
+       ''.join('<triangle><v1>%d</v1><v2>%d</v2><v3>%d</v3></triangle>' % t for t in T[:6]),
+       ''.join('<triangle><v1>%d</v1><v2>%d</v2><v3>%d</v3></triangle>' % t for t in T[6:]))
+write('cube.amf', amf)
+with zipfile.ZipFile(os.path.join(out, 'cube-zipped.amf'), 'w', zipfile.ZIP_DEFLATED) as z:
+    zi = zipfile.ZipInfo('cube.amf', (2026, 1, 1, 0, 0, 0)); zi.compress_type = zipfile.ZIP_DEFLATED
+    z.writestr(zi, amf)
+
+def chunk(cid, payload=b''):
+    return struct.pack('<HI', cid, 6 + len(payload)) + payload
+def cstr(s): return s.encode('latin1') + b'\0'
+def trimesh(name, verts, tris, material, mats):
+    vl = chunk(0x4110, struct.pack('<H', len(verts)) + b''.join(struct.pack('<3f', *v) for v in verts))
+    fm = b''.join(chunk(0x4130, cstr(m) + struct.pack('<H', len(ids)) + b''.join(struct.pack('<H', i) for i in ids)) for m, ids in mats)
+    fl = chunk(0x4120, struct.pack('<H', len(tris)) + b''.join(struct.pack('<4H', *t, 0) for t in tris) + fm)
+    return chunk(0x4000, cstr(name) + chunk(0x4100, vl + fl))
+def material(name, rgb):
+    return chunk(0xAFFF, chunk(0xA000, cstr(name)) + chunk(0xA020, chunk(0x0011, bytes(rgb))))
+editor = chunk(0x3D3E, struct.pack('<I', 3)) + material('red', (255, 0, 0)) + material('green', (0, 255, 0)) \
+    + trimesh('cube', V, T, 'red', [('red', list(range(6))), ('green', list(range(6, 12)))]) \
+    + trimesh('pyramid', [(x + 5, y, z) for x, y, z in PYRAMID_V], PYRAMID_T, 'green', [('green', list(range(6)))])
+write('scene.3ds', chunk(0x4D4D, chunk(0x0002, struct.pack('<I', 3)) + chunk(0x3D3D, editor)))
+
+def floats(vals): return ' '.join('%g' % v for v in vals)
+dae = '''<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+ <asset><contributor><authoring_tool>fixture script</authoring_tool></contributor><created>2026-01-01T00:00:00Z</created><modified>2026-01-01T00:00:00Z</modified><unit name="centimeter" meter="0.01"/><up_axis>Z_UP</up_axis></asset>
+ <library_effects>
+  <effect id="red-fx"><profile_COMMON><technique sid="t"><phong><diffuse><color>1 0 0 1</color></diffuse></phong></technique></profile_COMMON></effect>
+  <effect id="blue-fx"><profile_COMMON><technique sid="t"><lambert><diffuse><color>0 0 1 1</color></diffuse></lambert></technique></profile_COMMON></effect>
+ </library_effects>
+ <library_materials>
+  <material id="red" name="Red"><instance_effect url="#red-fx"/></material>
+  <material id="blue" name="Blue"><instance_effect url="#blue-fx"/></material>
+ </library_materials>
+ <library_geometries>
+  <geometry id="cube-geom" name="cube"><mesh>
+   <source id="cube-pos"><float_array id="cube-pos-a" count="24">%s</float_array><technique_common><accessor source="#cube-pos-a" count="8" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source>
+   <vertices id="cube-vtx"><input semantic="POSITION" source="#cube-pos"/></vertices>
+   <polylist material="mat" count="6"><input semantic="VERTEX" source="#cube-vtx" offset="0"/><vcount>4 4 4 4 4 4</vcount><p>%s</p></polylist>
+  </mesh></geometry>
+  <geometry id="pyr-geom" name="pyramid"><mesh>
+   <source id="pyr-pos"><float_array id="pyr-pos-a" count="15">%s</float_array><technique_common><accessor source="#pyr-pos-a" count="5" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source>
+   <vertices id="pyr-vtx"><input semantic="POSITION" source="#pyr-pos"/></vertices>
+   <triangles material="mat" count="6"><input semantic="VERTEX" source="#pyr-vtx" offset="0"/><p>%s</p></triangles>
+  </mesh></geometry>
+ </library_geometries>
+ <library_visual_scenes><visual_scene id="scene">
+  <node id="root" name="root"><translate>1 2 3</translate>
+   <node id="cube-node" name="cube-node"><instance_geometry url="#cube-geom"><bind_material><technique_common><instance_material symbol="mat" target="#red"/></technique_common></bind_material></instance_geometry></node>
+   <node id="pyr-node" name="pyr-node"><translate>10 0 0</translate><rotate>0 0 1 90</rotate><scale>2 2 2</scale><instance_geometry url="#pyr-geom"><bind_material><technique_common><instance_material symbol="mat" target="#blue"/></technique_common></bind_material></instance_geometry></node>
+   <node id="matrix-node" name="matrix-node"><matrix>1 0 0 0 0 1 0 20 0 0 1 0 0 0 0 1</matrix><instance_geometry url="#cube-geom"><bind_material><technique_common><instance_material symbol="mat" target="#blue"/></technique_common></bind_material></instance_geometry></node>
+  </node>
+ </visual_scene></library_visual_scenes>
+ <scene><instance_visual_scene url="#scene"/></scene>
+</COLLADA>
+''' % (floats([c for v in V for c in v]), ' '.join(str(i) for q in CUBE_QUADS for i in q),
+       floats([c for v in PYRAMID_V for c in v]), ' '.join(str(i) for t in PYRAMID_T for i in t))
+write('scene.dae', dae)
+
+x3d = '''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.3//EN" "http://www.web3d.org/specifications/x3d-3.3.dtd">
+<X3D version="3.3" profile="Interchange">
+ <head><meta name="title" content="fixture x3d"/></head>
+ <Scene>
+  <Transform DEF="outer" translation="1 0 0">
+   <Shape DEF="cubeShape"><Appearance><Material DEF="red" diffuseColor="1 0 0"/></Appearance>
+    <IndexedFaceSet coordIndex="%s"><Coordinate point="%s"/></IndexedFaceSet></Shape>
+   <Transform translation="0 5 0" rotation="0 0 1 1.5707963" scale="2 2 2"><Shape USE="cubeShape"/></Transform>
+  </Transform>
+  <Shape><Appearance><Material diffuseColor="0 0 1" transparency="0.25"/></Appearance><Box size="1 2 3"/></Shape>
+  <Shape><IndexedLineSet coordIndex="0 1 2 -1 4 5"><Coordinate point="%s"/></IndexedLineSet></Shape>
+ </Scene>
+</X3D>
+''' % (' '.join(str(i) for q in CUBE_QUADS for i in q + (-1,)), floats([c for v in V for c in v]), floats([c for v in V for c in v]))
+write('scene.x3d', x3d)
+
+vrml = '''#VRML V2.0 utf8
+# fixture vrml
+DEF outer Transform { translation 1 0 0 children [
+  DEF cubeShape Shape { appearance Appearance { material DEF red Material { diffuseColor 1 0 0 } }
+    geometry IndexedFaceSet { coord Coordinate { point [ %s ] } coordIndex [ %s ] } }
+  Transform { translation 0 5 0 rotation 0 0 1 1.5707963 scale 2 2 2 children [ USE cubeShape ] }
+] }
+Shape { appearance Appearance { material Material { diffuseColor 0 0 1 transparency 0.25 } } geometry Box { size 1 2 3 } }
+Shape { geometry IndexedLineSet { coord Coordinate { point [ %s ] } coordIndex [ 0 1 2 -1 4 5 ] } }
+''' % (', '.join('%g %g %g' % v for v in V), ', '.join(' '.join(str(i) for i in q) + ' -1' for q in CUBE_QUADS), ', '.join('%g %g %g' % v for v in V))
+write('scene.wrl', vrml)
