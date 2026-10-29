@@ -9,6 +9,9 @@ public sealed class LoadOptions
     /// <summary>Refuse inputs larger than this many bytes (default 1 GiB).</summary>
     public long MaxInputBytes { get; set; } = 1L << 30;
 
+    /// <summary>Point clouds with more points than this are thinned evenly (default 20 million).</summary>
+    public long MaxPoints { get; set; } = 20_000_000;
+
     /// <summary>Refuse models with more triangles than this (default 100 million).</summary>
     public long MaxTriangles { get; set; } = 100_000_000;
 
@@ -28,6 +31,7 @@ public static class ModelLoader
         return Guard(data, fileName, options, (format, d, o) => format.Id switch
         {
             "solidworks" => SolidWorksReader.ReadMetadata(d, o.Cancellation),
+            "las" => Formats.PointCloud.LasReader.ReadMetadata(d),
             _ => Dispatch(format, d, o).Metadata,
         });
     }
@@ -130,6 +134,10 @@ public static class ModelLoader
         "gltf" => GltfReader.Read(data, options),
         "3mf" => ThreeMfReader.Read(data, options),
         "dxf" => Formats.Cad.DxfReader.Read(data, options),
+        "las" => Formats.PointCloud.LasReader.Read(data, options),
+        "pcd" => Formats.PointCloud.PcdReader.Read(data, options),
+        "xyz" => Formats.PointCloud.XyzReader.Read(data, ModelFormats.Xyz, options),
+        "pts" => Formats.PointCloud.XyzReader.Read(data, ModelFormats.Pts, options),
         _ => throw new UnsupportedModelFormatException(
             format,
             format.IsUnknown

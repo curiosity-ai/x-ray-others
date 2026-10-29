@@ -3,11 +3,14 @@
 
     python3 -I tools/fixtures/make_fixtures.py dataset/synthetic
 
+The LAS files are written with laspy (pip install laspy), so an independent implementation of the format produced them; without
+laspy they are left as committed.
+
 Each file isolates one behaviour of one reader: winding and welding (STL), groups, materials, quads and
 negative indices (OBJ), the three PLY encodings (ASCII, little and big endian), colours, point clouds,
 component transforms and base materials (3MF), node hierarchy, extras and a mesh shared by two nodes (glTF).
 """
-import base64, json, struct, sys, zipfile, os
+import base64, datetime, json, struct, sys, zipfile, os
 
 out = sys.argv[1]
 os.makedirs(out, exist_ok=True)
@@ -169,3 +172,72 @@ entities = dxf(
     (0, 'LINE'), (8, 'HIDDEN'), (10, 0.0), (20, 0.0), (30, 0.0), (11, 0.0), (21, 0.0), (31, 7.0),
     (0, 'ENDSEC'), (0, 'EOF'))
 write('entities.dxf', header + tables + blocks + entities)
+
+# ---- point clouds: LAS (written with laspy when available, so an independent writer), PCD in three encodings, XYZ, PTS
+import math
+cloud = [(500000.0 + i * 0.25 % 10, 4000000.0 + (i * 7) % 13 * 0.5, 100.0 + (i % 5) * 1.5) for i in range(200)]
+colour = [(i * 5 % 256, 255 - i * 3 % 256, i * 11 % 256) for i in range(200)]
+
+try:
+    import laspy, numpy as np
+    for fmt, name in ((0, 'cloud-f0.las'), (3, 'cloud-f3.las')):
+        header = laspy.LasHeader(point_format=fmt, version='1.2')
+        header.offsets = np.array([500000.0, 4000000.0, 0.0])
+        header.scales = np.array([0.001, 0.001, 0.001])
+        header.date = datetime.date(2026, 1, 15)
+        header.generating_software = 'xray3d fixtures'
+        header.system_identifier = 'fixture'
+        # GeoKeyDirectory: version 1.1.0, one key: ProjectedCSTypeGeoKey (3072) = EPSG:32632
+        geokeys = struct.pack('<8H', 1, 1, 0, 1, 3072, 0, 1, 32632)
+        header.vlrs.append(laspy.VLR(user_id='LASF_Projection', record_id=34735, description='GeoKeyDirectoryTag', record_data=geokeys))
+        las = laspy.LasData(header)
+        las.x = np.array([p[0] for p in cloud]); las.y = np.array([p[1] for p in cloud]); las.z = np.array([p[2] for p in cloud])
+        if fmt == 3:
+            las.red = np.array([c[0] * 257 for c in colour], dtype=np.uint16)
+            las.green = np.array([c[1] * 257 for c in colour], dtype=np.uint16)
+            las.blue = np.array([c[2] * 257 for c in colour], dtype=np.uint16)
+        las.write(os.path.join(out, name))
+except ImportError:
+    pass  # the committed files stay as they are; they only change when laspy is present
+
+def pcd_header(fields, sizes, types, n, kind, extra=''):
+    return ('# .PCD v0.7 - Point Cloud Data file format\nVERSION 0.7\nFIELDS %s\nSIZE %s\nTYPE %s\nCOUNT %s\nWIDTH %d\nHEIGHT 1\nVIEWPOINT 0 0 0 1 0 0 0\nPOINTS %d\nDATA %s\n'
+            % (' '.join(fields), ' '.join(map(str, sizes)), ' '.join(types), ' '.join('1' for _ in fields), n, n, kind))
+
+pts = [(math.cos(i / 10) * 2, math.sin(i / 10) * 2, i / 50) for i in range(100)]
+rgb = [struct.unpack('<f', struct.pack('<I', (c[0] << 16) | (c[1] << 8) | c[2]))[0] for c in colour[:100]]
+write('cloud-ascii.pcd', pcd_header(['x', 'y', 'z', 'rgb'], [4, 4, 4, 4], ['F', 'F', 'F', 'F'], 100, 'ascii') + ''.join('%.6f %.6f %.6f %.9g\n' % (p + (c,)) for p, c in zip(pts, rgb)))
+rows = b''.join(struct.pack('<4f', *p, c) for p, c in zip(pts, rgb))
+write('cloud-binary.pcd', pcd_header(['x', 'y', 'z', 'rgb'], [4, 4, 4, 4], ['F', 'F', 'F', 'F'], 100, 'binary').encode() + rows)
+
+def lzf_compress(data):
+    out = bytearray(); i = 0; lit = bytearray(); table = {}
+    def flush():
+        nonlocal lit
+        while lit:
+            chunk = lit[:32]; lit = lit[32:]
+            out.append(len(chunk) - 1); out.extend(chunk)
+    while i < len(data):
+        if i + 2 < len(data):
+            key = bytes(data[i:i + 3]); ref = table.get(key); table[key] = i
+            if ref is not None and 0 < i - ref <= 8191:
+                length = 3
+                while i + length < len(data) and length < 264 and data[ref + length] == data[i + length]:
+                    length += 1
+                flush()
+                off = i - ref - 1; l = length - 2
+                if l < 7: out.append((l << 5) | (off >> 8))
+                else: out.append((7 << 5) | (off >> 8)); out.append(l - 7)
+                out.append(off & 255)
+                i += length
+                continue
+        lit.append(data[i]); i += 1
+    flush()
+    return bytes(out)
+
+planar = b''.join(b''.join(struct.pack('<f', v[k]) for v in [p + (c,) for p, c in zip(pts, rgb)]) for k in range(4))
+packed = lzf_compress(planar)
+write('cloud-compressed.pcd', pcd_header(['x', 'y', 'z', 'rgb'], [4, 4, 4, 4], ['F', 'F', 'F', 'F'], 100, 'binary_compressed').encode() + struct.pack('<II', len(packed), len(planar)) + packed)
+
+write('cloud.xyz', '# x y z r g b\n' + ''.join('%.4f %.4f %.4f %d %d %d\n' % (p + c) for p, c in zip(pts, colour)))
+write('cloud.pts', '100\n' + ''.join('%.4f %.4f %.4f %d %d %d %d\n' % (p + (500,) + c) for p, c in zip(pts, colour)))

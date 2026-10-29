@@ -63,6 +63,12 @@ public sealed class ModelMetadata
 
     public BoundingBox? Bounds { get; set; }
 
+    /// <summary>
+    /// When the reader moved the geometry so it sits near zero (float32 vertices cannot hold survey coordinates), the offset that was
+    /// subtracted, in the file's own units: add it back to get the stored coordinates. Null when nothing was moved.
+    /// </summary>
+    public double[]? Origin { get; set; }
+
     public bool HasPreview { get; set; }
 
     /// <summary>True when the file holds geometry this library can decode.</summary>

@@ -18,6 +18,11 @@ public class RobustnessTests
         "khronos/Box.glb",
         "synthetic/entities.dxf",
         "dxf/flange-drawing.dxf",
+        "synthetic/cloud-f3.las",
+        "synthetic/cloud-binary.pcd",
+        "synthetic/cloud-compressed.pcd",
+        "synthetic/cloud-ascii.pcd",
+        "synthetic/cloud.pts",
     ];
 
     public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });

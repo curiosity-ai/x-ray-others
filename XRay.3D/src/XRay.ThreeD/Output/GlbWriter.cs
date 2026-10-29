@@ -761,6 +761,17 @@ public static class GlbWriter
         WriteIfSet(w, "created", meta.Created?.ToString("o", System.Globalization.CultureInfo.InvariantCulture));
         WriteIfSet(w, "modified", meta.Modified?.ToString("o", System.Globalization.CultureInfo.InvariantCulture));
         WriteIfSet(w, "lastModifiedBy", meta.LastModifiedBy);
+        if (meta.Origin is { Length: 3 } origin)
+        {
+            w.WriteStartArray("origin");
+            foreach (var v in origin)
+            {
+                w.WriteNumberValue(v);
+            }
+
+            w.WriteEndArray();
+        }
+
         if (meta.Units is { } unit)
         {
             w.WriteString("sourceUnits", unit.ToString().ToLowerInvariant());

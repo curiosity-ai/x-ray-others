@@ -16,6 +16,14 @@ public static class ModelFormats
 
     public static FormatInfo Gltf { get; } = new("gltf", "glTF 2.0", "scene", [".gltf", ".glb"], FormatSupport.Full);
 
+    public static FormatInfo Las { get; } = new("las", "LAS point cloud", "pointcloud", [".las"], FormatSupport.Full);
+
+    public static FormatInfo Pcd { get; } = new("pcd", "Point Cloud Library PCD", "pointcloud", [".pcd"], FormatSupport.Full);
+
+    public static FormatInfo Xyz { get; } = new("xyz", "XYZ text point cloud", "pointcloud", [".xyz"], FormatSupport.Full);
+
+    public static FormatInfo Pts { get; } = new("pts", "PTS text point cloud", "pointcloud", [".pts"], FormatSupport.Full);
+
     public static FormatInfo Dxf { get; } = new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Full);
 
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
@@ -50,7 +58,8 @@ public static class ModelFormats
         new("blender", "Blender", "scene", [".blend"], FormatSupport.Identified),
         new("archicad", "Archicad", "bim", [".pln", ".pla", ".gsm"], FormatSupport.Identified),
         new("sh3d", "Sweet Home 3D", "bim", [".sh3d"], FormatSupport.Identified),
-        new("pointcloud", "Point cloud (LAS/LAZ/E57/PCD/PTS)", "pointcloud", [".las", ".laz", ".e57", ".pcd", ".pts", ".xyz"], FormatSupport.Identified),
+        new("laz", "LAZ (compressed LAS)", "pointcloud", [".laz"], FormatSupport.Identified),
+        new("e57", "ASTM E57", "pointcloud", [".e57"], FormatSupport.Identified),
         new("dwf", "Autodesk DWF", "cad", [".dwf", ".dwfx"], FormatSupport.Identified),
         new("b3d", "Blitz3D / Bazis", "scene", [".b3d"], FormatSupport.Identified),
         new("gcode", "G-code", "toolpath", [".gcode", ".gco", ".nc"], FormatSupport.Identified),
@@ -61,7 +70,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows. Entries are not searched yet.</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Identified);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -95,6 +104,16 @@ public static class ModelFormats
         if (StartsWith(head, "AutoCAD Binary DXF") || LooksLikeDxf(head))
         {
             return Dxf;
+        }
+
+        if (StartsWith(head, "LASF"))
+        {
+            return (head.Length > 104 && (head[104] & 0x80) != 0) || byExtension?.Id == "laz" ? Find("laz") : Las;
+        }
+
+        if (StartsWith(head, "# .PCD") || StartsWith(head, "VERSION .7") || StartsWith(head, "VERSION 0.7"))
+        {
+            return Pcd;
         }
 
         if (StartsWith(head, "ply"))
