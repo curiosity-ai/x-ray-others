@@ -63,3 +63,32 @@ disc = ''.join(line + '\n' for line in [
     ' 1 0',
 ])
 open(os.path.join(out, 'disc.x_t'), 'w', newline='\n').write(disc)
+
+# disc-embedded.x_t: the same sheet in a file that embeds its schema as edits to the 13006 base (key SCH_3501210_35102_13006, as the files of Parasolid 35 write
+# them). Every node type is declared at its first use: 255 for a base layout used unchanged, an edit sequence for the BODY (a lattice pointer is inserted after
+# the attribute chain; C copies a base field, I inserts one, Z ends) and a complete declaration for a type the base lacks (a made-up type 301, with a counter and
+# a list of pointers, used by one node, so that the full declaration form is exercised).
+lines = disc.split('\n')
+end = lines.index('**END_OF_HEADER***************************************************') + 1
+embedded = ''.join(l + '\n' for l in lines[:end]) + 'T51 : TRANSMIT FILE created by modeller version 350121023 SCH_3501210_35102_13006301 0'
+seen = set()
+for l in lines[end + 1:]:
+    if not l.strip():
+        continue
+    t, rest = l.strip().split(' ', 1)
+    if t == '1':
+        embedded += ' 301 2 5 thing0 5 count0 0 1 d5 items12 1 T3 30 7 3 4 5\n 1 0\n'
+        break
+    if t not in seen:
+        seen.add(t)
+        if t == '12':
+            # fields: index, highest_node_id, attributes_groups, attribute_chains; the inserted lattice pointer (0) follows the third value
+            v = rest.split(' ')
+            embedded += ' 12 24 CCCI7 lattice222 0 ' + 'C' * 20 + 'Z' + ' '.join(v[:4] + ['0'] + v[4:])
+        else:
+            # the attribute definition of the 13006 schema has a field names pointer and 14 owner flags (the Parasolid 12 line above has neither)
+            embedded += ' %s 255 %s' % (t, rest.replace('FFFFTFTFFFFFF2', '0 FFFFTFTFFFFFFF2'))
+    else:
+        embedded += ' ' + l.strip()
+    embedded += '\n'
+open(os.path.join(out, 'disc-embedded.x_t'), 'w', newline='\n').write(embedded)

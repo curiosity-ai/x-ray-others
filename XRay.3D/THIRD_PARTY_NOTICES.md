@@ -162,9 +162,39 @@ SOFTWARE.
 ```
 
 The `.xz` decoder (`Internal/XzDecoder.cs`) is written from the public xz and LZMA2 format descriptions and checked against liblzma.
-## Parasolid XT format reference and parasolid-kit (consulted, not copied)
+## Parasolid XT format reference and parasolid-kit
 
 The node types and field lists of `Formats/Parasolid/ParasolidSchema.cs` were written from the struct listings of the publicly distributed Parasolid XT
 Format Reference (Siemens, April 2008). [parasolid-kit](https://github.com/monozukuri-ai/parasolid-kit) (MIT licence, copyright 2026 parasolid-kit
-contributors) was read to cross-check the V30 field lists against real exports (it confirms, for instance, that the ellipse lists its sense before its centre
-and that B-surface control grids run with v fastest); no code or table of it is included.
+contributors) was read to cross-check the field lists against real exports (it confirms, for instance, that the ellipse lists its sense before its centre,
+that an intersection curve lists its two surfaces before its chart, and that B-surface control grids run with v fastest).
+
+Taken from parasolid-kit and ported (data and format knowledge, no code): the layout of the embedded schema section of a transmit file (the stream header
+with the schema key and the highest node type, and per node type at first use: 255 for an unchanged base layout, or a field count followed by the copy, delete, insert,
+append and end operations, or a complete declaration for a type the base lacks; the field encoding: name, pointer class, element count, type code and
+transmission flag) and the per-revision edit sequences of the plain schemas 15003 to 33103 (the BODY, REGION, INTERSECTION, LIMIT, LIST and POINTER block edits in
+`Formats/Parasolid/ParasolidLayouts.cs`). The edit sequence of schema 35102 and the part block (type 176) were read from real local sample files. The licence:
+
+```
+MIT License
+
+Copyright (c) 2026 parasolid-kit contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

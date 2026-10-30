@@ -133,66 +133,76 @@ internal static class ParasolidReader
         return meta;
     }
 
-    /// <summary>The key of the schema the node stream is written in, the user field size and where the nodes start; the key is read from the TRANSMIT FILE line (the header's own SCH entry can differ).</summary>
-    private static (string? Key, int UserFields, int Start) StreamHeader(string text)
+    /// <summary>
+    /// The stream header of a text file: T, the length of the modeller version text and the text itself, the length of the schema key and the key, for an
+    /// embedded schema the highest node type, then the user field size; the nodes follow.
+    /// </summary>
+    private static (string? Key, int UserFields, int MaxType, int Start) StreamHeader(string text)
     {
-        var marker = text.IndexOf("TRANSMIT FILE", StringComparison.Ordinal);
-        var schema = marker < 0 ? -1 : text.IndexOf("SCH_", marker, StringComparison.Ordinal);
-        if (schema < 0)
+        var marker = text.IndexOf(": TRANSMIT FILE", StringComparison.Ordinal);
+        if (marker < 0)
         {
-            return (null, 0, 0);
+            return (null, 0, 0, 0);
         }
 
-        var userFields = 0;
-        var usfld = text.IndexOf("USFLD_SIZE=", StringComparison.Ordinal);
-        if (usfld >= 0 && usfld < marker)
+        var digitsEnd = marker - 1;
+        var t = digitsEnd;
+        while (t > 0 && char.IsAsciiDigit(text[t - 1]))
         {
-            var from = usfld + "USFLD_SIZE=".Length;
-            var end = from;
-            while (end < text.Length && char.IsAsciiDigit(text[end]))
+            t--;
+        }
+
+        if (digitsEnd < 1 || text[digitsEnd] != ' ' || t == digitsEnd || t == 0 || text[t - 1] != 'T' || !int.TryParse(text.AsSpan(t, digitsEnd - t), NumberStyles.None, CultureInfo.InvariantCulture, out var versionLength))
+        {
+            return (null, 0, 0, 0);
+        }
+
+        // The version text starts after the single space that follows its length (here the colon of ": TRANSMIT FILE" is its first character).
+        var p = marker + versionLength;
+        if (p >= text.Length)
+        {
+            return (null, 0, 0, 0);
+        }
+
+        int Number(ref int at)
+        {
+            while (at < text.Length && text[at] == ' ')
             {
-                end++;
+                at++;
             }
 
-            _ = int.TryParse(text.AsSpan(from, end - from), NumberStyles.None, CultureInfo.InvariantCulture, out userFields);
+            var from = at;
+            while (at < text.Length && char.IsAsciiDigit(text[at]) && at - from < 9)
+            {
+                at++;
+            }
+
+            return at > from ? int.Parse(text.AsSpan(from, at - from), NumberStyles.None, CultureInfo.InvariantCulture) : -1;
         }
 
-        var stop = schema;
-        while (stop < text.Length && (char.IsAsciiLetterOrDigit(text[stop]) || text[stop] == '_'))
+        var keyLength = Number(ref p);
+        if (p < text.Length && text[p] == ' ')
         {
-            stop++;
+            p++;
         }
 
-        // The key is followed, without a space, by the user field size.
-        var digits = userFields.ToString(CultureInfo.InvariantCulture);
-        var token = text[schema..stop];
-        var keyEnd = token.EndsWith(digits, StringComparison.Ordinal) && token.Length > digits.Length ? token.Length - digits.Length : token.Length;
-        return (token[..keyEnd], userFields, schema + keyEnd + digits.Length);
-    }
-
-    /// <summary>The layout of the node stream: legacy (Parasolid 10), current (12 and 13) or null for a schema that is not tabulated.</summary>
-    private static bool? Layout(string? key, out string reason)
-    {
-        reason = "";
-        var parts = key?.Split('_') ?? [];
-        if (parts.Length != 3 || !int.TryParse(parts[2], NumberStyles.None, CultureInfo.InvariantCulture, out var schema))
+        if (keyLength < 8 || keyLength > 64 || p + keyLength > text.Length)
         {
-            reason = parts.Length > 3 ? $"the file embeds its schema as differences to the base schema {parts[^1]} ({key})" : "the schema key is missing or malformed";
-            return null;
+            return (null, 0, 0, 0);
         }
 
-        if (schema is >= 10000 and < 11000)
+        // The version text is followed by the key's length, a space and the key.
+        var key = text.Substring(p, keyLength);
+        p += keyLength;
+        var parsed = XtKey.Parse(key);
+        var maxType = 0;
+        if (parsed is { Embedded: true })
         {
-            return true;
+            maxType = Number(ref p);
         }
 
-        if (schema is >= 12000 and <= 13006)
-        {
-            return false;
-        }
-
-        reason = $"the field layouts of schema {schema} are not tabulated (Parasolid 10, 12 and 13 are)";
-        return null;
+        var userFields = Number(ref p);
+        return (key, Math.Max(userFields, 0), maxType, p);
     }
 
     private static string DescribeSupport(string text, bool binary)
@@ -202,10 +212,61 @@ internal static class ParasolidReader
             return "Binary transmit files (x_b) are not decoded; geometry is not read.";
         }
 
-        var layout = Layout(StreamHeader(text).Key, out var reason);
-        return layout is null
+        var candidates = XtLayouts.Candidates(XtKey.Parse(StreamHeader(XtStream.Unwrap(text)).Key), out var reason);
+        return candidates.Count == 0
             ? $"The node stream is not decoded: {reason}."
             : "Bodies, faces, edges and the analytic and B-spline geometry of the node stream are decoded by Load.";
+    }
+
+    /// <summary>Reads the node stream of a text file with the layouts of its schema; of several candidate layouts the one that leaves no pointer dangling wins.</summary>
+    internal static Dictionary<int, XtNode> ReadNodes(ReadOnlyMemory<byte> data, string? version, long maxNodes, CancellationToken cancel, out string? key)
+    {
+        var text = XtStream.Unwrap(Encoding.Latin1.GetString(data.Span));
+        var (schemaKey, userFields, maxType, start) = StreamHeader(text);
+        key = schemaKey;
+        var candidates = XtLayouts.Candidates(XtKey.Parse(schemaKey), out var reason);
+        if (candidates.Count == 0)
+        {
+            throw new UnsupportedModelFormatException(ModelFormats.Parasolid, $"Parasolid transmit file ({version ?? "unknown version"}): {reason}; only the header is read (use ReadMetadata).");
+        }
+
+        var body = text[Math.Min(start, text.Length)..];
+        Dictionary<int, XtNode>? nodes = null;
+        var bestDangling = int.MaxValue;
+        ModelFormatException? failure = null;
+        foreach (var candidate in candidates)
+        {
+            try
+            {
+                var parsedNodes = XtStream.Parse(body, 0, userFields, candidate, maxType, maxNodes, cancel, out var dangling);
+                if (dangling < bestDangling)
+                {
+                    nodes = parsedNodes;
+                    bestDangling = dangling;
+                }
+
+                if (dangling == 0)
+                {
+                    break;
+                }
+            }
+            catch (ModelFormatException e)
+            {
+                failure ??= e;
+            }
+        }
+
+        if (nodes is null)
+        {
+            throw failure is UnsupportedModelFormatException ? failure : new ModelFormatException("The Parasolid node stream could not be read with the layouts of schema " + schemaKey + ": " + failure?.Message);
+        }
+
+        if (nodes.Count == 0)
+        {
+            throw new ModelFormatException("The Parasolid transmit file has no nodes.");
+        }
+
+        return nodes;
     }
 
     public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options)
@@ -217,15 +278,7 @@ internal static class ParasolidReader
             throw new UnsupportedModelFormatException(ModelFormats.Parasolid, $"Parasolid binary transmit file ({meta.FormatVersion ?? "unknown version"}): the node stream is not decoded, only the header is read (use ReadMetadata).");
         }
 
-        var text = Encoding.Latin1.GetString(span);
-        var (key, userFields, start) = StreamHeader(text);
-        var legacy = Layout(key, out var reason) ?? throw new UnsupportedModelFormatException(ModelFormats.Parasolid, $"Parasolid transmit file ({meta.FormatVersion ?? "unknown version"}): {reason}; only the header is read (use ReadMetadata).");
-        var body = XtStream.Unwrap(text[Math.Min(start, text.Length)..]);
-        var nodes = XtStream.Parse(body, 0, userFields, legacy, Math.Max(1_000_000, options.MaxTriangles), options.Cancellation);
-        if (nodes.Count == 0)
-        {
-            throw new ModelFormatException("The Parasolid transmit file has no nodes.");
-        }
+        var nodes = ReadNodes(data, meta.FormatVersion, Math.Max(1_000_000, options.MaxTriangles), options.Cancellation, out var key);
 
         var model = new Model3D();
         var metadata = model.Metadata;

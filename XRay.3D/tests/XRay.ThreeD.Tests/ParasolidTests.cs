@@ -76,4 +76,41 @@ public class ParasolidTests
         var text = System.Text.Encoding.Latin1.GetString(File.ReadAllBytes(DatasetPaths.File("synthetic/disc.x_t"))).Replace(" 83 3 15", " 77 3 15", StringComparison.Ordinal);
         Assert.ThrowsAny<ModelFormatException>(() => ModelLoader.Load(System.Text.Encoding.Latin1.GetBytes(text), "disc.x_t"));
     }
+
+    [Fact]
+    public void A_file_that_embeds_its_schema_is_read_with_the_edits_it_carries()
+    {
+        // The disc again, with a BODY that has an inserted field, an unchanged base for every other type and a type declared in full.
+        var data = File.ReadAllBytes(DatasetPaths.File("synthetic/disc-embedded.x_t"));
+        var nodes = XRay.ThreeD.Formats.Parasolid.ParasolidReader.ReadNodes(data, null, 1000, TestContext.Current.CancellationToken, out var key);
+        Assert.Equal("SCH_3501210_35102_13006", key);
+        Assert.Equal(24, nodes.Values.First(n => n.Def.Type == 12).Def.Fields.Length);
+        var made = nodes.Values.First(n => n.Def.Type == 301);
+        Assert.Equal("thing", made.Def.Name);
+        Assert.Equal(7, made.Int("count"));
+        Assert.Equal([3L, 4L, 5L], made.LongArray);
+
+        var model = ModelLoader.Load(data, "disc-embedded.x_t");
+        var mesh = Assert.IsType<MeshData>(Assert.Single(model.Roots).Mesh);
+        Assert.Single(mesh.Faces);
+        Assert.Equal(0.2f, Assert.Single(model.Materials).BaseColor.X, 3);
+    }
+
+    [Fact]
+    public void A_broken_embedded_schema_is_refused_cleanly()
+    {
+        var text = System.Text.Encoding.Latin1.GetString(File.ReadAllBytes(DatasetPaths.File("synthetic/disc-embedded.x_t")));
+        string[] broken =
+        [
+            text.Replace(" 12 24 ", " 12 25 ", StringComparison.Ordinal),
+            text.Replace("CCCI7 lattice", "CCCX7 lattice", StringComparison.Ordinal),
+            text.Replace(" 301 2 5 thing0", " 301 2 9 thing0", StringComparison.Ordinal),
+            text.Replace("SCH_3501210_35102_13006301", "SCH_3501210_35102_13006 12", StringComparison.Ordinal),
+        ];
+        foreach (var candidate in broken)
+        {
+            Assert.NotEqual(text, candidate);
+            Assert.ThrowsAny<ModelFormatException>(() => ModelLoader.Load(System.Text.Encoding.Latin1.GetBytes(candidate), "disc-embedded.x_t"));
+        }
+    }
 }

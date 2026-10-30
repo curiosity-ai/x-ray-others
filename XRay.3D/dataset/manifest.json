@@ -2016,6 +2016,15 @@
   "sha256": "8551a38c39738f3deb08017462d1b8f7beb106d0e631db9ae343aa82bcbec7b4"
  },
  {
+  "file": "synthetic/disc-embedded.x_t",
+  "format": "parasolid",
+  "title": "Parasolid transmit file that embeds its schema as edits to the 13006 base: the circular sheet again, with an edited BODY and a type declared in full",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_parasolid_fixtures.py",
+  "bytes": 1098,
+  "sha256": "1de446fe9503bf70d88bbe47026dc3cf81bce13e26bda8ac8112379db6827867"
+ },
+ {
   "file": "synthetic/legacy-cube.sldprt",
   "format": "sldprt",
   "title": "Synthetic SolidWorks 2014-style part (OLE compound, __ZLB streams)",

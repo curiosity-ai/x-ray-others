@@ -15,6 +15,9 @@ internal sealed class XtField
     /// <summary>Where the values are kept in <see cref="XtNode.Ints"/> (integer-like types) or <see cref="XtNode.Doubles"/>; -1 for a variable length field.</summary>
     public required int Slot { get; init; }
 
+    /// <summary>False for a variable length field an embedded schema declares as not transmitted (its elements are absent from the stream).</summary>
+    public bool Transmitted { get; init; } = true;
+
     public bool IsDouble => Type is 'f' or 'v' or 'i' or 'b' or 'h';
 
     public int Width => Type switch { 'v' or 'h' => 3, 'i' => 2, 'b' => 6, _ => 1 };
@@ -49,9 +52,9 @@ internal sealed class XtNodeDef
 
 /// <summary>
 /// The node types and field lists of the transmit format, written from the public XT format reference (Siemens, April 2008: the struct listings of its
-/// "Node Types" chapters), which describes the schema of Parasolid 12; files written by Parasolid 10 and 11 differ by a few fields (<see cref="Get"/>).
+/// "Node Types" chapters), which describes the schema of Parasolid 12; files written by Parasolid 10 and 11 differ by a few fields.
 /// Where the printed listing and real files disagree the real files win: the ellipse lists its sense before its centre, the transform ends with one
-/// unset perspective vector, an edge's second chain is named next_on_curve. The 10.0 layout was checked on a real SolidWorks 98Plus file.
+/// unset perspective vector, an edge's second chain is named next_on_curve, an intersection curve lists its two surfaces before its chart. The 10.0 layout was checked on a real SolidWorks 98Plus file.
 /// </summary>
 internal static class XtSchema
 {
@@ -70,7 +73,7 @@ internal static class XtSchema
 30 LINE node_id:d attributes_groups:p owner:p next:p previous:p geometric_owner:p sense:c pvec:v direction:v
 31 CIRCLE node_id:d attributes_groups:p owner:p next:p previous:p geometric_owner:p sense:c centre:v normal:v x_axis:v radius:f
 32 ELLIPSE node_id:d attributes_groups:p owner:p next:p previous:p geometric_owner:p sense:c centre:v normal:v x_axis:v major_radius:f minor_radius:f
-38 INTERSECTION node_id:d attributes_groups:p owner:p next:p previous:p geometric_owner:p sense:c chart:p start:p end:p
+38 INTERSECTION node_id:d attributes_groups:p owner:p next:p previous:p geometric_owner:p sense:c surface:p[2] chart:p start:p end:p
 40 CHART Base_parameter:f Base_scale:f Chart_count:d Chordal_error:f Angular_error:f parameter_error:f[2] hvec:h*
 41 LIMIT type:c hvec:h*
 45 BSPLINE_VERTICES vertices:f*
@@ -129,8 +132,56 @@ internal static class XtSchema
 
     private static readonly Dictionary<int, XtNodeDef> Legacy = Build(legacy: true);
 
-    /// <summary>The definition of a node type; <paramref name="legacy"/> is the layout of schemas before Parasolid 11 (a fin without an attribute pointer).</summary>
-    public static XtNodeDef? Get(int type, bool legacy) => (legacy ? Legacy : Current).GetValueOrDefault(type);
+    /// <summary>The base layouts: the 13006 schema (<paramref name="legacy"/> false) or the one of Parasolid 10 (a fin without an attribute pointer).</summary>
+    public static IReadOnlyDictionary<int, XtNodeDef> Base(bool legacy) => legacy ? Legacy : Current;
+
+    /// <summary>Whether a node type belongs to the 13006 base schema; an embedded schema declares the other types in full.</summary>
+    public static bool InBase(int type) => Current.ContainsKey(type);
+
+    /// <summary>Assembles a node definition from its fields (their slots are assigned here, in order: integer-like values and doubles are kept apart).</summary>
+    public static XtNodeDef Create(int type, string name, IReadOnlyList<XtField> fields, bool? visible = null)
+    {
+        var list = new XtField[fields.Count];
+        int ints = 0, doubles = 0;
+        for (var i = 0; i < fields.Count; i++)
+        {
+            var f = fields[i];
+            var slot = -1;
+            if (f.Count > 0)
+            {
+                slot = f.IsDouble ? doubles : ints;
+                if (f.IsDouble)
+                {
+                    doubles += f.Width * f.Count;
+                }
+                else
+                {
+                    ints += f.Count;
+                }
+            }
+
+            list[i] = new XtField { Name = f.Name, Type = f.Type, Count = f.Count, Slot = slot, Transmitted = f.Transmitted };
+        }
+
+        return new XtNodeDef { Type = type, Name = name, Fields = list, IntCount = ints, DoubleCount = doubles, Visible = visible ?? Array.IndexOf(VisibleTypes, type) >= 0 };
+    }
+
+    /// <summary>Parses "name:t", "name:t*" (variable length), "name:t[n]" (fixed array) and "name:t[*]" (a run of logicals) into a field.</summary>
+    public static XtField ParseField(string spec)
+    {
+        var colon = spec.IndexOf(':', StringComparison.Ordinal);
+        var name = spec[..colon];
+        var rest = spec[(colon + 1)..];
+        var letter = rest[0] == 't' ? 'd' : rest[0];
+        var count = 1;
+        if (rest.Length > 1)
+        {
+            var suffix = rest[1..];
+            count = suffix switch { "*" => 0, "[*]" => -1, _ => int.Parse(suffix.Trim('[', ']'), CultureInfo.InvariantCulture) };
+        }
+
+        return new XtField { Name = name, Type = letter, Count = count, Slot = -1 };
+    }
 
     private static Dictionary<int, XtNodeDef> Build(bool legacy)
     {
@@ -140,45 +191,18 @@ internal static class XtSchema
             var parts = line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var type = int.Parse(parts[0], CultureInfo.InvariantCulture);
             var fields = new List<XtField>();
-            int ints = 0, doubles = 0;
             foreach (var spec in parts.Skip(2))
             {
-                var colon = spec.IndexOf(':', StringComparison.Ordinal);
-                var name = spec[..colon];
-                var rest = spec[(colon + 1)..];
-                var letter = rest[0] == 't' ? 'd' : rest[0];
-                var count = 1;
-                if (rest.Length > 1)
-                {
-                    var suffix = rest[1..];
-                    count = suffix switch { "*" => 0, "[*]" => -1, _ => int.Parse(suffix.Trim('[', ']'), CultureInfo.InvariantCulture) };
-                }
-
-                if (legacy && ((type == 17 && name == "attributes_groups")))
+                var field = ParseField(spec);
+                if (legacy && type == 17 && field.Name == "attributes_groups")
                 {
                     continue;
                 }
 
-                var isDouble = letter is 'f' or 'v' or 'i' or 'b' or 'h';
-                var width = letter switch { 'v' or 'h' => 3, 'i' => 2, 'b' => 6, _ => 1 };
-                var slot = -1;
-                if (count > 0)
-                {
-                    slot = isDouble ? doubles : ints;
-                    if (isDouble)
-                    {
-                        doubles += width * count;
-                    }
-                    else
-                    {
-                        ints += count;
-                    }
-                }
-
-                fields.Add(new XtField { Name = name, Type = letter, Count = count, Slot = slot });
+                fields.Add(field);
             }
 
-            result[type] = new XtNodeDef { Type = type, Name = parts[1], Fields = [.. fields], IntCount = ints, DoubleCount = doubles, Visible = Array.IndexOf(VisibleTypes, type) >= 0 };
+            result[type] = Create(type, parts[1], fields);
         }
 
         return result;

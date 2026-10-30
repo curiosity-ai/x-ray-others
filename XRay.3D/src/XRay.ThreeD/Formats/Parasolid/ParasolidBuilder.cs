@@ -572,6 +572,15 @@ internal sealed class XtBuilder
                 }
 
                 break;
+            case 137:
+                // A curve in the parameter space of a surface; nothing is known of the edge but its end points where the surface is not understood.
+                if (Get(curve.Ptr("surface")) is { } host && MakeSurface(host, out _) is { } hostSurface && host.Def.Type != 52
+                    && Get(curve.Ptr("b_curve"), 134) is { } uvNode && MakeSplineCurve(uvNode, 2) is { } uv)
+                {
+                    return Sweep(new SurfaceParamCurve { Surface = hostSurface, Uv = uv }, start, end, sense);
+                }
+
+                break;
             case 38:
                 if (Get(curve.Ptr("chart"), 40) is { Variable: double[] { Length: >= 6 } chart })
                 {
@@ -726,7 +735,11 @@ internal sealed class XtBuilder
         return BSpline.Expand(k, m.Select(x => (int)Math.Clamp(x, 0, 1 << 20)).ToList());
     }
 
-    private Curve? MakeSplineCurve(XtNode curve)
+    /// <summary>The B-spline of a B_CURVE node.</summary>
+    private Curve? MakeSplineCurve(XtNode curve) => MakeSplineCurve(curve, 3);
+
+    /// <summary>The B-spline of a B_CURVE node; with <paramref name="dimension"/> 2 a curve in the parameter space of a surface (x and y are u and v).</summary>
+    private SplineCurve? MakeSplineCurve(XtNode curve, int dimension)
     {
         if (Get(curve.Ptr("nurbs"), 136) is not { } n || Get(n.Ptr("bspline_vertices"), 45)?.Variable is not double[] vertices)
         {
@@ -737,7 +750,7 @@ internal sealed class XtBuilder
         var count = (int)n.Int("n_vertices");
         var degree = (int)n.Int("degree");
         var rational = n.Char("rational") == 'T';
-        if (dim < (rational ? 4 : 3) || count <= degree || degree < 1 || degree > 64 || (long)count * dim > vertices.Length)
+        if (dim < (rational ? dimension + 1 : dimension) || count <= degree || degree < 1 || degree > 64 || (long)count * dim > vertices.Length)
         {
             return null;
         }
@@ -752,13 +765,13 @@ internal sealed class XtBuilder
         var weights = new double[count];
         for (var i = 0; i < count; i++)
         {
-            var w = rational ? vertices[i * dim + 3] : 1;
+            var w = rational ? vertices[i * dim + dimension] : 1;
             if (!double.IsFinite(w) || w == 0)
             {
                 return null;
             }
 
-            control[i] = new V3(vertices[i * dim] / w, vertices[i * dim + 1] / w, vertices[i * dim + 2] / w);
+            control[i] = new V3(vertices[i * dim] / w, vertices[i * dim + 1] / w, dimension > 2 ? vertices[i * dim + 2] / w : 0);
             weights[i] = w;
         }
 
