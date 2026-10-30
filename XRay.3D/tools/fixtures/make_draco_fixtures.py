@@ -37,8 +37,9 @@ def sphere(nu, nv):
     for j in range(nv):
         for i in range(nu):
             a = j * (nu + 1) + i
-            if j > 0: faces.append((a, a + nu + 1, a + 1))
-            if j < nv - 1: faces.append((a + 1, a + nu + 1, a + nu + 2))
+            # Counter-clockwise seen from outside (rows run from the north pole down, columns eastwards): the solid encloses a positive volume.
+            if j > 0: faces.append((a, a + 1, a + nu + 1))
+            if j < nv - 1: faces.append((a + 1, a + nu + 2, a + nu + 1))
     return np.array(pts, np.float32), np.array(uv, np.float64), np.array(nor, np.float64), np.array(faces, np.uint32)
 
 def cube():
