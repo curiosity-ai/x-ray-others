@@ -139,7 +139,7 @@ internal static partial class IgesReader
             }
 
             var surfaceEntities = _entries.Count(e => e.Type is 108 or 114 or 118 or 120 or 122 or 128 or 143 or 144 or 186 or 514);
-            var curveEntities = _entries.Count(e => e.Type is 100 or 110 or 106 or 126);
+            var curveEntities = _entries.Count(e => e.Type is 100 or 110 or 106 or 126 or 112);
             meta.HasGeometry = curveEntities > 0 || surfaceEntities > 0;
 
             if (geometry)
@@ -592,7 +592,7 @@ internal static partial class IgesReader
             var drawn = 0;
             foreach (var (index, entry) in _byIndex.OrderBy(p => p.Key))
             {
-                if (entry.Type is not (100 or 110 or 106 or 126))
+                if (entry.Type is not (100 or 110 or 106 or 126 or 112))
                 {
                     continue;
                 }
@@ -619,6 +619,7 @@ internal static partial class IgesReader
                     110 => Line(parameters),
                     100 => Arc(parameters),
                     106 => Copious(entry, parameters),
+                    112 => ParametricSpline(parameters),
                     _ => Nurbs(parameters),
                 };
                 if (lines is null || lines.Count < 2)

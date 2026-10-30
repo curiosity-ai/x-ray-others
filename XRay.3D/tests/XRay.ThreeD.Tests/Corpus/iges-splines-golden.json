@@ -1,0 +1,54 @@
+{
+ "synthetic/iges-spline-surface.igs": {
+  "area": 8.819,
+  "min": [
+   -0.0,
+   -0.0,
+   0.155
+  ],
+  "max": [
+   2.5,
+   2.0,
+   4.319
+  ]
+ },
+ "synthetic/iges-ruled.igs": {
+  "area": 32.694,
+  "min": [
+   -0.0,
+   -0.0,
+   -0.0
+  ],
+  "max": [
+   24.0,
+   3.0,
+   5.0
+  ]
+ },
+ "synthetic/iges-bounded-plane.igs": {
+  "area": 12.0,
+  "min": [
+   0.0,
+   0.0,
+   2.0
+  ],
+  "max": [
+   4.0,
+   4.0,
+   2.0
+  ]
+ },
+ "synthetic/iges-spline-curve.igs": {
+  "area": 0.0,
+  "min": [
+   0.5,
+   -1.0,
+   1.786
+  ],
+  "max": [
+   2.5,
+   2.0,
+   2.4
+  ]
+ }
+}

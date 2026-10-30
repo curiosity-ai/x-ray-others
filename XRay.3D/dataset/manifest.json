@@ -2014,5 +2014,41 @@
   "source": "tools/fixtures/make_sw_legacy.py",
   "bytes": 6144,
   "sha256": "d041b7d2b6e4a600c9f4eaf6ea76f83fb171b7335efa3460c5029367949d12f8"
+ },
+ {
+  "file": "synthetic/iges-spline-surface.igs",
+  "format": "iges",
+  "title": "Hand-written IGES with 114, 118, 108 and 112 entities (OpenCASCADE oracle)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_splines.py",
+  "bytes": 3483,
+  "sha256": "eb56bbcadcfc72f94c5644aa30f7036f5369be3278476b8ab95b8709925b14f4"
+ },
+ {
+  "file": "synthetic/iges-ruled.igs",
+  "format": "iges",
+  "title": "Hand-written IGES with 114, 118, 108 and 112 entities (OpenCASCADE oracle)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_splines.py",
+  "bytes": 2511,
+  "sha256": "d8e518e26e5e55c4cfaf13d509dc534819a1419cb9d4a91ad59e78d826b4a241"
+ },
+ {
+  "file": "synthetic/iges-bounded-plane.igs",
+  "format": "iges",
+  "title": "Hand-written IGES with 114, 118, 108 and 112 entities (OpenCASCADE oracle)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_splines.py",
+  "bytes": 2268,
+  "sha256": "1edaf7ee4d765911209838a3a18611a24837c5182af32496a6beb3ae0746e2ad"
+ },
+ {
+  "file": "synthetic/iges-spline-curve.igs",
+  "format": "iges",
+  "title": "Hand-written IGES with 114, 118, 108 and 112 entities (OpenCASCADE oracle)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_splines.py",
+  "bytes": 648,
+  "sha256": "d94e48396920aa5c97bc4cf5bea40d962929e59d3d116bcb095ed571442c07d4"
  }
 ]

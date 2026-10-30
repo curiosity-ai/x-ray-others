@@ -121,7 +121,7 @@ internal static partial class IgesReader
                             break;
                         }
 
-                    case 128 or 120 or 122 or 108 when !referencedSurfaces.Contains(index) && (entry.Subordinate & 1) == 0 && entry.Type != 108:
+                    case 128 or 120 or 122 or 114 when !referencedSurfaces.Contains(index) && (entry.Subordinate & 1) == 0:
                         {
                             if (!freeSurfaces.TryGetValue(entry.Level, out var assembler))
                             {
@@ -144,9 +144,43 @@ internal static partial class IgesReader
                             break;
                         }
 
-                    case 114 or 118 when (entry.Subordinate & 1) == 0:
-                        _unsupportedSurfaces++;
-                        break;
+                    case 118 when (entry.Subordinate & 1) == 0 && Parameters(entry) is { } ruled:
+                        {
+                            if (!freeSurfaces.TryGetValue(entry.Level, out var assembler))
+                            {
+                                freeSurfaces[entry.Level] = assembler = NewAssembler();
+                            }
+
+                            if (RuledSurface(ruled, entry) is { } ruledMesh)
+                            {
+                                assembler.Add(ruledMesh, ColorMaterial(entry));
+                            }
+                            else
+                            {
+                                _unsupportedSurfaces++;
+                            }
+
+                            break;
+                        }
+
+                    case 108 when (entry.Subordinate & 1) == 0 && !referencedSurfaces.Contains(index) && Parameters(entry) is { } plane && Ptr(plane, 5) != 0 && entry.Form >= 0:
+                        {
+                            if (!freeSurfaces.TryGetValue(entry.Level, out var assembler))
+                            {
+                                freeSurfaces[entry.Level] = assembler = NewAssembler();
+                            }
+
+                            if (BoundedPlane(index, plane, entry) is { } planeMesh)
+                            {
+                                assembler.Add(planeMesh, ColorMaterial(entry));
+                            }
+                            else
+                            {
+                                _unsupportedSurfaces++;
+                            }
+
+                            break;
+                        }
                 }
             }
 
@@ -226,7 +260,7 @@ internal static partial class IgesReader
             if (surface is null)
             {
                 _skippedFaces++;
-                if (surfaceEntry is null || !IsSurfaceType(surfaceEntry.Type) || surfaceEntry.Type is 114 or 118)
+                if (surfaceEntry is null || !IsSurfaceType(surfaceEntry.Type) || surfaceEntry.Type is 118)
                 {
                     _unsupportedSurfaces++;
                 }
@@ -763,6 +797,7 @@ internal static partial class IgesReader
                 100 => Arc(f),
                 106 => Copious(entry, f),
                 126 => Nurbs(f),
+                112 => ParametricSpline(f),
                 102 => Composite(f, depth),
                 _ => null,
             };
@@ -1109,6 +1144,7 @@ internal static partial class IgesReader
                 result = entry.Type switch
                 {
                     128 => SplineSurfaceOf(f, m),
+                    114 => PatchSurfaceOf(f, m),
                     108 => PlaneOf(f, m),
                     190 => Quadric(f, m, 190),
                     192 => Quadric(f, m, 192),
@@ -1220,6 +1256,285 @@ internal static partial class IgesReader
             }
 
             return new IgesSurface(surface, true, u0, u1, v0, v1, closedU, closedV);
+        }
+
+        /// <summary>
+        /// Parametric spline surface (114): M by N bicubic patches over the breakpoints TU and TV. Each patch gives, for X, Y and Z in turn, 16 power-basis
+        /// coefficients in local parameters s = u - TU(i), t = v - TV(j), stored with the s power running fastest; patches follow in the order i, j over an
+        /// (M+1) by (N+1) table whose last row and column are the terminal values (not needed here). The patches become one cubic B-spline surface with
+        /// triple interior knots, whose control points are the patches' Bezier points; where the file is only piecewise continuous, a seam takes the
+        /// control point of the later patch.
+        /// </summary>
+        private IgesSurface? PatchSurfaceOf(List<string> f, Matrix4x4 matrix)
+        {
+            int m = Count(f, 3), n = Count(f, 4);
+            if (m < 1 || n < 1 || m > 2000 || n > 2000 || (long)m * n > 250_000)
+            {
+                return null;
+            }
+
+            var tu = new double[m + 1];
+            var tv = new double[n + 1];
+            var o = 5;
+            for (var i = 0; i <= m; i++)
+            {
+                tu[i] = Real(f, o++);
+                if (i > 0 && !(tu[i] > tu[i - 1]))
+                {
+                    return null;
+                }
+            }
+
+            for (var j = 0; j <= n; j++)
+            {
+                tv[j] = Real(f, o++);
+                if (j > 0 && !(tv[j] > tv[j - 1]))
+                {
+                    return null;
+                }
+            }
+
+            if ((long)(m + 1) * (n + 1) * 48 + o > f.Count + 48)
+            {
+                return null;
+            }
+
+            var control = new V3[3 * m + 1, 3 * n + 1];
+            var weights = new double[3 * m + 1, 3 * n + 1];
+            Span<double> a = stackalloc double[16];
+            Span<double> b = stackalloc double[16];
+            for (var i = 0; i < m; i++)
+            {
+                for (var j = 0; j < n; j++)
+                {
+                    Cancel.Every(_options.Cancellation, (long)i * n + j, 63);
+                    var baseIndex = o + (i * (n + 1) + j) * 48;
+                    double ds = tu[i + 1] - tu[i], dt = tv[j + 1] - tv[j];
+                    var xyz = new double[3, 4, 4];
+                    for (var c = 0; c < 3; c++)
+                    {
+                        for (var l = 0; l < 4; l++)
+                        {
+                            for (var k = 0; k < 4; k++)
+                            {
+                                a[k + 4 * l] = Real(f, baseIndex + 16 * c + 4 * l + k) * Math.Pow(ds, k) * Math.Pow(dt, l);
+                            }
+                        }
+
+                        // power basis to Bezier basis, in u for every v power and then in v
+                        for (var l = 0; l < 4; l++)
+                        {
+                            double c0 = a[4 * l], c1 = a[4 * l + 1], c2 = a[4 * l + 2], c3 = a[4 * l + 3];
+                            b[4 * l] = c0;
+                            b[4 * l + 1] = c0 + c1 / 3;
+                            b[4 * l + 2] = c0 + 2 * c1 / 3 + c2 / 3;
+                            b[4 * l + 3] = c0 + c1 + c2 + c3;
+                        }
+
+                        for (var p = 0; p < 4; p++)
+                        {
+                            double c0 = b[p], c1 = b[p + 4], c2 = b[p + 8], c3 = b[p + 12];
+                            xyz[c, p, 0] = c0;
+                            xyz[c, p, 1] = c0 + c1 / 3;
+                            xyz[c, p, 2] = c0 + 2 * c1 / 3 + c2 / 3;
+                            xyz[c, p, 3] = c0 + c1 + c2 + c3;
+                        }
+                    }
+
+                    for (var p = 0; p < 4; p++)
+                    {
+                        for (var q = 0; q < 4; q++)
+                        {
+                            var point = new V3(xyz[0, p, q], xyz[1, p, q], xyz[2, p, q]);
+                            control[3 * i + p, 3 * j + q] = matrix.IsIdentity ? point : Xf(point, matrix);
+                            weights[3 * i + p, 3 * j + q] = 1;
+                        }
+                    }
+                }
+            }
+
+            var ku = PatchKnots(tu);
+            var kv = PatchKnots(tv);
+            var surface = new SplineSurface { DegreeU = 3, DegreeV = 3, Control = control, Weights = weights, KnotsU = ku, KnotsV = kv };
+            return new IgesSurface(surface, true, tu[0], tu[m], tv[0], tv[n]);
+        }
+
+        private static double[] PatchKnots(double[] breaks)
+        {
+            var knots = new List<double>(3 * breaks.Length + 2);
+            for (var i = 0; i < breaks.Length; i++)
+            {
+                var times = i == 0 || i == breaks.Length - 1 ? 4 : 3;
+                for (var k = 0; k < times; k++)
+                {
+                    knots.Add(breaks[i]);
+                }
+            }
+
+            return knots.ToArray();
+        }
+
+        /// <summary>Parametric spline curve (112): N cubic segments, x(t) = AX + BX s + CX s^2 + DX s^3 with s = t - T(i), likewise y and z, sampled eight times per segment.</summary>
+        private List<V3>? ParametricSpline(List<string> f)
+        {
+            var n = Count(f, 4);
+            if (n < 1 || n > 100_000 || 5L + n + 1 + 12L * n > f.Count + 12)
+            {
+                return null;
+            }
+
+            var t = new double[n + 1];
+            for (var i = 0; i <= n; i++)
+            {
+                t[i] = Real(f, 5 + i);
+                if (i > 0 && !(t[i] >= t[i - 1]))
+                {
+                    return null;
+                }
+            }
+
+            var o = 5 + n + 1;
+            var points = new List<V3>(8 * n + 1);
+            for (var i = 0; i < n; i++)
+            {
+                Cancel.Every(_options.Cancellation, i);
+                var c = o + 12 * i;
+                var length = t[i + 1] - t[i];
+                var steps = 8;
+                for (var k = i == 0 ? 0 : 1; k <= steps; k++)
+                {
+                    var s = length * k / steps;
+                    double X(int a) => Real(f, c + 4 * a) + s * (Real(f, c + 4 * a + 1) + s * (Real(f, c + 4 * a + 2) + s * Real(f, c + 4 * a + 3)));
+                    points.Add(new V3(X(0), X(1), X(2)));
+                }
+            }
+
+            return points;
+        }
+
+        /// <summary>Ruled surface (118): the straight lines joining equal fractions of the parameter ranges of two curves (the second reversed when DIRFLG is 1).</summary>
+        private FaceMesh? RuledSurface(List<string> f, DirectoryEntry entry)
+        {
+            var first = CurvePoints(Ptr(f, 1));
+            var second = CurvePoints(Ptr(f, 2));
+            if (first is null || second is null)
+            {
+                return null;
+            }
+
+            if (Count(f, 3) == 1)
+            {
+                second.Reverse();
+            }
+
+            // Straight curves have two samples, which would make one flat quad of a twisted strip: sample at least 24 times along the rulings' direction of travel.
+            var count = Math.Max(Math.Max(first.Count, second.Count), 24);
+            if (count > 100_000)
+            {
+                return null;
+            }
+
+            V3 At(List<V3> curve, int i)
+            {
+                // the curves' samples are uniform in their own parameter, so the index fraction stands for the parameter fraction
+                var x = (double)i / (count - 1) * (curve.Count - 1);
+                var k = Math.Min((int)x, curve.Count - 2);
+                var u = x - k;
+                return curve[k] * (1 - u) + curve[k + 1] * u;
+            }
+
+            var m = TransformOf(entry);
+            var rulings = new V3[count][];
+            // Rulings that are not coplanar with their neighbours make saddle-shaped quads: split them across as well.
+            var across = 1;
+            var a = new V3[count];
+            var b = new V3[count];
+            for (var i = 0; i < count; i++)
+            {
+                Cancel.Every(_options.Cancellation, i);
+                a[i] = At(first, i);
+                b[i] = At(second, i);
+                if (!m.IsIdentity)
+                {
+                    a[i] = Xf(a[i], m);
+                    b[i] = Xf(b[i], m);
+                }
+            }
+
+            double scale = 1e-12;
+            for (var i = 0; i < count; i++)
+            {
+                scale = Math.Max(scale, Math.Max((b[i] - a[i]).Length, (a[Math.Min(i + 1, count - 1)] - a[i]).Length));
+            }
+
+            for (var i = 0; i + 1 < count && across == 1; i++)
+            {
+                var volume = Math.Abs((b[i] - a[i]).Dot((a[i + 1] - a[i]).Cross(b[i + 1] - a[i])));
+                // a quad whose two triangles face opposite ways is a bow tie (the rulings cross)
+                var crossed = (b[i] - a[i]).Cross(b[i + 1] - a[i]).Dot((b[i + 1] - a[i]).Cross(a[i + 1] - a[i])) < 0;
+                if (volume > 1e-9 * scale * scale * scale || crossed)
+                {
+                    across = 8;
+                }
+            }
+
+            var mesh = new FaceMesh();
+            for (var i = 0; i < count; i++)
+            {
+                rulings[i] = new V3[across + 1];
+                for (var k = 0; k <= across; k++)
+                {
+                    rulings[i][k] = a[i] * (1 - (double)k / across) + b[i] * ((double)k / across);
+                    mesh.Positions.Add(rulings[i][k]);
+                    mesh.Normals.Add(V3.Zero);
+                }
+            }
+
+            for (var i = 0; i + 1 < count; i++)
+            {
+                for (var k = 0; k < across; k++)
+                {
+                    int a0 = i * (across + 1) + k, b0 = a0 + 1, a1 = (i + 1) * (across + 1) + k, b1 = a1 + 1;
+                    mesh.Indices.AddRange([a0, b0, b1, a0, b1, a1]);
+                }
+            }
+
+            FillNormals(mesh);
+            return mesh;
+        }
+
+        private static void FillNormals(FaceMesh mesh)
+        {
+            var sums = new V3[mesh.Positions.Count];
+            for (var t = 0; t + 2 < mesh.Indices.Count; t += 3)
+            {
+                int i0 = mesh.Indices[t], i1 = mesh.Indices[t + 1], i2 = mesh.Indices[t + 2];
+                var normal = (mesh.Positions[i1] - mesh.Positions[i0]).Cross(mesh.Positions[i2] - mesh.Positions[i0]);
+                sums[i0] += normal;
+                sums[i1] += normal;
+                sums[i2] += normal;
+            }
+
+            for (var i = 0; i < sums.Length; i++)
+            {
+                mesh.Normals[i] = sums[i].Length > 1e-300 ? sums[i].Normalized() : V3.Zero;
+            }
+        }
+
+        /// <summary>A plane (108) drawn on its own: the part inside its bounding curve (form 1; a hole boundary, form -1, is not drawn).</summary>
+        private FaceMesh? BoundedPlane(int index, List<string> f, DirectoryEntry entry)
+        {
+            if (SurfaceOf(index) is not { } surface || CurvePoints(Ptr(f, 5)) is not { } points || points.Count < 3)
+            {
+                return null;
+            }
+
+            if ((points[0] - points[^1]).Length < 1e-9)
+            {
+                points.RemoveAt(points.Count - 1);
+            }
+
+            return Faces.Tessellate(surface.Geometry, [new FaceLoop(points)], true, $"Plane {index}");
         }
 
         private static IgesSurface? PlaneOf(List<string> f, Matrix4x4 matrix)
