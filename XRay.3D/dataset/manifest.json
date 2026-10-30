@@ -1960,5 +1960,14 @@
   "source": "tools/fixtures/make_cfb_real_layout.py",
   "bytes": 11264,
   "sha256": "46c83f19ed277d4927b1e4b57d48618d4e2b0f0a9b200f5413eaccb0c242a34e"
+ },
+ {
+  "file": "synthetic/drawing.dwfx",
+  "format": "dwf",
+  "title": "DWFx (XPS) page written from the schema",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_dwfx_fixture.py",
+  "bytes": 1964,
+  "sha256": "8f702177fec9b4a19a0140200b8fe2313b4b1a5254d4120a90feb89ece1d705a"
  }
 ]

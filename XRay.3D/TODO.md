@@ -45,6 +45,8 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 
 - [x] ACIS SAT and SAB (see README): planes, cylinders/cones, spheres, tori, straight and elliptical edges, colours, transforms, ASM binary. Open: spline surfaces (`spline-surface` with nubs/nurbs/exactsur), `intcurve-curve` edges, wires and subshells, cone half-angle sign convention, attribute names, units for save version 105 (the header has none)
 
+- [x] DWF 6 and DWFx 2D graphics (text W2D, XPS pages) and metadata. Open: binary W2D (the opcode stream), W3D, DWF 7+ (DWFx streams with fonts and images), bitmaps, layers and named objects in the metadata
+
 ## Next: conversion quality
 
 - [x] Textures and UVs: OBJ+MTL `map_Kd` (companions, ZIP packages), glTF and 3MF textures, `TEXCOORD_0` and images/samplers in the GLB, `KHR_texture_transform`. Open: other maps (normal, emissive, metallic-roughness), UV sets above 0, UVs for FBX/COLLADA/X3D/USD/3DS/PLY readers
