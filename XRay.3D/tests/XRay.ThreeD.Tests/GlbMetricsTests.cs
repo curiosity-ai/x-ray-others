@@ -34,7 +34,7 @@ public class GlbMetricsTests
                 var glb = GlbWriter.ToArray(model, new GlbWriteOptions { Compression = compression });
                 var (area, volume, _) = World(ModelLoader.Load(glb, "x.glb"));
                 var expectedArea = stats.SurfaceArea * toMeters * toMeters;
-                var expectedVolume = stats.Volume * toMeters * toMeters * toMeters;
+                var expectedVolume = stats.SignedVolume * toMeters * toMeters * toMeters;
                 if (!Close(expectedArea, area, 0.005))
                 {
                     failures.Add($"{relative} {compression}: area {area:G6} m2, expected {expectedArea:G6}");

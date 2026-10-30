@@ -7,7 +7,7 @@ namespace XRay.ThreeD.Tests;
 
 public class ConversionPolicyTests
 {
-    private static JsonElement Json(byte[] glb) => JsonDocument.Parse(glb.AsMemory(20, (int)BitConverter.ToUInt32(glb, 12))).RootElement.Clone();
+    internal static JsonElement Json(byte[] glb) => JsonDocument.Parse(glb.AsMemory(20, (int)BitConverter.ToUInt32(glb, 12))).RootElement.Clone();
 
     private static byte[] CubeStl(double offsetX, double offsetY, double offsetZ)
     {
@@ -72,11 +72,11 @@ public class ConversionPolicyTests
         Assert.InRange(Vector3.Distance(before.Max, after.Max), 0, 0.2f);
 
         var plain = Json(GlbWriter.ToArray(model, new GlbWriteOptions { RecentreFarModels = false }));
-        Assert.False(plain.GetProperty("meshes")[0].TryGetProperty("extras", out _));
+        Assert.False(plain.GetProperty("meshes")[0].TryGetProperty("extras", out var plainExtras) && plainExtras.TryGetProperty("origin", out _));
         Assert.InRange(plain.GetProperty("accessors")[0].GetProperty("max")[0].GetSingle(), 4_999_999f, 5_000_002f);
 
         // A model near the origin is left alone.
-        Assert.False(Json(GlbWriter.ToArray(ModelLoader.Load(CubeStl(2, 3, 4), "near.stl"))).GetProperty("meshes")[0].TryGetProperty("extras", out _));
+        Assert.False(Json(GlbWriter.ToArray(ModelLoader.Load(CubeStl(2, 3, 4), "near.stl"))).GetProperty("meshes")[0].TryGetProperty("extras", out var nearExtras) && nearExtras.TryGetProperty("origin", out _));
     }
 
     [Fact]

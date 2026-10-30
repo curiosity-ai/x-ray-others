@@ -72,7 +72,9 @@ public sealed class Model3D
     }
 
     /// <summary>Counts nodes, meshes and drawn geometry (instances counted per use).</summary>
-    public ModelStatistics ComputeStatistics()
+    public ModelStatistics ComputeStatistics() => ComputeStatisticsCore(CancellationToken.None);
+
+    internal ModelStatistics ComputeStatisticsCore(CancellationToken cancellation)
     {
         long vertices = 0;
         long triangles = 0;
@@ -96,6 +98,8 @@ public sealed class Model3D
         var exact = new Dictionary<(MeshData, Matrix4x4), (double Area, double Volume)>();
         double totalArea = 0;
         double totalVolume = 0;
+        double totalSigned = 0;
+        int closedMeshes = 0, openMeshes = 0, insideOutMeshes = 0, openEdges = 0, nonManifoldEdges = 0, inconsistentEdges = 0;
         void Visit(SceneNode node, Matrix4x4 parent)
         {
             var world = node.Transform * parent;
@@ -103,13 +107,35 @@ public sealed class Model3D
             {
                 if (!perMesh.TryGetValue(mesh, out var m))
                 {
-                    m = Totals(mesh);
+                    m = Totals(mesh) with { Topology = MeshTopology.Analyze(mesh, MeshTopology.DefaultWeldTolerance, cancellation) };
                     perMesh[mesh] = m;
+                    if (m.Topology.IsSolid)
+                    {
+                        closedMeshes++;
+                    }
+                    else if (m.Topology.IsInsideOut)
+                    {
+                        insideOutMeshes++;
+                    }
+                    else
+                    {
+                        openMeshes++;
+                    }
+
+                    openEdges += m.Topology.OpenEdges;
+                    nonManifoldEdges += m.Topology.NonManifoldEdges;
+                    inconsistentEdges += m.Topology.InconsistentEdges;
                 }
 
                 var (area, volume) = Carry(mesh, m, world, exact);
                 totalArea += area;
-                totalVolume += volume;
+                totalSigned += volume;
+
+                // Only a closed, outward-facing mesh encloses space: the signed sum over an open surface depends on where the origin is.
+                if (m.Topology.IsSolid)
+                {
+                    totalVolume += volume;
+                }
             }
 
             foreach (var child in node.Children)
@@ -127,11 +153,21 @@ public sealed class Model3D
         {
             SurfaceArea = totalArea,
             Volume = totalVolume,
+            SignedVolume = totalSigned,
+            ClosedMeshes = closedMeshes,
+            OpenMeshes = openMeshes,
+            InsideOutMeshes = insideOutMeshes,
+            OpenEdges = openEdges,
+            NonManifoldEdges = nonManifoldEdges,
+            InconsistentEdges = inconsistentEdges,
         };
     }
 
     /// <summary>Area, signed volume about the origin and the sum of the triangles' vector areas of a mesh in its own frame.</summary>
-    private readonly record struct MeshTotals(double Area, double Volume, double Sx, double Sy, double Sz);
+    private readonly record struct MeshTotals(double Area, double Volume, double Sx, double Sy, double Sz)
+    {
+        public MeshTopology Topology { get; init; }
+    }
 
     private static MeshTotals Totals(MeshData mesh)
     {
@@ -312,6 +348,11 @@ public sealed class MeshData
     public List<MeshGroup> Groups { get; } = new();
 
     public int VertexCount => Positions.Length / 3;
+
+    /// <summary>The edge structure of the triangles after welding vertices by position: whether the mesh is closed, how many edges are open or wound against a neighbour, and its signed volume.</summary>
+    public MeshTopology AnalyzeTopology() => MeshTopology.Analyze(this, DefaultWeld, CancellationToken.None);
+
+    private const double DefaultWeld = MeshTopology.DefaultWeldTolerance;
 
     public int TriangleCount => Indices.Length / 3;
 

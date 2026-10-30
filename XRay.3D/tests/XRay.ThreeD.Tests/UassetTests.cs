@@ -18,7 +18,7 @@ public class UassetTests
         var stats = meta.Statistics!;
         Assert.Equal(1758, stats.UniqueTriangles);
         Assert.Equal(5274, stats.UniqueVertices);
-        Assert.Equal(516.682, stats.Volume, 2);
+        Assert.Equal(516.682, stats.SignedVolume, 2);
         var b = meta.Bounds!.Value;
         Assert.Equal(-13.6106, b.Min.X, 3);
         Assert.Equal(13.5679, b.Max.X, 3);
@@ -37,7 +37,7 @@ public class UassetTests
         var model = ModelLoader.Load(File.ReadAllBytes(DatasetPaths.File(file)), file);
         Assert.Equal(948, model.Metadata.Statistics!.UniqueTriangles);
         Assert.Equal(2, model.Materials.Count);
-        Assert.True(model.Metadata.Statistics!.Volume > 0);
+        Assert.True(model.Metadata.Statistics!.SignedVolume > 0);
     }
 
     [Fact]

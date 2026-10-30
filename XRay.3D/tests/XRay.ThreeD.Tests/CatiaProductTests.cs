@@ -146,8 +146,8 @@ public class CatiaProductTests
             var b = ModelLoader.Load(File.ReadAllBytes(reference), Path.GetFileName(reference));
             var tolerance = pair["tolerance"]!.GetValue<double>();
             var expected = pair["volume"]!.GetValue<double>();
-            Assert.Equal(expected, b.Metadata.Statistics!.Volume, expected * 1e-4);
-            Assert.InRange(a.Metadata.Statistics!.Volume / expected, 1 - tolerance, 1 + tolerance);
+            Assert.Equal(expected, b.Metadata.Statistics!.SignedVolume, expected * 1e-4);
+            Assert.InRange(a.Metadata.Statistics!.SignedVolume / expected, 1 - tolerance, 1 + tolerance);
             Assert.InRange(a.Metadata.Statistics.SurfaceArea / pair["area"]!.GetValue<double>(), 0.95, 1.05);
             var bounds = pair["bounds"]!.AsArray().Select(v => v!.GetValue<double>()).ToArray();
             var box = a.Metadata.Bounds!.Value;

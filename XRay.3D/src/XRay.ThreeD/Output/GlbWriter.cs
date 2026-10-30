@@ -477,9 +477,21 @@ public static class GlbWriter
                 }
 
                 var hasOrigin = accessors.Origin.TryGetValue(model.Meshes[i], out var meshOrigin);
-                if (options.IncludeMetadata && (model.Meshes[i].Faces.Length > 0 || hasOrigin))
+                var topology = options.IncludeMetadata && model.Meshes[i].Indices.Length > 0 ? MeshTopology.Analyze(model.Meshes[i], MeshTopology.DefaultWeldTolerance, options.Cancellation) : default;
+                if (options.IncludeMetadata && (model.Meshes[i].Faces.Length > 0 || hasOrigin || topology.Triangles > 0))
                 {
                     w.WriteStartObject("extras");
+                    if (topology.Triangles > 0)
+                    {
+                        // The library's verdict on the whole mesh (all its primitives together): a closed solid with two materials is two
+                        // primitives, each open on its own. Edges are welded by position at 1e-5 of the bounding box diagonal.
+                        w.WriteBoolean("closed", topology.IsClosed);
+                        w.WriteNumber("openEdges", topology.OpenEdges);
+                        w.WriteNumber("nonManifoldEdges", topology.NonManifoldEdges);
+                        w.WriteNumber("inconsistentEdges", topology.InconsistentEdges);
+                        w.WriteBoolean("insideOut", topology.IsInsideOut);
+                    }
+
                     if (hasOrigin)
                     {
                         // The vertices are stored around this point (source units); the nodes that use the mesh carry it as a translation.

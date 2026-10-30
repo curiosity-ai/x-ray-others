@@ -110,9 +110,9 @@ public class MetricsTests
 
             checkedModels++;
             var (area, volume, _) = World(model);
-            if (!Close(area, stats.SurfaceArea, 1e-4) || !Close(volume, stats.Volume, 1e-4, 1e-9 * area))
+            if (!Close(area, stats.SurfaceArea, 1e-4) || !Close(volume, stats.SignedVolume, 1e-4, 1e-9 * area))
             {
-                failures.Add($"{relative}: area {stats.SurfaceArea:G6} vs {area:G6}, volume {stats.Volume:G6} vs {volume:G6}");
+                failures.Add($"{relative}: area {stats.SurfaceArea:G6} vs {area:G6}, volume {stats.SignedVolume:G6} vs {volume:G6}");
             }
         }
 
@@ -245,6 +245,13 @@ public class MetricsTests
         model.Meshes.Add(quad);
         model.Roots.Add(new SceneNode("quad") { Mesh = quad, Transform = Matrix4x4.CreateTranslation(0, 0, 5) });
         var (_, volume, _) = World(model);
-        Assert.Equal(volume, model.ComputeStatistics().Volume, 9);
+        var stats = model.ComputeStatistics();
+        Assert.Equal(volume, stats.SignedVolume, 9);
+
+        // The library does not call that a volume: the quad encloses nothing.
+        Assert.Equal(0, stats.Volume);
+        Assert.Equal(1, stats.OpenMeshes);
+        Assert.Equal(4, stats.OpenEdges);
+        Assert.False(stats.VolumeIsComplete);
     }
 }

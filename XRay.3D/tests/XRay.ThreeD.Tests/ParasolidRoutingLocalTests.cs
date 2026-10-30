@@ -54,7 +54,7 @@ public class ParasolidRoutingLocalTests
         Assert.Equal("SCH_1700284_16100_13006", a.Metadata.GetProperty("Schema"));
         Assert.Equal("SCH_2500176_25001_13006", b.Metadata.GetProperty("Schema"));
         Assert.Equal(a.Metadata.Statistics!.Triangles, b.Metadata.Statistics!.Triangles);
-        Assert.Equal(a.Metadata.Statistics.Volume, b.Metadata.Statistics.Volume, 12);
+        Assert.Equal(a.Metadata.Statistics.SignedVolume, b.Metadata.Statistics.SignedVolume, 12);
         Assert.Equal(a.Metadata.Bounds, b.Metadata.Bounds);
     }
 
@@ -82,6 +82,6 @@ public class ParasolidRoutingLocalTests
         Assert.Equal(0.1484, box.Max.X, 4);
         Assert.Equal(0.0976, box.Max.Y, 4);
         Assert.Equal(0.07, box.Max.Z, 4);
-        Assert.InRange(model.Metadata.Statistics!.Volume, 3.0e-4, 3.6e-4);
+        Assert.InRange(model.Metadata.Statistics!.SignedVolume, 3.0e-4, 3.6e-4);
     }
 }

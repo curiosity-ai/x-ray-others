@@ -19,7 +19,7 @@ public class ArchicadTests
         var stats = model.Metadata.Statistics!;
         Assert.Equal(golden.GetProperty("triangles").GetInt32(), stats.Triangles);
         Assert.Equal(golden.GetProperty("area").GetDouble(), stats.SurfaceArea, 6);
-        Assert.Equal(golden.GetProperty("volume").GetDouble(), stats.Volume, 6);
+        Assert.Equal(golden.GetProperty("volume").GetDouble(), stats.SignedVolume, 6);
         Assert.Equal(golden.GetProperty("materials").GetInt32(), model.Materials.Count);
         var box = model.Metadata.Bounds!.Value;
         var min = golden.GetProperty("min").EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();
@@ -44,7 +44,7 @@ public class ArchicadTests
         var golden = Golden("parametric-table.gsm");
         var model = ModelLoader.Load(File.ReadAllBytes(DatasetPaths.File("pln/parametric-table.gsm")), "parametric-table.gsm");
         var expected = golden.GetProperty("volume").GetDouble();
-        Assert.Equal(expected, model.Metadata.Statistics!.Volume, expected * 0.003);
+        Assert.Equal(expected, model.Metadata.Statistics!.SignedVolume, expected * 0.003);
         var box = model.Metadata.Bounds!.Value;
         Assert.Equal(0f, box.Min.X, 5);
         Assert.Equal(1.4f, box.Max.X, 5);
@@ -66,7 +66,7 @@ public class ArchicadTests
 
         // Four steps (0.25 x 0.5 x 0.1 i), two UV spheres of radius 0.25 (24 x 12 facets: 0.0636024), a 0.1 cube, a 24-sided frustum and a prism with one arc.
         const double expected = 0.125 + 2 * 0.06360238063781531 + 0.001 + 0.13458917 + 0.04555290;
-        Assert.Equal(expected, stats.Volume, 4);
+        Assert.Equal(expected, stats.SignedVolume, 4);
         var box = model.Metadata.Bounds!.Value;
         Assert.Equal(-0.3f, box.Min.X, 4);
         Assert.Equal(2.6f, box.Max.X, 4);
