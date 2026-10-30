@@ -199,7 +199,6 @@ internal static class DwfReader
         private readonly LoadOptions _options;
         private readonly Dictionary<int, (List<float> Positions, List<uint> Segments)> _byColour = new();
         private readonly Dictionary<int, int> _materials = new();
-        private int _colour = 0x000000;
         private int _unknown;
         private long _tick;
 

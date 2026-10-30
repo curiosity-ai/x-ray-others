@@ -31,6 +31,11 @@ internal static class DwgReader
     public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options)
     {
         var metadata = ReadMetadata(data, options);
+        if (metadata.FormatVersion == "AC1015" && data.Length > 0x19 + 9)
+        {
+            return DwgGeometry.Read(data, options, metadata);
+        }
+
         throw new UnsupportedModelFormatException(
             ModelFormats.Dwg,
             $"DWG geometry is not decoded ({metadata.FormatVersion}, {metadata.GetProperty("Release")}); the version, preview and, for AC1012 to AC1015, the layers are available through ReadMetadata and ReadPreview.");
@@ -71,7 +76,16 @@ internal static class DwgReader
             meta.Notes.Add("This DWG release predates the R13 layout and is not decoded.");
         }
 
-        meta.Notes.Add("DWG geometry is not decoded.");
+        if (generation == 15)
+        {
+            meta.HasGeometry = true;
+            meta.Notes.Add("Entities of this release (lines, circles, arcs, polylines, text, inserts) are decoded by Load; hatches, dimensions and others are not.");
+        }
+        else
+        {
+            meta.Notes.Add("DWG geometry is not decoded.");
+        }
+
         return meta;
     }
 
@@ -202,6 +216,10 @@ internal static class DwgReader
     };
 
     /// <summary>Handle to file offset pairs from the object map: blocks of big-endian size, then modular-char deltas of handle and location.</summary>
+    internal static List<(long Handle, long Location)> ReadObjectMapInternal(ReadOnlySpan<byte> s, long start, long length, CancellationToken token) => ReadObjectMap(s, start, length, token);
+
+    internal static bool TryReadLayerNameInternal(ReadOnlySpan<byte> s, long location, out string name) => TryReadLayerName(s, location, out name);
+
     private static List<(long Handle, long Location)> ReadObjectMap(ReadOnlySpan<byte> s, long start, long length, CancellationToken token)
     {
         var result = new List<(long, long)>();

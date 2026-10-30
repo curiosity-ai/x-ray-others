@@ -18,8 +18,7 @@ public class DwgTests
         Assert.Equal("30", meta.GetProperty("Code page"));
         Assert.Equal("298", meta.GetProperty("Objects"));
         Assert.Contains("object map (1591 bytes)", meta.GetProperty("Sections"));
-        Assert.False(meta.HasGeometry);
-        Assert.Contains(meta.Notes, n => n.Contains("not decoded", StringComparison.Ordinal));
+        Assert.True(meta.HasGeometry);
 
         // The same drawing exported to DXF lists these layers (read with ezdxf).
         Assert.Equal(["0", "Defpoints", "OUTLINE", "CENTER", "HIDDEN", "DIMS", "HATCH", "TITLE"], meta.LayerNames);
@@ -28,14 +27,14 @@ public class DwgTests
     }
 
     [Fact]
-    public void Geometry_is_reported_as_unsupported_and_files_without_preview_have_none()
+    public void Releases_without_a_decoder_refuse_geometry_with_the_reason_and_files_without_preview_have_none()
     {
-        var data = File.ReadAllBytes(DatasetPaths.File("dwg/flange-drawing.dwg"));
-
-        var ex = Assert.Throws<UnsupportedModelFormatException>(() => ModelLoader.Load(data, "x.dwg"));
+        var header = new byte[0x200];
+        "AC1032"u8.CopyTo(header);
+        var ex = Assert.Throws<UnsupportedModelFormatException>(() => ModelLoader.Load(header, "x.dwg"));
         Assert.Equal("dwg", ex.Format.Id);
         Assert.Contains("not decoded", ex.Message, StringComparison.Ordinal);
-        Assert.Null(ModelLoader.ReadPreview(data, "x.dwg"));
+        Assert.Null(ModelLoader.ReadPreview(File.ReadAllBytes(DatasetPaths.File("dwg/flange-drawing.dwg")), "x.dwg"));
     }
 
     private static byte[] WithPreview(byte[] original, params (int Type, byte[] Data)[] images)
