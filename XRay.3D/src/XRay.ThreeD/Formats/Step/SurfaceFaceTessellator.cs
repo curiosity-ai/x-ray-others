@@ -367,8 +367,17 @@ internal sealed class SurfaceFaceTessellator
                 {
                     (points[0].U + TwoPi, points[0].V, points[0].P),
                     (points[0].U + TwoPi, pv, poleP),
-                    (points[0].U, pv, poleP),
                 };
+
+                // The pole is one point in space but a whole line in (u, v): give that line a vertex every angular step, so the triangles between the
+                // interior samples and the pole are a fan to the pole instead of long slivers that collapse to nothing in space and leave a hole.
+                var poleSteps = Math.Clamp((int)Math.Ceiling(TwoPi / Math.Max(_angular, 0.02)), 8, 256);
+                for (var k = poleSteps - 1; k >= 1; k--)
+                {
+                    loop.Add((points[0].U + (TwoPi * k / poleSteps), pv, poleP));
+                }
+
+                loop.Add((points[0].U, pv, poleP));
                 polygons.Add(loop);
                 foreach (var h in plain)
                 {
