@@ -23,6 +23,7 @@ public class RobustnessTests
         "synthetic/model.rvt",
         "dwg/flange-drawing.dwg",
         "dwg/studio-floor-plan.dwg",
+        "synthetic/disc.x_t",
         "synthetic/laz-f0.laz",
         "synthetic/laz-f3.laz",
         "synthetic/cube-facecolors.off",

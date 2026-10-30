@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Writes the Parasolid header fixtures of dataset/synthetic. Only the header is meaningful: the node streams are placeholders, since the
-field layouts of a Parasolid schema are not public (the reader decodes the header and says so for the geometry).
+"""Writes the Parasolid fixtures of dataset/synthetic. header.x_t, header.x_b and bare.x_t only have a meaningful header (placeholder node streams, a schema the
+reader does not tabulate). disc.x_t is a complete text transmit file of the Parasolid 12 schema, written for this repository from the field lists of the public XT
+format reference: a circular sheet of radius 2 (one plane face, one ring edge without vertices) with a colour attribute (0.2, 0.4, 0.6) on the face.
 
     python3 -I tools/fixtures/make_parasolid_fixtures.py dataset/synthetic
 """
@@ -34,3 +35,31 @@ open(os.path.join(out, 'header.x_t'), 'w', newline='\n').write(text)
 binary = b'PS\x00\x00\x003: TRANSMIT FILE created by modeller version 3000000\x00\x00\x00\x11SCH_3000000_30000\x00\x00\x00\x00\x00R\x00\x00\x00\x03\x00\x02\x00\x00\x00\x00\xff\xff\x80\x04\x7f\xff\xff\xff\x00R\x00\x00\x00\x00\x00\x08\x00\x01\x00\x01'
 open(os.path.join(out, 'header.x_b'), 'wb').write(binary)
 open(os.path.join(out, 'bare.x_t'), 'w', newline='\n').write('T51 : TRANSMIT FILE created by modeller version 300000017 SCH_3000000_300000 82 3 1 0 ?2147483647 82 0 91 1 0 \n')
+
+disc = ''.join(line + '\n' for line in [
+    '**ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz***********',
+    '**PARASOLID !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~0123456789************',
+    '**PART1;APPL=disc fixture;FORMAT=text;GUISE=transmit;DATE=2025-01-02;',
+    '**PART2;SCH=SCH_1200000_12006;USFLD_SIZE=0;',
+    '**PART3;',
+    '**END_OF_HEADER***************************************************',
+    'T51 : TRANSMIT FILE created by modeller version 120000017 SCH_1200000_120060',
+    ' 12 1 12 0 2 0 0 0 0 1e3 1e-8 0 0 0 1 0 3 1 3 4 5 0 6 7 0',
+    ' 70 2 0 1 0 0 4 1 20 8 8 8 1 T',
+    ' 13 3 3 0 1 0 9 0 0 6 9',
+    ' 50 4 11 0 9 0 0 0 +0 0 0 0 0 1 1 0 0',
+    ' 31 5 10 0 7 0 0 0 +0 0 0 0 0 1 1 0 0 2',
+    ' 19 6 5 0 1 0 0 3 V',
+    ' 16 7 6 0 ?10 0 0 5 0 0 1',
+    ' 17 10 0 11 10 10 0 12 7 0 0 +',
+    ' 15 11 7 0 10 9 0',
+    ' 17 12 0 0 0 0 0 10 7 0 0 -',
+    ' 14 9 2 13 ?0 0 11 3 4 +0 0 0 0 3',
+    ' 81 1 13 12 14 9 0 0 0 0 15',
+    ' 80 1 14 0 16 8001 0 0 0 0 3 5 0 0 FFFFTFTFFFFFF2',
+    ' 83 3 15 .2 .4 .6',
+    ' 79 15 16 SDL/TYSA_COLOUR',
+    ' 74 20 8 1 0 13 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0',
+    ' 1 0',
+])
+open(os.path.join(out, 'disc.x_t'), 'w', newline='\n').write(disc)

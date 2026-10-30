@@ -160,3 +160,9 @@ SOFTWARE.
 ```
 
 The `.xz` decoder (`Internal/XzDecoder.cs`) is written from the public xz and LZMA2 format descriptions and checked against liblzma.
+## Parasolid XT format reference and parasolid-kit (consulted, not copied)
+
+The node types and field lists of `Formats/Parasolid/ParasolidSchema.cs` were written from the struct listings of the publicly distributed Parasolid XT
+Format Reference (Siemens, April 2008). [parasolid-kit](https://github.com/monozukuri-ai/parasolid-kit) (MIT licence, copyright 2026 parasolid-kit
+contributors) was read to cross-check the V30 field lists against real exports (it confirms, for instance, that the ellipse lists its sense before its centre
+and that B-surface control grids run with v fastest); no code or table of it is included.

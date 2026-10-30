@@ -2007,6 +2007,15 @@
   "sha256": "5d0653b6f1eff22609f9f5a0d013744e3250f89aecdad345fac4a180a8a6acf5"
  },
  {
+  "file": "synthetic/disc.x_t",
+  "format": "parasolid",
+  "title": "Parasolid 12 transmit file: a circular sheet with a colour attribute",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_parasolid_fixtures.py",
+  "bytes": 929,
+  "sha256": "8551a38c39738f3deb08017462d1b8f7beb106d0e631db9ae343aa82bcbec7b4"
+ },
+ {
   "file": "synthetic/legacy-cube.sldprt",
   "format": "sldprt",
   "title": "Synthetic SolidWorks 2014-style part (OLE compound, __ZLB streams)",
