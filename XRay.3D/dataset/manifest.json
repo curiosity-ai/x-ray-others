@@ -2473,7 +2473,6 @@
   "source": "original work",
   "bytes": 1841,
   "sha256": "c93133d7ea34800837a0d76307af91bc08ad293fe5f70ed065a256397407fce5"
-
  },
  {
   "file": "synthetic/xz/concat.xz",
@@ -2573,5 +2572,86 @@
   "source": "tools/fixtures/make_xz.py",
   "bytes": 172,
   "sha256": "16f9b26ed68b4271311429dd35521be4de6e5e1a5ce84c98f96a5abea7c7fe23"
+ },
+ {
+  "file": "synthetic/blend-units/units-mm.blend",
+  "format": "blend",
+  "title": "Blender scene at unit scale 0.001 (millimetres): a 20 mm cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 194242,
+  "sha256": "0f563fdb49f8cf8a1ad30e3543e7c7f10681b871ddff5fb3b52e9638071a9c44"
+ },
+ {
+  "file": "synthetic/blend-units/units-m.blend",
+  "format": "blend",
+  "title": "Blender scene at unit scale 1 (metres): a 2 m cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 86538,
+  "sha256": "3211ca0e48f8d89048f02f2e86dd0295e1987c3ceaac3ac8a0ebe27f98e698d2"
+ },
+ {
+  "file": "synthetic/blend-units/units-cm.blend",
+  "format": "blend",
+  "title": "Blender scene at unit scale 0.01 (centimetres): a 30 cm cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 86615,
+  "sha256": "ec8b7f1aeb12839f8db9177b00f3980149981e8c0a50ae5cbd3a9093e994d36c"
+ },
+ {
+  "file": "synthetic/blend-units/units-inch.blend",
+  "format": "blend",
+  "title": "Blender scene, imperial inches, unit scale 0.0254: a 10 inch cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 86553,
+  "sha256": "b5129a8637c7babe0fa7c8c833aada3ebf6861e7da401f98f07be4716df11aca"
+ },
+ {
+  "file": "synthetic/blend-units/units-km.blend",
+  "format": "blend",
+  "title": "Blender scene at unit scale 1000 (kilometres): a 0.5 km cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 86563,
+  "sha256": "a038bafbb3e1052a405288145ebbd8edcae5286053f8224a1b9f0d4d7ca1f7c6"
+ },
+ {
+  "file": "synthetic/blend-units/units-odd.blend",
+  "format": "blend",
+  "title": "Blender scene at unit scale 0.0125 (no named unit): an 8 unit cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 86571,
+  "sha256": "bf595d1f4d240d1afaa1ddccbde8cdf3d5908b1881c1feeb65cdcbafde9abe5c"
+ },
+ {
+  "file": "synthetic/blend-units/units-none.blend",
+  "format": "blend",
+  "title": "Blender scene with unit system None (scale 0.001 is ignored): a 2 unit cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 86594,
+  "sha256": "203c2f847f2bf8ea225240c8916b625733524db360eb0c752d29a80eb0234d7d"
+ },
+ {
+  "file": "synthetic/blend-units/shapes.blend",
+  "format": "blend",
+  "title": "Blender shapes of known volume (cube, cylinder, sphere, torus, Suzanne), a mirrored cube, a sheared child, collection instances, UVs and a texture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 141315,
+  "sha256": "68483fe25a0c0bed91e93c6ca0ec99879fd92e2f33e94f7791d0bebc52f83ae3"
+ },
+ {
+  "file": "synthetic/blend-units/shapes-mm.blend",
+  "format": "blend",
+  "title": "The same Blender shapes at unit scale 0.001, gzip-compressed",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 142824,
+  "sha256": "a6f664b623c3dea016af725a76297c12ed6df939f85f680029f47d1bf08bd2be"
  }
 ]
