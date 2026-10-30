@@ -118,7 +118,62 @@ What goes where in the GLB:
 | Far-from-origin meshes | a mesh far from the origin compared with its size is stored around its own centre (float32 precision); the centre goes into the nodes and into `mesh.extras.origin` | `RecentreFarModels` (on) |
 | Lazy loading | `AssemblyPackage`: `assembly.json` (instance tree, metadata) plus one GLB per unique part | `AssemblyPackage.Create` |
 
-`ConvertToGlb` of a GLB input returns it unchanged (after it loaded cleanly) unless options are given. `LoadOptions.AssumedUnits` and `AssumedUpAxis` fill in what STL, OBJ, PLY, OFF, 3DS, XYZ and PTS files do not say.
+`ConvertToGlb` of a GLB input returns it unchanged (after it loaded cleanly) unless options are given.
+
+### Units
+
+`ModelMetadata.Units` is the unit of the stored coordinates; the writer scales to meters exactly once, with the root node. A scale that is not a named
+unit (a Blender scene at 0.0125, an FBX with `UnitScaleFactor` 0.5, an IFC project that defines its own conversion-based unit, an X3D `UNIT length`
+statement) is reported as meters plus a scaling root node and a note. What each format says:
+
+| Format | Unit | Source of the unit |
+|---|---|---|
+| STL, OBJ, PLY, OFF, 3DS, XYZ, PTS, OpenSCAD (mm by convention), Blitz3D, PSU | none stated (OpenSCAD: mm) | `LoadOptions.AssumedUnits` |
+| glTF, GLB, X3D, VRML | meters (an X3D `unit` element or x3dv `UNIT length` rescales) | the specification |
+| 3MF, AMF | `unit` attribute (3MF: micron, millimeter, centimeter, inch, foot, meter; AMF: inch, millimeter, meter, feet, micrometer; both default to millimeter) | the file |
+| COLLADA | `<unit meter=...>` | the file |
+| FBX | `GlobalSettings.UnitScaleFactor` is centimetres per unit (default 1 = cm, 100 = m) | the file |
+| USD | `metersPerUnit` (the schema's fallback, when it is not authored, is centimetres) | the file |
+| DXF, DWG | `$INSUNITS` (the AutoCAD table; angstrom, decametre, hectometre and larger have no `LengthUnit`); for a DXF with `$INSUNITS` 0, `$MEASUREMENT` picks inches (0) or millimetres (1). A DWG with `$INSUNITS` 0 states nothing | the file |
+| IGES | global section unit flag and name | the file |
+| STEP | `SI_UNIT` with prefix, `CONVERSION_BASED_UNIT` (inch, foot) | the file (default mm with a note) |
+| IFC | `IfcSIUnit` prefix, `IfcConversionBasedUnit` through its `IfcMeasureWithUnit` factor | the file (default meters with a note) |
+| SolidWorks, Parasolid | meters | the format |
+| CATIA, 3DXML, FreeCAD | millimetres | the format |
+| Fusion (ASM streams) | centimetres | the format |
+| ACIS SAT/SAB | millimetres per unit from the header; a save before version 2 has no unit line and is left unknown | the file |
+| Rhino | the document's unit system | the file |
+| SketchUp | inches | the format |
+| Blender | one Blender unit is `scene.unit_settings.scale_length` metres (the length unit the interface shows only changes how numbers are printed); unit system None ignores the scale | the file |
+| Unity | meters (FBX inside a package: its own scale) | the format |
+| Unreal | centimetres | the format |
+| Sweet Home 3D | centimetres | the format |
+| G-code | G20 inches, G21 millimetres | the file |
+| LAS, LAZ, E57 | meters nominally; the CRS property says what the units really are | the file |
+| DWF | descriptor units | the file |
+| JT | not stored | `LoadOptions.AssumedUnits` |
+
+`LoadOptions.AssumedUnits` and `AssumedUpAxis` fill in what a file does not say: always for STL, OBJ, PLY, OFF, 3DS, XYZ, PTS and OpenSCAD, and for any other format
+only when the file gave none (an ACIS save before version 2, a DWG with `$INSUNITS` 0, a JT, a Blitz3D model). A unit the file states is never overridden. An unknown unit is
+written as meters (nothing is scaled) and carries no `sourceUnits`.
+
+### Solids, open surfaces and the volume
+
+`ModelStatistics.Volume` is the volume of the **closed, outward-facing meshes** only (instances counted per use, a mirrored instance positive). A mesh encloses space
+when, after welding its vertices by position (1e-5 of its bounding box diagonal), every edge is used equally often in both directions: no border, no edge wound
+against its neighbour. Two solids that touch along an edge share a non-manifold edge and still count. `MeshData.AnalyzeTopology()` returns the
+`MeshTopology` of one mesh (`IsClosed`, `IsSolid`, `IsInsideOut`, `OpenEdges`, `NonManifoldEdges`, `InconsistentEdges`, `SignedVolume`); `ModelStatistics`
+adds `ClosedMeshes`, `OpenMeshes`, `InsideOutMeshes`, `OpenEdges`, `NonManifoldEdges`, `InconsistentEdges`, `VolumeIsComplete` (every mesh is a solid) and
+`SignedVolume` (the old figure: the signed sum over every mesh, meaningless for an open surface). Each triangle mesh's GLB `mesh.extras` carries the same verdict
+(`closed`, `openEdges`, `nonManifoldEdges`, `inconsistentEdges`, `insideOut`) for the **whole mesh**: a closed solid with two materials is two glTF primitives, each open on
+its own, so a viewer that tests primitives one by one calls it open; test the glTF mesh, or read these extras.
+
+Openness that is the source's, not a defect of the readers (`ClosedSolidsTests` lists every dataset file with the number of open meshes and why): sheets and
+surfaces (quads, floors, planes, IGES bounded, ruled and spline surfaces, Parasolid sheet bodies, terrain and height fields, flat polygons), tubes and boxes left open by
+their artist (tentacle, forest arena boxes, character meshes, the faucet's holes), meshes with overlapping or zero-area triangles (the Unity key meshes: 48 edges of
+the key ring are used twice in one direction in the asset itself, read independently of the reader), point clouds and line drawings (no triangles), and display tessellations whose
+faces are meshed independently (SolidWorks parts keep the file's T-junctions: the reference reader's counts are the specification). Known reader defects still open: spherical fillet
+faces of Fusion/ASM bodies, one missing triangle at the pole of an IGES sphere cap, trimmed IGES faces whose senses disagree.
 
 `Quantize`, `Meshopt` and `Gpu` files declare their extensions as required (three.js loads them with the meshopt decoder set).
 Reading handles them all, so `ModelLoader.Load` accepts what `GlbWriter` writes.

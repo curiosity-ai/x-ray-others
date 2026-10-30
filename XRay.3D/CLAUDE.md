@@ -60,7 +60,8 @@ python3 -I XRay.3D/tools/fixtures/make_fixtures.py XRay.3D/dataset/synthetic
 - **Conventions.** Transforms are System.Numerics row-vector (`world = local * parent`). `MeshData` holds one welded or
   per-face vertex array and an index array in triangles; `Groups` split indices by material. Units and up axis are
   recorded in metadata, never baked into vertices (the GLB writer adds a root node).
-- **Statistics** count what is drawn (instances per use) plus the unique stored counts.
+- **Statistics** count what is drawn (instances per use) plus the unique stored counts. `Volume` counts closed, outward meshes only (`MeshTopology`); a reader that produces a solid must produce a closed one, and `ClosedSolidsTests` holds the dataset to a per-file table (update the table with the reason when a file's openness changes).
+- **Units.** A reader states the unit of the file (never guess; `LoadOptions.AssumedUnits` is the caller's hint for files that say nothing) and a scale that is not a named unit goes through `UnitScaling.Apply`; every unit path has a size test in `UnitTests` (or `BlendUnitsTests`).
 - **A reader's contract.** `Read` returns a `Model3D` whose `Metadata` is complete; formats with cheap metadata
   also get a metadata-only path in `ModelLoader.ReadMetadata` (SolidWorks does). Unrecognised variants throw
   `UnsupportedModelFormatException` with a message saying what is missing.
