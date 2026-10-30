@@ -2149,5 +2149,23 @@
   "source": "tools/fixtures/make_skp.py",
   "bytes": 2942,
   "sha256": "7f6c331b4d37c8fafaa73057b1ba8aaf6b2852dc82c670c552deaca84bab420a"
+ },
+ {
+  "file": "synthetic/ifcxml-wall.ifcxml",
+  "format": "ifc",
+  "title": "Hand-written wall model as ifcXML and as STEP (the pair describes one model)",
+  "license": "CC0-1.0",
+  "source": "hand-written",
+  "bytes": 4781,
+  "sha256": "66af4f0a58a9aef91fee58bdcf8672986d8b10c053a300e7a91ad6468726b517"
+ },
+ {
+  "file": "synthetic/ifcxml-wall.ifc",
+  "format": "ifc",
+  "title": "Hand-written wall model as ifcXML and as STEP (the pair describes one model)",
+  "license": "CC0-1.0",
+  "source": "hand-written",
+  "bytes": 1921,
+  "sha256": "a7a59529ca08dae966a0e4fd39e1c16356ec8cf2861d9ea5ff161514b9348230"
  }
 ]
