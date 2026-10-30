@@ -792,13 +792,13 @@ public static class GlbWriter
 
         w.WriteStartObject("pbrMetallicRoughness");
         w.WriteStartArray("baseColorFactor");
-        w.WriteNumberValue(Srgb(m.BaseColor.X));
-        w.WriteNumberValue(Srgb(m.BaseColor.Y));
-        w.WriteNumberValue(Srgb(m.BaseColor.Z));
-        w.WriteNumberValue(m.BaseColor.W);
+        w.WriteNumberValue(Srgb(Unit(m.BaseColor.X)));
+        w.WriteNumberValue(Srgb(Unit(m.BaseColor.Y)));
+        w.WriteNumberValue(Srgb(Unit(m.BaseColor.Z)));
+        w.WriteNumberValue(Unit(m.BaseColor.W));
         w.WriteEndArray();
-        w.WriteNumber("metallicFactor", m.Metallic);
-        w.WriteNumber("roughnessFactor", m.Roughness);
+        w.WriteNumber("metallicFactor", Unit(m.Metallic));
+        w.WriteNumber("roughnessFactor", Unit(m.Roughness));
         if (m.BaseColorTexture is { } reference && textures.Map.TryGetValue(reference.Texture, out var textureIndex))
         {
             w.WriteStartObject("baseColorTexture");
@@ -846,6 +846,9 @@ public static class GlbWriter
     }
 
     /// <summary>glTF base colours are linear; model colours are sRGB.</summary>
+    /// <summary>A factor glTF accepts: finite and within 0..1.</summary>
+    private static float Unit(float v) => float.IsFinite(v) ? Math.Clamp(v, 0f, 1f) : 0f;
+
     private static float Srgb(float c) => c <= 0.04045f ? c / 12.92f : MathF.Pow((c + 0.055f) / 1.055f, 2.4f);
 
     private static void WriteNode(Utf8JsonWriter w, SceneNode node, Dictionary<SceneNode, int> indexOf, Model3D model, GlbWriteOptions options, Accessors accessors, InstancePlan? plan)
