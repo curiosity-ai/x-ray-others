@@ -277,7 +277,7 @@ Facts that matter for the design:
 ### 1.13 "Model info" / metadata panel
 
 * There is none. Closest things: the toolbar chip row (UI:18800-19420), the
-  `universal-viewer:model-loaded` event `{fileName, format, triangleCount, layerCount}`
+  `<viewer>:model-loaded` event `{fileName, format, triangleCount, layerCount}`
   (UI:17535), the per-format "missing files" banners (`missingParts`, `missingMaterials`,
   `missingTextures`, `missingLevelFiles`...; UI:15725-15780) that ask for companion files, and a
   "Source units" menu. Share-link payload carries camera, hidden layers, explode, animation
