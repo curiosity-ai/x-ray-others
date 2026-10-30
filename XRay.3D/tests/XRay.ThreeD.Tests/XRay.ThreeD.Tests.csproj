@@ -13,7 +13,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Corpus/solidworks-golden.json" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="Corpus/skp-geometry-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/dxf-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/dxf-drawing-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/usd-golden.json" CopyToOutputDirectory="PreserveNewest" />
@@ -30,6 +29,7 @@
     <None Include="Corpus/iges-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/rhino-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/dwg-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/dwg-releases-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/dwf-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/step-ap242-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/sat-golden.json" CopyToOutputDirectory="PreserveNewest" />
