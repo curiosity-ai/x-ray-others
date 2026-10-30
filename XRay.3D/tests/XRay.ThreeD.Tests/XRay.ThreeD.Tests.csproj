@@ -13,6 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Corpus/solidworks-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/skp-geometry-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/dxf-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/dxf-drawing-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/usd-golden.json" CopyToOutputDirectory="PreserveNewest" />

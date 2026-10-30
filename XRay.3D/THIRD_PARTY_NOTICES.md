@@ -48,3 +48,36 @@ context handling follow that source; the range decoder, the symbol and bit model
 `LazDecoder.cs`, written from the public LASzip description). The Apache License 2.0 text is at
 <https://www.apache.org/licenses/LICENSE-2.0>; the port is checked byte for byte against the C++ LASzip (through laspy's `laszip` back end) and
 against lazrs on the fixtures written by `tools/fixtures/make_las14_fixtures.py`.
+
+## openskp (SketchUp 2021+ record layout)
+
+`src/XRay.ThreeD/Formats/SketchUp/SketchUpVff.cs` reads the `model.dat` of SketchUp 2021 and later. The record layout (the tag values of definitions,
+vertices, edges, faces, loops, coedges, instances, layers and materials, the container set, the 13-double instance matrix) was taken from the
+reading code of [openskp](https://github.com/iamahsanmehmood/openskp) (npm package `openskp` 1.4.0, MIT licence), re-implemented in C# with this
+repository's own tree, triangulation and scene code, and checked against independent counts on 24 real files (`SketchUpGeometryTests`). The licence:
+
+```
+MIT License
+
+Copyright (c) 2024-2026 Ahsan Mehmood
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+The Python port of openskp is LGPL-licensed and was not used.

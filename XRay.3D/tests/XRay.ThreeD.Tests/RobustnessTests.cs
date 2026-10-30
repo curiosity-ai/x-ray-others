@@ -119,6 +119,7 @@ public class RobustnessTests
         "synthetic/laz14c-f7.laz",
         "synthetic/laz-pointwise-f3.laz",
         "synthetic/assembly.3dxml",
+        "synthetic/geometry-2021.skp",
         "synthetic/structure.3dxml",
     ];
 

@@ -15,7 +15,7 @@ using XRay.ThreeD.Internal;
 /// (<c>{23.2.0}</c>; major 13 and up is the release year minus 2000). From 2021 the rest is a ZIP package behind that prefix (a <c>VFF</c> marker follows
 /// the version): <c>meta/model_thumbnail.png</c>, <c>materials/&lt;name&gt;/material.xml</c> with the colour, opacity and texture of each material, the
 /// textures, <c>styles/&lt;name&gt;/style.xml</c> and <c>model.dat</c>, the model itself. Earlier files (2013 to 2020 and the older ones) are one
-/// serialised object stream with the thumbnail PNG inside it. The geometry in <c>model.dat</c> and in the older stream is proprietary and is not decoded.
+/// serialised object stream with the thumbnail PNG inside it. The geometry of 2021 and later is read by <see cref="SketchUpVff"/>; the older stream is not decoded.
 /// </summary>
 internal static class SketchUpReader
 {
@@ -27,7 +27,23 @@ internal static class SketchUpReader
     public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options)
     {
         var meta = ReadMetadata(data, options);
-        throw new UnsupportedModelFormatException(ModelFormats.SketchUp, "SketchUp geometry is proprietary and not decoded (" + meta.Application + "); the version, thumbnail, materials and styles are available through ReadMetadata and ReadPreview.");
+        var d = data.Span;
+        var p = 4 + 28 + 4 + 2 * d[4 + 28 + 3];
+        if (p + 3 <= d.Length && d.Slice(p, 3).SequenceEqual("VFF"u8) && OpenPackage(data) is { } zip)
+        {
+            using (zip)
+            {
+                var model = SketchUpVff.Read(zip, meta, options);
+                if (Thumbnail(data, options.Cancellation, out _) is { } png)
+                {
+                    model.Preview = new PreviewImage("image/png", png);
+                }
+
+                return model;
+            }
+        }
+
+        throw new UnsupportedModelFormatException(ModelFormats.SketchUp, "SketchUp geometry before 2021 (the serialised object stream) is not decoded (" + meta.Application + "); the version and thumbnail are available through ReadMetadata and ReadPreview.");
     }
 
     public static PreviewImage? ReadPreview(ReadOnlyMemory<byte> data, LoadOptions options)
@@ -75,7 +91,9 @@ internal static class SketchUpReader
             meta.HasPreview = Thumbnail(data, token, out _) is not null;
         }
 
-        meta.Notes.Add("SketchUp geometry is proprietary and is not decoded; only the version and preview" + (vff ? ", materials and styles" : "") + " are read. Lengths are stored in inches.");
+        meta.Notes.Add(vff
+            ? "ReadMetadata reads the version, preview, materials and styles; Load decodes the geometry of model.dat. Lengths are stored in inches."
+            : "The geometry of SketchUp 2020 and earlier (a serialised object stream) is not decoded; only the version and preview are read. Lengths are stored in inches.");
         return meta;
     }
 

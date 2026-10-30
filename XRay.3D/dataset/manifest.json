@@ -2338,5 +2338,14 @@
   "source": "tools/fixtures/make_3dxml.py",
   "bytes": 1900,
   "sha256": "8b2b334185dca219128fcf661d038d9bbf9e4c7579a7c9a5d51adef9dede5416"
+ },
+ {
+  "file": "synthetic/geometry-2021.skp",
+  "format": "skp",
+  "title": "Synthetic SketchUp 2021 file with geometry (plate with a hole, a cube component placed twice)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_skp_geometry.py",
+  "bytes": 1789,
+  "sha256": "8704ef8c01b42c209eccfc22a5bc0b191e83ee39e2b5d97d7195447b9bb6f8db"
  }
 ]
