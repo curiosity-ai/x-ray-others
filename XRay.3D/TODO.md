@@ -108,7 +108,8 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
   - [ ] the exact B-rep (the surface and trim records of the same container, described in the cadmpeg notes; an analytic-surface tessellator would be needed for a part saved without the cache)
   - [x] assembly instance positions: decoded (`_Position` of the `3DIC` object after each instance, twelve numbers in a compact form, axes as rows); `Load` of a `.CATProduct` builds instance nodes over the component files (`docs/catia-format.md`, "Products"). **Open**: names in the wide token form drift in large products (those instances may not resolve), constraints are not decoded
   - [ ] a real `.cgr` and `.CATShape` file (none could be found; the reader looks for a `MainDataStream` in any container, untested)
-  - [ ] CATIA V4 `.model` (no description and no sample found)
+  - [ ] CATIA V4 `.model` (no description and no sample found; searched again)
+  - [ ] CATIA exact B-rep (analytic faces behind the tessellation): record layout of `CGMGeom` seen (raw doubles of a cylinder), not decoded; see `docs/catia-format.md`
   - [ ] the `TimeStamp` stream, author and title properties (none of the 75 files set them), parameters and mass properties (names are in the catalog, values are in the object graph)
 
 ## JT, and what is still not read: Creo, NX, Solid Edge

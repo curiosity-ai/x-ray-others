@@ -83,12 +83,34 @@ A product's `Data` stream holds the structure; it is read by `Formats/Catia/Cati
 * **`.CATShape`**: read like a part; no file was available.
 * CATIA V4 `.model`: not attempted.
 
+## The exact B-rep (what was learned, nothing decoded)
+
+Looked at on `HTBX_EntretoiseTendeurs.CATPart` (a 22 mm x 70 mm spacer; its twin STL is in the oracle list below). The part's object containers (`Cont_<id>_<n>`, 1 to 40 KB each) hold, besides the feature tree, raw little-endian doubles for the geometry: in the `CGMGeom` container (16 KB here) a record carries `35.0`, `1.0, 1.0`, `11.0` and `70.0` as plain 8-byte doubles (a cylinder of radius 11 and length 70 with its frame and an angular range as `-35 .. 35`); the feature container (`CATFeatCont`, 20 KB) repeats the same values in the compact form of the product stream (`e6` + double), as the sketch and pad parameters. A record is introduced by class and object tokens in the same `7c`-block grammar as the product stream, with a different catalog. No class table, no face/edge topology and no surface-to-face mapping was identified, so analytic faces (planes, cylinders) are **not** decoded: the tessellation remains the only geometry. Next step if someone continues: take a part made of one primitive (the spacer), list its `CGMGeom` records by class token, and match each record's doubles to the radius, length and frame above.
+
+## External oracles (twins exported from the same model)
+
+Searching the public repositories that hold CATIA files (the six already used; GitHub code search for `.CATPart`, `.CATProduct` finds no others than one more product, `Robbbo-T_OLD`) found five parts with a twin exported from the same model, compared in `CatiaProductTests.Part_tessellations_match_their_exports_from_the_same_model` (numbers in `Corpus/catia-oracle-golden.json`; the files are not redistributable):
+
+| CATPart | twin | result |
+|---|---|---|
+| `HTBX_EntretoiseTendeurs` | CATIA STL export | 3240 triangles on both sides, bounds identical, volume 14073.547 against 14073.542 mm3, area equal |
+| `bolloon holder` | STL | 240 triangles, bounds identical, volume 23482.879 against 23482.878 |
+| `Hitbox_ControlBoardCase` | CATIA STL export (finer: 4296 triangles against 3036) | bounds identical to 0.001 mm, volume -0.7 %, area -2.5 % (a coarser tessellation of curved faces inscribes) |
+| `Hitbox_PowerBoardCase` | CATIA STL export (2852 against 1396) | bounds identical, volume -0.9 %, area -2.9 % |
+| `Telemetry CUAV Air Link 4G` | STEP, tessellated by this package | bounds identical, volume +0.06 %, area +0.01 % |
+
+So the tessellation is CATIA's own display mesh, decoded without loss: for the first two the triangle counts, bounds and volumes match to rounding. Not a pair: `nxholder/Part2.CATPart` and `nxholder_Part2-rk3588lbc4.STEP/STL` (a different revision; heights differ). Not usable for placements: `HitBoxV0.31-Powaa.step` is an EDA export of the power board, not of `POWER_BOARD.CATProduct`; the URDF meshes of `SO_SPIDAR300` are not tied to `Antdroid.CATProduct` by any file in the repository. No 3DXML, OBJ or 3MF twin was found. Instance placements therefore rest on the physical checks in "Products".
+
+## Other formats searched again
+
+`.cgr`: GitHub code search finds 706 files, all unrelated (graph files of a geometry library, a build log); web searches found no downloadable sample. `.CATShape`: no GitHub result, no sample on the web. CATIA V4 `.model`: nothing found. The reader's assumptions for `.cgr` (top-level `MainDataStream`) and `.CATShape` (same as a part) stay unverified.
+
 ## Samples and validation
 
 75 files, R18 (2007) to R32 SP1 (2022), 65 parts, 9 products, 1 drawing. They came from public GitHub repositories (found through GitHub code search on the extensions) and are kept only under `/tmp/claude-0/samples/catia/` (not committed), except the seven MIT-licensed ones that are in `dataset/catia/` with their licence in `dataset/manifest.json`:
 Adrien Husson's HTBX_01Ressources (MIT, 2020: a game-controller model; R21), Dictor's HaneulMyo (MIT, 2019: a robot hand; R24). The others (Motor-V6, SO_SPIDAR300, holydrone, t8data and more) state no licence and are not redistributed.
 
-There was no STEP, 3DXML or STL twin of any file, so no external oracle for the geometry. The checks that stand in for one:
+Five parts have an exported twin (see "External oracles"); for the rest the checks that stand in for an oracle are:
 
 * **Closed, consistently oriented surfaces.** For every tessellation of the 65 parts, welding vertices by position, every directed edge has its reverse (0 open edges) except three files: a sheet body in `Radiator` (open by construction) and two files with 6 and 8 unmatched edges. A misread handle width, strip parity or table would not close.
 * **Every handle is below the vertex count and the faces use every vertex**, in all 65 (for the flagged-layout files too).

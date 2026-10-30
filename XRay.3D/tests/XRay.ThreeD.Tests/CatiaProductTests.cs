@@ -131,6 +131,34 @@ public class CatiaProductTests
         return node;
     }
 
+    [Fact]
+    public void Part_tessellations_match_their_exports_from_the_same_model()
+    {
+        var root = SrcRoot;
+        Assert.SkipWhen(!Directory.Exists(root), "local samples not present");
+        var golden = JsonNode.Parse(File.ReadAllText(DatasetPaths.CorpusFile("catia-oracle-golden.json")))!.AsObject();
+        foreach (var pair in golden["pairs"]!.AsArray())
+        {
+            var part = Path.Combine(root, pair!["part"]!.GetValue<string>());
+            var reference = Path.Combine(root, pair["reference"]!.GetValue<string>());
+            Assert.SkipWhen(!File.Exists(part) || !File.Exists(reference) || new FileInfo(part).Length < 1000, "local sample not present: " + part);
+            var a = ModelLoader.Load(File.ReadAllBytes(part), Path.GetFileName(part));
+            var b = ModelLoader.Load(File.ReadAllBytes(reference), Path.GetFileName(reference));
+            var tolerance = pair["tolerance"]!.GetValue<double>();
+            var expected = pair["volume"]!.GetValue<double>();
+            Assert.Equal(expected, b.Metadata.Statistics!.Volume, expected * 1e-4);
+            Assert.InRange(a.Metadata.Statistics!.Volume / expected, 1 - tolerance, 1 + tolerance);
+            Assert.InRange(a.Metadata.Statistics.SurfaceArea / pair["area"]!.GetValue<double>(), 0.95, 1.05);
+            var bounds = pair["bounds"]!.AsArray().Select(v => v!.GetValue<double>()).ToArray();
+            var box = a.Metadata.Bounds!.Value;
+            float[] actual = [box.Min.X, box.Min.Y, box.Min.Z, box.Max.X, box.Max.Y, box.Max.Z];
+            for (var i = 0; i < 6; i++)
+            {
+                Assert.Equal(bounds[i], actual[i], 0.01);
+            }
+        }
+    }
+
     private static Vector3 Round(Vector3 v) => new((float)Math.Round(v.X, 3), (float)Math.Round(v.Y, 3), (float)Math.Round(v.Z, 3));
 
     private static (Vector3 Min, Vector3 Max) WorldBox(Model3D model, SceneNode node, Matrix4x4 parent)
