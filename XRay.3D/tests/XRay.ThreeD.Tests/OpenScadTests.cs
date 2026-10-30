@@ -118,4 +118,35 @@ public class OpenScadTests
         Assert.True(model.Metadata.Statistics!.Volume > 0);
         _ = GlbWriter.ToArray(model);
     }
+
+    [Theory]
+    [InlineData("chess-rook.scad")]
+    [InlineData("twisted-vase.scad")]
+    [InlineData("wall-bracket.scad")]
+    [InlineData("hex-bolt-and-nut.scad")]
+    public void A_program_that_cuts_and_unions_solids_gives_a_closed_mesh_without_T_junction_cracks(string file)
+    {
+        // The BSP boolean splits polygons; the vertices it adds sit on the edges of unsplit neighbours and used to leave thousands of open edges.
+        var model = ModelLoader.Load(File.ReadAllBytes(DatasetPaths.File("scad/" + file)), file);
+        Assert.True(model.Metadata.Statistics!.VolumeIsComplete, $"{file}: {model.Metadata.Statistics}");
+        foreach (var compression in new[] { GlbCompression.None, GlbCompression.Quantize, GlbCompression.Meshopt })
+        {
+            var back = ModelLoader.Load(GlbWriter.ToArray(model, new GlbWriteOptions { Compression = compression }), "x.glb");
+            Assert.All(back.Meshes.Where(m => m.Indices.Length > 0), m => Assert.True(m.AnalyzeTopology().IsSolid, $"{file} {compression}"));
+        }
+    }
+
+    [Fact]
+    public void T_junctions_on_an_open_edge_are_taken_into_the_neighbouring_triangle()
+    {
+        // A square split into two triangles, and a triangle above it whose edge runs past the middle vertex of the square's top side.
+        float[] positions = [0, 0, 0, 2, 0, 0, 2, 1, 0, 1, 1, 0, 0, 1, 0, 0, 2, 0, 2, 2, 0];
+        uint[] indices = [0, 1, 3, 1, 2, 3, 0, 3, 4, 4, 2, 6, 4, 6, 5];
+        // Triangles (4,2,6) and (4,6,5) sit above the edge 4-3-2 where vertex 3 is a T-junction.
+        var repaired = XRay.ThreeD.Internal.TJunctionRepair.Repair(positions, indices, [], out _, CancellationToken.None);
+        Assert.True(repaired.Length > indices.Length);
+        var topology = new MeshData { Positions = positions, Indices = repaired }.AnalyzeTopology();
+        Assert.Equal(0, topology.InconsistentEdges);
+        Assert.Equal(6, topology.OpenEdges); // the outline: 0-1, 1-2, 2-6, 6-5, 5-4, 4-0
+    }
 }

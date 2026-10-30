@@ -137,6 +137,21 @@ internal static class ScadReader
         }
 
         mesh.Indices = indices.ToArray();
+
+        // The BSP booleans split polygons where they cross, which leaves vertices on the edges of unsplit neighbours: close those cracks so the
+        // solid is closed topologically as well as geometrically.
+        var repaired = TJunctionRepair.Repair(mesh.Positions, mesh.Indices, mesh.Groups.Select(g => (g.Start, g.Count)).ToList(), out var ranges, options.Cancellation);
+        if (!ReferenceEquals(repaired, mesh.Indices))
+        {
+            var materials = mesh.Groups.Select(g => g.Material).ToList();
+            mesh.Indices = repaired;
+            mesh.Groups.Clear();
+            for (var g = 0; g < ranges.Length; g++)
+            {
+                mesh.Groups.Add(new MeshGroup(ranges[g].Start, ranges[g].Count, materials[g]));
+            }
+        }
+
         if (mesh.Groups.Count == 1 && mesh.Groups[0].Material < 0)
         {
             mesh.Groups.Clear();
