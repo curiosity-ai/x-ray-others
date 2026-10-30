@@ -150,9 +150,15 @@ internal static class SolidWorksReader
         }
 
         var meshes = new MeshData[decoded.Geometries.Count];
+        var firstInstanceOf = new Dictionary<int, SwDisplayLists.Instance>();
+        foreach (var candidate in decoded.Instances)
+        {
+            firstInstanceOf.TryAdd(candidate.Geometry, candidate);
+        }
+
         for (var i = 0; i < meshes.Length; i++)
         {
-            var firstInstance = decoded.Instances.FirstOrDefault(x => x.Geometry == i);
+            firstInstanceOf.TryGetValue(i, out var firstInstance);
             meshes[i] = SwDisplayLists.BuildMesh(stream, decoded.Geometries[i], PartName(firstInstance?.Name) ?? metadata.Title, MaterialOf);
             model.Meshes.Add(meshes[i]);
         }
