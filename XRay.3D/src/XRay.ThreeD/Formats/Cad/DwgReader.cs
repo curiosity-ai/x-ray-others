@@ -31,14 +31,47 @@ internal static class DwgReader
     public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options)
     {
         var metadata = ReadMetadata(data, options);
-        if (metadata.FormatVersion == "AC1015" && data.Length > 0x19 + 9)
+        if (DwgContainer.Generation(data.Span) is 15 or 18 or 24 or 27 or 32)
         {
-            return DwgGeometry.Read(data, options, metadata);
+            return ReadDatabase(data, options, metadata);
         }
 
         throw new UnsupportedModelFormatException(
             ModelFormats.Dwg,
             $"DWG geometry is not decoded ({metadata.FormatVersion}, {metadata.GetProperty("Release")}); the version, preview and, for AC1012 to AC1015, the layers are available through ReadMetadata and ReadPreview.");
+    }
+
+    /// <summary>The drawing as DXF text, decoded from the DWG objects (the form the DXF reader builds the model from).</summary>
+    internal static string ToDxf(ReadOnlyMemory<byte> data, LoadOptions options, out DwgDatabase database)
+    {
+        var sections = DwgContainer.Open(data, options);
+        database = new DwgDatabase(sections, options);
+        database.Load();
+        return database.ToDxf();
+    }
+
+    private static Model3D ReadDatabase(ReadOnlyMemory<byte> data, LoadOptions options, ModelMetadata header)
+    {
+        var dxf = ToDxf(data, options, out var database);
+        var model = DxfReader.Read(Encoding.UTF8.GetBytes(dxf), options);
+        var meta = model.Metadata;
+        meta.Format = ModelFormats.Dwg;
+        meta.FormatVersion = header.FormatVersion;
+        meta.Application = header.Application;
+        meta.HasPreview = header.HasPreview;
+        meta.Properties.RemoveAll(p => p.Name == "Code page");
+        foreach (var p in header.Properties)
+        {
+            meta.Properties.Add(p);
+        }
+
+        foreach (var (what, count) in database.Skipped.OrderBy(k => k.Key, StringComparer.Ordinal))
+        {
+            model.Warnings.Add($"{count} {what} object(s) were not read.");
+        }
+
+        meta.Properties.Add(new ModelProperty("Entities read", database.EntityCount.ToString(CultureInfo.InvariantCulture), "dwg"));
+        return model;
     }
 
     public static ModelMetadata ReadMetadata(ReadOnlyMemory<byte> data, LoadOptions options)
@@ -67,23 +100,44 @@ internal static class DwgReader
         {
             ReadSectionsR2000(data, meta, options);
         }
+        else if (generation is 18 or 24 or 27 or 32)
+        {
+            try
+            {
+                var sections = DwgContainer.Open(data, options);
+                var database = new DwgDatabase(sections, options);
+                foreach (var name in database.ReadLayerNames())
+                {
+                    if (!meta.LayerNames.Contains(name))
+                    {
+                        meta.LayerNames.Add(name);
+                    }
+                }
+
+                meta.Properties.Add(new ModelProperty("Objects", database.ObjectCount.ToString(CultureInfo.InvariantCulture), "dwg"));
+            }
+            catch (ModelFormatException)
+            {
+                meta.Notes.Add("The DWG pages could not be read; layers are not listed.");
+            }
+        }
         else if (generation >= 18)
         {
-            meta.Notes.Add($"{product ?? code} stores its data in compressed, encrypted pages; the version is reported, the drawing is not decoded.");
+            meta.Notes.Add($"{product ?? code} (AutoCAD 2007) pages are Reed-Solomon coded; the version and the preview are reported, the drawing is not decoded.");
         }
         else
         {
             meta.Notes.Add("This DWG release predates the R13 layout and is not decoded.");
         }
 
-        if (generation == 15)
+        if (generation is 15 or 18 or 24 or 27 or 32)
         {
             meta.HasGeometry = true;
-            meta.Notes.Add("Entities of this release (lines, circles, arcs, polylines, text, inserts) are decoded by Load; hatches, dimensions and others are not.");
+            meta.Notes.Add("Lines, circles, arcs, ellipses, splines, polylines, text, MTEXT, hatches, dimensions (as their drawn blocks), inserts with attributes and blocks are decoded by Load; ACIS solids, leaders, MLINE, viewports and images are not.");
         }
         else
         {
-            meta.Notes.Add("DWG geometry is not decoded.");
+            meta.Notes.Add("DWG geometry of this release is not decoded.");
         }
 
         return meta;
@@ -109,6 +163,18 @@ internal static class DwgReader
     public static PreviewImage? ReadPreview(ReadOnlyMemory<byte> data, LoadOptions options)
     {
         var s = data.Span;
+        if (IsDwg(s) && DwgContainer.Generation(s) is 18 or 24 or 27 or 32)
+        {
+            try
+            {
+                return PreviewOfSection(DwgContainer.OpenPreview(data, options), options);
+            }
+            catch (ModelFormatException)
+            {
+                return null;
+            }
+        }
+
         if (!IsDwg(s) || s.Length < 0x11 || Generation(Encoding.ASCII.GetString(s[..6])) is < 13 or >= 21)
         {
             return null;
@@ -140,6 +206,52 @@ internal static class DwgReader
 
             var bytes = s.Slice((int)start, (int)length);
             if (type == 4 && bytes.Length > 8 && bytes[0] == 0x89 && bytes[1] == (byte)'P')
+            {
+                best = new PreviewImage("image/png", bytes.ToArray());
+            }
+            else if (type == 2 && best is null && DibImage.DecodeRgb(bytes, out var w, out var h, options.Cancellation) is { } rgb)
+            {
+                best = new PreviewImage("image/png", DibImage.EncodePng(rgb, w, h));
+            }
+            else if (type == 3 && best is null)
+            {
+                best = new PreviewImage("image/wmf", bytes.ToArray());
+            }
+        }
+
+        return best;
+    }
+
+    /// <summary>The preview of an AC1018 family section: the same table as the older header's, with offsets counted as if the section sat where the older layout put it.</summary>
+    private static PreviewImage? PreviewOfSection(byte[] section, LoadOptions options)
+    {
+        if (section.Length < 40 || !section.AsSpan(0, 16).SequenceEqual(PreviewSentinel))
+        {
+            return null;
+        }
+
+        var count = Math.Min((int)section[20], 8);
+        var tableEnd = 21 + (int)section[20] * 9;
+        PreviewImage? best = null;
+        long baseOffset = -1;
+        for (var i = 0; i < count && 21 + i * 9 + 9 <= section.Length; i++)
+        {
+            var type = section[21 + i * 9];
+            var start = (long)BinaryPrimitives.ReadUInt32LittleEndian(section.AsSpan(21 + i * 9 + 1));
+            var length = (long)BinaryPrimitives.ReadUInt32LittleEndian(section.AsSpan(21 + i * 9 + 5));
+            if (baseOffset < 0)
+            {
+                baseOffset = start - tableEnd;
+            }
+
+            var at = start - baseOffset;
+            if (type is not (2 or 3 or 4 or 6) || at < 0 || length <= 0 || at + length > section.Length)
+            {
+                continue;
+            }
+
+            var bytes = section.AsSpan((int)at, (int)length);
+            if (type is 4 or 6 && bytes.Length > 8 && bytes[0] == 0x89 && bytes[1] == (byte)'P')
             {
                 best = new PreviewImage("image/png", bytes.ToArray());
             }
@@ -214,11 +326,6 @@ internal static class DwgReader
         5 => "auxiliary header",
         _ => "section " + number.ToString(CultureInfo.InvariantCulture),
     };
-
-    /// <summary>Handle to file offset pairs from the object map: blocks of big-endian size, then modular-char deltas of handle and location.</summary>
-    internal static List<(long Handle, long Location)> ReadObjectMapInternal(ReadOnlySpan<byte> s, long start, long length, CancellationToken token) => ReadObjectMap(s, start, length, token);
-
-    internal static bool TryReadLayerNameInternal(ReadOnlySpan<byte> s, long location, out string name) => TryReadLayerName(s, location, out name);
 
     private static List<(long Handle, long Location)> ReadObjectMap(ReadOnlySpan<byte> s, long start, long length, CancellationToken token)
     {

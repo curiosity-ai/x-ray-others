@@ -30,7 +30,7 @@ public class DwgTests
     public void Releases_without_a_decoder_refuse_geometry_with_the_reason_and_files_without_preview_have_none()
     {
         var header = new byte[0x200];
-        "AC1032"u8.CopyTo(header);
+        "AC1021"u8.CopyTo(header);
         var ex = Assert.Throws<UnsupportedModelFormatException>(() => ModelLoader.Load(header, "x.dwg"));
         Assert.Equal("dwg", ex.Format.Id);
         Assert.Contains("not decoded", ex.Message, StringComparison.Ordinal);
@@ -95,12 +95,12 @@ public class DwgTests
     public void Later_releases_report_their_version_and_say_what_is_not_decoded()
     {
         var header = new byte[0x200];
-        "AC1032"u8.CopyTo(header);
+        "AC1021"u8.CopyTo(header);
         var meta = ModelLoader.ReadMetadata(header, "x.dwg");
 
-        Assert.Equal("AC1032", meta.FormatVersion);
-        Assert.Equal("AutoCAD 2018", meta.GetProperty("Release"));
-        Assert.Contains(meta.Notes, n => n.Contains("compressed, encrypted", StringComparison.Ordinal));
+        Assert.Equal("AC1021", meta.FormatVersion);
+        Assert.Equal("AutoCAD 2007", meta.GetProperty("Release"));
+        Assert.Contains(meta.Notes, n => n.Contains("Reed-Solomon", StringComparison.Ordinal));
         Assert.Empty(meta.LayerNames);
     }
 }
