@@ -270,13 +270,14 @@ public static class GlbWriter
     private static void WriteJson(Model3D model, GlbWriteOptions options, Utf8JsonWriter w, MemoryStream bin)
     {
         var accessors = new Accessors();
-        var meshPrimitives = new List<List<(int Position, int Normal, int Color, int Indices, int Material, bool IsEdges)>>();
+        var meshPrimitives = new List<List<(int Position, int Normal, int Color, int TexCoord, int Indices, int Material, bool IsEdges)>>();
 
         foreach (var mesh in model.Meshes)
         {
             meshPrimitives.Add(AddMesh(mesh, accessors, bin, model.Materials.Count, options));
         }
 
+        var textures = AddImages(model, accessors, bin);
         var plan = options.Instancing == GlbInstancing.Gpu && options.Compression == GlbCompression.None ? PlanInstancing(model, accessors, bin, options) : null;
         var anyDefaultMaterial = model.Meshes.Any(m => m.Groups.Count == 0 || m.Groups.Any(g => g.Material < 0));
         var materialCount = model.Materials.Count + (anyDefaultMaterial ? 1 : 0);
@@ -292,33 +293,41 @@ public static class GlbWriter
 
         w.WriteEndObject();
 
+        var extensionsUsed = new List<string>();
+        var extensionsRequired = new List<string>();
         if (plan is { Synthetic.Count: > 0 })
         {
-            w.WriteStartArray("extensionsUsed");
-            w.WriteStringValue("EXT_mesh_gpu_instancing");
-            w.WriteEndArray();
-            w.WriteStartArray("extensionsRequired");
-            w.WriteStringValue("EXT_mesh_gpu_instancing");
-            w.WriteEndArray();
+            extensionsUsed.Add("EXT_mesh_gpu_instancing");
+            extensionsRequired.Add("EXT_mesh_gpu_instancing");
         }
 
         if (accessors.AnyQuantized)
         {
+            extensionsUsed.Add("KHR_mesh_quantization");
+            extensionsRequired.Add("KHR_mesh_quantization");
+            if (accessors.AnyCompressed)
+            {
+                extensionsUsed.Add("EXT_meshopt_compression");
+                extensionsRequired.Add("EXT_meshopt_compression");
+            }
+        }
+
+        if (textures.AnyTransform)
+        {
+            extensionsUsed.Add("KHR_texture_transform");
+        }
+
+        if (extensionsUsed.Count > 0)
+        {
             w.WriteStartArray("extensionsUsed");
-            w.WriteStringValue("KHR_mesh_quantization");
-            if (accessors.AnyCompressed)
-            {
-                w.WriteStringValue("EXT_meshopt_compression");
-            }
-
+            extensionsUsed.ForEach(w.WriteStringValue);
             w.WriteEndArray();
-            w.WriteStartArray("extensionsRequired");
-            w.WriteStringValue("KHR_mesh_quantization");
-            if (accessors.AnyCompressed)
-            {
-                w.WriteStringValue("EXT_meshopt_compression");
-            }
+        }
 
+        if (extensionsRequired.Count > 0)
+        {
+            w.WriteStartArray("extensionsRequired");
+            extensionsRequired.ForEach(w.WriteStringValue);
             w.WriteEndArray();
         }
 
@@ -432,7 +441,7 @@ public static class GlbWriter
                 }
 
                 w.WriteStartArray("primitives");
-                foreach (var (position, normal, color, indices, material, isEdges) in meshPrimitives[i])
+                foreach (var (position, normal, color, texCoord, indices, material, isEdges) in meshPrimitives[i])
                 {
                     w.WriteStartObject();
                     w.WriteStartObject("attributes");
@@ -445,6 +454,11 @@ public static class GlbWriter
                     if (color >= 0)
                     {
                         w.WriteNumber("COLOR_0", color);
+                    }
+
+                    if (texCoord >= 0)
+                    {
+                        w.WriteNumber("TEXCOORD_0", texCoord);
                     }
 
                     w.WriteEndObject();
@@ -489,54 +503,60 @@ public static class GlbWriter
             w.WriteStartArray("materials");
             foreach (var m in model.Materials)
             {
-                WriteMaterial(w, m);
+                WriteMaterial(w, m, textures);
             }
 
             if (anyDefaultMaterial)
             {
-                WriteMaterial(w, new ModelMaterial { Name = "default" });
+                WriteMaterial(w, new ModelMaterial { Name = "default" }, textures);
             }
 
             w.WriteEndArray();
         }
 
-        if (accessors.List.Count > 0)
+        WriteImages(w, textures);
+
+        if (accessors.Views.Count > 0)
         {
-            w.WriteStartArray("accessors");
-            foreach (var a in accessors.List)
+            if (accessors.List.Count > 0)
             {
-                w.WriteStartObject();
-                w.WriteNumber("bufferView", a.View);
-                w.WriteNumber("componentType", a.ComponentType);
-                if (a.Normalized)
+                w.WriteStartArray("accessors");
+                foreach (var a in accessors.List)
                 {
-                    w.WriteBoolean("normalized", true);
-                }
-
-                w.WriteNumber("count", a.Count);
-                w.WriteString("type", a.Type);
-                if (a.Min is { } min && a.Max is { } max)
-                {
-                    w.WriteStartArray("min");
-                    foreach (var v in min)
+                    w.WriteStartObject();
+                    w.WriteNumber("bufferView", a.View);
+                    w.WriteNumber("componentType", a.ComponentType);
+                    if (a.Normalized)
                     {
-                        w.WriteNumberValue(v);
+                        w.WriteBoolean("normalized", true);
                     }
 
-                    w.WriteEndArray();
-                    w.WriteStartArray("max");
-                    foreach (var v in max)
+                    w.WriteNumber("count", a.Count);
+                    w.WriteString("type", a.Type);
+                    if (a.Min is { } min && a.Max is { } max)
                     {
-                        w.WriteNumberValue(v);
+                        w.WriteStartArray("min");
+                        foreach (var v in min)
+                        {
+                            w.WriteNumberValue(v);
+                        }
+
+                        w.WriteEndArray();
+                        w.WriteStartArray("max");
+                        foreach (var v in max)
+                        {
+                            w.WriteNumberValue(v);
+                        }
+
+                        w.WriteEndArray();
                     }
 
-                    w.WriteEndArray();
+                    w.WriteEndObject();
                 }
 
-                w.WriteEndObject();
+                w.WriteEndArray();
             }
 
-            w.WriteEndArray();
             w.WriteStartArray("bufferViews");
             foreach (var v in accessors.Views)
             {
@@ -617,7 +637,103 @@ public static class GlbWriter
         return (scale, rotation, scale != 1 || rotation != Quaternion.Identity);
     }
 
-    private static void WriteMaterial(Utf8JsonWriter w, ModelMaterial m)
+    private sealed class TextureTable
+    {
+        public readonly Dictionary<int, int> Map = new();
+        public readonly List<(ModelTexture Texture, int View)> Images = new();
+        public bool AnyTransform;
+    }
+
+    /// <summary>Stores the images that materials use (each once) as buffer views and numbers them for the <c>textures</c> array.</summary>
+    private static TextureTable AddImages(Model3D model, Accessors accessors, MemoryStream bin)
+    {
+        var table = new TextureTable();
+        foreach (var material in model.Materials)
+        {
+            if (material.BaseColorTexture is not { } reference || reference.Texture < 0 || reference.Texture >= model.Textures.Count)
+            {
+                continue;
+            }
+
+            var texture = model.Textures[reference.Texture];
+            if (texture.Data.Length == 0 || texture.MediaType is not ("image/png" or "image/jpeg" or "image/webp"))
+            {
+                continue;
+            }
+
+            if (!table.Map.ContainsKey(reference.Texture))
+            {
+                table.Map[reference.Texture] = table.Images.Count;
+                table.Images.Add((texture, AddPlainView(accessors, bin, texture.Data, 0, 0)));
+            }
+
+            table.AnyTransform |= reference.HasTransform;
+        }
+
+        return table;
+    }
+
+    private static int WrapCode(TextureWrap wrap) => wrap switch
+    {
+        TextureWrap.ClampToEdge => 33071,
+        TextureWrap.MirroredRepeat => 33648,
+        _ => 10497,
+    };
+
+    private static void WriteImages(Utf8JsonWriter w, TextureTable table)
+    {
+        if (table.Images.Count == 0)
+        {
+            return;
+        }
+
+        var samplers = new List<(TextureWrap U, TextureWrap V, bool Nearest)>();
+        w.WriteStartArray("images");
+        foreach (var (texture, view) in table.Images)
+        {
+            w.WriteStartObject();
+            if (!string.IsNullOrEmpty(texture.Name))
+            {
+                w.WriteString("name", texture.Name);
+            }
+
+            w.WriteNumber("bufferView", view);
+            w.WriteString("mimeType", texture.MediaType);
+            w.WriteEndObject();
+            var key = (texture.WrapU, texture.WrapV, texture.Nearest);
+            if (!samplers.Contains(key))
+            {
+                samplers.Add(key);
+            }
+        }
+
+        w.WriteEndArray();
+        w.WriteStartArray("samplers");
+        foreach (var (u, v, nearest) in samplers)
+        {
+            w.WriteStartObject();
+            w.WriteNumber("magFilter", nearest ? 9728 : 9729);
+            w.WriteNumber("minFilter", nearest ? 9984 : 9987);
+            w.WriteNumber("wrapS", WrapCode(u));
+            w.WriteNumber("wrapT", WrapCode(v));
+            w.WriteEndObject();
+        }
+
+        w.WriteEndArray();
+        w.WriteStartArray("textures");
+        for (var i = 0; i < table.Images.Count; i++)
+        {
+            var t = table.Images[i].Texture;
+            w.WriteStartObject();
+            w.WriteNumber("sampler", samplers.IndexOf((t.WrapU, t.WrapV, t.Nearest)));
+            w.WriteNumber("source", i);
+            w.WriteEndObject();
+        }
+
+        w.WriteEndArray();
+    }
+
+    private static void WriteMaterial(Utf8JsonWriter w, ModelMaterial m, TextureTable textures)
     {
         w.WriteStartObject();
         if (m.Name is not null)
@@ -634,6 +750,42 @@ public static class GlbWriter
         w.WriteEndArray();
         w.WriteNumber("metallicFactor", m.Metallic);
         w.WriteNumber("roughnessFactor", m.Roughness);
+        if (m.BaseColorTexture is { } reference && textures.Map.TryGetValue(reference.Texture, out var textureIndex))
+        {
+            w.WriteStartObject("baseColorTexture");
+            w.WriteNumber("index", textureIndex);
+            if (reference.HasTransform)
+            {
+                w.WriteStartObject("extensions");
+                w.WriteStartObject("KHR_texture_transform");
+                if (reference.Offset != Vector2.Zero)
+                {
+                    w.WriteStartArray("offset");
+                    w.WriteNumberValue(reference.Offset.X);
+                    w.WriteNumberValue(reference.Offset.Y);
+                    w.WriteEndArray();
+                }
+
+                if (reference.Rotation != 0)
+                {
+                    w.WriteNumber("rotation", reference.Rotation);
+                }
+
+                if (reference.Scale != Vector2.One)
+                {
+                    w.WriteStartArray("scale");
+                    w.WriteNumberValue(reference.Scale.X);
+                    w.WriteNumberValue(reference.Scale.Y);
+                    w.WriteEndArray();
+                }
+
+                w.WriteEndObject();
+                w.WriteEndObject();
+            }
+
+            w.WriteEndObject();
+        }
+
         w.WriteEndObject();
         w.WriteBoolean("doubleSided", true);
         if (m.BaseColor.W < 1)
@@ -839,9 +991,9 @@ public static class GlbWriter
         w.WriteEndArray();
     }
 
-    private static List<(int Position, int Normal, int Color, int Indices, int Material, bool IsEdges)> AddMesh(MeshData mesh, Accessors accessors, MemoryStream bin, int materialCount, GlbWriteOptions options)
+    private static List<(int Position, int Normal, int Color, int TexCoord, int Indices, int Material, bool IsEdges)> AddMesh(MeshData mesh, Accessors accessors, MemoryStream bin, int materialCount, GlbWriteOptions options)
     {
-        var primitives = new List<(int, int, int, int, int, bool)>();
+        var primitives = new List<(int, int, int, int, int, int, bool)>();
         if (mesh.VertexCount == 0)
         {
             return primitives;
@@ -852,6 +1004,7 @@ public static class GlbWriter
         var positions = mesh.Positions;
         var normals = mesh.Normals.Length == mesh.Positions.Length ? mesh.Normals : [];
         var colors = mesh.Colors.Length == mesh.VertexCount * 4 ? mesh.Colors : [];
+        var texCoords = mesh.TexCoords.Length == mesh.VertexCount * 2 ? mesh.TexCoords : [];
         var indices = mesh.Indices;
         var edges = EdgesFor(mesh, options);
         var vertexCount = mesh.VertexCount;
@@ -859,13 +1012,14 @@ public static class GlbWriter
         if (compact && indices.Length > 0)
         {
             // Number the vertices in order of first use: the index codec relies on it, and unused vertices are dropped.
-            (positions, normals, colors, indices, edges) = ReorderByFirstUse(mesh, normals, colors, edges);
+            (positions, normals, colors, texCoords, indices, edges) = ReorderByFirstUse(mesh, normals, colors, texCoords, edges);
             vertexCount = positions.Length / 3;
         }
 
         int position;
         int normal = -1;
         int color = -1;
+        int texCoord = -1;
         if (compact)
         {
             var box = BoundsOf(positions);
@@ -910,6 +1064,11 @@ public static class GlbWriter
 
                 color = AddAttribute(accessors, bin, bytes, vertexCount, 4, compress, 5121, true, "VEC4", null, null, null);
             }
+
+            if (texCoords.Length > 0)
+            {
+                texCoord = AddAttribute(accessors, bin, MemoryMarshal.AsBytes(texCoords.AsSpan()).ToArray(), vertexCount, 8, compress, 5126, false, "VEC2", null, null, null);
+            }
         }
         else
         {
@@ -936,6 +1095,11 @@ public static class GlbWriter
 
                 color = AddAccessor(accessors, bin, MemoryMarshal.AsBytes(linear.AsSpan()), 5126, vertexCount, "VEC4", 34962, null, null);
             }
+
+            if (texCoords.Length > 0)
+            {
+                texCoord = AddAccessor(accessors, bin, MemoryMarshal.AsBytes(texCoords.AsSpan()), 5126, vertexCount, "VEC2", 34962, null, null);
+            }
         }
 
         if (indices.Length == 0)
@@ -944,11 +1108,11 @@ public static class GlbWriter
             {
                 // A line-only mesh (a 2D drawing, a toolpath): its edges are the content.
                 var lines = AddIndices(accessors, bin, edges, vertexCount, compress, triangles: false);
-                primitives.Add((position, -1, color, lines, mesh.EdgeMaterial >= 0 && mesh.EdgeMaterial < materialCount ? mesh.EdgeMaterial : -1, true));
+                primitives.Add((position, -1, color, -1, lines, mesh.EdgeMaterial >= 0 && mesh.EdgeMaterial < materialCount ? mesh.EdgeMaterial : -1, true));
             }
             else
             {
-                primitives.Add((position, normal, color, -1, -1, false));
+                primitives.Add((position, normal, color, texCoord, -1, -1, false));
             }
 
             return primitives;
@@ -963,13 +1127,13 @@ public static class GlbWriter
             }
 
             var accessor = AddIndices(accessors, bin, indices.AsSpan(group.Start, group.Count), vertexCount, compress, triangles: true);
-            primitives.Add((position, normal, color, accessor, group.Material >= 0 && group.Material < materialCount ? group.Material : -1, false));
+            primitives.Add((position, normal, color, texCoord, accessor, group.Material >= 0 && group.Material < materialCount ? group.Material : -1, false));
         }
 
         if (edges.Length > 0)
         {
             var edgeAccessor = AddIndices(accessors, bin, edges, vertexCount, compress, triangles: false);
-            primitives.Add((position, -1, -1, edgeAccessor, -1, true));
+            primitives.Add((position, -1, -1, -1, edgeAccessor, -1, true));
         }
 
         return primitives;
@@ -1001,7 +1165,7 @@ public static class GlbWriter
         return box;
     }
 
-    private static (float[] Positions, float[] Normals, float[] Colors, uint[] Indices, uint[] Edges) ReorderByFirstUse(MeshData mesh, float[] normals, float[] colors, uint[] edges)
+    private static (float[] Positions, float[] Normals, float[] Colors, float[] TexCoords, uint[] Indices, uint[] Edges) ReorderByFirstUse(MeshData mesh, float[] normals, float[] colors, float[] texCoords, uint[] edges)
     {
         var map = new int[mesh.VertexCount];
         Array.Fill(map, -1);
@@ -1021,6 +1185,7 @@ public static class GlbWriter
         var positions = new float[used * 3];
         var newNormals = normals.Length > 0 ? new float[used * 3] : [];
         var newColors = colors.Length > 0 ? new float[used * 4] : [];
+        var newTexCoords = texCoords.Length > 0 ? new float[used * 2] : [];
         for (var v = 0; v < map.Length; v++)
         {
             var n = map[v];
@@ -1039,6 +1204,11 @@ public static class GlbWriter
             {
                 Array.Copy(colors, 4 * v, newColors, 4 * n, 4);
             }
+
+            if (texCoords.Length > 0)
+            {
+                Array.Copy(texCoords, 2 * v, newTexCoords, 2 * n, 2);
+            }
         }
 
         var newEdges = edges.Where(e => map[e] >= 0).Select(e => (uint)map[e]).ToArray();
@@ -1047,7 +1217,7 @@ public static class GlbWriter
             newEdges = [];
         }
 
-        return (positions, newNormals, newColors, indices, newEdges);
+        return (positions, newNormals, newColors, newTexCoords, indices, newEdges);
     }
 
     private static byte[] PlainNormals(float[] normals)

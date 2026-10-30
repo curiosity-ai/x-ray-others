@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using System.Numerics;
 using System.Text;
 using System.Text.Json;
+using XRay.ThreeD.Internal;
 
 namespace XRay.ThreeD.Formats.Mesh;
 
@@ -162,6 +163,11 @@ internal static class GltfReader
                         material.BaseColor = new Vector4(ToSrgb(c[0]), ToSrgb(c[1]), ToSrgb(c[2]), c[3]);
                     }
 
+                    if (pbr.TryGetProperty("baseColorTexture", out var colorTexture))
+                    {
+                        material.BaseColorTexture = ReadTextureRef(colorTexture);
+                    }
+
                     if (pbr.TryGetProperty("metallicFactor", out var metallic) && metallic.ValueKind == JsonValueKind.Number)
                     {
                         material.Metallic = metallic.GetSingle();
@@ -175,6 +181,166 @@ internal static class GltfReader
 
                 _model.Materials.Add(material);
             }
+        }
+
+        private readonly Dictionary<int, int> _textures = new();
+
+        /// <summary>A <c>textureInfo</c>: the texture, and <c>KHR_texture_transform</c> when present. Only the first UV set is kept by the model.</summary>
+        private ModelTextureRef? ReadTextureRef(JsonElement info)
+        {
+            if (info.ValueKind != JsonValueKind.Object || !info.TryGetProperty("index", out var indexValue) || !indexValue.TryGetInt32(out var index))
+            {
+                return null;
+            }
+
+            var texture = LoadTexture(index);
+            if (texture < 0)
+            {
+                return null;
+            }
+
+            var reference = new ModelTextureRef(texture);
+            var set = Int(info, "texCoord");
+            if (info.TryGetProperty("extensions", out var extensions) && extensions.ValueKind == JsonValueKind.Object
+                && extensions.TryGetProperty("KHR_texture_transform", out var transform) && transform.ValueKind == JsonValueKind.Object)
+            {
+                if (Vec(transform, "offset", 2) is { } o)
+                {
+                    reference.Offset = new Vector2(o[0], o[1]);
+                }
+
+                if (Vec(transform, "scale", 2) is { } sc)
+                {
+                    reference.Scale = new Vector2(sc[0], sc[1]);
+                }
+
+                if (transform.TryGetProperty("rotation", out var r) && r.ValueKind == JsonValueKind.Number)
+                {
+                    reference.Rotation = r.GetSingle();
+                }
+
+                if (transform.TryGetProperty("texCoord", out var tc) && tc.TryGetInt32(out var tcv))
+                {
+                    set = tcv;
+                }
+            }
+
+            if (set != 0)
+            {
+                _model.Warnings.Add($"A texture uses UV set {set}; only TEXCOORD_0 is read, so it may be mapped wrongly.");
+            }
+
+            return reference;
+        }
+
+        /// <summary>The model texture for glTF texture <paramref name="index"/> (image bytes from a buffer view, a data URI or a companion file), or -1.</summary>
+        private int LoadTexture(int index)
+        {
+            if (_textures.TryGetValue(index, out var cached))
+            {
+                return cached;
+            }
+
+            var result = -1;
+            var textures = Array(_root, "textures");
+            if (index >= 0 && index < textures.Count)
+            {
+                var texture = textures[index];
+                var source = Int(texture, "source") is var s0 && texture.TryGetProperty("source", out _) ? s0 : -1;
+                if (source < 0 && texture.TryGetProperty("extensions", out var ext) && ext.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var name in new[] { "EXT_texture_webp", "KHR_texture_basisu" })
+                    {
+                        if (ext.TryGetProperty(name, out var alt) && alt.TryGetProperty("source", out var sv) && sv.TryGetInt32(out var si))
+                        {
+                            source = si;
+                            break;
+                        }
+                    }
+                }
+
+                var images = Array(_root, "images");
+                if (source >= 0 && source < images.Count)
+                {
+                    var image = images[source];
+                    var imageName = Str(image, "name") ?? Str(image, "uri");
+                    var bytes = ImageBytes(image);
+                    if (bytes is null)
+                    {
+                        // already warned
+                    }
+                    else if (TextureImages.Create(imageName ?? $"image {source}", bytes, out var problem) is { } created)
+                    {
+                        created.Name = Str(image, "name") ?? created.Name;
+                        if (Array(_root, "samplers") is var samplers && texture.TryGetProperty("sampler", out var sampler) && sampler.TryGetInt32(out var si) && si >= 0 && si < samplers.Count)
+                        {
+                            created.WrapU = Wrap(Int(samplers[si], "wrapS"));
+                            created.WrapV = Wrap(Int(samplers[si], "wrapT"));
+                            created.Nearest = samplers[si].TryGetProperty("magFilter", out var mag) && mag.TryGetInt32(out var m) && m == 9728;
+                        }
+
+                        result = _model.Textures.Count;
+                        _model.Textures.Add(created);
+                    }
+                    else if (problem is not null)
+                    {
+                        _model.Warnings.Add(problem);
+                    }
+                }
+            }
+
+            _textures[index] = result;
+            return result;
+        }
+
+        private static TextureWrap Wrap(int code) => code switch
+        {
+            33071 => TextureWrap.ClampToEdge,
+            33648 => TextureWrap.MirroredRepeat,
+            _ => TextureWrap.Repeat,
+        };
+
+        private byte[]? ImageBytes(JsonElement image)
+        {
+            if (image.TryGetProperty("bufferView", out var bv) && bv.TryGetInt32(out var viewIndex))
+            {
+                var views = Array(_root, "bufferViews");
+                if (viewIndex < 0 || viewIndex >= views.Count || !views[viewIndex].TryGetProperty("buffer", out var b) || !b.TryGetInt32(out var bi) || Buffer(bi) is not { } data)
+                {
+                    _model.Warnings.Add("An image refers to a buffer view that is missing.");
+                    return null;
+                }
+
+                long offset = Int(views[viewIndex], "byteOffset");
+                long length = Int(views[viewIndex], "byteLength");
+                if (offset < 0 || length < 0 || offset + length > data.Length)
+                {
+                    throw new ModelFormatException("A glTF image lies outside its buffer.");
+                }
+
+                return data.AsSpan((int)offset, (int)length).ToArray();
+            }
+
+            var uri = Str(image, "uri");
+            if (uri is null)
+            {
+                return null;
+            }
+
+            if (uri.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+            {
+                var comma = uri.IndexOf(',');
+                return comma > 0 && uri[..comma].Contains(";base64", StringComparison.OrdinalIgnoreCase) ? Convert.FromBase64String(uri[(comma + 1)..]) : null;
+            }
+
+            var decoded = Uri.UnescapeDataString(uri);
+            if (_options.ResolveCompanion?.Invoke(decoded) is { } file)
+            {
+                return file;
+            }
+
+            _model.Warnings.Add($"The image '{uri}' is an external file and was not found among the companions.");
+            return null;
         }
 
         private static float ToSrgb(float c) => c <= 0.0031308f ? c * 12.92f : 1.055f * MathF.Pow(c, 1 / 2.4f) - 0.055f;
@@ -326,6 +492,8 @@ internal static class GltfReader
             var indices = new List<uint>();
             var groups = new List<MeshGroup>();
             var allNormals = true;
+            var texCoords = new List<float>();
+            var anyTexCoords = false;
             var pointsOnly = false;
             var trianglesSeen = false;
             var linesSeen = false;
@@ -398,10 +566,21 @@ internal static class GltfReader
                     continue;
                 }
 
+                float[]? uv = attributes.TryGetProperty("TEXCOORD_0", out var ta) && ta.TryGetInt32(out var tai) ? ReadAccessor(tai, 2) : null;
+                if (uv is not null && uv.Length == vertexCount * 2)
+                {
+                    anyTexCoords = true;
+                }
+                else
+                {
+                    uv = null;
+                }
+
                 if (mode == 0)
                 {
                     positions.AddRange(p);
                     normals.AddRange(n is not null && n.Length == p.Length ? n : new float[p.Length]);
+                    texCoords.AddRange(uv ?? new float[vertexCount * 2]);
                     continue;
                 }
 
@@ -420,6 +599,7 @@ internal static class GltfReader
                 var material = primitive.TryGetProperty("material", out var mat) && mat.TryGetInt32(out var mi) && mi >= 0 && mi < _model.Materials.Count ? mi : -1;
                 groups.Add(new MeshGroup(start, indices.Count - start, material));
                 positions.AddRange(p);
+                texCoords.AddRange(uv ?? new float[vertexCount * 2]);
                 if (n is not null && n.Length == p.Length)
                 {
                     normals.AddRange(n);
@@ -442,6 +622,11 @@ internal static class GltfReader
                 mesh.Normals = normals.ToArray();
             }
 
+            if (anyTexCoords && texCoords.Count == positions.Count / 3 * 2)
+            {
+                mesh.TexCoords = texCoords.ToArray();
+            }
+
             if (groups.Count > 1 || groups.Any(g => g.Material >= 0))
             {
                 mesh.Groups.AddRange(groups);
@@ -449,6 +634,12 @@ internal static class GltfReader
 
             if (edgeIndices.Count > 0)
             {
+                // Vertices of line primitives join the array after the others, so the UVs no longer line up.
+                if (texCoords.Count != positions.Count / 3 * 2)
+                {
+                    mesh.TexCoords = [];
+                }
+
                 // Line primitives (a 2D drawing, a toolpath) keep their lines as edges of the mesh; the vertices of every primitive share one array.
                 mesh.EdgeIndices = edgeIndices.ToArray();
                 mesh.EdgeMaterial = edgeMaterial;

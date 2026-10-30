@@ -871,5 +871,32 @@
   "source": "tools/fixtures/make_fixtures.py",
   "bytes": 1068,
   "sha256": "482e112a1e7afe774b8cf6d59bab4c79d184a7219e2e39f646fafcea70889985"
+ },
+ {
+  "file": "synthetic/package-obj-textured.zip",
+  "format": "zip",
+  "title": "Hand-made fixture: OBJ package with MTL map_Kd options, PNG and BMP textures",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 801,
+  "sha256": "b790c4cb8feed1230517eef2cfca1d0551021d0adcfc8f2544488c01fb745858"
+ },
+ {
+  "file": "synthetic/textured.gltf",
+  "format": "gltf",
+  "title": "Hand-made fixture: textured quad with sampler and KHR_texture_transform",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 1921,
+  "sha256": "74cb814e515dddad3954c6d96f1b5c106068efb89a3cb4fd95f91c72ffa0fa9f"
+ },
+ {
+  "file": "synthetic/textured.3mf",
+  "format": "3mf",
+  "title": "Hand-made fixture: 3MF texture2d and texture2dgroup",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 1617,
+  "sha256": "8009d06583313ee20ace6fe4162906e2e6d3288d4481e37678a3130bce514cad"
  }
 ]

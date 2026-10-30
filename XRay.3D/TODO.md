@@ -45,7 +45,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 
 ## Next: conversion quality
 
-- [ ] Textures and UVs (OBJ+MTL with companions, glTF, 3MF textures); `KHR_texture_transform`
+- [x] Textures and UVs: OBJ+MTL `map_Kd` (companions, ZIP packages), glTF and 3MF textures, `TEXCOORD_0` and images/samplers in the GLB, `KHR_texture_transform`. Open: other maps (normal, emissive, metallic-roughness), UV sets above 0, UVs for FBX/COLLADA/X3D/USD/3DS/PLY readers
 - [x] Meshopt decode for glTF input; meshopt compression and `KHR_mesh_quantization` for output (ported codecs, checked against an independent decoder)
 - [ ] Draco decode for glTF input
 - [ ] Smooth/flat normal policy for welded STL (currently left to the viewer)

@@ -203,12 +203,14 @@ public sealed class AssemblyPackage
         part.Metadata.Format = source.Metadata.Format;
         part.Metadata.Title = mesh.Name;
         var remap = new Dictionary<int, int>();
+        var textures = new Dictionary<int, int>();
         var copy = new MeshData
         {
             Name = mesh.Name,
             Positions = mesh.Positions,
             Normals = mesh.Normals,
             Colors = mesh.Colors,
+            TexCoords = mesh.TexCoords,
             Indices = mesh.Indices,
             Faces = mesh.Faces,
             EdgeIndices = mesh.EdgeIndices,
@@ -220,9 +222,8 @@ public sealed class AssemblyPackage
             {
                 if (!remap.TryGetValue(group.Material, out material))
                 {
-                    material = part.Materials.Count;
+                    material = ModelMerge.CopyMaterial(part, source, group.Material, textures);
                     remap[group.Material] = material;
-                    part.Materials.Add(source.Materials[group.Material]);
                 }
             }
 
@@ -279,6 +280,7 @@ public sealed class AssemblyPackage
             var model = new Model3D();
             var partModels = new Dictionary<string, MeshData>(StringComparer.Ordinal);
             var materialMap = new Dictionary<(string, int), int>();
+            var textureMap = new Dictionary<(string, int), int>();
             foreach (var part in root.GetProperty("parts").EnumerateArray())
             {
                 options.Cancellation.ThrowIfCancellationRequested();
@@ -306,9 +308,20 @@ public sealed class AssemblyPackage
                     {
                         if (!materialMap.TryGetValue((id, group.Material), out var mapped))
                         {
-                            mapped = model.Materials.Count;
+                            var partTextures = new Dictionary<int, int>();
+                            foreach (var ((partId, texture), index) in textureMap.Where(t => t.Key.Item1 == id))
+                            {
+                                _ = partId;
+                                partTextures[texture] = index;
+                            }
+
+                            mapped = ModelMerge.CopyMaterial(model, loaded, group.Material, partTextures);
+                            foreach (var (texture, index) in partTextures)
+                            {
+                                textureMap[(id, texture)] = index;
+                            }
+
                             materialMap[(id, group.Material)] = mapped;
-                            model.Materials.Add(loaded.Materials[group.Material]);
                         }
 
                         mesh.Groups[g] = group with { Material = mapped };

@@ -71,6 +71,12 @@ public static class ModelLoader
         foreach (var mesh in model.Meshes)
         {
             repaired |= ReplaceNonFinite(mesh.Positions) | ReplaceNonFinite(mesh.Normals) | ReplaceNonFinite(mesh.Colors);
+            repaired |= ReplaceNonFinite(mesh.TexCoords);
+            if (mesh.TexCoords.Length != mesh.VertexCount * 2)
+            {
+                mesh.TexCoords = [];
+            }
+
             if (mesh.Normals.Length > 0 && !NormaliseNormals(mesh))
             {
                 mesh.Normals = [];
@@ -95,6 +101,21 @@ public static class ModelLoader
 
         foreach (var material in model.Materials)
         {
+            if (material.BaseColorTexture is { } texture)
+            {
+                if (texture.Texture < 0 || texture.Texture >= model.Textures.Count)
+                {
+                    material.BaseColorTexture = null;
+                }
+                else if (!float.IsFinite(texture.Offset.X) || !float.IsFinite(texture.Offset.Y) || !float.IsFinite(texture.Scale.X) || !float.IsFinite(texture.Scale.Y) || !float.IsFinite(texture.Rotation))
+                {
+                    texture.Offset = System.Numerics.Vector2.Zero;
+                    texture.Scale = System.Numerics.Vector2.One;
+                    texture.Rotation = 0;
+                    repaired = true;
+                }
+            }
+
             var c = material.BaseColor;
             if (!float.IsFinite(c.X) || !float.IsFinite(c.Y) || !float.IsFinite(c.Z) || !float.IsFinite(c.W) || !float.IsFinite(material.Metallic) || !float.IsFinite(material.Roughness))
             {

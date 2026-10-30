@@ -35,10 +35,10 @@ A command line tool lives in `tools/XRay.ThreeD.Cli`: `xray3d info <file> [--jso
 |---|---|---|---|
 | SolidWorks 2015+ | `.sldprt` `.sldasm` `.slddrw` | document and custom properties, configurations, features, part names, component files, preview | the display mesh SolidWorks saved, assemblies as instances placed by their transforms |
 | STL | `.stl` (binary, ASCII) | solid name | welded triangles |
-| Wavefront OBJ | `.obj` | objects, material names, `mtllib` | objects as nodes, material groups, normals |
+| Wavefront OBJ | `.obj` | objects, material names, `mtllib` | objects as nodes, material groups, normals, texture coordinates; with companions the MTL's `map_Kd` image (options `-s`, `-o`, `-clamp`; BMP and TGA converted to PNG) |
 | PLY | `.ply` (ASCII, binary LE/BE) | comments | triangles, vertex colours, normals; no faces = point cloud |
-| glTF 2.0 | `.glb` `.gltf` | scene, node names, extras, materials, generator | node tree, shared meshes, PBR base colours |
-| 3MF | `.3mf` | title, designer, units, materials | objects, components, build transforms, base-material colours |
+| glTF 2.0 | `.glb` `.gltf` | scene, node names, extras, materials, generator | node tree, shared meshes, PBR base colours, `TEXCOORD_0` and base-colour textures (samplers, `KHR_texture_transform`; images from buffer views, data URIs or companions) |
+| 3MF | `.3mf` | title, designer, units, materials | objects, components, build transforms, base-material colours, `texture2d`/`texture2dgroup` textures |
 | AutoCAD DXF | `.dxf` (ASCII) | version, units, layers (colour, visibility), blocks, text, entity counts, dates | one node per layer; lines, polylines, arcs, splines, hatch outlines as lines; 3D faces, polyface meshes, MESH, solids as triangles; blocks and arrays expanded |
 | STEP | `.step` `.stp` `.p21` | header, product tree, descriptions, versions, materials, layers, units | B-rep faces triangulated (planes, quadrics, tori, B-spline, revolution, extrusion; faceted B-reps), NAUO assembly instances, STYLED_ITEM colours; area and volume match OpenCASCADE within 0.3% |
 | IFC | `.ifc` `.ifczip` (STEP physical file) | header, schema, units, project/site/building/storey tree, GlobalIds, property sets and quantities (node extras), materials | face sets (triangulated, polygonal), faceted B-reps and surface models, extruded solids (rectangle, circle, hollow, polyline and indexed-curve profiles with voids), mapped items, local placement chains; other representations leave a node and a warning |
@@ -82,6 +82,7 @@ What goes where in the GLB:
 | Assembly structure | one node per component instance with its transform and properties; one mesh per unique part shared by its instances | always |
 | Face identity (picking, highlighting) | `mesh.extras.faceRanges`: `(first index, index count)` per source face, indices in primitive order | `IncludeMetadata` |
 | Colours and materials | one primitive per material, PBR base colour, metallic/roughness (SolidWorks: from the saved appearance, metals detected by family) | always |
+| Textures | `TEXCOORD_0`, one embedded PNG/JPEG/WebP image per used texture, samplers (wrap, filter), `KHR_texture_transform` when a transform is set (glTF convention: v grows downwards; OBJ and 3MF readers flip v) | always |
 | Edges | a `LINES` primitive per CAD mesh (`extras.role = "edges"`): face boundaries, open borders, creases over the crease angle | `Edges` (`Auto`, `None`, `All`) |
 | Size | `Quantize`: 16-bit positions with the dequantisation folded into the node matrices, 8-bit normals and colours. `Meshopt`: also meshopt-compressed vertices and indices with octahedral normals (about 4x smaller than plain for the sample assembly) | `Compression` |
 | Draw calls | `Gpu`: sibling instances of one mesh merged with `EXT_mesh_gpu_instancing`; names and properties move to `extras.instances` | `Instancing` (uncompressed output only) |

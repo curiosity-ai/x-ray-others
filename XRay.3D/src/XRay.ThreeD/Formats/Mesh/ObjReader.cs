@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using XRay.ThreeD.Internal;
 
 namespace XRay.ThreeD.Formats.Mesh;
 
@@ -14,9 +15,11 @@ internal static class ObjReader
     private sealed class Group
     {
         public string? Name;
-        public readonly Dictionary<(int, int), uint> Lookup = new();
+        public readonly Dictionary<(int, int, int), uint> Lookup = new();
         public readonly List<float> Positions = new();
         public readonly List<float> Normals = new();
+        public readonly List<float> TexCoords = new();
+        public bool HasTexCoords;
         public readonly Dictionary<int, List<uint>> ByMaterial = new();
         public readonly List<int> MaterialOrder = new();
         public bool HasNormals;
@@ -32,6 +35,7 @@ internal static class ObjReader
 
         var positions = new List<float>();
         var normals = new List<float>();
+        var texCoords = new List<float>();
         var materialIndex = new Dictionary<string, int>(StringComparer.Ordinal);
         var groups = new List<Group>();
         var current = new Group();
@@ -59,6 +63,9 @@ internal static class ObjReader
                     break;
                 case "vn":
                     AddFloats(rest, 3, normals);
+                    break;
+                case "vt":
+                    AddTexCoord(rest, texCoords);
                     break;
                 case "o":
                 case "g":
@@ -95,7 +102,7 @@ internal static class ObjReader
                     libraries.Add(rest.ToString());
                     break;
                 case "f":
-                    triangles += AddFace(rest, current, material, positions, normals);
+                    triangles += AddFace(rest, current, material, positions, normals, texCoords);
                     if (triangles > options.MaxTriangles)
                     {
                         throw new ModelFormatException("The OBJ has more triangles than the configured limit.");
@@ -112,6 +119,11 @@ internal static class ObjReader
             if (g.HasNormals)
             {
                 mesh.Normals = g.Normals.ToArray();
+            }
+
+            if (g.HasTexCoords)
+            {
+                mesh.TexCoords = g.TexCoords.ToArray();
             }
 
             var indices = new List<uint>();
@@ -162,6 +174,7 @@ internal static class ObjReader
     /// <summary>Reads the .mtl files named by <c>mtllib</c>: newmtl, Kd (diffuse), d or Tr (opacity), Ns (shininess), Pm and Pr (PBR extension).</summary>
     private static void ApplyLibraries(Model3D model, List<string> libraries, Func<string, byte[]?> resolve, Dictionary<string, int> materialIndex)
     {
+        var textures = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (var entry in libraries.SelectMany(l => l.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries)).Distinct(StringComparer.Ordinal).Take(16))
         {
             var bytes = resolve(entry);
@@ -172,6 +185,7 @@ internal static class ObjReader
             }
 
             ModelMaterial? current = null;
+            var textureCache = textures;
             foreach (var raw in Encoding.UTF8.GetString(bytes).AsSpan().EnumerateLines())
             {
                 var line = raw.Trim();
@@ -191,6 +205,12 @@ internal static class ObjReader
 
                 if (current is null)
                 {
+                    continue;
+                }
+
+                if (keyword.Equals("map_Kd", StringComparison.OrdinalIgnoreCase))
+                {
+                    ApplyDiffuseMap(model, current, rest.ToString(), resolve, textureCache);
                     continue;
                 }
 
@@ -234,6 +254,137 @@ internal static class ObjReader
         }
     }
 
+    /// <summary>
+    /// <c>map_Kd [options] file</c>: the diffuse image. Options that matter are <c>-s u v w</c> (scale), <c>-o u v w</c> (offset) and
+    /// <c>-clamp on</c>; the others take their arguments and are skipped. OBJ's v axis points up and glTF's down, and the mesh's v is flipped
+    /// to match, so the transform is conjugated by the flip: offset v becomes <c>1 - scale v - offset v</c>.
+    /// </summary>
+    private static void ApplyDiffuseMap(Model3D model, ModelMaterial material, string text, Func<string, byte[]?> resolve, Dictionary<string, int> cache)
+    {
+        var tokens = text.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries);
+        var offset = System.Numerics.Vector2.Zero;
+        var scale = System.Numerics.Vector2.One;
+        var clamp = false;
+        var i = 0;
+        float Number(int at) => at < tokens.Length && float.TryParse(tokens[at], NumberStyles.Float, CultureInfo.InvariantCulture, out var v) && float.IsFinite(v) ? v : 0;
+        bool IsNumber(int at) => at < tokens.Length && float.TryParse(tokens[at], NumberStyles.Float, CultureInfo.InvariantCulture, out _);
+        int Numbers(int from, int max)
+        {
+            var n = 0;
+            while (n < max && IsNumber(from + n))
+            {
+                n++;
+            }
+
+            return n;
+        }
+
+        while (i < tokens.Length && tokens[i].StartsWith('-') && tokens[i].Length > 1 && !char.IsDigit(tokens[i][1]))
+        {
+            var option = tokens[i].ToLowerInvariant();
+            switch (option)
+            {
+                case "-o":
+                    offset = new System.Numerics.Vector2(Number(i + 1), Numbers(i + 1, 3) >= 2 ? Number(i + 2) : 0);
+                    i += 1 + Numbers(i + 1, 3);
+                    break;
+                case "-s":
+                    scale = new System.Numerics.Vector2(Number(i + 1) is var su and not 0 ? su : 1, Numbers(i + 1, 3) >= 2 && Number(i + 2) is var sv and not 0 ? sv : 1);
+                    i += 1 + Numbers(i + 1, 3);
+                    break;
+                case "-t":
+                    i += 1 + Numbers(i + 1, 3);
+                    break;
+                case "-mm":
+                    i += 1 + Numbers(i + 1, 2);
+                    break;
+                case "-clamp":
+                    clamp = i + 1 < tokens.Length && tokens[i + 1].Equals("on", StringComparison.OrdinalIgnoreCase);
+                    i += 2;
+                    break;
+                default:
+                    i += 2; // -blendu, -blendv, -cc, -bm, -imfchan, -texres: one argument
+                    break;
+            }
+        }
+
+        if (i >= tokens.Length)
+        {
+            return;
+        }
+
+        // The file name is the rest of the line (it may hold spaces).
+        var name = string.Join(' ', tokens.Skip(i)).Trim('"');
+        var key = name + (clamp ? "|clamp" : "");
+        if (!cache.TryGetValue(key, out var index))
+        {
+            index = -1;
+            var bytes = resolve(name);
+            if (bytes is null)
+            {
+                model.Warnings.Add($"The texture '{name}' was not found; the material keeps its colour.");
+            }
+            else if (TextureImages.Create(name, bytes, out var problem) is { } texture)
+            {
+                if (clamp)
+                {
+                    texture.WrapU = texture.WrapV = TextureWrap.ClampToEdge;
+                }
+
+                index = model.Textures.Count;
+                model.Textures.Add(texture);
+            }
+            else if (problem is not null)
+            {
+                model.Warnings.Add(problem);
+            }
+
+            cache[key] = index;
+        }
+
+        if (index >= 0)
+        {
+            material.BaseColorTexture = new ModelTextureRef(index)
+            {
+                Scale = scale,
+                Offset = new System.Numerics.Vector2(offset.X, 1 - scale.Y - offset.Y),
+            };
+            if (!material.BaseColorTexture.HasTransform)
+            {
+                material.BaseColorTexture.Offset = System.Numerics.Vector2.Zero;
+            }
+        }
+    }
+
+    private static void AddTexCoord(ReadOnlySpan<char> text, List<float> into)
+    {
+        var added = 0;
+        foreach (var range in text.Split(' '))
+        {
+            var token = text[range].Trim();
+            if (token.Length == 0)
+            {
+                continue;
+            }
+
+            if (added < 2)
+            {
+                into.Add(float.Parse(token, NumberStyles.Float, CultureInfo.InvariantCulture));
+                added++;
+            }
+        }
+
+        if (added == 0)
+        {
+            throw new ModelFormatException("An OBJ texture coordinate has no values.");
+        }
+
+        if (added == 1)
+        {
+            into.Add(0);
+        }
+    }
+
     private static void AddFloats(ReadOnlySpan<char> text, int count, List<float> into)
     {
         var added = 0;
@@ -258,7 +409,7 @@ internal static class ObjReader
         }
     }
 
-    private static int AddFace(ReadOnlySpan<char> text, Group group, int material, List<float> positions, List<float> normals)
+    private static int AddFace(ReadOnlySpan<char> text, Group group, int material, List<float> positions, List<float> normals, List<float> texCoords)
     {
         var corners = new List<uint>(4);
         foreach (var range in text.Split(' '))
@@ -272,9 +423,12 @@ internal static class ObjReader
             var slash = token.IndexOf('/');
             var vertexToken = slash < 0 ? token : token[..slash];
             var normalToken = default(ReadOnlySpan<char>);
+            var texToken = default(ReadOnlySpan<char>);
             if (slash >= 0)
             {
-                var second = token[(slash + 1)..].IndexOf('/');
+                var after = token[(slash + 1)..];
+                var second = after.IndexOf('/');
+                texToken = second >= 0 ? after[..second] : after;
                 if (second >= 0)
                 {
                     normalToken = token[(slash + 2 + second)..];
@@ -283,10 +437,29 @@ internal static class ObjReader
 
             var vertex = Resolve(int.Parse(vertexToken, CultureInfo.InvariantCulture), positions.Count / 3);
             var normal = normalToken.Length > 0 ? Resolve(int.Parse(normalToken, CultureInfo.InvariantCulture), normals.Count / 3) : -1;
-            if (!group.Lookup.TryGetValue((vertex, normal), out var index))
+            // A texture index that points nowhere (files with "f v/1/n" and no vt lines exist) is ignored, not an error.
+            var tex = -1;
+            if (texToken.Length > 0 && int.TryParse(texToken, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var texIndex))
+            {
+                var resolved = texIndex > 0 ? texIndex - 1 : texCoords.Count / 2 + texIndex;
+                tex = resolved >= 0 && resolved < texCoords.Count / 2 ? resolved : -1;
+            }
+            if (!group.Lookup.TryGetValue((vertex, tex, normal), out var index))
             {
                 index = (uint)(group.Positions.Count / 3);
-                group.Lookup[(vertex, normal)] = index;
+                group.Lookup[(vertex, tex, normal)] = index;
+                if (tex >= 0)
+                {
+                    group.HasTexCoords = true;
+                    group.TexCoords.Add(texCoords[2 * tex]);
+                    group.TexCoords.Add(1 - texCoords[2 * tex + 1]);
+                }
+                else
+                {
+                    group.TexCoords.Add(0);
+                    group.TexCoords.Add(0);
+                }
+
                 group.Positions.Add(positions[3 * vertex]);
                 group.Positions.Add(positions[3 * vertex + 1]);
                 group.Positions.Add(positions[3 * vertex + 2]);

@@ -15,6 +15,9 @@ public sealed class Model3D
 
     public List<ModelMaterial> Materials { get; } = new();
 
+    /// <summary>Images that materials refer to (<see cref="ModelMaterial.BaseColorTexture"/>), as PNG, JPEG or WebP bytes.</summary>
+    public List<ModelTexture> Textures { get; } = new();
+
     public List<ModelLayer> Layers { get; } = new();
 
     /// <summary>The preview image saved in the file (PNG, BMP or JPEG bytes), when it carries one.</summary>
@@ -179,6 +182,12 @@ public sealed class MeshData
     /// <summary>x,y,z per vertex, or empty when the file has none.</summary>
     public float[] Normals { get; set; } = [];
 
+    /// <summary>
+    /// u,v per vertex in glTF's convention (the origin is the top left corner of the image, v grows downwards), or empty when the
+    /// file has none. Readers of formats whose origin is the bottom left (OBJ, 3MF) flip v.
+    /// </summary>
+    public float[] TexCoords { get; set; } = [];
+
     /// <summary>r,g,b,a per vertex (0..1, sRGB), or empty when the file has none.</summary>
     public float[] Colors { get; set; } = [];
 
@@ -233,6 +242,68 @@ public sealed class ModelMaterial
     public float Metallic { get; set; }
 
     public float Roughness { get; set; } = 0.6f;
+
+    /// <summary>The image multiplied with <see cref="BaseColor"/>, drawn with the mesh's <see cref="MeshData.TexCoords"/>; null for a plain colour.</summary>
+    public ModelTextureRef? BaseColorTexture { get; set; }
+
+    /// <summary>A copy that refers to the same texture index; a caller that moves it into another model rebases the index.</summary>
+    public ModelMaterial Clone() => new()
+    {
+        Name = Name,
+        BaseColor = BaseColor,
+        Metallic = Metallic,
+        Roughness = Roughness,
+        BaseColorTexture = BaseColorTexture?.Clone(),
+    };
+}
+
+/// <summary>How a material uses an image: which texture, and the UV transform of <c>KHR_texture_transform</c> (scale, then rotation, then offset).</summary>
+public sealed class ModelTextureRef
+{
+    public ModelTextureRef(int texture)
+    {
+        Texture = texture;
+    }
+
+    /// <summary>Index into <see cref="Model3D.Textures"/>.</summary>
+    public int Texture { get; set; }
+
+    public Vector2 Offset { get; set; }
+
+    /// <summary>Counter-clockwise rotation in radians.</summary>
+    public float Rotation { get; set; }
+
+    public Vector2 Scale { get; set; } = Vector2.One;
+
+    public bool HasTransform => Offset != Vector2.Zero || Rotation != 0 || Scale != Vector2.One;
+
+    public ModelTextureRef Clone() => new(Texture) { Offset = Offset, Rotation = Rotation, Scale = Scale };
+}
+
+/// <summary>How a texture repeats beyond the unit square.</summary>
+public enum TextureWrap
+{
+    Repeat,
+    ClampToEdge,
+    MirroredRepeat,
+}
+
+/// <summary>An image with its sampling: PNG, JPEG or WebP bytes (other raster formats are converted to PNG on read).</summary>
+public sealed class ModelTexture
+{
+    public string? Name { get; set; }
+
+    /// <summary><c>image/png</c>, <c>image/jpeg</c> or <c>image/webp</c>.</summary>
+    public string MediaType { get; set; } = "image/png";
+
+    public byte[] Data { get; set; } = [];
+
+    public TextureWrap WrapU { get; set; }
+
+    public TextureWrap WrapV { get; set; }
+
+    /// <summary>Nearest-neighbour instead of linear filtering.</summary>
+    public bool Nearest { get; set; }
 }
 
 public sealed class ModelLayer

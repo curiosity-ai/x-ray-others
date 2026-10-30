@@ -25,7 +25,7 @@ try
             return 0;
         case "info" when args.Length >= 2:
             {
-                var meta = ModelLoader.ReadMetadata(args[1]);
+                var meta = ModelLoader.ReadMetadata(args[1], Loose(args[1]));
                 if (args.Contains("--json"))
                 {
                     Console.WriteLine(JsonSerializer.Serialize(Summary(meta), new JsonSerializerOptions { WriteIndented = true }));
@@ -40,7 +40,7 @@ try
 
         case "package" when args.Length >= 3:
             {
-                var model = ModelLoader.Load(args[1]);
+                var model = ModelLoader.Load(args[1], Loose(args[1]));
                 var glb = new GlbWriteOptions();
                 if (Option(args, "--compress") is { } c)
                 {
@@ -63,7 +63,7 @@ try
 
         case "convert" when args.Length >= 2:
             {
-                var model = ModelLoader.Load(args[1]);
+                var model = ModelLoader.Load(args[1], Loose(args[1]));
                 var positional = args.Skip(2).TakeWhile(a => !a.StartsWith("--", StringComparison.Ordinal)).ToList();
                 var output = positional.Count > 0 ? positional[0] : Path.ChangeExtension(args[1], ".glb");
                 var options = new GlbWriteOptions();
@@ -171,4 +171,18 @@ static void PrintList(string title, List<string> items)
     {
         Console.WriteLine("  " + i);
     }
+}
+
+// Companion files of a loose model (an OBJ's MTL and textures): looked up under the model's own folder, never outside it.
+static LoadOptions Loose(string modelPath)
+{
+    var root = Path.GetFullPath(Path.GetDirectoryName(Path.GetFullPath(modelPath)) ?? ".");
+    return new LoadOptions
+    {
+        ResolveCompanion = name =>
+        {
+            var full = Path.GetFullPath(Path.Combine(root, name.Replace('\\', '/')));
+            return full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal) && File.Exists(full) ? File.ReadAllBytes(full) : null;
+        },
+    };
 }
