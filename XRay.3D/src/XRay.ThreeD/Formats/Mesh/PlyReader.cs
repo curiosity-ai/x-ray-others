@@ -51,6 +51,9 @@ internal static class PlyReader
         var hasNormals = vertexElement.Properties.Any(p => p.Name == "nx");
         var hasColors = vertexElement.Properties.Any(p => p.Name is "red" or "r");
         var indices = new List<uint>();
+        var names = vertexElement.Properties.Select(q => q.Name).ToHashSet(StringComparer.Ordinal);
+        var isSplat = names.Contains("f_dc_0") && names.Contains("f_dc_1") && names.Contains("f_dc_2") && names.Contains("opacity") && names.Contains("scale_0");
+        var scales = isSplat ? new float[vertexCount * 3] : [];
 
         foreach (var element in elements)
         {
@@ -84,6 +87,13 @@ internal static class PlyReader
                             case "green" or "g": colors[4 * v + 1] = Color(value, p.Type); break;
                             case "blue" or "b": colors[4 * v + 2] = Color(value, p.Type); break;
                             case "alpha" or "a": colors[4 * v + 3] = Color(value, p.Type); break;
+                            case "f_dc_0" when isSplat: colors[4 * v] = (float)value; break;
+                            case "f_dc_1" when isSplat: colors[4 * v + 1] = (float)value; break;
+                            case "f_dc_2" when isSplat: colors[4 * v + 2] = (float)value; break;
+                            case "opacity" when isSplat: colors[4 * v + 3] = (float)value; break;
+                            case "scale_0" when isSplat: scales[3 * v] = (float)value; break;
+                            case "scale_1" when isSplat: scales[3 * v + 1] = (float)value; break;
+                            case "scale_2" when isSplat: scales[3 * v + 2] = (float)value; break;
                         }
                     }
                 }
@@ -155,7 +165,31 @@ internal static class PlyReader
             }
         }
 
-        var mesh = new MeshData { Positions = positions, Indices = indices.ToArray() };
+        if (isSplat)
+        {
+            // Gaussian splats store the zeroth spherical-harmonic coefficient (colour = 0.5 + C0 * dc), the opacity as a logit and
+            // the ellipsoid's extent as a logarithm.
+            const float C0 = 0.28209479177387814f;
+            for (var v = 0; v < vertexCount; v++)
+            {
+                Cancel.Every(options.Cancellation, v);
+                for (var c = 0; c < 3; c++)
+                {
+                    colors[4 * v + c] = Math.Clamp(0.5f + C0 * colors[4 * v + c], 0f, 1f);
+                }
+
+                colors[4 * v + 3] = 1f / (1f + MathF.Exp(-Math.Clamp(colors[4 * v + 3], -30f, 30f)));
+                for (var c = 0; c < 3; c++)
+                {
+                    scales[3 * v + c] = MathF.Exp(Math.Clamp(scales[3 * v + c], -30f, 30f));
+                }
+            }
+
+            hasColors = true;
+            model.Metadata.Properties.Add(new ModelProperty("gaussian splats", vertexCount.ToString(System.Globalization.CultureInfo.InvariantCulture), "ply"));
+        }
+
+        var mesh = new MeshData { Positions = positions, Indices = indices.ToArray(), SplatScales = scales };
         if (hasNormals)
         {
             mesh.Normals = normals;

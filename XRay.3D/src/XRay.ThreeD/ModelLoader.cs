@@ -60,7 +60,7 @@ public static class ModelLoader
         return Guard(data, fileName, options, (format, d, o) => format.Id switch
         {
             "solidworks" => SolidWorksReader.ReadMetadata(d, o.Cancellation),
-            "las" => Formats.PointCloud.LasReader.ReadMetadata(d),
+            "las" or "laz" => Formats.PointCloud.LasReader.ReadMetadata(d),
             "step" => Formats.Step.StepReader.ReadMetadata(d, o),
             "ifc" => Formats.Bim.IfcReader.ReadMetadata(d, o),
             "iges" => Formats.Cad.IgesReader.ReadMetadata(d, o),
@@ -288,7 +288,7 @@ public static class ModelLoader
         "vrml" => X3dReader.ReadVrml(data, options),
         "off" => OffReader.Read(data, options),
         "amf" => AmfReader.Read(data, options),
-        "las" => Formats.PointCloud.LasReader.Read(data, options),
+        "las" or "laz" => Formats.PointCloud.LasReader.Read(data, options),
         "pcd" => Formats.PointCloud.PcdReader.Read(data, options),
         "xyz" => Formats.PointCloud.XyzReader.Read(data, ModelFormats.Xyz, options),
         "pts" => Formats.PointCloud.XyzReader.Read(data, ModelFormats.Pts, options),

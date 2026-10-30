@@ -9,7 +9,7 @@ using XRay.ThreeD.Internal;
 /// <summary>
 /// ASPRS LAS 1.0 to 1.4, point formats 0 to 10: scaled and offset coordinates, RGB when the format carries it (else a height ramp),
 /// header metadata (version, software, date, bounds, point count) and the coordinate reference system from the GeoTIFF keys or
-/// the WKT record. Compressed LAZ is recognised and refused.
+/// the WKT record. Compressed LAZ (point types 0 to 3, see <see cref="LazDecoder"/>) is decompressed first.
 /// </summary>
 internal static class LasReader
 {
@@ -62,17 +62,13 @@ internal static class LasReader
 
         ReadVlrs(s, headerSize, vlrCount, meta);
 
-        if (compressed || meta.Properties.Any(p => p is { Name: "VLR", Value: "laszip encoded" }))
-        {
-            throw new UnsupportedModelFormatException(ModelFormats.Las, "Compressed LAZ point data is not supported yet; the header metadata is available through ReadMetadata.");
-        }
-
         if (format >= RecordSizes.Length || recordLength < RecordSizes[format])
         {
             throw new ModelFormatException("The LAS point data format or record length is invalid.");
         }
 
-        if (count <= 0 || count > 4_000_000_000L || pointOffset + count * recordLength > s.Length)
+        var lazFile = compressed || meta.Properties.Any(p => p is { Name: "VLR", Value: "laszip encoded" });
+        if (count <= 0 || count > 4_000_000_000L || (!lazFile && pointOffset + count * recordLength > s.Length))
         {
             // Truncated files still hold the points that are present.
             var available = (s.Length - pointOffset) / Math.Max(1, (int)recordLength);
@@ -88,15 +84,33 @@ internal static class LasReader
         var rgbOffset = format switch { 2 => 20, 3 => 28, 5 => 28, _ => 30 };
         var stride = options.MaxPoints > 0 && count > options.MaxPoints ? (int)Math.Ceiling(count / (double)options.MaxPoints) : 1;
         var kept = (int)((count + stride - 1) / stride);
+        var source = s;
+        var sourceStart = (long)pointOffset;
+        var sourceStep = (long)stride;
+        if (lazFile)
+        {
+            var info = LazDecoder.ReadInfo(s) ?? throw new ModelFormatException("The LAZ file has no LASzip VLR.");
+            meta.Format = ModelFormats.Laz;
+            var (records, decoded) = LazDecoder.Decode(data, info, pointOffset, count, recordLength, stride, options);
+            source = records;
+            sourceStart = 0;
+            sourceStep = 1;
+            kept = decoded;
+            if (decoded < (int)((count + stride - 1) / stride))
+            {
+                count = Math.Min(count, (long)decoded * stride);
+            }
+        }
+
         var xyz = new double[kept * 3];
         var colors = hasRgb ? new float[kept * 4] : null;
         var sixteenBitColours = false;
         var o = 0;
         var tick93 = 0L;
-        for (long i = 0; i < count; i += stride)
+        for (long i = 0; o < kept && i < count; i += stride)
         {
             Cancel.Every(options.Cancellation, tick93++);
-            var record = s.Slice((int)(pointOffset + i * recordLength), recordLength);
+            var record = source.Slice((int)(sourceStart + o * sourceStep * recordLength), recordLength);
             xyz[3 * o] = BinaryPrimitives.ReadInt32LittleEndian(record) * sx + ox;
             xyz[3 * o + 1] = BinaryPrimitives.ReadInt32LittleEndian(record[4..]) * sy + oy;
             xyz[3 * o + 2] = BinaryPrimitives.ReadInt32LittleEndian(record[8..]) * sz + oz;
@@ -127,7 +141,7 @@ internal static class LasReader
             }
         }
 
-        var built = PointCloudCommon.Build(ModelFormats.Las, xyz, colors ?? PointCloudCommon.HeightRamp(xyz), options);
+        var built = PointCloudCommon.Build(meta.Format, xyz, colors ?? PointCloudCommon.HeightRamp(xyz), options);
         built.Metadata.FormatVersion = meta.FormatVersion;
         built.Metadata.Application = meta.Application;
         built.Metadata.Created = meta.Created;

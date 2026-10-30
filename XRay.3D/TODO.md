@@ -38,7 +38,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 - [x] Sweet Home 3D (`Home.xml`, 5.3+): levels, walls, rooms, furniture with fitted OBJ models. Open: the Java-serialised `Home` of older files, curved walls, doors cut into walls, textures
 - [ ] Rhino 3DM: layers, materials, block instances, stored render meshes; warn rather than mesh B-reps
 - [ ] SketchUp, Revit, Inventor, JT, Parasolid, ACIS: metadata and thumbnails first, as the reference viewer shows geometry only
-- [x] Point clouds: LAS, PCD, XYZ/PTS (open: LAZ, PLY splats)
+- [x] Point clouds: LAS, PCD, XYZ/PTS, LAZ point types 0 to 3 (chunked LASzip, v2 items: POINT10, GPSTIME11, RGB12, extra bytes), PLY gaussian splats. Open: LAZ point types 6 to 10 (the layered 1.4 coding: POINT14/RGB14/RGBNIR14/BYTE14 v3; not attempted, since the model and context layout cannot be verified without the public source at hand, only byte-identity against lazrs would prove it), unchunked LAZ, splat rotations and spherical-harmonic bands above DC
 - [x] Archives: ZIP packages (primary model by extension priority, companions, OBJ+MTL colours). Open: RAR/7z/tar, MTL textures, loading every model of a package as one scene
 - [x] G-code toolpath preview (lines by extrusion/travel or cut/rapid). Open: per-layer nodes, feature-type colours, tool numbers, canned cycles
 - [ ] Archicad (metadata and thumbnail only; the reference reader is itself partial)
@@ -69,5 +69,5 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 ## Housekeeping
 
 - [ ] Family registration in curiosity-ai/x-ray (`Members.props`, docs section; see its `add-family-member` skill)
-- [ ] Verify the licences of anything that gets ported from a third party (the research notes flag laz-perf as unverified)
+- [ ] Verify the licences of anything that gets ported from a third party (the research notes flag laz-perf as unverified; the LAZ decoder is not a port of it, it was written from the public LASzip description and verified against lazrs output)
 - [ ] Benchmarks (large assemblies), fuzz target in the style of `XRay.Psd/fuzz`

@@ -146,7 +146,30 @@ public class MeshFormatTests
     {
         var model = Load("ply/gsplat-measuring-tape.ply");
 
-        Assert.True(model.Meshes[0].VertexCount > 1000);
-        Assert.Empty(model.Meshes[0].Indices);
+        var mesh = model.Meshes[0];
+        Assert.True(mesh.VertexCount > 1000);
+        Assert.Empty(mesh.Indices);
+        Assert.Equal("19469", model.Metadata.GetProperty("gaussian splats"));
+        Assert.Equal(mesh.VertexCount * 3, mesh.SplatScales.Length);
+        Assert.All(mesh.SplatScales, s => Assert.True(s > 0 && float.IsFinite(s)));
+        Assert.Equal(mesh.VertexCount * 4, mesh.Colors.Length);
+        Assert.All(mesh.Colors, c => Assert.InRange(c, 0f, 1f));
+        Assert.Contains(Enumerable.Range(0, mesh.VertexCount), i => mesh.Colors[4 * i] + mesh.Colors[4 * i + 1] + mesh.Colors[4 * i + 2] > 0.3f);
+    }
+
+    [Fact]
+    public void Gaussian_splat_values_follow_the_spherical_harmonic_and_logit_encodings()
+    {
+        const string header = "ply\nformat ascii 1.0\nelement vertex 1\nproperty float x\nproperty float y\nproperty float z\nproperty float f_dc_0\nproperty float f_dc_1\nproperty float f_dc_2\nproperty float opacity\nproperty float scale_0\nproperty float scale_1\nproperty float scale_2\nproperty float rot_0\nproperty float rot_1\nproperty float rot_2\nproperty float rot_3\nend_header\n";
+        var bytes = System.Text.Encoding.ASCII.GetBytes(header + "1 2 3 0 1 -1 0 0 -1 1 1 0 0 0\n");
+        var mesh = ModelLoader.Load(bytes, "s.ply").Meshes[0];
+
+        Assert.Equal(0.5f, mesh.Colors[0], 4);
+        Assert.Equal(0.5f + 0.28209479f, mesh.Colors[1], 4);
+        Assert.Equal(0.5f - 0.28209479f, mesh.Colors[2], 4);
+        Assert.Equal(0.5f, mesh.Colors[3], 4);                 // logit 0
+        Assert.Equal(1f, mesh.SplatScales[0], 4);               // exp(0)
+        Assert.Equal(MathF.Exp(-1), mesh.SplatScales[1], 4);
+        Assert.Equal(MathF.E, mesh.SplatScales[2], 4);
     }
 }

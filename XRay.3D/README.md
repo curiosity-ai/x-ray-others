@@ -49,7 +49,7 @@ A command line tool lives in `tools/XRay.ThreeD.Cli`: `xray3d info <file> [--jso
 | X3D / VRML | `.x3d` `.wrl` | titles, meta, DEF names | shapes, transforms, colours |
 | USD | `.usda`, `.usdc`, `.usdz` | stage metadata, prim names, units | meshes, xforms (matrix, translate, Euler, scale, orient), display colours, materials and geom subsets, primitives, same-file references. The binary crate (versions 0.4 and later: LZ4, compressed integer and float arrays) is read from the public format description and checked against pxr; a USDZ's root layer may be text or crate. Open: references to other layers (also inside a USDZ), payloads, variants, time samples, textures |
 | 3DS, AMF, OFF | `.3ds` `.amf` `.off` | names, units, materials | triangles, colours |
-| Point clouds | `.las` `.pcd` `.xyz` `.pts` | header, point counts, bounds, CRS where given | points with colours |
+| Point clouds | `.las` `.laz` `.pcd` `.xyz` `.pts` | header, point counts, bounds, CRS where given | points with colours. LAZ (LASzip, chunked, point types 0 to 3 with GPS time, RGB and extra bytes) is decoded by a pure C# range decoder written from the public LASzip description and checked byte for byte against laspy/lazrs; the layered 1.4 types (6 to 10) are reported as unsupported. PLY gaussian splats: colour from the spherical-harmonic DC term, opacity as alpha, extents in `MeshData.SplatScales` |
 | Recognised only | DWG, 3DM, ... | the format is named | `UnsupportedModelFormatException` |
 
 `ModelFormats.All` lists everything the library can name. Detection looks at the content first (magic bytes, ZIP

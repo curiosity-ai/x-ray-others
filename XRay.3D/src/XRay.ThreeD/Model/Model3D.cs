@@ -221,6 +221,9 @@ public sealed class MeshData
     /// <summary>r,g,b,a per vertex (0..1, sRGB), or empty when the file has none.</summary>
     public float[] Colors { get; set; } = [];
 
+    /// <summary>For gaussian-splat clouds: the x,y,z extent of each splat's ellipsoid (linear, after the file's log encoding), or empty. Colours carry the splat's colour and opacity (alpha); glTF has no point sizes, so the writer does not use this.</summary>
+    public float[] SplatScales { get; set; } = [];
+
     /// <summary>Three indices per triangle. Empty for a point cloud (the vertices are drawn as points).</summary>
     public uint[] Indices { get; set; } = [];
 

@@ -18,6 +18,8 @@ public static class ModelFormats
 
     public static FormatInfo Las { get; } = new("las", "LAS point cloud", "pointcloud", [".las"], FormatSupport.Full);
 
+    public static FormatInfo Laz { get; } = new("laz", "LAZ (compressed LAS)", "pointcloud", [".laz"], FormatSupport.Full);
+
     public static FormatInfo Pcd { get; } = new("pcd", "Point Cloud Library PCD", "pointcloud", [".pcd"], FormatSupport.Full);
 
     public static FormatInfo Xyz { get; } = new("xyz", "XYZ text point cloud", "pointcloud", [".xyz"], FormatSupport.Full);
@@ -77,7 +79,6 @@ public static class ModelFormats
         new("openscad", "OpenSCAD", "cad", [".scad"], FormatSupport.Identified),
         new("blender", "Blender", "scene", [".blend"], FormatSupport.Identified),
         new("archicad", "Archicad", "bim", [".pln", ".pla", ".gsm"], FormatSupport.Identified),
-        new("laz", "LAZ (compressed LAS)", "pointcloud", [".laz"], FormatSupport.Identified),
         new("e57", "ASTM E57", "pointcloud", [".e57"], FormatSupport.Identified),
         new("dwf", "Autodesk DWF", "cad", [".dwf", ".dwfx"], FormatSupport.Identified),
         new("b3d", "Blitz3D / Bazis", "scene", [".b3d"], FormatSupport.Identified),
@@ -88,7 +89,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -131,7 +132,7 @@ public static class ModelFormats
 
         if (StartsWith(head, "LASF"))
         {
-            return (head.Length > 104 && (head[104] & 0x80) != 0) || byExtension?.Id == "laz" ? Find("laz") : Las;
+            return (head.Length > 104 && (head[104] & 0x80) != 0) || byExtension?.Id == "laz" ? Laz : Las;
         }
 
         if (StartsWith(head, "# .PCD") || StartsWith(head, "VERSION .7") || StartsWith(head, "VERSION 0.7"))

@@ -16,6 +16,7 @@
     <None Include="Corpus/dxf-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/dxf-drawing-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/usd-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/laz-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/usdc-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/step-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/iges-golden.json" CopyToOutputDirectory="PreserveNewest" />
