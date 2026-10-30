@@ -10,7 +10,7 @@ namespace XRay.ThreeD.Tests;
 /// </summary>
 public class DwgReleaseTests
 {
-    public static IEnumerable<object[]> Releases() => [["2000"], ["2004"], ["2010"], ["2013"], ["2018"]];
+    public static IEnumerable<object[]> Releases() => [["2000"], ["2004"], ["2007"], ["2010"], ["2013"], ["2018"]];
 
     private static string? Sample(string release)
     {
@@ -104,6 +104,38 @@ public class DwgReleaseTests
         Assert.Equal(golden.GetProperty("circleSum").GetDouble(), circle, 2);
     }
 
+    [Fact]
+    public void Every_AC1021_sample_with_a_DXF_twin_decodes_the_same_entity_counts()
+    {
+        var root = Environment.GetEnvironmentVariable("XRAY_3D_LOCAL_SAMPLES") ?? "/tmp/claude-0/samples";
+        var folder = Path.Combine(root, "dwg", "2007");
+        if (!Directory.Exists(folder))
+        {
+            return;
+        }
+
+        var checkedFiles = 0;
+        foreach (var dwg in Directory.EnumerateFiles(folder, "*.dwg"))
+        {
+            var twin = Path.ChangeExtension(dwg, ".dxf");
+            if (!File.Exists(twin))
+            {
+                continue;
+            }
+
+            var (want, _, _, _) = Scan(File.ReadAllText(twin).Replace("\r", "", StringComparison.Ordinal));
+            var (got, _, _, _) = Scan(DwgReader.ToDxf(File.ReadAllBytes(dwg), new LoadOptions(), out _));
+            foreach (var type in DecodedTypes)
+            {
+                Assert.True(got.GetValueOrDefault(type) == want.GetValueOrDefault(type), $"{Path.GetFileName(dwg)} {type}: twin {want.GetValueOrDefault(type)}, decoded {got.GetValueOrDefault(type)}");
+            }
+
+            checkedFiles++;
+        }
+
+        Assert.True(checkedFiles > 0);
+    }
+
     [Theory]
     [MemberData(nameof(Releases))]
     public void Layers_units_and_the_drawing_itself_are_read_from_every_release(string release)
@@ -135,6 +167,7 @@ public class DwgReleaseTests
 
     [Theory]
     [InlineData("2004")]
+    [InlineData("2007")]
     [InlineData("2010")]
     public void The_preview_of_the_page_container_is_a_png(string release)
     {
@@ -148,10 +181,12 @@ public class DwgReleaseTests
         Assert.Equal("image/png", preview!.MediaType);
     }
 
-    [Fact]
-    public void A_truncated_page_container_fails_with_the_formats_own_exception()
+    [Theory]
+    [InlineData("2007")]
+    [InlineData("2018")]
+    public void A_truncated_page_container_fails_with_the_formats_own_exception(string release)
     {
-        if (Sample("2018") is not { } path)
+        if (Sample(release) is not { } path)
         {
             return;
         }

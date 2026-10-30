@@ -81,3 +81,35 @@ SOFTWARE.
 ```
 
 The Python port of openskp is LGPL-licensed and was not used.
+
+## ACadSharp (DWG AC1021 literal and match decoder)
+
+`src/XRay.ThreeD/Formats/Cad/DwgLz21.cs` decodes the LZ77 variant of AutoCAD 2007 (AC1021) file headers and pages. The opcode layout and the
+per-length literal copy table (pieces of 1 to 16 bytes, reordered) were taken from `DwgLZ77AC21Decompressor` of
+[ACadSharp](https://github.com/DomCR/ACadSharp) (MIT licence), re-implemented here with bounds checks on every read and write. The page and section
+map layout of `DwgContainer.OpenR2007` (Reed-Solomon block interleaving, the 0x110 byte header table, section descriptors) follows that project's
+reader. Checked against the AC1021 example drawing and its DXF twin (`DwgReleaseTests`). The licence:
+
+```
+MIT License
+
+Copyright (c) 2021 Albert Domenech
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

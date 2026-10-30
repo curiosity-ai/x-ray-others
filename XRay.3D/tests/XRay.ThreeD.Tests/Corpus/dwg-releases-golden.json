@@ -89,6 +89,51 @@
   "pointSum": 180037.291,
   "circleSum": 130.049
  },
+ "2007": {
+  "insunits": 4,
+  "layers": [
+   "0",
+   "Tavolo 2",
+   "Tavolo 3",
+   "Defpoints",
+   "*ADSK_SYSTEM_LIGHTS"
+  ],
+  "counts": {
+   "3DFACE": 2,
+   "3DSOLID": 1,
+   "ARC": 5,
+   "ARC_DIMENSION": 1,
+   "ATTDEF": 3,
+   "ATTRIB": 2,
+   "CIRCLE": 1,
+   "DIMENSION": 9,
+   "ELLIPSE": 1,
+   "HATCH": 1,
+   "INSERT": 10,
+   "LIGHT": 1,
+   "LINE": 68,
+   "LWPOLYLINE": 11,
+   "MLINE": 1,
+   "MTEXT": 18,
+   "MULTILEADER": 1,
+   "POINT": 46,
+   "POLYLINE": 2,
+   "RAY": 1,
+   "REGION": 2,
+   "SEQEND": 12,
+   "SOLID": 15,
+   "SPLINE": 2,
+   "TEXT": 2,
+   "TOLERANCE": 1,
+   "VERTEX": 13,
+   "VIEWPORT": 2,
+   "WIPEOUT": 2,
+   "XLINE": 1
+  },
+  "lineSum": 409670.44,
+  "pointSum": 180037.291,
+  "circleSum": 130.049
+ },
  "2010": {
   "insunits": 4,
   "layers": [

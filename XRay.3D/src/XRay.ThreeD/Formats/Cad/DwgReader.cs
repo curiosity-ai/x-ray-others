@@ -31,7 +31,7 @@ internal static class DwgReader
     public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options)
     {
         var metadata = ReadMetadata(data, options);
-        if (DwgContainer.Generation(data.Span) is 15 or 18 or 24 or 27 or 32)
+        if (DwgContainer.Generation(data.Span) is 15 or 18 or 21 or 24 or 27 or 32)
         {
             return ReadDatabase(data, options, metadata);
         }
@@ -100,7 +100,7 @@ internal static class DwgReader
         {
             ReadSectionsR2000(data, meta, options);
         }
-        else if (generation is 18 or 24 or 27 or 32)
+        else if (generation is 18 or 21 or 24 or 27 or 32)
         {
             try
             {
@@ -121,16 +121,12 @@ internal static class DwgReader
                 meta.Notes.Add("The DWG pages could not be read; layers are not listed.");
             }
         }
-        else if (generation >= 18)
-        {
-            meta.Notes.Add($"{product ?? code} (AutoCAD 2007) pages are Reed-Solomon coded; the version and the preview are reported, the drawing is not decoded.");
-        }
         else
         {
             meta.Notes.Add("This DWG release predates the R13 layout and is not decoded.");
         }
 
-        if (generation is 15 or 18 or 24 or 27 or 32)
+        if (generation is 15 or 18 or 21 or 24 or 27 or 32)
         {
             meta.HasGeometry = true;
             meta.Notes.Add("Lines, circles, arcs, ellipses, splines, polylines, text, MTEXT, hatches, dimensions (as their drawn blocks), inserts with attributes and blocks are decoded by Load; ACIS solids, leaders, MLINE, viewports and images are not.");
@@ -163,7 +159,7 @@ internal static class DwgReader
     public static PreviewImage? ReadPreview(ReadOnlyMemory<byte> data, LoadOptions options)
     {
         var s = data.Span;
-        if (IsDwg(s) && DwgContainer.Generation(s) is 18 or 24 or 27 or 32)
+        if (IsDwg(s) && DwgContainer.Generation(s) is 18 or 21 or 24 or 27 or 32)
         {
             try
             {

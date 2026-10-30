@@ -43,9 +43,9 @@ public class FormatTests
     [Fact]
     public void Recognised_but_unread_formats_throw_the_unsupported_exception()
     {
-        // AC1015 and the AC1018 family load now; AC1021 (Reed-Solomon coded pages) is recognised but not decoded.
+        // AC1015 and the AC1018 family load now; AC1014 is recognised but its geometry is not decoded.
         var header = new byte[0x200];
-        "AC1021"u8.CopyTo(header);
+        "AC1014"u8.CopyTo(header);
         var ex = Assert.Throws<UnsupportedModelFormatException>(() => ModelLoader.Load(header, "x.dwg"));
         Assert.Equal("dwg", ex.Format.Id);
         Assert.Equal(FormatSupport.Metadata, ex.Format.Support);

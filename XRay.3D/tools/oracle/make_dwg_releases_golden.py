@@ -12,7 +12,7 @@ from ezdxf.entities import DXFGraphic
 
 folder = sys.argv[1]
 out = {}
-for release in ('2000', '2004', '2010', '2013', '2018'):
+for release in ('2000', '2004', '2007', '2010', '2013', '2018'):
     doc = ezdxf.readfile(os.path.join(folder, f'example_{release}.dxf'))
     counts = collections.Counter()
     line_sum = point_sum = circle_sum = 0.0

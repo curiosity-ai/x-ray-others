@@ -50,7 +50,12 @@ internal static class DwgContainer
 
     /// <summary>Only the preview section of an AC1018 family file (the other sections are not decompressed).</summary>
     public static byte[] OpenPreview(ReadOnlyMemory<byte> data, LoadOptions options) =>
-        Generation(data.Span) is 18 or 24 or 27 or 32 ? OpenR2004(data, Generation(data.Span), options.Cancellation, previewOnly: true).Preview : [];
+        Generation(data.Span) switch
+        {
+            18 or 24 or 27 or 32 => OpenR2004(data, Generation(data.Span), options.Cancellation, previewOnly: true).Preview,
+            21 => OpenR2007(data, options.Cancellation, previewOnly: true).Preview,
+            _ => [],
+        };
 
     public static DwgSections Open(ReadOnlyMemory<byte> data, LoadOptions options)
     {
@@ -59,7 +64,7 @@ internal static class DwgContainer
         {
             15 => OpenR2000(data),
             18 or 24 or 27 or 32 => OpenR2004(data, generation, options.Cancellation),
-            21 => throw new UnsupportedModelFormatException(ModelFormats.Dwg, "AC1021 (AutoCAD 2007) pages are Reed-Solomon coded and compressed with a different LZ77 variant; they are not decoded."),
+            21 => OpenR2007(data, options.Cancellation),
             _ => throw new UnsupportedModelFormatException(ModelFormats.Dwg, "This DWG release is not decoded."),
         };
     }
@@ -182,6 +187,238 @@ internal static class DwgContainer
             Objects = previewOnly ? [] : Section("AcDb:AcDbObjects"),
             Preview = Section("AcDb:Preview"),
         };
+    }
+
+    /// <summary>
+    /// AC1021 (AutoCAD 2007). The header at 0x80 is three interleaved Reed-Solomon (255, 239) blocks around a compressed 0x110 byte table (<see cref="DwgLz21"/>)
+    /// that gives the page map and section map; both are Reed-Solomon coded pages, as is each data page. Pages lie from 0x480 on, in the order of the page
+    /// map. The parity bytes are skipped, not used to repair data.
+    /// </summary>
+    private static DwgSections OpenR2007(ReadOnlyMemory<byte> data, CancellationToken cancel, bool previewOnly = false)
+    {
+        var s = data.Span;
+        if (s.Length < 0x480)
+        {
+            throw new ModelFormatException("The DWG file is too short.");
+        }
+
+        var decoded = new byte[3 * 239];
+        ReedSolomonDeinterleave(s.Slice(0x80, 0x400), decoded, 3, 239);
+        var compressedLength = BinaryPrimitives.ReadInt32LittleEndian(decoded.AsSpan(24));
+        var table = new byte[0x110];
+        if (compressedLength < 0)
+        {
+            decoded.AsSpan(32, Math.Min(table.Length, decoded.Length - 32)).CopyTo(table);
+        }
+        else if (compressedLength > decoded.Length - 32)
+        {
+            throw new ModelFormatException("The DWG file header block is damaged.");
+        }
+        else
+        {
+            DwgLz21.Decompress(decoded.AsSpan(32, compressedLength), table, cancel);
+        }
+
+        long Field(int offset) => BinaryPrimitives.ReadInt64LittleEndian(table.AsSpan(offset));
+        var pagesMapOffset = Field(0x38);
+        var pagesMapCompressed = Field(0x50);
+        var pagesMapUncompressed = Field(0x58);
+        var pagesMapFactor = Field(0x18);
+        var sectionsMapId = Field(0xC0);
+        var sectionsMapCompressed = Field(0xB0);
+        var sectionsMapUncompressed = Field(0xC8);
+        var sectionsMapFactor = Field(0xD8);
+
+        var pageMap = Page21(s, pagesMapOffset, pagesMapCompressed, pagesMapUncompressed, pagesMapFactor, 239, cancel);
+        var pages = new Dictionary<int, (long Address, int Size)>();
+        long address = 0;
+        for (var p = 0; p + 16 <= pageMap.Length && pages.Count < 1_000_000; p += 16)
+        {
+            var size = BinaryPrimitives.ReadInt64LittleEndian(pageMap.AsSpan(p));
+            var id = BinaryPrimitives.ReadInt64LittleEndian(pageMap.AsSpan(p + 8));
+            if (size < 0 || size > MaxSectionBytes || address > s.Length)
+            {
+                throw new ModelFormatException("The DWG page map is damaged.");
+            }
+
+            pages[(int)Math.Abs(id)] = (address, (int)size);
+            address += size;
+        }
+
+        if (sectionsMapId is < 0 or > int.MaxValue || !pages.TryGetValue((int)sectionsMapId, out var mapPage))
+        {
+            throw new ModelFormatException("The DWG section map page is missing.");
+        }
+
+        var map = Page21(s, mapPage.Address, sectionsMapCompressed, sectionsMapUncompressed, sectionsMapFactor, 239, cancel);
+        var descriptions = ReadSectionMap21(map);
+        byte[] Section(string name)
+        {
+            foreach (var description in descriptions)
+            {
+                if (description.Name == name)
+                {
+                    return ReadSection21(data.Span, description, pages, cancel);
+                }
+            }
+
+            return [];
+        }
+
+        return new DwgSections
+        {
+            Generation = 21,
+            Header = previewOnly ? [] : Section("AcDb:Header"),
+            Classes = previewOnly ? [] : Section("AcDb:Classes"),
+            Handles = previewOnly ? [] : Section("AcDb:Handles"),
+            Objects = previewOnly ? [] : Section("AcDb:AcDbObjects"),
+            Preview = Section("AcDb:Preview"),
+        };
+    }
+
+    /// <summary>Undoes the interleaving of a Reed-Solomon coded page: block i takes every factor-th byte starting at i, <paramref name="blockSize"/> data bytes of each 255.</summary>
+    private static void ReedSolomonDeinterleave(ReadOnlySpan<byte> encoded, Span<byte> buffer, int factor, int blockSize)
+    {
+        var index = 0;
+        var remaining = buffer.Length;
+        for (var block = 0; block < factor && block < encoded.Length; block++)
+        {
+            var size = Math.Min(remaining, blockSize);
+            remaining -= size;
+            var from = block;
+            for (var i = 0; i < size && from < encoded.Length; i++)
+            {
+                buffer[index++] = encoded[from];
+                from += factor;
+            }
+        }
+    }
+
+    /// <summary>A page of the page map or section map: coded in blocks of 255 bytes, 239 of them data, then compressed.</summary>
+    private static byte[] Page21(ReadOnlySpan<byte> s, long offset, long compressedSize, long uncompressedSize, long factor, int blockSize, CancellationToken cancel)
+    {
+        if (offset < 0 || compressedSize < 0 || compressedSize > 1 << 24 || uncompressedSize < 0 || uncompressedSize > 1 << 26 || factor is < 1 or > 1 << 10)
+        {
+            throw new ModelFormatException("A DWG system page is damaged.");
+        }
+
+        var aligned = (compressedSize + 7) & ~7L;
+        var total = aligned * factor;
+        if (total > 1 << 26)
+        {
+            throw new ModelFormatException("A DWG system page is damaged.");
+        }
+
+        var blocks = (int)((total + blockSize - 1) / blockSize);
+        var length = blocks * 255L;
+        var start = 0x480 + offset;
+        if (start + length > s.Length)
+        {
+            throw new ModelFormatException("A DWG system page lies outside the file.");
+        }
+
+        var compressed = new byte[total];
+        ReedSolomonDeinterleave(s.Slice((int)start, (int)length), compressed, blocks, blockSize);
+        var output = new byte[uncompressedSize];
+        DwgLz21.Decompress(compressed.AsSpan(0, (int)Math.Min(compressedSize, compressed.Length)), output, cancel);
+        return output;
+    }
+
+    private sealed record SectionPage21(long Offset, long Size, int PageId, long Uncompressed, long Compressed);
+
+    private sealed record SectionDescription21(string Name, long Size, long Encoding, List<SectionPage21> Pages);
+
+    private static List<SectionDescription21> ReadSectionMap21(byte[] map)
+    {
+        var result = new List<SectionDescription21>();
+        var p = 0;
+        while (p + 64 <= map.Length && result.Count < 4096)
+        {
+            var size = BinaryPrimitives.ReadInt64LittleEndian(map.AsSpan(p));
+            var nameLength = BinaryPrimitives.ReadInt64LittleEndian(map.AsSpan(p + 0x20));
+            var encoding = BinaryPrimitives.ReadInt64LittleEndian(map.AsSpan(p + 0x30));
+            var pageCount = BinaryPrimitives.ReadInt64LittleEndian(map.AsSpan(p + 0x38));
+            p += 64;
+            if (nameLength < 0 || nameLength > 1024 || pageCount < 0 || pageCount > 1_000_000 || p + nameLength + pageCount * 56 > map.Length)
+            {
+                throw new ModelFormatException("The DWG section map is damaged.");
+            }
+
+            var name = Encoding.Unicode.GetString(map, p, (int)nameLength).Replace("\0", "", StringComparison.Ordinal);
+            p += (int)nameLength;
+            var pages = new List<SectionPage21>((int)pageCount);
+            for (var j = 0; j < pageCount; j++)
+            {
+                pages.Add(new SectionPage21(
+                    BinaryPrimitives.ReadInt64LittleEndian(map.AsSpan(p)),
+                    BinaryPrimitives.ReadInt64LittleEndian(map.AsSpan(p + 8)),
+                    (int)Math.Abs(BinaryPrimitives.ReadInt64LittleEndian(map.AsSpan(p + 16))),
+                    BinaryPrimitives.ReadInt64LittleEndian(map.AsSpan(p + 24)),
+                    BinaryPrimitives.ReadInt64LittleEndian(map.AsSpan(p + 32))));
+                p += 56;
+            }
+
+            if (nameLength > 0)
+            {
+                result.Add(new SectionDescription21(name, size, encoding, pages));
+            }
+        }
+
+        return result;
+    }
+
+    private static byte[] ReadSection21(ReadOnlySpan<byte> file, SectionDescription21 section, Dictionary<int, (long Address, int Size)> pages, CancellationToken cancel)
+    {
+        long total = 0;
+        foreach (var page in section.Pages)
+        {
+            if (page.Uncompressed < 0 || page.Compressed < 0 || page.Offset < 0 || page.Offset + page.Uncompressed > MaxSectionBytes)
+            {
+                throw new ModelFormatException("A DWG section has an impossible size.");
+            }
+
+            total = Math.Max(total, page.Offset + page.Uncompressed);
+        }
+
+        var result = new byte[total];
+        var tick = 0L;
+        foreach (var page in section.Pages)
+        {
+            Cancel.Every(cancel, tick++, 15);
+            if (page.Uncompressed == 0)
+            {
+                continue;
+            }
+
+            if (!pages.TryGetValue(page.PageId, out var location) || 0x480 + location.Address + location.Size > file.Length || page.Compressed > MaxSectionBytes)
+            {
+                throw new ModelFormatException("A DWG data page is missing.");
+            }
+
+            var raw = file.Slice((int)(0x480 + location.Address), location.Size);
+            ReadOnlySpan<byte> bytes = raw;
+            byte[]? decoded = null;
+            if (section.Encoding == 4)
+            {
+                var aligned = (page.Compressed + 7) & ~7L;
+                var blocks = (int)((aligned + 250) / 251);
+                decoded = new byte[(long)blocks * 251];
+                ReedSolomonDeinterleave(raw, decoded, blocks, 251);
+                bytes = decoded;
+            }
+
+            var destination = result.AsSpan((int)page.Offset, (int)page.Uncompressed);
+            if (page.Compressed != page.Uncompressed)
+            {
+                DwgLz21.Decompress(bytes[..(int)Math.Min(page.Compressed, bytes.Length)], destination, cancel);
+            }
+            else
+            {
+                bytes[..Math.Min(bytes.Length, destination.Length)].CopyTo(destination);
+            }
+        }
+
+        return result;
     }
 
     /// <summary>A system page: a 20 byte header (type, decompressed size, compressed size, compression, checksum) and the data, compressed when the type says so.</summary>
