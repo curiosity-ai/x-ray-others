@@ -88,6 +88,11 @@ public class RobustnessTests
         "rlf/scallop-shell.rlf",
         "uasset/Faucet.uasset",
         "uasset/DoorCloser.uasset",
+        "synthetic/las14-f10.las",
+        "synthetic/laz14-f10.laz",
+        "synthetic/laz14-f8.laz",
+        "synthetic/laz14c-f7.laz",
+        "synthetic/laz-pointwise-f3.laz",
     ];
 
     public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });
