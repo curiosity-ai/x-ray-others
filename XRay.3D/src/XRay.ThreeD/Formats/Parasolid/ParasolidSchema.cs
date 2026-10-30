@@ -54,7 +54,7 @@ internal sealed class XtNodeDef
 /// The node types and field lists of the transmit format, written from the public XT format reference (Siemens, April 2008: the struct listings of its
 /// "Node Types" chapters), which describes the schema of Parasolid 12; files written by Parasolid 10 and 11 differ by a few fields.
 /// Where the printed listing and real files disagree the real files win: the ellipse lists its sense before its centre, the transform ends with one
-/// unset perspective vector, an edge's second chain is named next_on_curve, an intersection curve lists its two surfaces before its chart. The 10.0 layout was checked on a real SolidWorks 98Plus file.
+/// unset perspective vector, an edge's second chain is named next_on_curve, an intersection curve lists its two surfaces before its chart. The 10.0 layout was checked on a real SolidWorks 98Plus file; the helix surface form (184) was derived from the bytes of a thread in a real NX file: it has the layout of the helix curve form, without the gap the printed listing gives it.
 /// </summary>
 internal static class XtSchema
 {
@@ -123,7 +123,7 @@ internal static class XtSchema
 137 SP_CURVE node_id:d attributes_groups:p owner:p next:p previous:p geometric_owner:p sense:c surface:p b_curve:p original:p tolerance_to_original:f
 141 GEOMETRIC_OWNER owner:p next:p previous:p shared_geometry:p
 163 HELIX_CU_FORM axis_pt:v axis_dir:v point:v hand:c turns:i pitch:f tol:f
-184 HELIX_SU_FORM axis_pt:v axis_dir:v hand:c turns:i pitch:f gap:f tol:f
+184 HELIX_SU_FORM axis_pt:v axis_dir:v point:v hand:c turns:i pitch:f tol:f
 """;
 
     private static readonly Dictionary<int, XtNodeDef> Current = Build(legacy: false);

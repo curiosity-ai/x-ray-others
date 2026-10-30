@@ -67,6 +67,19 @@ internal static class SolidWorksReader
             model.Metadata.Bounds = model.ComputeBounds();
         }
 
+        if (model.Meshes.Count == 0 && metadata.DocumentKind != "drawing" && ReadBrep(container, options) is { } brep)
+        {
+            // No display lists: the part's own Parasolid partition is the geometry.
+            model.Meshes.AddRange(brep.Meshes);
+            model.Materials.AddRange(brep.Materials);
+            model.Roots.AddRange(brep.Roots);
+            model.Warnings.AddRange(brep.Warnings);
+            model.Metadata.HasGeometry = true;
+            model.Metadata.Statistics = model.ComputeStatistics();
+            model.Metadata.Bounds = model.ComputeBounds();
+            model.Metadata.Notes.Add("The geometry is tessellated from the Parasolid B-rep that the document stores (it embeds no display lists).");
+        }
+
         model.Is2D = model.Metadata.DocumentKind == "drawing";
         if (model.Is2D)
         {
@@ -76,6 +89,35 @@ internal static class SolidWorksReader
         FinishNotes(model.Metadata);
         model.Warnings.AddRange(model.Metadata.Notes);
         return model;
+    }
+
+    /// <summary>
+    /// The Parasolid B-rep a part stores: the transmit stream of its first configuration's partition (Contents/Config-N-Partition), or when that holds no
+    /// body the transmit streams of its local bodies. Each is a binary partition transmit file inside a chain of deflated chunks. Null when there is none.
+    /// </summary>
+    internal static Model3D? ReadBrep(SwContainer container, LoadOptions options)
+    {
+        var names = container.Names.Where(n => n.StartsWith("Contents/Config-", StringComparison.Ordinal) && n.EndsWith("-Partition", StringComparison.Ordinal)).OrderBy(n => n, StringComparer.Ordinal).ToList();
+        var local = container.Names.Where(n => n.Contains("LocalBodies", StringComparison.Ordinal)).OrderBy(n => n, StringComparer.Ordinal).ToList();
+        foreach (var group in new[] { names.Take(1).ToList(), local })
+        {
+            var segments = new List<byte[]>();
+            foreach (var name in group)
+            {
+                options.Cancellation.ThrowIfCancellationRequested();
+                if (container.ReadChunked(name) is { } stream)
+                {
+                    segments.AddRange(Parasolid.ParasolidReader.SplitStreams(stream));
+                }
+            }
+
+            if (Parasolid.ParasolidReader.ReadEmbedded(segments, options) is { } model)
+            {
+                return model;
+            }
+        }
+
+        return null;
     }
 
     private static SwContainer Open(ReadOnlyMemory<byte> data, CancellationToken cancellation, bool verify = true) =>

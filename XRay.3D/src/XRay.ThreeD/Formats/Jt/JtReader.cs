@@ -1100,6 +1100,29 @@ internal static class JtReader
 
     // ---------------------------------------------------------------- model
 
+    /// <summary>The binary Parasolid transmit streams the segments of a JT file hold (the XT B-rep elements): every segment body is searched for transmit headers.</summary>
+    internal static List<byte[]> FindXtStreams(ReadOnlyMemory<byte> memory, CancellationToken token)
+    {
+        var data = memory.ToArray();
+        var h = ReadHeader(data);
+        var result = new List<byte[]>();
+        var tick = 0L;
+        foreach (var entry in ReadToc(data, h))
+        {
+            Cancel.Every(token, tick++, 0);
+            try
+            {
+                result.AddRange(Parasolid.ParasolidReader.SplitStreams(ReadSegment(data, entry.Offset, h, token).Body));
+            }
+            catch (ModelFormatException)
+            {
+                // A segment that cannot be read holds no stream we can use.
+            }
+        }
+
+        return result;
+    }
+
     public static ModelMetadata ReadMetadata(ReadOnlyMemory<byte> memory, LoadOptions options)
     {
         var data = memory.ToArray();
@@ -1164,6 +1187,18 @@ internal static class JtReader
         if (model.Roots.Count == 0)
         {
             model.Roots.Add(new SceneNode("JT"));
+        }
+
+        if (model.Meshes.Count == 0 && Parasolid.ParasolidReader.ReadEmbedded(FindXtStreams(memory, token), options) is { } brep)
+        {
+            // No tessellated shapes: the XT B-rep elements (Parasolid transmit data) are the geometry.
+            model.Meshes.AddRange(brep.Meshes);
+            model.Materials.AddRange(brep.Materials);
+            model.Roots.Clear();
+            model.Roots.AddRange(brep.Roots);
+            model.Warnings.AddRange(brep.Warnings);
+            meta.Units ??= LengthUnit.Meter;
+            meta.Notes.Add("The geometry is tessellated from the Parasolid B-rep (XT) elements of the file, which stores no tessellated shapes.");
         }
 
         meta.HasGeometry = model.Meshes.Count > 0;

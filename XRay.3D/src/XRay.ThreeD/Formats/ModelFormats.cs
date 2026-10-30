@@ -105,8 +105,8 @@ public static class ModelFormats
         new("revit", "Revit", "bim", [".rvt", ".rfa", ".rft"], FormatSupport.Metadata),
         new("inventor", "Autodesk Inventor", "cad", [".ipt", ".iam", ".idw"], FormatSupport.Metadata),
         new("creo", "PTC Creo / Pro/E", "cad", [".prt", ".asm", ".drw"], FormatSupport.Identified),
-        new("nx", "Siemens NX", "cad", [".prt"], FormatSupport.Identified),
-        new("solidedge", "Solid Edge", "cad", [".par", ".psm", ".asm"], FormatSupport.Identified),
+        new("nx", "Siemens NX", "cad", [".prt"], FormatSupport.Full),
+        new("solidedge", "Solid Edge", "cad", [".par", ".psm", ".asm"], FormatSupport.Full),
     ];
 
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
@@ -257,6 +257,12 @@ public static class ModelFormats
         if (Formats.Catia.CatiaReader.Sniff(head))
         {
             return Catia;
+        }
+
+        if (StartsWith(head, "SPLMSSTR"))
+        {
+            // The structured storage of Siemens NX part files.
+            return Find("nx");
         }
 
         if (StartsWith(head, "#UGC:") && Contains(head, "#-END_OF_UGC_HEADER", "") || StartsWith(head, "#UGC:") && Contains(head, "P_OBJECT", ""))

@@ -356,6 +356,202 @@ internal static class ParasolidReader
         return nodes;
     }
 
+    /// <summary>
+    /// Splits a buffer that holds binary transmit files one after another (the geometry streams of a SolidWorks part) at each header: PS, two zero bytes,
+    /// a 16 bit length and a version text that contains "TRANSMIT FILE". A buffer with one header is returned whole.
+    /// </summary>
+    internal static List<byte[]> SplitStreams(byte[] data)
+    {
+        var starts = new List<int>();
+        for (var i = 0; i + 12 < data.Length; i++)
+        {
+            if (data[i] == (byte)'P' && data[i + 1] == (byte)'S' && data[i + 2] == 0 && data[i + 3] == 0 && data[i + 4] == 0 && data[i + 5] is > 10 and < 120
+                && data.AsSpan(i + 6, Math.Min(data.Length - i - 6, 20)).IndexOf(": TRANSMIT FILE"u8) == 0)
+            {
+                starts.Add(i);
+            }
+        }
+
+        var result = new List<byte[]>(starts.Count);
+        for (var k = 0; k < starts.Count; k++)
+        {
+            var end = k + 1 < starts.Count ? starts[k + 1] : data.Length;
+            result.Add(data.AsSpan(starts[k], end - starts[k]).ToArray());
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// The binary transmit streams a container file holds: those stored as they are (a PS header), and those inside zlib streams, found by trying every
+    /// zlib header and looking at the first bytes it inflates to. A compound file (OLE) is searched stream by stream. NX part files keep their B-rep this way.
+    /// </summary>
+    internal static List<byte[]> FindEmbedded(ReadOnlyMemory<byte> data, CancellationToken cancel)
+    {
+        var result = new List<byte[]>();
+        if (Internal.CompoundFile.HasSignature(data.Span))
+        {
+            var file = new Internal.CompoundFile(data, cancel);
+            foreach (var name in file.StreamNames.Order(StringComparer.Ordinal))
+            {
+                cancel.ThrowIfCancellationRequested();
+                if (file.Read(name, cancel, 1L << 28) is { } bytes)
+                {
+                    ScanForStreams(bytes, result, cancel);
+                }
+            }
+
+            return result;
+        }
+
+        ScanForStreams(data.ToArray(), result, cancel);
+        return result;
+    }
+
+    private static void ScanForStreams(byte[] buffer, List<byte[]> result, CancellationToken cancel)
+    {
+        result.AddRange(SplitStreams(buffer));
+        long inflatedTotal = 0;
+        var attempts = 0;
+        for (var i = 0; i + 8 < buffer.Length && attempts < 100_000 && inflatedTotal < (1L << 29); i++)
+        {
+            if (buffer[i] != 0x78 || buffer[i + 1] is not (0x01 or 0x5E or 0x9C or 0xDA))
+            {
+                continue;
+            }
+
+            Internal.Cancel.Every(cancel, attempts++, 0);
+            try
+            {
+                using var probe = new System.IO.Compression.ZLibStream(new MemoryStream(buffer, i, buffer.Length - i, writable: false), System.IO.Compression.CompressionMode.Decompress);
+                var head = new byte[32];
+                var got = 0;
+                while (got < head.Length)
+                {
+                    var n = probe.Read(head, got, head.Length - got);
+                    if (n <= 0)
+                    {
+                        break;
+                    }
+
+                    got += n;
+                }
+
+                if (got < 16 || !(head[0] == (byte)'P' && head[1] == (byte)'S' && head[2] == 0 && head[3] == 0))
+                {
+                    continue;
+                }
+
+                using var full = new System.IO.Compression.ZLibStream(new MemoryStream(buffer, i, buffer.Length - i, writable: false), System.IO.Compression.CompressionMode.Decompress);
+                var output = new MemoryStream();
+                var chunk = new byte[81920];
+                int read;
+                while ((read = full.Read(chunk, 0, chunk.Length)) > 0)
+                {
+                    output.Write(chunk, 0, read);
+                    cancel.ThrowIfCancellationRequested();
+                    if (output.Length > (1L << 28))
+                    {
+                        break;
+                    }
+                }
+
+                inflatedTotal += output.Length;
+                result.AddRange(SplitStreams(output.ToArray()));
+            }
+            catch (InvalidDataException)
+            {
+            }
+        }
+    }
+
+    /// <summary>
+    /// Loads the Parasolid B-rep out of a container format whose geometry is a transmit stream inside it (Siemens NX, Solid Edge). The file holds several
+    /// streams (the part, and the tool bodies and deltas of its features, some of them several times over): the largest one that gives geometry is the part.
+    /// </summary>
+    internal static Model3D ReadContainer(FormatInfo format, ReadOnlyMemory<byte> data, LoadOptions options)
+    {
+        var streams = FindEmbedded(data, options.Cancellation);
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        Model3D? model = null;
+        foreach (var stream in streams.OrderByDescending(x => x.Length))
+        {
+            if (!seen.Add(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(stream))))
+            {
+                continue;
+            }
+
+            if (ReadEmbedded([stream], options) is { } found)
+            {
+                model = found;
+                break;
+            }
+        }
+
+        if (model is null)
+        {
+            throw new UnsupportedModelFormatException(format, $"{format.Name}: no Parasolid transmit stream that this reader understands was found in the file ({streams.Count} found).");
+        }
+
+        model.Metadata.Format = format;
+        model.Metadata.Notes.Add($"The geometry is the largest of the {streams.Count} Parasolid transmit stream(s) stored in the file; the others (feature tool bodies, deltas) are not read.");
+        return model;
+    }
+
+    /// <summary>
+    /// Reads transmit streams found inside another format (a SolidWorks partition, the XT B-rep elements of a JT file) and merges what they hold into one
+    /// model. A stream of a schema or node type that is not understood, or without a body (a ghost partition, a delta), is left out; null when no stream gave geometry.
+    /// </summary>
+    internal static Model3D? ReadEmbedded(IEnumerable<byte[]> streams, LoadOptions options)
+    {
+        Model3D? merged = null;
+        foreach (var stream in streams)
+        {
+            options.Cancellation.ThrowIfCancellationRequested();
+            Model3D part;
+            try
+            {
+                part = Read(stream, options);
+            }
+            catch (ModelFormatException)
+            {
+                continue;
+            }
+
+            if (part.Meshes.Count == 0)
+            {
+                continue;
+            }
+
+            if (merged is null)
+            {
+                merged = part;
+                continue;
+            }
+
+            var shift = merged.Materials.Count;
+            merged.Materials.AddRange(part.Materials);
+            foreach (var mesh in part.Meshes)
+            {
+                if (shift > 0)
+                {
+                    for (var i = 0; i < mesh.Groups.Count; i++)
+                    {
+                        var g = mesh.Groups[i];
+                        mesh.Groups[i] = g with { Material = g.Material >= 0 ? g.Material + shift : g.Material };
+                    }
+                }
+
+                merged.Meshes.Add(mesh);
+            }
+
+            merged.Roots.AddRange(part.Roots);
+            merged.Warnings.AddRange(part.Warnings);
+        }
+
+        return merged;
+    }
+
     public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options)
     {
         var meta = ReadMetadata(data, options.Cancellation);

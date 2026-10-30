@@ -370,6 +370,7 @@ public static class ModelLoader
         "rhino" => Formats.Rhino.RhinoReader.Read(data, options),
         "dwf" => Formats.Dwf.DwfReader.Read(data, options),
         "parasolid" => Formats.Parasolid.ParasolidReader.Read(data, options),
+        "nx" or "solidedge" => Formats.Parasolid.ParasolidReader.ReadContainer(format, data, options),
         "sat" => Formats.Acis.SabReader.Sniff(data.Span) ? Formats.Acis.SabReader.Read(data, options) : Formats.Acis.SatReader.Read(data, options),
         "blender" => Formats.Blender.BlendReader.Read(data, options),
         "archicad" => Formats.Archicad.GsmReader.Read(data, options),

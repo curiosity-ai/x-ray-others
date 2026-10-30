@@ -204,6 +204,22 @@ internal sealed class SwContainer
         return _lazy && raw is not null && Crc32.Update(0, raw) != entry.Crc ? null : raw;
     }
 
+    /// <summary>
+    /// A stream that is itself a chain of deflated chunks (a 32 bit length, the 16-byte signature, then the chunks of <see cref="Unpack"/>), as the
+    /// geometry streams of a part are (Contents/Config-N-Partition, Contents/Config-N-GhostPartition, FeatureBodies/LocalBodies); null when the stream is
+    /// absent or not such a chain.
+    /// </summary>
+    public byte[]? ReadChunked(string name)
+    {
+        if (Read(name) is not { Length: > 20 } raw)
+        {
+            return null;
+        }
+
+        var start = raw.AsSpan(4, 16).SequenceEqual(ZlbSignature) ? 4 : raw.AsSpan(0, 16).SequenceEqual(ZlbSignature) ? 0 : -1;
+        return start < 0 ? null : Unpack(raw.AsSpan(start).ToArray(), _cancellation);
+    }
+
     private const int MaxStreamBytes = 1 << 30;
 
     private byte[]? ReadCompound(CompoundFile file, string name)
