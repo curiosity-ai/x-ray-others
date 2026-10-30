@@ -63,7 +63,8 @@ def cylinder(r=2.0, h=5.0):
     s.add('lump', 'lump $-1 $-1 $shell $body')
     s.add('shell', 'shell $-1 $-1 $-1 $fbottom $-1 $lump')
     # faces
-    s.add('fbottom', 'face $-1 $fside $lbottom $shell $-1 $sbottom reversed single')
+    # The bottom plane's own normal is -z (outward) and its loop runs the circle backwards, so the face takes the surface's side: 'forward'.
+    s.add('fbottom', 'face $-1 $fside $lbottom $shell $-1 $sbottom forward single')
     s.add('fside', 'face $-1 $ftop $lside $shell $-1 $sside forward single')
     s.add('ftop', 'face $-1 $-1 $ltop $shell $-1 $stop forward single')
     s.add('lbottom', 'loop $-1 $-1 $c0 $fbottom')

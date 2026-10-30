@@ -1913,8 +1913,8 @@
   "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
   "license": "CC0-1.0",
   "source": "tools/fixtures/make_sat_fixtures.py",
-  "bytes": 1144,
-  "sha256": "890576b357d951ff504d57f8453031a8a7c16b375c27eb4b749ed3275e9c5e61"
+  "bytes": 1143,
+  "sha256": "c1e746999410397396e46c7a446a4380b25ae08272fe7e048f7148103b8bcfcd"
  },
  {
   "file": "synthetic/sphere-400.sat",

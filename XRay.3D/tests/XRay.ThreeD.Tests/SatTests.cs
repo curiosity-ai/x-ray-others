@@ -59,6 +59,51 @@ public class SatTests
         Assert.InRange(torus.SurfaceArea, 4 * Math.PI * Math.PI * 5 * 0.97, 4 * Math.PI * Math.PI * 5);
     }
 
+    /// <summary>
+    /// A face takes its side from the surface normal and the face sense; a solid's faces must all look outward. The cylinder fixture once
+    /// had its bottom cap flipped (it sits in the plane z = 0, so the signed volume could not show it): every mesh here is closed and
+    /// consistently wound, and encloses a positive volume.
+    /// </summary>
+    [Theory]
+    [InlineData("synthetic/cylinder-400.sat")]
+    [InlineData("synthetic/box-700.sat")]
+    [InlineData("synthetic/box-700.sab")]
+    [InlineData("synthetic/hexprism-700.sat")]
+    [InlineData("sat/nist-arm-blank.sat")]
+    public void Every_solid_is_wound_outward(string relative)
+    {
+        var model = Load(relative);
+        foreach (var mesh in model.Meshes)
+        {
+            var (closed, volume) = MetricsTests.Closure(mesh);
+            Assert.True(closed, $"{relative}: edges are not used once in each direction");
+            Assert.True(volume > 0, $"{relative}: wound inside out (volume {volume})");
+        }
+    }
+
+    [Fact]
+    public void The_cylinders_caps_both_face_outward()
+    {
+        var mesh = Load("synthetic/cylinder-400.sat").Meshes.Single();
+        var p = mesh.Positions;
+        var outward = new Dictionary<float, int>();
+        var inward = new Dictionary<float, int>();
+        for (var t = 0; t + 2 < mesh.Indices.Length; t += 3)
+        {
+            var a = new System.Numerics.Vector3(p[mesh.Indices[t] * 3], p[mesh.Indices[t] * 3 + 1], p[mesh.Indices[t] * 3 + 2]);
+            var b = new System.Numerics.Vector3(p[mesh.Indices[t + 1] * 3], p[mesh.Indices[t + 1] * 3 + 1], p[mesh.Indices[t + 1] * 3 + 2]);
+            var c = new System.Numerics.Vector3(p[mesh.Indices[t + 2] * 3], p[mesh.Indices[t + 2] * 3 + 1], p[mesh.Indices[t + 2] * 3 + 2]);
+            if (MathF.Abs(a.Z - b.Z) < 1e-6f && MathF.Abs(b.Z - c.Z) < 1e-6f)
+            {
+                var up = System.Numerics.Vector3.Cross(b - a, c - a).Z > 0;
+                (up == a.Z > 2.5f ? outward : inward)[a.Z] = 1;
+            }
+        }
+
+        Assert.Equal(2, outward.Count);
+        Assert.Empty(inward);
+    }
+
     [Fact]
     public void A_real_save_of_the_first_ACIS_versions_loads_with_its_exact_extent()
     {
