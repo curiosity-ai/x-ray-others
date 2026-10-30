@@ -43,6 +43,7 @@
     <None Include="Corpus/usd-layers-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/e57-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/e57-local-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/catia-golden.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/XRay.ThreeD/XRay.ThreeD.csproj" />

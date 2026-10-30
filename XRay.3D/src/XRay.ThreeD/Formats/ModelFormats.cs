@@ -88,6 +88,8 @@ public static class ModelFormats
 
     public static FormatInfo SketchUp { get; } = new("sketchup", "SketchUp", "cad", [".skp"], FormatSupport.Metadata);
 
+    public static FormatInfo Catia { get; } = new("catia", "CATIA V5", "cad", [".catpart", ".catproduct", ".catdrawing", ".catshape", ".cgr"], FormatSupport.Full);
+
     public static FormatInfo Fusion { get; } = new("fusion", "Fusion 360", "cad", [".f3d", ".f3z"], FormatSupport.Metadata);
 
     public static FormatInfo ThreeDxml { get; } = new("3dxml", "3DXML", "cad", [".3dxml"], FormatSupport.Full);
@@ -101,7 +103,6 @@ public static class ModelFormats
         new("ifcxml", "IFC XML", "bim", [".ifcxml"], FormatSupport.Identified),
         new("revit", "Revit", "bim", [".rvt", ".rfa", ".rft"], FormatSupport.Metadata),
         new("inventor", "Autodesk Inventor", "cad", [".ipt", ".iam", ".idw"], FormatSupport.Metadata),
-        new("catia", "CATIA", "cad", [".catpart", ".catproduct"], FormatSupport.Identified),
         new("creo", "PTC Creo / Pro/E", "cad", [".prt", ".asm", ".drw"], FormatSupport.Identified),
         new("nx", "Siemens NX", "cad", [".prt"], FormatSupport.Identified),
         new("solidedge", "Solid Edge", "cad", [".par", ".psm", ".asm"], FormatSupport.Identified),
@@ -110,7 +111,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Psu, Rlf, Unreal, E57, Blender, Archicad, SketchUp, Fusion, Acis, Dwf, Parasolid, ThreeDxml];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Psu, Rlf, Unreal, E57, Blender, Archicad, SketchUp, Fusion, Catia, Acis, Dwf, Parasolid, ThreeDxml];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -252,9 +253,9 @@ public static class ModelFormats
             return Find("jt");
         }
 
-        if (StartsWith(head, "V5_CFV"))
+        if (Formats.Catia.CatiaReader.Sniff(head))
         {
-            return Find("catia");
+            return Catia;
         }
 
         if (StartsWith(head, "#UGC:") && Contains(head, "#-END_OF_UGC_HEADER", "") || StartsWith(head, "#UGC:") && Contains(head, "P_OBJECT", ""))

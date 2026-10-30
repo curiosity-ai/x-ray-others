@@ -2,7 +2,7 @@
 
 Published as `X-Ray.3D` (assembly and namespace `XRay.ThreeD`). Identifies 3D/CAD formats, extracts metadata and
 converts geometry to GLB. No package dependencies; the BCL only. Read `README.md` for the public surface,
-`TODO.md` for the plan, `docs/solidworks-format.md` before touching the SolidWorks reader.
+`TODO.md` for the plan, `docs/solidworks-format.md` before touching the SolidWorks reader and `docs/catia-format.md` before touching the CATIA one.
 
 **Provenance.** A re-implementation, in C# and without web technology, of the parts of a browser 3D viewer that
 matter for metadata extraction and conversion. The reference viewer's JavaScript was reviewed and its WebAssembly
@@ -16,7 +16,7 @@ in this repository. `LICENSE` is MIT for Curiosity GmbH.
 | Path | What |
 |---|---|
 | `src/XRay.ThreeD/Model/` | `Model3D`, `SceneNode`, `MeshData`, `ModelMetadata`, `FormatInfo`, exceptions |
-| `src/XRay.ThreeD/Formats/` | `ModelFormats` (registry + detection), `SolidWorks/`, `Mesh/` (STL, OBJ, PLY, glTF, 3MF, OFF, AMF, 3DS, COLLADA, X3D/VRML, FBX, USDA), `Cad/` (DXF, IGES, FreeCAD), `Bim/` (IFC, Sweet Home 3D), `Toolpath/` (G-code), `Packages/` (ZIP archives: primary model and companions), `PointCloud/` (LAS, PCD, XYZ), `Step/` (Part 21 parser, geometry, tessellator, reader) |
+| `src/XRay.ThreeD/Formats/` | `ModelFormats` (registry + detection), `SolidWorks/`, `Mesh/` (STL, OBJ, PLY, glTF, 3MF, OFF, AMF, 3DS, COLLADA, X3D/VRML, FBX, USDA), `Cad/` (DXF, IGES, FreeCAD), `Bim/` (IFC, Sweet Home 3D), `Toolpath/` (G-code), `Packages/` (ZIP archives: primary model and companions), `PointCloud/` (LAS, PCD, XYZ), `Step/` (Part 21 parser, geometry, tessellator, reader), `Catia/` (CATIA V5: container, metadata, display tessellation) |
 | `src/XRay.ThreeD/Output/` | `GlbWriter` (the output format and its profile), `SvgWriter` (drawings: layers, text, fills), `AssemblyPackage` (manifest + per-part GLBs) |
 | `src/XRay.ThreeD/Internal/` | `Triangulator` (constrained Delaunay), `MeshoptEncoder`/`MeshoptDecoder` (ports, see `THIRD_PARTY_NOTICES.md`), CRC and binary helpers |
 | `src/XRay.ThreeD/ModelLoader.cs` | entry point: `Detect`, `ReadMetadata`, `Load`, `ConvertToGlb`; the exception guard and sanitiser |

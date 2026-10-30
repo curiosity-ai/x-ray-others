@@ -2356,5 +2356,104 @@
   "source": "tools/fixtures/make_skp_legacy_geometry.py",
   "bytes": 1883,
   "sha256": "cb901d3f32ea4bdcd19d88bcc46887d177914301465bdf3c0e01b49ef97eb5c4"
+ },
+ {
+  "file": "catia/100nF.CATPart",
+  "format": "catia",
+  "title": "SMD capacitor, CATIA V5 part (.CATPart): a box with its colour, R21",
+  "license": "MIT",
+  "source": "github.com/hssnadr/HTBX_01Ressources (MIT, copyright 2020 Adrien Husson); a CATIA V5 model of a game controller",
+  "bytes": 41514,
+  "sha256": "508ae884d67b6828f9462ce23970498c6892e171c544acb413bffce8eff2a3f4"
+ },
+ {
+  "file": "catia/Case_Logo_Yellow.CATPart",
+  "format": "catia",
+  "title": "Logo plate, CATIA V5 part (.CATPart) with a yellow face colour, R21",
+  "license": "MIT",
+  "source": "github.com/hssnadr/HTBX_01Ressources (MIT, copyright 2020 Adrien Husson); a CATIA V5 model of a game controller",
+  "bytes": 473285,
+  "sha256": "f92a08b7d6e595102ca82aa72b8c2bd04cdcb18eee4e23a1800a10933bf1594a"
+ },
+ {
+  "file": "catia/Plexiglass_top.CATPart",
+  "format": "catia",
+  "title": "Transparent top plate, CATIA V5 part (.CATPart) with face transparency, R21",
+  "license": "MIT",
+  "source": "github.com/hssnadr/HTBX_01Ressources (MIT, copyright 2020 Adrien Husson); a CATIA V5 model of a game controller",
+  "bytes": 355788,
+  "sha256": "cec8b1f29a0b42559b849c64ff5beeb38c6cdb691875b10dcf0aba9fd955fc7a"
+ },
+ {
+  "file": "catia/Weight.CATPart",
+  "format": "catia",
+  "title": "Round weight, CATIA V5 part (.CATPart) with a 27264-vertex tessellation, R21",
+  "license": "MIT",
+  "source": "github.com/hssnadr/HTBX_01Ressources (MIT, copyright 2020 Adrien Husson); a CATIA V5 model of a game controller",
+  "bytes": 570513,
+  "sha256": "477abcad32be62215758eee97e21e6c14213cc0e8c73e427ec4f98ef014194a9"
+ },
+ {
+  "file": "catia/POWER_BOARD.CATProduct",
+  "format": "catia",
+  "title": "Power board, CATIA V5 product (.CATProduct): structure and links only, R21",
+  "license": "MIT",
+  "source": "github.com/hssnadr/HTBX_01Ressources (MIT, copyright 2020 Adrien Husson); a CATIA V5 model of a game controller",
+  "bytes": 112363,
+  "sha256": "be9f98a76b59340f800c42454f540a611b06b643627ccc87df36bb9dbc245784"
+ },
+ {
+  "file": "catia/Product1.CATProduct",
+  "format": "catia",
+  "title": "Robot hand assembly, CATIA V5 product (.CATProduct): structure and links only, R24",
+  "license": "MIT",
+  "source": "github.com/Dictor/HaneulMyo (MIT, copyright 2019 Dictor); a CATIA V5 model of a robot hand",
+  "bytes": 40983,
+  "sha256": "0018ec386764dceac596e9367dac9236548cd859b23ea1359f7170ea2656f26a"
+ },
+ {
+  "file": "catia/BracketMidVer3.CATPart",
+  "format": "catia",
+  "title": "Bracket, CATIA V5 part (.CATPart), R24",
+  "license": "MIT",
+  "source": "github.com/Dictor/HaneulMyo (MIT, copyright 2019 Dictor); a CATIA V5 model of a robot hand",
+  "bytes": 1072570,
+  "sha256": "346091a9dfba55bf7e71b6c200d745247ea337b01d69c1368e20aa1df2d853e6"
+ },
+ {
+  "file": "synthetic/catia-cube.CATPart",
+  "format": "catia",
+  "title": "Hand-made CATIA V5 document in the V5_CFV2 layout (written by tools/fixtures/make_fixtures.py)",
+  "license": "CC0-1.0",
+  "source": "original work",
+  "bytes": 4024,
+  "sha256": "72d7ca831fe6f772f28dabbe2c0b59e83a1e1ba72d9ae5db845af3791bbcc33c"
+ },
+ {
+  "file": "synthetic/catia-cube-r32.CATPart",
+  "format": "catia",
+  "title": "Hand-made CATIA V5 document in the V5_CFV2 layout (written by tools/fixtures/make_fixtures.py)",
+  "license": "CC0-1.0",
+  "source": "original work",
+  "bytes": 4032,
+  "sha256": "9a61c91d39e2756923740baf34e8080ac4d9344239b4090ad95011dd6fe01680"
+ },
+ {
+  "file": "synthetic/catia-assembly.CATProduct",
+  "format": "catia",
+  "title": "Hand-made CATIA V5 document in the V5_CFV2 layout (written by tools/fixtures/make_fixtures.py)",
+  "license": "CC0-1.0",
+  "source": "original work",
+  "bytes": 3293,
+  "sha256": "359dc300ac29cd3053c4c5a37bb193816a3c07127fdfc8c3b6c619abd4bf9ab0"
+ },
+ {
+  "file": "synthetic/catia-drawing.CATDrawing",
+  "format": "catia",
+  "title": "Hand-made CATIA V5 document in the V5_CFV2 layout (written by tools/fixtures/make_fixtures.py)",
+  "license": "CC0-1.0",
+  "source": "original work",
+  "bytes": 1841,
+  "sha256": "c93133d7ea34800837a0d76307af91bc08ad293fe5f70ed065a256397407fce5"
  }
 ]

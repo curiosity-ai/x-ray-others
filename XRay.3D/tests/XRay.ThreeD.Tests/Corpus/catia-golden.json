@@ -1,0 +1,2623 @@
+{
+  "BracketMidVer3.CATPart": {
+    "sha256": "346091a9dfba55bf7e71b6c200d745247ea337b01d69c1368e20aa1df2d853e6",
+    "kind": "part",
+    "version": "V5R24",
+    "application": "CATIA V5R24",
+    "title": "Part0025",
+    "partFeature": "Part5",
+    "partNames": [
+      "Part0025"
+    ],
+    "components": [
+      "Part0024.CATPart",
+      "Part0026.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        451,
+        1548,
+        2426
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -26.433,
+      -60.49,
+      12.96,
+      43.164,
+      17.281,
+      22.9
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_6005_2_03.CATPart": {
+    "sha256": "4b4b002e3d4895490f9d5e9cfa7f638795b2441e360b52d5b8097c18c98c4f9c",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "6005_2_03",
+    "partFeature": "Part35",
+    "partNames": [
+      "6005_2_03"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        20,
+        696,
+        616
+      ],
+      [
+        32,
+        1226,
+        1106
+      ],
+      [
+        4,
+        96,
+        72
+      ],
+      [
+        4,
+        96,
+        72
+      ],
+      [
+        4,
+        96,
+        72
+      ],
+      [
+        4,
+        96,
+        72
+      ],
+      [
+        4,
+        96,
+        72
+      ],
+      [
+        4,
+        96,
+        72
+      ],
+      [
+        4,
+        96,
+        72
+      ],
+      [
+        4,
+        96,
+        72
+      ],
+      [
+        4,
+        96,
+        72
+      ],
+      [
+        4,
+        96,
+        72
+      ]
+    ],
+    "materials": 12,
+    "bounds": [
+      -0,
+      -23.5,
+      -23.5,
+      12,
+      23.5,
+      23.5
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_Cambio.CATPart": {
+    "sha256": "c1fa0c20dcc4398c94b69ebe794a4937638e266bba9378ac975d50824c982114",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Cambio",
+    "partFeature": "Part54",
+    "partNames": [
+      "Cambio"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        30,
+        800,
+        726
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -15,
+      -105,
+      -41,
+      15,
+      150,
+      41
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_Cilindro_-_Parte_1.CATPart": {
+    "sha256": "6ea21ca6e9dd9120bc53da47e7c71c68ceac2f214e1a50419dd9f20fa10f5843",
+    "kind": "part",
+    "version": "V5R20",
+    "application": "CATIA V5R20",
+    "title": "Part1.5",
+    "partFeature": "Part1",
+    "partNames": [
+      "Part1.5"
+    ],
+    "components": [
+      "Catalog.CATMaterial"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        81,
+        2704,
+        2532
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -63.5,
+      -63.5,
+      -0,
+      63.5,
+      63.5,
+      81.28
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_Draw_Compressor_de_Ar.CATDrawing": {
+    "sha256": "78b7c35d772d987380b4ae0ac941d453d91e38cfcb12ea53f9138e4b4c41d19c",
+    "kind": "drawing",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": null,
+    "partFeature": null,
+    "partNames": [],
+    "components": [
+      "Compressor de Ar.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": false
+  },
+  "Guilhe_Eixo_de_comando_de_valvulas.CATPart": {
+    "sha256": "c6023eee5bd6ba7db3a9a182ffcfec5a1c950c91534ed68428383996029a9ba5",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Part1.1.3",
+    "partFeature": "Part1",
+    "partNames": [
+      "Part1.1.3"
+    ],
+    "components": [
+      "Catalog.CATMaterial"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        24,
+        728,
+        768
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -50.762,
+      -46.67,
+      -50.8,
+      50.762,
+      145.79,
+      107.95
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_Elemento_do_comando_-_Copia.CATPart": {
+    "sha256": "a5fb397f310f3b697045ed11f709a0d1ce42fd22ba7eb48fa8d75f8f35ad5c80",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Part1.3.1",
+    "partFeature": "Part1",
+    "partNames": [
+      "Part1.3.1"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        20,
+        340,
+        372
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -40.539,
+      -12.129,
+      -18.9,
+      124.41,
+      12.129,
+      18.9
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_Engrenagem_Modifica_Marcha.CATPart": {
+    "sha256": "03478c827bfba430dc1b86a06c98cc5e955fc432b0066b0881e2ed0e7d26a9b4",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Engrenagem Modifica Marcha",
+    "partFeature": "Part47",
+    "partNames": [
+      "Engrenagem Modifica Marcha"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        147,
+        1456,
+        1740
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -57.5,
+      -57.304,
+      -17.5,
+      57.5,
+      57.304,
+      17.5
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_Garfo.CATPart": {
+    "sha256": "abda40e7464e199505dc003467329e0b7d42436042b9f5ae1aa205f96a8c6e60",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Garfo",
+    "partFeature": "Part51",
+    "partNames": [
+      "Garfo"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        20,
+        440,
+        456
+      ],
+      [
+        20,
+        408,
+        428
+      ],
+      [
+        12,
+        300,
+        308
+      ],
+      [
+        30,
+        240,
+        292
+      ]
+    ],
+    "materials": 4,
+    "bounds": [
+      -85.758,
+      -126.058,
+      -80,
+      27.27,
+      46.687,
+      80
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_Lateral_do_Motor.CATPart": {
+    "sha256": "cd7bb5ca2d106e545c5aa3ec6237be88b0a03f604f9243565cf07778c99fb2db",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Part1.1.2.3.4.5.6.7",
+    "partFeature": "Part1",
+    "partNames": [
+      "Part1.1.2.3.4.5.6.7"
+    ],
+    "components": [
+      "Catalog.CATMaterial"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        87,
+        2538,
+        2327
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      0,
+      -279.378,
+      -0,
+      69.7,
+      279.378,
+      276.379
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_Radiator.CATPart": {
+    "sha256": "ba6ae0de7400208e06f8a73be5200c26a0e640999a7d64329b2fe9862745076c",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Radiator",
+    "partFeature": "Part1",
+    "partNames": [
+      "Radiator"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        354,
+        3948,
+        4252
+      ],
+      [
+        398,
+        2584,
+        3120
+      ],
+      [
+        5,
+        1762,
+        1125
+      ],
+      [
+        5,
+        2772,
+        1702
+      ]
+    ],
+    "materials": 4,
+    "bounds": [
+      -25,
+      -239,
+      -300.674,
+      460.981,
+      265.243,
+      131
+    ],
+    "openEdges": 90
+  },
+  "Guilhe_Spur_Gear11.CATPart": {
+    "sha256": "66ba9b0360c32f171e42eebb84e558520e7a815d60f7a1ae98ff1a0dbd55bb6b",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Spur Gear11",
+    "partFeature": "Part44",
+    "partNames": [
+      "Spur Gear11"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        266,
+        1976,
+        2448
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -73.981,
+      -73.832,
+      0,
+      73.981,
+      73.981,
+      40
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_Spur_Gear15.CATPart": {
+    "sha256": "4dd7789ef7288ea7b029e4d77d894d1a23abc607e9d4ef63f80773b06b3d33c4",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Spur Gear15",
+    "partFeature": "Part38",
+    "partNames": [
+      "Spur Gear15"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        96,
+        644,
+        832
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -44,
+      -43.966,
+      0,
+      44,
+      43.966,
+      25
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_Spur_Gear21.CATPart": {
+    "sha256": "7db6f034dcfefd4372563c5e1acb2d27abc73ab8c21ceff8d950cc25a5efe766",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Spur Gear21",
+    "partFeature": "Part45",
+    "partNames": [
+      "Spur Gear21"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        96,
+        644,
+        832
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -44,
+      -43.966,
+      0,
+      44,
+      43.966,
+      25
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_Spur_Gear22.CATPart": {
+    "sha256": "76099d9f725c2d741f289a8b0078184287d0db64a39cedf498e43230afb1351a",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Spur Gear22",
+    "partFeature": "Part43",
+    "partNames": [
+      "Spur Gear22"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        122,
+        804,
+        1044
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -57.975,
+      -57.779,
+      0,
+      57.975,
+      57.975,
+      25
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_cam_assembly.CATProduct": {
+    "sha256": "5d919a395b2d4519c11e5977d03a98e4b0939f51c8da8b0c3529575b12c594f2",
+    "kind": "assembly",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Product3",
+    "partFeature": null,
+    "partNames": [
+      "Part1.1.3",
+      "Part1.1.3.1",
+      "Part1.1.3.2"
+    ],
+    "components": [
+      "Eixo de comando de valvulas.CATPart",
+      "Eixo de comando de valvulas - Copia.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": false
+  },
+  "Guilhe_conecting_road_assembly_-_Copia.CATProduct": {
+    "sha256": "53e7ecf47f2baea05c26a0ff43ee12db4dd71e76f39402c2d90e00edb5e79054",
+    "kind": "assembly",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Product1",
+    "partFeature": null,
+    "partNames": [
+      "coneecting road.1",
+      "botton cdd.1"
+    ],
+    "components": [
+      "coneecting road.CATPart",
+      "piston rod.CATPart",
+      "coneecting road assembly ori.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": false
+  },
+  "Guilhe_conecting_road_assembly_-_Copia_(2).CATProduct": {
+    "sha256": "22bbf0e734d2cd8e8c988d393591789e8167f59894f77d38a190cc742bae7efc",
+    "kind": "assembly",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Product1.1.5",
+    "partFeature": null,
+    "partNames": [
+      "coneecting road.1",
+      "botton cdd.1"
+    ],
+    "components": [
+      "coneecting road.CATPart",
+      "piston rod.CATPart",
+      "coneecting road assembly ori.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": false
+  },
+  "Guilhe_conecting_road_assembly_-_Copia_(4).CATProduct": {
+    "sha256": "a6a6af9072850ffbf50c464ac02f08a7c451a9b5a7f49a4bd11ec6fe1822553a",
+    "kind": "assembly",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Product1.4",
+    "partFeature": null,
+    "partNames": [
+      "coneecting road.1",
+      "botton cdd.1"
+    ],
+    "components": [
+      "coneecting road.CATPart",
+      "piston rod.CATPart",
+      "coneecting road assembly ori.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": false
+  },
+  "Guilhe_coneecting_road_assembly.CATPart": {
+    "sha256": "68c8bf88727f882b4e7d4deacf49723e4aead6d2f473e732fe70bc36a364dc31",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "botton cdd",
+    "partFeature": "Part8",
+    "partNames": [
+      "botton cdd"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        48,
+        700,
+        775
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      0,
+      -60.06,
+      -29.75,
+      24.13,
+      60.06,
+      50.8
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_cylinder_piston_rod.CATPart": {
+    "sha256": "c110aebb4509f3cc3f80af3dff8aef15cde41ac914d861e8a6ae7ff6c939188a",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "piston rod",
+    "partFeature": "Part12",
+    "partNames": [
+      "piston rod"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        6,
+        128,
+        136
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      0,
+      -12.7,
+      -12.507,
+      69.85,
+      12.7,
+      12.507
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_pin2.CATPart": {
+    "sha256": "54a7030f5b8a589c6c4a2b255c2d1bd3e7bcf35bc9462eaf008674de21d7c229",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Part1",
+    "partFeature": "Part1",
+    "partNames": [
+      "Part1"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        8,
+        60,
+        76
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -10,
+      -1.585,
+      -1.585,
+      10,
+      1.585,
+      1.585
+    ],
+    "openEdges": 0
+  },
+  "Guilhe_roler.CATPart": {
+    "sha256": "b8a6c11c8a78bda98e4bfcc8026d6d4bb816f370120da9f7c79c743f04031475",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "4",
+    "partFeature": "Part1",
+    "partNames": [
+      "4"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        10,
+        120,
+        136
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -5,
+      -4.765,
+      -4.765,
+      5,
+      4.765,
+      4.765
+    ],
+    "openEdges": 0
+  },
+  "Guntle.ver5.CATPart": {
+    "sha256": "26504a08b641ad7aae29cf33f07546d2088cb7401fbadf08d99caebceb8548da",
+    "kind": "part",
+    "version": "V5R24",
+    "application": "CATIA V5R24",
+    "title": "Part0024",
+    "partFeature": "Part1",
+    "partNames": [
+      "Part0024"
+    ],
+    "components": [
+      "PalmDown5motors.CATPart",
+      "Part0016.CATPart",
+      "Part0013.CATPart",
+      "Part3.CATPart",
+      "Part4.CATPart",
+      "LED.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        353,
+        5564,
+        5155
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -21.748,
+      -47.447,
+      0.421,
+      54.036,
+      47.471,
+      184
+    ],
+    "openEdges": 6
+  },
+  "HITBOX.CATProduct": {
+    "sha256": "0976f3b49fac6eb29e1a6cd807e616b4c965e7369fac56c76b7d648e6dfd12cf",
+    "kind": "assembly",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "HITBOX",
+    "partFeature": null,
+    "partNames": [
+      "Hitbox_TopPlatform.1"
+    ],
+    "components": [
+      "Hitbox_ControlBoardCase.CATPart",
+      "Hitbox_PowerBoardCase.CATPart",
+      "Hitbox_TopPlatform.CATProduct",
+      "Base.CATPart",
+      "Bag.CATPart",
+      "DB25_Female.CATPart",
+      "TouchSensors_01rows.CATPart",
+      "TouchSensors_03columns.CATPart",
+      "LedStrips.CATPart",
+      "Rivet.CATPart",
+      "TopPlatform_WorkFile.CATPart",
+      "DB25_Male.CATPart",
+      "Square.CATPart",
+      "DB9_Male.CATPart",
+      "DB9_Female.CATPart",
+      "MPU6050.CATPart",
+      "Wires.CATPart",
+      "Squares.CATProduct",
+      "Hitbox_WorkFile_main.CATPart",
+      "PowerWires.CATPart",
+      "MPU6050_Clone.CATPart",
+      "PowerSupply_RSP320.CATProduct",
+      "ControlBoard.CATProduct",
+      "DB9_FemaleCI.CATPart",
+      "STRUCTURE.CATPart",
+      "STRUCTURE.CATProduct",
+      "Plexiglass_Bottom.CATPart",
+      "SYSTEM.CATProduct",
+      "POWER_BOARD.CATProduct",
+      "PB_PlexiglasBottom.CATPart",
+      "POWER_SUPPLY.CATProduct",
+      "PowerSupplySupport_WorkFile.CATPart",
+      "SQUARES_TopPlaform.CATProduct",
+      "M4_Locknut.CATPart",
+      "M4x10_Poelier.CATPart",
+      "M3x30_CHC.CATPart",
+      "TerminalBlock10_CI.CATPart",
+      "Board.CATPart",
+      "FoamTube.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": false
+  },
+  "HOLYNO_Part3.CATPart": {
+    "sha256": "3abd8c5b2738b0da9dfa478e0fc6f2e3244e12af4d5fc6ef665f29b45d997cbc",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Part3",
+    "partFeature": "Part3",
+    "partNames": [
+      "Part3"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        8,
+        20,
+        36
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -4,
+      0,
+      0,
+      0,
+      40.5,
+      5.2
+    ],
+    "openEdges": 0
+  },
+  "HOLYNO_bolloon_holder.CATPart": {
+    "sha256": "c56ec82ab9b4ccc635bfa1f2c9daabe715019c9c0c49422cdfe2aae554945358",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Part2",
+    "partFeature": "Part2",
+    "partNames": [
+      "Part2"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        43,
+        240,
+        324
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -26.5,
+      -15.55,
+      -4.2,
+      24.5,
+      15.55,
+      75
+    ],
+    "openEdges": 8
+  },
+  "POWER_BOARD.CATProduct": {
+    "sha256": "be9f98a76b59340f800c42454f540a611b06b643627ccc87df36bb9dbc245784",
+    "kind": "assembly",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "POWER_BOARD",
+    "partFeature": null,
+    "partNames": [
+      "Part1.2",
+      "Part1.1"
+    ],
+    "components": [
+      "Hitbox_PowerBoardCase.CATPart",
+      "PB_PlexiglasTop.CATPart",
+      "PB_PlexiglasBottom.CATPart",
+      "POWER_BOARD_CI.CATProduct",
+      "Board.CATPart",
+      "M3x30_CHC.CATPart",
+      "M3_Nut.CATPart",
+      "M3_SerratedWasher.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": false
+  },
+  "Product1.CATProduct": {
+    "sha256": "0018ec386764dceac596e9367dac9236548cd859b23ea1359f7170ea2656f26a",
+    "kind": "assembly",
+    "version": "V5R24",
+    "application": "CATIA V5R24",
+    "title": "Product1",
+    "partFeature": null,
+    "partNames": [
+      "Part001.1",
+      "Part0024.1"
+    ],
+    "components": [
+      "L_Ada_v1.1_Back_Cover.stl",
+      "HandUP.ver3.CATPart",
+      "Guntle.ver5.CATPart",
+      "PalmDown5motors1.CATPart",
+      "PalmDown5motors2.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": false
+  },
+  "SQUARES_TopPlaform.CATProduct": {
+    "sha256": "0880a5c2a9754c90975e4cd9c1b36e9187862c8530b0e9de73787a231d9cdf2a",
+    "kind": "assembly",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "SQUARES_TopPlatform",
+    "partFeature": null,
+    "partNames": [
+      "Part1.9"
+    ],
+    "components": [
+      "Square.CATPart",
+      "Rivet.CATPart",
+      "M4x10_Poelier.CATPart",
+      "M4_SerratedWasher.CATPart",
+      "M4_Locknut.CATPart",
+      "M4_Nut.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": false
+  },
+  "dlr_parametric_tank.CATPart": {
+    "sha256": "c8ef9ac258264f76f409bf2befb3ff8f476baa65bfb6366037f4dd33a57df689",
+    "kind": "part",
+    "version": "V5R32",
+    "application": "CATIA V5R32 SP1",
+    "title": "Part1",
+    "partFeature": "Part1",
+    "partNames": [
+      "Part1"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        6,
+        22,
+        33
+      ],
+      [
+        6,
+        12,
+        24
+      ],
+      [
+        6,
+        16,
+        28
+      ],
+      [
+        6,
+        16,
+        28
+      ],
+      [
+        6,
+        16,
+        28
+      ],
+      [
+        6,
+        16,
+        28
+      ],
+      [
+        6,
+        16,
+        28
+      ],
+      [
+        6,
+        16,
+        28
+      ],
+      [
+        6,
+        12,
+        24
+      ],
+      [
+        6,
+        16,
+        28
+      ],
+      [
+        6,
+        16,
+        28
+      ],
+      [
+        6,
+        12,
+        24
+      ],
+      [
+        6,
+        22,
+        33
+      ],
+      [
+        6,
+        16,
+        28
+      ],
+      [
+        6,
+        16,
+        28
+      ],
+      [
+        6,
+        16,
+        28
+      ],
+      [
+        6,
+        16,
+        28
+      ]
+    ],
+    "materials": 17,
+    "bounds": [
+      -1,
+      -1,
+      -1.5,
+      1,
+      1,
+      1.5
+    ],
+    "openEdges": 0
+  },
+  "dolgan_473460001_microUSB.CATPart": {
+    "sha256": "41cde56ae85ae0879ace90c7f62b3204aa017c971d9990aeaf0dd2bf59873fa5",
+    "kind": "part",
+    "version": "V5R18",
+    "application": "CATIA V5R18",
+    "title": null,
+    "partFeature": null,
+    "partNames": [],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        416,
+        2270,
+        3053
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -3.99,
+      -1.47,
+      -2.65,
+      3.99,
+      1.47,
+      2.78
+    ],
+    "openEdges": 0
+  },
+  "dolgan_Antdroid.CATProduct": {
+    "sha256": "dda3227b8c536dabe11645975b131a4695db808d6048f68d39ca0f3e944fa835",
+    "kind": "assembly",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Antdroid",
+    "partFeature": null,
+    "partNames": [
+      "Pata.1"
+    ],
+    "components": [
+      "Pata.CATProduct",
+      "servo 996r_MODIFICADO.CATProduct",
+      "Product1.CATProduct",
+      "Symmetry of Pata.CATProduct",
+      "Cuerpo.CATProduct",
+      "ROUND_MOUNT.CATPart",
+      "Base superior.CATPart",
+      "Base inferior.CATPart",
+      "Tapa servo.CATPart",
+      "PINZA.CATProduct",
+      "BASE_PINZA.CATPart",
+      "separador.CATPart",
+      "Catalog.CATMaterial",
+      "Tibia.CATPart",
+      "Soporte con camara.CATProduct",
+      "soporte camara.CATPart",
+      "base.CATPart",
+      "Pie.CATPart",
+      "Tornillo cabeza hexagonal M3 x20.CATPart",
+      "Tornillo horn servo M1,6x10.CATPart",
+      "Tornillo horn servo M2.5x8.CATPart",
+      "Tornillo tapa servo M2x25.CATPart",
+      "Tornillo horn pieza M1.6x4 CHEESE_HEAD_SCREW.CATPart",
+      "Tornillo Arduino MEGA M2.5x3.CATPart",
+      "ISO_7093_1_4x12_STEEL_GRADE_A_LARGE_SERIES_PLAIN_WASHER.CATPart",
+      "ISO_4032_M4_STEEL_GRADE_A_HEXAGON_NUT.CATPart",
+      "Tornillo M3 x15.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": false
+  },
+  "dolgan_Bearing_4x10x4.CATPart": {
+    "sha256": "f2e8855f7a95a0e595ed4e87700a53be869b63bcfce8c004f50c83ee79758ff4",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Bearing 4x10x4",
+    "partFeature": "Part18",
+    "partNames": [
+      "Bearing 4x10x4"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        34,
+        2272,
+        2128
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -5,
+      -4.99,
+      -2,
+      5,
+      4.99,
+      2
+    ],
+    "openEdges": 0
+  },
+  "dolgan_Camara.CATPart": {
+    "sha256": "65329ee154d099f98a450e74eaa262f97e40b1e4be266eeed699097029615d94",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Camara",
+    "partFeature": "Part11",
+    "partNames": [
+      "Camara"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        36,
+        1038,
+        1092
+      ]
+    ],
+    "materials": 2,
+    "bounds": [
+      -18,
+      0,
+      -18,
+      18,
+      15.5,
+      18
+    ],
+    "openEdges": 0
+  },
+  "dolgan_Femur_lateral.CATPart": {
+    "sha256": "17dca565dc361627812e4bbb2530d130b6eee4654a9bf4b39d067374020044f1",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Femur_lateral",
+    "partFeature": "Part1",
+    "partNames": [
+      "Femur_lateral"
+    ],
+    "components": [
+      "ROUND_MOUNT.CATPart",
+      "Separador2.CATPart",
+      "Tapa servo.CATPart",
+      "Pata.CATProduct",
+      "Coxa.CATPart",
+      "Advanced_Materials.CATMaterial",
+      "Tibia.CATPart",
+      "Bearing 4x10x4.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        44,
+        2850,
+        2900
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -47.796,
+      -17.266,
+      0,
+      47.796,
+      12.796,
+      4
+    ],
+    "openEdges": 0
+  },
+  "dolgan_ISO_4032_M4_STEEL_GRADE_A_HEXAGON_NUT.CATPart": {
+    "sha256": "bb335cffa6a3fbe45b47abd275b7514c1aa91b58cfe60196203d137d597b8482",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": null,
+    "partFeature": "Part1",
+    "partNames": [],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        14,
+        456,
+        480
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      0,
+      -3.5,
+      -4.041,
+      3.2,
+      3.5,
+      4.041
+    ],
+    "openEdges": 0
+  },
+  "dolgan_MIDDLE_SIDE.CATPart": {
+    "sha256": "d2ee8506d9edcafe6afcbf7a1335642617a965630617fe6206f8b2ff2418428d",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "MIDDLE_SIDE",
+    "partFeature": "Part1",
+    "partNames": [
+      "MIDDLE_SIDE"
+    ],
+    "components": [
+      "servo 996r_MODIFICADO.CATProduct"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        18,
+        508,
+        528
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -0.512,
+      -0,
+      -20.5,
+      41.513,
+      20,
+      0
+    ],
+    "openEdges": 0
+  },
+  "dolgan_ROUND_MOUNT.CATPart": {
+    "sha256": "d92ec3d2355cd39bc9f5f6e97184d0903a8215360376163ec21a55bd76c7d75f",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "ROUND_MOUNT",
+    "partFeature": "Part1",
+    "partNames": [
+      "ROUND_MOUNT"
+    ],
+    "components": [
+      "TOP_SIDE.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        47,
+        2368,
+        2400
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -0.043,
+      -0.036,
+      0,
+      21.557,
+      21.552,
+      5.9
+    ],
+    "openEdges": 0
+  },
+  "dolgan_RaspberryPi_PCB.CATPart": {
+    "sha256": "2127fcd4ca2dfe7303f832a06277c1028e76fff773b210b29432762bddb2430d",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "RaspberryPi_PCB",
+    "partFeature": "Part8",
+    "partNames": [
+      "RaspberryPi_PCB"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        10,
+        228,
+        240
+      ]
+    ],
+    "materials": 2,
+    "bounds": [
+      -42.5,
+      -28,
+      0,
+      42.5,
+      28,
+      1.6
+    ],
+    "openEdges": 0
+  },
+  "dolgan_SBEC.CATPart": {
+    "sha256": "cf70d417b12820748ea64245eb2dfd9622665f2368001cf6a597f1375984b08a",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "SBEC",
+    "partFeature": "Part1",
+    "partNames": [
+      "SBEC"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        6,
+        12,
+        24
+      ],
+      [
+        316,
+        3632,
+        4264
+      ],
+      [
+        8,
+        988,
+        716
+      ],
+      [
+        19,
+        156,
+        192
+      ],
+      [
+        8,
+        668,
+        524
+      ],
+      [
+        60,
+        120,
+        240
+      ]
+    ],
+    "materials": 6,
+    "bounds": [
+      -30.99,
+      -12.5,
+      -7.5,
+      29,
+      12.5,
+      10.5
+    ],
+    "openEdges": 0
+  },
+  "dolgan_SD_Card.CATPart": {
+    "sha256": "5e5e9258eeb66d12b421f26be4fd3ffc7ac2cdff749316c9c9aabee14de00b9b",
+    "kind": "part",
+    "version": "V5R18",
+    "application": "CATIA V5R18",
+    "title": null,
+    "partFeature": null,
+    "partNames": [],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        115,
+        472,
+        702
+      ],
+      [
+        97,
+        520,
+        701
+      ],
+      [
+        6,
+        12,
+        24
+      ],
+      [
+        6,
+        12,
+        24
+      ],
+      [
+        6,
+        12,
+        24
+      ],
+      [
+        6,
+        12,
+        24
+      ],
+      [
+        6,
+        12,
+        24
+      ],
+      [
+        6,
+        12,
+        24
+      ],
+      [
+        10,
+        28,
+        48
+      ],
+      [
+        9,
+        24,
+        42
+      ]
+    ],
+    "materials": 10,
+    "bounds": [
+      -12,
+      0,
+      -16,
+      12,
+      2.1,
+      16
+    ],
+    "openEdges": 0
+  },
+  "dolgan_Symmetry_of_Femur_lateral.CATPart": {
+    "sha256": "9b4be36595f283590d83520319ce15870c90b55d120f04d60dbdf6aa49281da6",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Symmetry of Femur_lateral",
+    "partFeature": "Part17",
+    "partNames": [
+      "Symmetry of Femur_lateral"
+    ],
+    "components": [
+      "Femur_lateral.CATPart",
+      "Advanced_Materials.CATMaterial",
+      "Tibia.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        44,
+        2850,
+        2900
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -47.796,
+      -12.796,
+      0,
+      47.796,
+      17.266,
+      4
+    ],
+    "openEdges": 0
+  },
+  "dolgan_Tapa_Superior.CATPart": {
+    "sha256": "1b0eef98e01e25cf5c98c7bbb897b0a740e1d59648310fc94b1cc54e99a74f57",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Tapa_Superior",
+    "partFeature": "Part10",
+    "partNames": [
+      "Tapa_Superior"
+    ],
+    "components": [
+      "PINZA.CATProduct",
+      "BASE_PINZA.CATPart",
+      "PINZA_DERECHA.CATPart",
+      "Tornillo M3.CATPart",
+      "Advanced_Materials.CATMaterial",
+      "Tibia.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        47,
+        1240,
+        1318
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -40.42,
+      -38.244,
+      0,
+      40.42,
+      18,
+      5
+    ],
+    "openEdges": 0
+  },
+  "dolgan_Tornillo_M4x8.CATPart": {
+    "sha256": "d39500a72c0c75f48e7b7e1124f60722695a33fdc4cb12ff75bfbb441d55dc99",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "M4x8",
+    "partFeature": "Part1",
+    "partNames": [
+      "M4x8"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        22,
+        528,
+        568
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -4.041,
+      -3.5,
+      0,
+      4.041,
+      3.5,
+      12.8
+    ],
+    "openEdges": 0
+  },
+  "dolgan_Tornillo_cabeza_hexagonal_M3_x20.CATPart": {
+    "sha256": "c6eaac5e07fe3ab0c271fe50526be0e47b2ed7b6882008262fd86e7c7fffba50",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": null,
+    "partFeature": "Part1",
+    "partNames": [],
+    "components": [
+      "Advanced_Materials.CATMaterial"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        31,
+        800,
+        792
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -20,
+      -2.75,
+      -2.741,
+      3,
+      2.75,
+      2.741
+    ],
+    "openEdges": 0
+  },
+  "dolgan_Tuerca_M3.CATPart": {
+    "sha256": "98d6d925b497720083ded8c31cff2bc5867ca58ac9197accb8eec5451de2203f",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Tuerca M3",
+    "partFeature": "Part7",
+    "partNames": [
+      "Tuerca M3"
+    ],
+    "components": [
+      "Catalog.CATMaterial"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        22,
+        432,
+        472
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -3.175,
+      -2.75,
+      -2,
+      3.175,
+      2.75,
+      0
+    ],
+    "openEdges": 0
+  },
+  "dolgan_base.CATPart": {
+    "sha256": "f0479c1606dfcf4ba6a705017526f7a045bcf481e97f284a8c358a55e0d8f6c2",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "base",
+    "partFeature": "Part1",
+    "partNames": [
+      "base"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        6,
+        12,
+        24
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -300,
+      -300,
+      -1,
+      300,
+      300,
+      1
+    ],
+    "openEdges": 0
+  },
+  "dolgan_gopro3.CATPart": {
+    "sha256": "cf7394eee6d4eacb40225fbdce190bc66aa711ae750cbac8fd8f228130cf39d5",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "gopro3",
+    "partFeature": "Part1",
+    "partNames": [
+      "gopro3"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        800,
+        1514,
+        3949
+      ]
+    ],
+    "materials": 0,
+    "bounds": [
+      25.829,
+      9.019,
+      -0.024,
+      50.258,
+      53.588,
+      30.415
+    ],
+    "openEdges": 0
+  },
+  "dolgan_raspicam.CATPart": {
+    "sha256": "a2914f8ba5df3e01a706460a15f7da0554cc5c1c3c83111669facc1c14e7ecf2",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "gopro3",
+    "partFeature": "Part1",
+    "partNames": [
+      "gopro3"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        81,
+        7144,
+        5050
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      5.83,
+      31,
+      30.4,
+      45.83,
+      71,
+      54.8
+    ],
+    "openEdges": 0
+  },
+  "dolgan_soporte_camara.CATPart": {
+    "sha256": "c0315f35c8a1a0c18be9c9c8fc876050de6fe45ca3b05c458f7a4e63333e34da",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "soporte camara",
+    "partFeature": "Part1",
+    "partNames": [
+      "soporte camara"
+    ],
+    "components": [
+      "Camara.CATPart",
+      "separador simple.CATPart",
+      "Tibia.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        103,
+        2792,
+        2968
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -4,
+      -37.975,
+      -21,
+      10,
+      21,
+      21
+    ],
+    "openEdges": 0
+  },
+  "hssnad_100nF.CATPart": {
+    "sha256": "508ae884d67b6828f9462ce23970498c6892e171c544acb413bffce8eff2a3f4",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "100nF",
+    "partFeature": "Part41",
+    "partNames": [
+      "100nF"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        6,
+        12,
+        24
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -1.092,
+      -0.724,
+      0,
+      1.106,
+      0.726,
+      0.1
+    ],
+    "openEdges": 0
+  },
+  "hssnad_CAP-POL-8MMX10MM.CATPart": {
+    "sha256": "8e488c31a1987758f816ef36ee5e79daadff16a0c45dbcb05296842c108e7f8a",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "CAP-POL-8MMX10MM",
+    "partFeature": "Part42",
+    "partNames": [
+      "CAP-POL-8MMX10MM"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        6,
+        12,
+        24
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -4.25,
+      -4.25,
+      0,
+      4.25,
+      4.25,
+      0.1
+    ],
+    "openEdges": 0
+  },
+  "hssnad_CD74HC4067SM96.CATPart": {
+    "sha256": "7c00cf6d50fe980b5981937bca79142e72ad6468fd645feecdf977a6f72333c3",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "CD74HC4067SM96",
+    "partFeature": "Part35",
+    "partNames": [
+      "CD74HC4067SM96"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        6,
+        12,
+        24
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -3.749,
+      -4.354,
+      -0,
+      3.749,
+      4.354,
+      1.609
+    ],
+    "openEdges": 0
+  },
+  "hssnad_Case_Base.CATPart": {
+    "sha256": "34896b10169b89f5192651ea6527d82675dc157dfb2d6f56c62fe13d2f321989",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Case_Base",
+    "partFeature": "Part25",
+    "partNames": [
+      "Case_Base"
+    ],
+    "components": [
+      "HITBOX.CATProduct",
+      "Hitbox_WorkFile_main.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        44,
+        1960,
+        1736
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -248.038,
+      -249.715,
+      211.133,
+      251.962,
+      249.719,
+      473.133
+    ],
+    "openEdges": 0
+  },
+  "hssnad_Case_Logo_Yellow.CATPart": {
+    "sha256": "f92a08b7d6e595102ca82aa72b8c2bd04cdcb18eee4e23a1800a10933bf1594a",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Case_Logo_Yellow",
+    "partFeature": "Part80",
+    "partNames": [
+      "Case_Logo_Yellow"
+    ],
+    "components": [
+      "HITBOX.CATProduct",
+      "Hitbox_WorkFile_main.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        151,
+        1069,
+        1367
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -185.275,
+      -115.301,
+      473.133,
+      -123.017,
+      144.471,
+      476.133
+    ],
+    "openEdges": 0
+  },
+  "hssnad_Case_Plexiglas_Front.CATPart": {
+    "sha256": "86cb6a3e0a57f33135b11dd0ff0b5ec7f8f82789b395296a71b24da3a2b6fd38",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Case_Plexiglas_Front",
+    "partFeature": "Part27",
+    "partNames": [
+      "Case_Plexiglas_Front"
+    ],
+    "components": [
+      "HITBOX.CATProduct",
+      "Hitbox_WorkFile_main.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        68,
+        1528,
+        1432
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -248.038,
+      -249.924,
+      476.133,
+      113.258,
+      249.928,
+      479.133
+    ],
+    "openEdges": 0
+  },
+  "hssnad_Case_Top_Back.CATPart": {
+    "sha256": "f9afcdf70d58f8115a664816433b7df30f27ebae5b136602dde4f05923b2e964",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Case_Top_Back",
+    "partFeature": "Part79",
+    "partNames": [
+      "Case_Top_Back"
+    ],
+    "components": [
+      "HITBOX.CATProduct",
+      "Case_Top_Front.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        68,
+        1512,
+        1404
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -109.534,
+      -249.933,
+      473.133,
+      251.962,
+      249.937,
+      476.133
+    ],
+    "openEdges": 0
+  },
+  "hssnad_Cases_Plexi.CATPart": {
+    "sha256": "8eb6ba9a993a7a39c22088e843836205500d02ac475b299d59482b8c54902f5a",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Cases_Plexi",
+    "partFeature": "Part9",
+    "partNames": [
+      "Cases_Plexi"
+    ],
+    "components": [
+      "Hitbox_Preview_Assemble.CATProduct",
+      "Hitbox_ControlBoardBox_14_biggerHole4PowerWires.CATPart",
+      "Hitbox_PowerBoardBox_05.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        72,
+        1788,
+        1900
+      ],
+      [
+        80,
+        2884,
+        3008
+      ],
+      [
+        26,
+        1136,
+        1168
+      ],
+      [
+        18,
+        780,
+        800
+      ]
+    ],
+    "materials": 4,
+    "bounds": [
+      -152.89,
+      -86.674,
+      110,
+      147.671,
+      96.847,
+      137
+    ],
+    "openEdges": 0
+  },
+  "hssnad_DB25_Female.CATPart": {
+    "sha256": "4436caff13c92459964306f6416ed2ae2eb111a8f5da0ad308d969696517fe9e",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "DB25_Female",
+    "partFeature": "Part3",
+    "partNames": [
+      "DB25_Female"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        278,
+        3210,
+        3336
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -26.5,
+      -6.25,
+      -25,
+      26.5,
+      6.25,
+      6.8
+    ],
+    "openEdges": 0
+  },
+  "hssnad_FUSE.CATPart": {
+    "sha256": "94bb1206ac297398a308790b702aa6c9a8c84e47132de7823984d6d505ab93ad",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "FUSE",
+    "partFeature": "Part51",
+    "partNames": [
+      "FUSE"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        6,
+        12,
+        24
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -9.905,
+      -3.365,
+      0,
+      9.905,
+      3.365,
+      0.1
+    ],
+    "openEdges": 0
+  },
+  "hssnad_LOGO-CRI-NEW-130MMX30MM-TPLACE.CATPart": {
+    "sha256": "e73641149775bbd6b5d4b11991b5d404203ec58c7e912c13d5a88daa04e1b5d5",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "LOGO-CRI-NEW-130MMX30MM-TPLACE",
+    "partFeature": "Part50",
+    "partNames": [
+      "LOGO-CRI-NEW-130MMX30MM-TPLACE"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        6,
+        12,
+        24
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -16.138,
+      -12.488,
+      0,
+      13.388,
+      16.138,
+      0.1
+    ],
+    "openEdges": 0
+  },
+  "hssnad_M3-7L.1.1.1.CATPart": {
+    "sha256": "83ed224a1c5681680b270ee70966a61bc4896f214bfe89559d160f303efe0bba",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "M3-7L.1.1.1",
+    "partFeature": "Part20",
+    "partNames": [
+      "M3-7L.1.1.1"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        10,
+        188,
+        204
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      1833.52,
+      -359.067,
+      -5.8,
+      1839.922,
+      -352.567,
+      -0.8
+    ],
+    "openEdges": 0
+  },
+  "hssnad_MPU6050_Solders.CATPart": {
+    "sha256": "691bc4c0a5372e635967a4706fc3de14b219fb82de10dcc47a2a10af5a2382ad",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "MPU6050_Solders",
+    "partFeature": "Part5",
+    "partNames": [
+      "MPU6050_Solders"
+    ],
+    "components": [
+      "HITBOX.CATProduct",
+      "MPU6050_Wires.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        41,
+        1702,
+        1312
+      ],
+      [
+        64,
+        912,
+        896
+      ]
+    ],
+    "materials": 2,
+    "bounds": [
+      23.134,
+      -10.365,
+      1687.256,
+      26.486,
+      8.981,
+      1699.227
+    ],
+    "openEdges": 0
+  },
+  "hssnad_MainFoam.CATPart": {
+    "sha256": "2e6108a2cf51fd4c364a5bd95a167438913d27f2e2cb0129691a0419cbbac087",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "MainFoam",
+    "partFeature": "Part75",
+    "partNames": [
+      "MainFoam"
+    ],
+    "components": [
+      "HITBOX.CATProduct",
+      "Hitbox_WorkFile_main.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        34,
+        1072,
+        939
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -164.429,
+      -199.997,
+      400,
+      199.984,
+      199.827,
+      1198
+    ],
+    "openEdges": 0
+  },
+  "hssnad_PinHeader.CATPart": {
+    "sha256": "f393cea8abdf09663673ebec4c276dc4fef0b462864dc7ef26a7f7cb3a9e8142",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "PinHeader",
+    "partFeature": "Part57",
+    "partNames": [
+      "PinHeader"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        340,
+        1012,
+        1636
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -1.27,
+      -1.27,
+      -3,
+      34.29,
+      1.27,
+      8.54
+    ],
+    "openEdges": 0
+  },
+  "hssnad_Plexiglass_top.CATPart": {
+    "sha256": "cec8b1f29a0b42559b849c64ff5beeb38c6cdb691875b10dcf0aba9fd955fc7a",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Plexiglass_top",
+    "partFeature": "Part38",
+    "partNames": [
+      "Plexiglass_top"
+    ],
+    "components": [
+      "ControlBoard.CATProduct",
+      "Hitbox_ControlBoardCase.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        212,
+        1588,
+        1860
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -6.743,
+      -8.813,
+      20,
+      166.423,
+      110.7,
+      23
+    ],
+    "openEdges": 0
+  },
+  "hssnad_Rivet.CATPart": {
+    "sha256": "e4e7ee25ad6de6d09bf0e6fdd28e3736675e867f3fc0ed9eba015e7fd6199393",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Rivet",
+    "partFeature": "Part3",
+    "partNames": [
+      "Rivet"
+    ],
+    "components": [
+      "Rivet.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        14,
+        592,
+        464
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -3.873,
+      -2,
+      -3.873,
+      3.873,
+      7.8,
+      3.873
+    ],
+    "openEdges": 0
+  },
+  "hssnad_TerminalBlockCI.CATPart": {
+    "sha256": "2d92b6996a45d2e29aef5a3b6fb24aaaf14ebe842a759fc87a370523e493a02d",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "TerminalBlocksCI_2",
+    "partFeature": "Part18",
+    "partNames": [
+      "TerminalBlocksCI_2"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        149,
+        946,
+        1164
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      0,
+      -8.1,
+      -3.3,
+      10.46,
+      0,
+      13.36
+    ],
+    "openEdges": 0
+  },
+  "hssnad_Velostat.CATPart": {
+    "sha256": "8aa66b9e34452730daed7ff7d4adb1541cc0113296de364d9d6f4ae245c62b79",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Velostat",
+    "partFeature": "Part29",
+    "partNames": [
+      "Velostat"
+    ],
+    "components": [
+      "HITBOX.CATProduct",
+      "Hitbox_WorkFile_main.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        34,
+        874,
+        800
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -120.072,
+      -208.839,
+      619.133,
+      223.826,
+      207.159,
+      1701.133
+    ],
+    "openEdges": 0
+  },
+  "hssnad_Weight.CATPart": {
+    "sha256": "477abcad32be62215758eee97e21e6c14213cc0e8c73e427ec4f98ef014194a9",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Weight",
+    "partFeature": "Part5",
+    "partNames": [
+      "Weight"
+    ],
+    "components": [
+      "Hitbox_Preview_Assemble.CATProduct",
+      "Hitbox_Preview_01.CATPart"
+    ],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        42,
+        54528,
+        32284
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -159.992,
+      -160,
+      10,
+      159.992,
+      160,
+      40
+    ],
+    "openEdges": 0
+  },
+  "hssnad__NPart_308450.CATPart": {
+    "sha256": "026d6726007381a9c7683cf76492da468a62c08f5def66b8c37d6acc5dae60da",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": null,
+    "partFeature": "Part22",
+    "partNames": [],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        8,
+        196,
+        190
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      392.22,
+      432.762,
+      2.1,
+      397.78,
+      438.238,
+      2.9
+    ],
+    "openEdges": 0
+  },
+  "hssnad__NPart_310670.CATPart": {
+    "sha256": "e254a37e2ba6902caaff08a83d737c851b501d90d240d1a79e86ad83252409e7",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": null,
+    "partFeature": "Part21",
+    "partNames": [],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        8,
+        196,
+        190
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      342.22,
+      432.762,
+      2.1,
+      347.78,
+      438.238,
+      2.9
+    ],
+    "openEdges": 0
+  },
+  "hssnad_uu.3.CATPart": {
+    "sha256": "2f6156b02f97b51483dd0cbc0fab96df60d20e5def4b5547aba492e5488561b3",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "uu.3",
+    "partFeature": "Part24",
+    "partNames": [
+      "uu.3"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        46,
+        208,
+        288
+      ]
+    ],
+    "materials": 1,
+    "bounds": [
+      -20.698,
+      92.986,
+      -7,
+      6.303,
+      97.786,
+      18
+    ],
+    "openEdges": 0
+  },
+  "motor_Caixa.CATPart": {
+    "sha256": "cefb5d163a5357f1d44ef96173d48f084d10f47a8e504c093c9f60d7dcb34b4b",
+    "kind": "part",
+    "version": "V5R21",
+    "application": "CATIA V5R21",
+    "title": "Caixa",
+    "partFeature": "Part34",
+    "partNames": [
+      "Caixa"
+    ],
+    "components": [],
+    "previewSize": "130 x 110",
+    "hasGeometry": true,
+    "bodies": [
+      [
+        46,
+        882,
+        926
+      ],
+      [
+        61,
+        1452,
+        1464
+      ],
+      [
+        52,
+        1096,
+        1120
+      ],
+      [
+        68,
+        1112,
+        1184
+      ],
+      [
+        24,
+        484,
+        498
+      ],
+      [
+        18,
+        180,
+        208
+      ],
+      [
+        22,
+        256,
+        292
+      ]
+    ],
+    "materials": 7,
+    "bounds": [
+      -100,
+      -53,
+      -170,
+      100,
+      451.815,
+      170
+    ],
+    "openEdges": 0
+  }
+}

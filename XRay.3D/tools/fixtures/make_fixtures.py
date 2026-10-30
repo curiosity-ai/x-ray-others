@@ -904,3 +904,130 @@ make_zip('textured.3mf', [
 </model>
 '''),
 ])
+
+# ---- CATIA V5 documents: the V5_CFV2 container with a nested graphical-representation container (see docs/catia-format.md).
+# The layout follows what the sample files show: a 64-byte header, stream bytes, then a directory of named streams (a UTF-16 name behind a
+# length word, a descriptor holding the logical length and the extent list). The tessellation is a cube: 8 coordinates (control bits and
+# scalars), five faces as triangle strips and one as independent triangles, then one colour row per face.
+CATIA_JPEG = bytes.fromhex('ffd8ffe000104a46494600010100000100010000ffdb004300100b0c0e0c0a100e0d0e1211101318281a181616183123251d283a333d3c3933383740485c4e404457453738506d51575f626768673e4d71797064785c656763ffdb0043011112121815182f1a1a2f634238426363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363ffc0001108000c001003011100021101031101ffc4001f0000010501010101010100000000000000000102030405060708090a0bffc400b5100002010303020403050504040000017d01020300041105122131410613516107227114328191a1082342b1c11552d1f02433627282090a161718191a25262728292a3435363738393a434445464748494a535455565758595a636465666768696a737475767778797a838485868788898a92939495969798999aa2a3a4a5a6a7a8a9aab2b3b4b5b6b7b8b9bac2c3c4c5c6c7c8c9cad2d3d4d5d6d7d8d9dae1e2e3e4e5e6e7e8e9eaf1f2f3f4f5f6f7f8f9faffc4001f0100030101010101010101010000000000000102030405060708090a0bffc400b51100020102040403040705040400010277000102031104052131061241510761711322328108144291a1b1c109233352f0156272d10a162434e125f11718191a262728292a35363738393a434445464748494a535455565758595a636465666768696a737475767778797a82838485868788898a92939495969798999aa2a3a4a5a6a7a8a9aab2b3b4b5b6b7b8b9bac2c3c4c5c6c7c8c9cad2d3d4d5d6d7d8d9dae2e3e4e5e6e7e8e9eaf2f3f4f5f6f7f8f9faffda000c03010002110311003f00afff001fbfec6cfc739fff005557fc8b7fbdcdf2dbefee5ffbef95be7bfddd83fe3f7fd8d9f8e73ffeaa3fe45bfdee6f96df7f70ff007df2b7cf7fbbb05fff00cb3fc7fa51947dbf97ea1987d9f9fe817fff002cff001fe94651f6fe5fa8661f67e7fa1fffd9')
+
+def v5_container(streams, kind='outer'):
+    """streams: list of (name, bytes). The bytes are stored back to back after a 64-byte header; the directory follows."""
+    body = bytearray()
+    extents = []
+    for name, data in streams:
+        extents.append((64 + len(body), len(data)))
+        body += data
+    directory = bytearray(b'CATIA_V5 CB0001\0')
+    for (name, data), (off, length) in zip(streams, extents):
+        raw = name.encode('utf-16-le')
+        directory += struct.pack('<H', len(raw) + 2) + raw + b'\0\0\0'
+        descriptor = bytearray(0x50)
+        struct.pack_into('>I', descriptor, 0x0c, length)
+        directory += descriptor + struct.pack('>I', 1) + struct.pack('>5I', off if kind == 'outer' else off, length, length, 0, 0)
+    directory += b'CB__END'
+    dir_offset = 64 + len(body)
+    header = b'V5_CFV2\0' + struct.pack('>II', dir_offset if kind == 'outer' else dir_offset, len(directory)) + b'\xff' * 8 + b'\0' * 32 + b'\0' * 8
+    return bytes(header) + bytes(body) + bytes(directory)
+
+def v5_count(n):
+    return bytes([n]) if n < 255 else b'\xff' + struct.pack('<I', n)
+
+def v5_positions(rows):
+    """The coordinate table: 0xffff020001, n, secondary count, four flag bytes, control bits, the scalar count and the scalars."""
+    ctrl = bytearray((len(rows) + 3) // 4)
+    scalars = []
+    prev = (0.0, 0.0, 0.0)
+    for i, r in enumerate(rows):
+        if i and r == prev: code = 1
+        elif i and r[:2] == prev[:2]: code = 2; scalars.append(r[2])
+        elif i and r[0] == prev[0]: code = 3; scalars += [r[1], r[2]]
+        else: code = 0; scalars += list(r)
+        ctrl[i // 4] |= code << ((i % 4) * 2)
+        prev = r
+    return b'\xff\xff\x02\x00\x01' + v5_count(len(rows)) + v5_count(len(rows)) + b'\0\0\0\0' + bytes(ctrl) + v5_count(len(scalars)) + struct.pack('<%df' % len(scalars), *scalars)
+
+def v5_name_catalog(*names):
+    return b''.join(bytes([len(n) + 1]) + n.encode() for n in names)
+
+def v5_property(name, value):
+    return struct.pack('<H', len(name)) + name.encode() + struct.pack('<II', 0x0e, len(value)) + value.encode()
+
+def v5_properties(version, release, sp, build):
+    last = '<Version>%d/<Version><Release>%d/<Release><ServicePack>%d/<ServicePack><BuildDate>%s/<BuildDate><HotFix>0/<HotFix>' % (version, release, sp, build)
+    return (b'\x01\x01\x00\x03\x00\x00\x00' + struct.pack('<H', 21) + b'CATSummaryInformation' + b'\x07\0\0\0'
+            + v5_property('LastSaveVersion', last) + v5_property('MinimalVersionToRead', 'CATIAV5R%d' % release)
+            + v5_property('CATBuildLevel', build) + v5_property('CATPDMPersistence', 'File'))
+
+def v5_links(*entries):
+    """CATDocumentProperty: octet arrays (0x22, count, every byte as 3b 01 byte) holding file links."""
+    out = bytearray(b'\x34\x13CATDocumentProperty\x80\x01\0\0\0\0')
+    for kind, path in entries:
+        raw = b'\x01o\0\0\0\0\rGenericLocate`\0\0\0\x05DocIdX\0\x01\x04File' + bytes([len(kind)]) + kind.encode() + struct.pack('<H', len(path)) + path.encode()
+        out += b'\x22' + struct.pack('<I', len(raw)) + b''.join(b'\x3b\x01' + bytes([c]) for c in raw) + b'\x9f'
+    return bytes(out)
+
+CUBE = [(0,0,0),(10,0,0),(10,10,0),(0,10,0),(0,0,10),(10,0,10),(10,10,10),(0,10,10)]
+CUBE_FACES = [(0,3,1,2),(4,5,7,6),(0,1,4,5),(1,2,5,6),(2,3,6,7)]   # strips: p0, p1, p3, p2 of a quad that is counter-clockwise from outside
+CUBE_COLOURS = [(255,0,0,255),(0,255,0,255),(0,0,255,255),(255,255,0,255),(0,255,255,255),(210,210,255,255)]
+
+def v5_cube_stream():
+    out = bytearray(b'\0' * 40) + v5_positions([tuple(float(c) for c in v) for v in CUBE])
+    out += bytes(24)                                          # an array the reader does not interpret
+    for strip in CUBE_FACES:
+        out += b'\x01\x42' + v5_count(1) + b'\xff' + struct.pack('<I', 4) + v5_count(4) + bytes(strip)
+    out += b'\x01\x41' + v5_count(2) + b'\xff' + struct.pack('<I', 6) + bytes([0,4,7, 0,7,3])   # two independent triangles: the face at x = 0
+    for r, g, b, a in CUBE_COLOURS:
+        out += bytes([0x30, 0x04, 0x04, 0xff, a, b, g, r])
+    return bytes(out)
+
+def v5_nested(streams):
+    # the nested container starts with its own magic; offsets in its directory are relative to that magic
+    body = bytearray()
+    exts = []
+    for name, data in streams:
+        exts.append((64 + len(body), len(data)))
+        body += data
+    directory = bytearray(b'CATIA_V5 CB0001\0')
+    for (name, data), (off, length) in zip(streams, exts):
+        raw = name.encode('utf-16-le')
+        directory += struct.pack('<H', len(raw) + 2) + raw + b'\0\0\0'
+        descriptor = bytearray(0x50)
+        struct.pack_into('>I', descriptor, 0x0c, length)
+        directory += descriptor + struct.pack('>I', 1) + struct.pack('>5I', off, length, length, 0, 0)
+    directory += b'CB__END'
+    return b'V5_CFV2\0' + struct.pack('>II', 64 + len(body), len(directory)) + b'\xff' * 8 + b'\0' * 32 + b'\0' * 8 + bytes(body) + bytes(directory)
+
+def catia_part(name, part, version, release, sp, build, colours=True):
+    inner = v5_nested([('MAIN', b'\0' * 9), ('MainDataStream', b'\0' * 19), ('MainDataStream', v5_cube_stream()), ('SurfacicReps', b'\0' * 32)])
+    return v5_container([
+        ('Format', bytes(24)),
+        ('Data', b'\0' * 8 + b'CATPrtCont\0CATProdCont\0CATFeatCont\0'),
+        ('BCont_synthetic_0001', v5_name_catalog('ASMPRODUCT', name, '_ViewsList', '_Connectors', '_PartNumber', '_Nomenclature', 'Synthetic cube', '_BagRepsList', 'MechanicalPart', part, '_PartProperties')),
+        ('CATStorageProperty', b'\0' * 8 + b'CATIA\0CATPrtCont\0'),
+        ('CATCGRStream_0001', inner),
+        ('CATStorageProperty', b'\0' * 8 + b'CATIA\0CATCGRCont\0'),
+        ('CATDocumentProperty', v5_links(('CATPart', 'C:\\Models\\%s.CATPart' % name), ('CATPart', 'C:\\Models\\Fastener.CATPart'))),
+        ('CATPropertySets', v5_properties(5, release, sp, build)),
+        ('CATPreview', bytes(4) + CATIA_JPEG),
+    ])
+
+write('catia-cube.CATPart', catia_part('Cube', 'Part1', 5, 21, 0, '04-14-2011.20.00'))
+write('catia-cube-r32.CATPart', catia_part('Cube32', 'Part2', 5, 32, 1, '04-11-2022.03.00'))
+
+write('catia-assembly.CATProduct', v5_container([
+    ('Format', bytes(24)),
+    ('Data', b'\0' * 8 + b'CATMechProdCont\0CATProdCont\0CATFeatCont\0' + v5_name_catalog('ASMPRODUCT', 'Gearbox', 'CATMechProdCont', '_ViewsList', '_Connectors', '_RepresentedBy', '_Component', '_PartNumber', '_BagRepsList', '_PrdVersion', '_Reps', 'Cube', '_InstanceName', 'Cube.1', '_Position', 'Fastener', 'Fastener.1', 'Fastener.2', 'CONNECTOR', '_ShapeConnector')),
+    ('CATStorageProperty', b'\0' * 8 + b'CATIA\0CATMechProdCont\0'),
+    ('CATDocumentProperty', v5_links(('CATProduct', 'D:\\Work\\Gearbox.CATProduct'), ('CATPart', 'D:\\Work\\Cube.CATPart'), ('CATPart', 'D:\\Work\\Fastener.CATPart'), ('STL', 'D:\\Work\\scan.stl'), ('feat', 'Literals.feat'))),
+    ('CATPropertySets', v5_properties(5, 24, 0, '01-15-2014.20.00')),
+    ('CATPreview', bytes(4) + CATIA_JPEG),
+]))
+
+write('catia-drawing.CATDrawing', v5_container([
+    ('Format', bytes(24)),
+    ('Data', b'\0' * 8 + b'CATStdCont\0CATDrwCont\0'),
+    ('CATStorageProperty', b'\0' * 8 + b'CATIA\0CATDrwCont\0'),
+    ('CATPropertySets', v5_properties(5, 21, 0, '04-14-2011.20.00')),
+    ('CATPreview', bytes(4) + CATIA_JPEG),
+]))

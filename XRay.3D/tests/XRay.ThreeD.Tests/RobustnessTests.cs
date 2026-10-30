@@ -122,6 +122,12 @@ public class RobustnessTests
         "synthetic/geometry-2021.skp",
         "synthetic/geometry-2017.skp",
         "synthetic/structure.3dxml",
+        "synthetic/catia-cube.CATPart",
+        "synthetic/catia-cube-r32.CATPart",
+        "synthetic/catia-assembly.CATProduct",
+        "synthetic/catia-drawing.CATDrawing",
+        "catia/100nF.CATPart",
+        "catia/Product1.CATProduct",
     ];
 
     public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });

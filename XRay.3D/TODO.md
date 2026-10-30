@@ -102,10 +102,19 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 
 - [x] Fusion 360 `.f3d` and `.f3z` (container only): ZIP with Zstandard entries (`Internal/ZipPackage`, method 93 through `ZstdDecoder`), `Manifest.dat` (document type, display name, description, GUIDs, asset folders, lineage), the per-asset manifest (type, revision, capabilities), `Properties.dat` (part or assembly), configuration tables, the B-rep stream inventory, previews when present, and the `.f3z` archive (root member, design description, member names). Checked on a real CC0 file (values read with an independent decoder) and synthetic packages in the same grammar. **Geometry is not decoded**: the B-rep is ASM binary streams (`.smb`, `.smbh`) that need a B-rep kernel layer, and the display buffers (`OGS.BlobFolder`) are only sketched in the public description; the design records (`BulkStream.dat`: features, components, appearances) are a large proprietary record format
 
-## Not read: JT, Creo, NX, CATIA, Solid Edge (this pass)
+## CATIA V5
 
-No redistributable or publicly fetchable real sample of a JT, Creo (`.prt`/`.asm`), NX (`.prt`), CATIA (`.CATPart`) or Solid Edge (`.par`/`.asm`) file was found, and no public
-format specification other than ISO 14306 (JT, which is not freely available) and the cadmpeg descriptions of Creo, NX and CATIA containers, which were not implemented for lack of
+- [x] CATIA V5 `.CATPart`, `.CATProduct`, `.CATDrawing`, `.CATShape`, `.cgr` (`Formats/Catia/`, `docs/catia-format.md`): the `V5_CFV2` container with its stream directory and nested graphical-representation container (layout from the public cadmpeg description, CC-BY-4.0, and the sample files; no code ported); save version, document kind, product and part names, document links and the saved-at path, instance names from the identifier catalog, JPEG preview; geometry is the **display tessellation** a part carries (coordinate table in control-bit form, per-face triangle, strip and fan packets with one- to three-byte handles, per-face RGBA, flagged table layout found by consistency), one body per table, faces and smooth per-face normals kept. Checked on 75 real files (R18 to R32 SP1; 7 MIT-licensed ones committed in `dataset/catia/`, the rest local) with no external oracle: every tessellation is a closed oriented surface (three files have 6, 8 and 90 open edges, a sheet among them), all handles are in range and every vertex is used, a part and its mirror image decoded by different paths enclose the same volume; plus hand-made files written by `tools/fixtures/make_fixtures.py`.
+  - [ ] the exact B-rep (the surface and trim records of the same container, described in the cadmpeg notes; an analytic-surface tessellator would be needed for a part saved without the cache)
+  - [ ] assembly instance positions (the transforms are in `b2 13 27 ..` records of a constraint stream; a product is metadata and links only, so `Load` of a `.CATProduct` says so)
+  - [ ] a real `.cgr` and `.CATShape` file (none could be found; the reader looks for a `MainDataStream` in any container, untested)
+  - [ ] CATIA V4 `.model` (no description and no sample found)
+  - [ ] the `TimeStamp` stream, author and title properties (none of the 75 files set them), parameters and mass properties (names are in the catalog, values are in the object graph)
+
+## Not read: JT, Creo, NX, Solid Edge (this pass)
+
+No redistributable or publicly fetchable real sample of a JT, Creo (`.prt`/`.asm`), NX (`.prt`) or Solid Edge (`.par`/`.asm`) file was found, and no public
+format specification other than ISO 14306 (JT, which is not freely available) and the cadmpeg descriptions of Creo and NX containers, which were not implemented for lack of
 samples to check a reader against. The formats stay **identified by extension only**; nothing about their layouts is guessed here.
 
 ## 3DXML
