@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Numerics;
 using System.Text;
+using XRay.ThreeD.Formats.Step;
 using XRay.ThreeD.Internal;
 
 namespace XRay.ThreeD.Formats.Cad;
@@ -11,7 +12,7 @@ namespace XRay.ThreeD.Formats.Cad;
 /// paths (106), rational B-spline curves (126) and the transformation matrices (124) that place them, drawn as line meshes grouped
 /// by level and colour. Surfaces and B-rep topology (128, 143, 144, 186, 510, 514) are counted and reported, not tessellated.
 /// </summary>
-internal static class IgesReader
+internal static partial class IgesReader
 {
     public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options) => Parse(data, options).Build(geometry: true);
 
@@ -41,7 +42,7 @@ internal static class IgesReader
         [514] = "Shell",
     };
 
-    private sealed record DirectoryEntry(int Type, int Pointer, int Count, int Transform, int Level, int Color, int Form, int Use);
+    private sealed record DirectoryEntry(int Type, int Pointer, int Count, int Transform, int Level, int Color, int Form, int Use, int Blank = 0, int Subordinate = 0, string Label = "");
 
     private static Builder Parse(ReadOnlyMemory<byte> data, LoadOptions options)
     {
@@ -101,7 +102,7 @@ internal static class IgesReader
         return new Builder(start.ToString().TrimEnd(), global.ToString(), directoryLines, parameterLines, options);
     }
 
-    private sealed class Builder
+    private sealed partial class Builder
     {
         private readonly string _start;
         private readonly string _global;
@@ -137,20 +138,21 @@ internal static class IgesReader
                 meta.Properties.Add(new ModelProperty("description", _start, "iges"));
             }
 
-            var surfaces = _entries.Count(e => e.Type is 128 or 144 or 143 or 120 or 118 or 122 or 114 or 108 && e.Use != 5);
+            var surfaceEntities = _entries.Count(e => e.Type is 108 or 114 or 118 or 120 or 122 or 128 or 143 or 144 or 186 or 514);
             var curveEntities = _entries.Count(e => e.Type is 100 or 110 or 106 or 126);
-            meta.HasGeometry = curveEntities > 0;
-            if (surfaces > 0)
-            {
-                meta.Notes.Add($"{surfaces} surface entities (the faces of the B-rep) are not tessellated; only curve geometry is drawn.");
-            }
+            meta.HasGeometry = curveEntities > 0 || surfaceEntities > 0;
 
             if (geometry)
             {
-                BuildGeometry(surfaces);
+                BuildGeometry();
                 meta.HasGeometry = _model.Meshes.Count > 0;
                 meta.Statistics = _model.ComputeStatistics();
                 meta.Bounds = _model.ComputeBounds();
+                if (_model.Meshes.Any(m => m.Indices.Length > 0))
+                {
+                    meta.DocumentKind = "scene"; // faces were tessellated: a model, not a drawing
+                }
+
                 if (_model.Meshes.All(m => m.Indices.Length == 0))
                 {
                     _model.DetectIs2D(); // curves only, all in one plane: a drawing
@@ -399,7 +401,11 @@ internal static class IgesReader
                 var b = _directoryLines[i + 1];
                 var status = a.Length >= 72 ? a.Substring(64, 8) : "";
                 var use = status.Length == 8 && int.TryParse(status.AsSpan(4, 2), NumberStyles.None, CultureInfo.InvariantCulture, out var u) ? u : 0;
-                var entry = new DirectoryEntry(Int(a, 0, 8), Int(a, 8, 8), Int(b, 24, 8), Int(a, 48, 8), Int(a, 32, 8), Int(b, 16, 8), Int(b, 32, 8), use);
+                // Status: blank (hidden) and subordinate switches, entity use flag, hierarchy.
+                var blank = status.Length == 8 && int.TryParse(status.AsSpan(0, 2), NumberStyles.None, CultureInfo.InvariantCulture, out var bl) ? bl : 0;
+                var subordinate = status.Length == 8 && int.TryParse(status.AsSpan(2, 2), NumberStyles.None, CultureInfo.InvariantCulture, out var sub) ? sub : 0;
+                var label = b.Length >= 64 ? b.Substring(56, 8).Trim() : "";
+                var entry = new DirectoryEntry(Int(a, 0, 8), Int(a, 8, 8), Int(b, 24, 8), Int(a, 48, 8), Int(a, 32, 8), Int(b, 16, 8), Int(b, 32, 8), use, blank, subordinate, label);
                 _entries.Add(entry);
                 _byIndex[i + 1] = entry;
             }
@@ -476,6 +482,51 @@ internal static class IgesReader
 
         // ---- geometry --------------------------------------------------------------------------------------------
 
+        private SceneNode? _root;
+        private readonly Dictionary<int, SceneNode> _levelNodes = new();
+        private readonly Dictionary<int, int> _layerIndex = new();
+        private readonly Dictionary<(float, float, float), int> _materialIndex = new();
+
+        private static string LayerName(int level) => level == 0 ? "0" : level.ToString(CultureInfo.InvariantCulture);
+
+        private int LayerOf(int level)
+        {
+            if (!_layerIndex.TryGetValue(level, out var layer))
+            {
+                layer = _model.Layers.Count;
+                _layerIndex[level] = layer;
+                _model.Layers.Add(new ModelLayer(LayerName(level)));
+                _model.Metadata.LayerNames.Add(LayerName(level));
+            }
+
+            return layer;
+        }
+
+        /// <summary>The node under the title root that holds everything drawn on one level.</summary>
+        private SceneNode LevelNode(int level)
+        {
+            _root ??= new SceneNode(_model.Metadata.Title);
+            if (!_levelNodes.TryGetValue(level, out var node))
+            {
+                _levelNodes[level] = node = new SceneNode("level " + LayerName(level)) { Layer = LayerOf(level) };
+                _root.Children.Add(node);
+            }
+
+            return node;
+        }
+
+        private int MaterialFor((float R, float G, float B) color)
+        {
+            if (!_materialIndex.TryGetValue(color, out var material))
+            {
+                material = _model.Materials.Count;
+                _materialIndex[color] = material;
+                _model.Materials.Add(new ModelMaterial { Name = $"#{(int)(color.R * 255):X2}{(int)(color.G * 255):X2}{(int)(color.B * 255):X2}", BaseColor = new Vector4(color.R, color.G, color.B, 1) });
+            }
+
+            return material;
+        }
+
         private (float R, float G, float B) ColorOf(DirectoryEntry entry)
         {
             if (entry.Color > 0)
@@ -502,8 +553,9 @@ internal static class IgesReader
             return (0.15f, 0.15f, 0.15f);
         }
 
-        private void BuildGeometry(int surfaces)
+        private void BuildGeometry()
         {
+            var surfaceTriangles = BuildSurfaces();
             // 2D parameter-space curves used by the loops of a B-rep are not part of the 3D drawing.
             var parameterSpace = new HashSet<int>();
             foreach (var entry in _entries.Where(e => e.Type == 508))
@@ -530,8 +582,12 @@ internal static class IgesReader
                 }
             }
 
+            if (surfaceTriangles > 0)
+            {
+                MarkBoundaryCurvesConsumed();
+            }
+
             var sinks = new Dictionary<(int Level, (float, float, float) Color), MeshAccumulator>();
-            var layers = new Dictionary<int, int>();
             var skippedCurves = 0;
             var drawn = 0;
             foreach (var (index, entry) in _byIndex.OrderBy(p => p.Key))
@@ -541,7 +597,7 @@ internal static class IgesReader
                     continue;
                 }
 
-                if (entry.Use == 5 || parameterSpace.Contains(entry.Pointer) || parameterSpace.Contains(index))
+                if (entry.Use == 5 || parameterSpace.Contains(entry.Pointer) || parameterSpace.Contains(index) || surfaceTriangles > 0 && _consumedCurves.Contains(index))
                 {
                     skippedCurves++;
                     continue;
@@ -580,7 +636,7 @@ internal static class IgesReader
                 uint previous = 0;
                 for (var i = 0; i < lines.Count; i++)
                 {
-                    var v = sink.AddVertex(Vector3.Transform(lines[i], matrix));
+                    var v = sink.AddVertex(Vector3.Transform(new Vector3((float)lines[i].X, (float)lines[i].Y, (float)lines[i].Z), matrix));
                     if (i > 0)
                     {
                         sink.AddLine(previous, v);
@@ -592,54 +648,41 @@ internal static class IgesReader
                 drawn++;
             }
 
-            var materials = new Dictionary<(float, float, float), int>();
-            var root = new SceneNode(_model.Metadata.Title);
-            var levelNodes = new Dictionary<int, SceneNode>();
             foreach (var ((level, color), sink) in sinks.OrderBy(p => p.Key.Level).ThenBy(p => p.Key.Color))
             {
-                if (!materials.TryGetValue(color, out var material))
-                {
-                    material = _model.Materials.Count;
-                    materials[color] = material;
-                    _model.Materials.Add(new ModelMaterial { Name = $"#{(int)(color.Item1 * 255):X2}{(int)(color.Item2 * 255):X2}{(int)(color.Item3 * 255):X2}", BaseColor = new Vector4(color.Item1, color.Item2, color.Item3, 1) });
-                }
-
-                var layerName = level == 0 ? "0" : level.ToString(CultureInfo.InvariantCulture);
-                if (!layers.TryGetValue(level, out var layer))
-                {
-                    layer = _model.Layers.Count;
-                    layers[level] = layer;
-                    _model.Layers.Add(new ModelLayer(layerName));
-                    _model.Metadata.LayerNames.Add(layerName);
-                }
-
-                var mesh = sink.ToMesh("level " + layerName, material);
+                var material = MaterialFor(color);
+                var layer = LayerOf(level);
+                var mesh = sink.ToMesh("level " + LayerName(level), material);
                 if (mesh is null)
                 {
                     continue;
                 }
 
                 _model.Meshes.Add(mesh);
-                if (!levelNodes.TryGetValue(level, out var node))
-                {
-                    levelNodes[level] = node = new SceneNode("level " + layerName) { Layer = layer };
-                    root.Children.Add(node);
-                }
-
-                node.Children.Add(new SceneNode(null) { Mesh = mesh, Layer = layer });
+                LevelNode(level).Children.Add(new SceneNode(null) { Mesh = mesh, Layer = layer });
             }
 
-            if (root.Children.Count > 0)
+            if (_root is { Children.Count: > 0 })
             {
-                _model.Roots.Add(root);
+                _model.Roots.Add(_root);
             }
 
-            if (surfaces > 0)
+            if (_unsupportedSurfaces > 0)
             {
-                _model.Warnings.Add($"{surfaces} surface entities are not tessellated (trimmed and B-rep surfaces); the curves are drawn.");
+                _model.Warnings.Add($"{_unsupportedSurfaces} surface entities (parametric splines, ruled surfaces, faces on them) are not tessellated.");
             }
 
-            if (drawn == 0)
+            if (_skippedFaces > 0)
+            {
+                _model.Warnings.Add($"{_skippedFaces} faces could not be tessellated and were skipped.");
+            }
+
+            foreach (var warning in _surfaceWarnings.Distinct().Take(20))
+            {
+                _model.Warnings.Add(warning);
+            }
+
+            if (drawn == 0 && surfaceTriangles == 0)
             {
                 _model.Metadata.Notes.Add("The file holds no curve entities this reader can draw.");
             }
@@ -647,10 +690,10 @@ internal static class IgesReader
             _ = skippedCurves;
         }
 
-        private static List<Vector3>? Line(List<string> f) =>
-            f.Count >= 7 ? [new Vector3((float)Real(f, 1), (float)Real(f, 2), (float)Real(f, 3)), new Vector3((float)Real(f, 4), (float)Real(f, 5), (float)Real(f, 6))] : null;
+        private static List<V3>? Line(List<string> f) =>
+            f.Count >= 7 ? [new V3(Real(f, 1), Real(f, 2), Real(f, 3)), new V3(Real(f, 4), Real(f, 5), Real(f, 6))] : null;
 
-        private List<Vector3>? Arc(List<string> f)
+        private List<V3>? Arc(List<string> f)
         {
             if (f.Count < 8)
             {
@@ -667,17 +710,17 @@ internal static class IgesReader
             }
 
             var steps = (int)Math.Clamp(Math.Ceiling((a1 - a0) / Math.Min(Math.Max(_options.AngularDeflection, 0.02), 0.15)), 4, 720);
-            var points = new List<Vector3>(steps + 1);
+            var points = new List<V3>(steps + 1);
             for (var i = 0; i <= steps; i++)
             {
                 var a = a0 + (a1 - a0) * i / steps;
-                points.Add(new Vector3((float)(cx + radius * Math.Cos(a)), (float)(cy + radius * Math.Sin(a)), (float)z));
+                points.Add(new V3(cx + radius * Math.Cos(a), cy + radius * Math.Sin(a), z));
             }
 
             return points;
         }
 
-        private static List<Vector3>? Copious(DirectoryEntry entry, List<string> f)
+        private static List<V3>? Copious(DirectoryEntry entry, List<string> f)
         {
             // Forms 11, 12, 13 and 63 are linear paths (a polyline); the other forms are point sets.
             if (entry.Form is not (11 or 12 or 13 or 63))
@@ -699,18 +742,18 @@ internal static class IgesReader
                 n = Math.Max(0, (f.Count - first) / stride);
             }
 
-            var points = new List<Vector3>(n);
-            var z = ip == 1 ? (float)Real(f, 3) : 0;
+            var points = new List<V3>(n);
+            var z = ip == 1 ? Real(f, 3) : 0;
             for (var i = 0; i < n; i++)
             {
                 var o = first + i * stride;
-                points.Add(new Vector3((float)Real(f, o), (float)Real(f, o + 1), ip == 1 ? z : (float)Real(f, o + 2)));
+                points.Add(new V3(Real(f, o), Real(f, o + 1), ip == 1 ? z : Real(f, o + 2)));
             }
 
             return points;
         }
 
-        private static List<Vector3>? Nurbs(List<string> f)
+        private static List<V3>? Nurbs(List<string> f)
         {
             if (f.Count < 8)
             {
@@ -736,6 +779,10 @@ internal static class IgesReader
             for (var i = 0; i < knotCount; i++)
             {
                 knots[i] = Real(f, o + i);
+                if (i > 0 && knots[i] < knots[i - 1])
+                {
+                    return null; // knots must not decrease
+                }
             }
 
             o += knotCount;
@@ -750,10 +797,10 @@ internal static class IgesReader
             }
 
             o += n;
-            var control = new Vector3[n];
+            var control = new V3[n];
             for (var i = 0; i < n; i++)
             {
-                control[i] = new Vector3((float)Real(f, o + 3 * i), (float)Real(f, o + 3 * i + 1), (float)Real(f, o + 3 * i + 2));
+                control[i] = new V3(Real(f, o + 3 * i), Real(f, o + 3 * i + 1), Real(f, o + 3 * i + 2));
             }
 
             o += 3 * n;
@@ -768,55 +815,15 @@ internal static class IgesReader
 
             if (m == 1)
             {
-                return control.ToList();
+                return [.. control];
             }
 
+            var curve = new SplineCurve { Degree = m, Control = control, Weights = weights, Knots = knots };
             var samples = Math.Clamp(n * 4, 16, 256);
-            var points = new List<Vector3>(samples + 1);
-            var basis = new double[m + 1];
-            var left = new double[m + 1];
-            var right = new double[m + 1];
+            var points = new List<V3>(samples + 1);
             for (var s = 0; s <= samples; s++)
             {
-                var t = t0 + (t1 - t0) * s / samples;
-                var span = m;
-                while (span < n - 1 && t >= knots[span + 1])
-                {
-                    span++;
-                }
-
-                basis[0] = 1;
-                for (var j = 1; j <= m; j++)
-                {
-                    left[j] = t - knots[span + 1 - j];
-                    right[j] = knots[span + j] - t;
-                    var saved = 0.0;
-                    for (var r = 0; r < j; r++)
-                    {
-                        var denominator = right[r + 1] + left[j - r];
-                        var temp = Math.Abs(denominator) < 1e-300 ? 0 : basis[r] / denominator;
-                        basis[r] = saved + right[r + 1] * temp;
-                        saved = left[j - r] * temp;
-                    }
-
-                    basis[j] = saved;
-                }
-
-                double x = 0, y = 0, z = 0, w = 0;
-                for (var j = 0; j <= m; j++)
-                {
-                    var index = span - m + j;
-                    var b = basis[j] * weights[index];
-                    x += b * control[index].X;
-                    y += b * control[index].Y;
-                    z += b * control[index].Z;
-                    w += b;
-                }
-
-                if (Math.Abs(w) > 1e-300)
-                {
-                    points.Add(new Vector3((float)(x / w), (float)(y / w), (float)(z / w)));
-                }
+                points.Add(curve.At(t0 + (t1 - t0) * s / samples));
             }
 
             return points;

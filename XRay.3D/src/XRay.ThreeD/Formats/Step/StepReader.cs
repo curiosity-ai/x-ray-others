@@ -1,3 +1,4 @@
+using XRay.ThreeD.Internal;
 using System.Globalization;
 using System.Numerics;
 using System.Text;
@@ -805,13 +806,7 @@ internal static class StepReader
 
         private MeshData? BuildMeshForSolids(IEnumerable<StepEntity> solids, string? name)
         {
-            var positions = new List<float>();
-            var normals = new List<float>();
-            var indices = new List<uint>();
-            var faces = new List<MeshFace>();
-            // Per face colour -> material, with index runs sorted by material at the end.
-            var faceData = new List<(int Start, int Count, int Material)>();
-            var scale = (float)(1.0);
+            var assembler = new FaceMeshAssembler(_options.MaxTriangles, "STEP");
             foreach (var solid in solids)
             {
                 var solidColor = _colors.TryGetValue(solid.Id, out var sc) ? sc.Rgb : -1;
@@ -826,73 +821,11 @@ internal static class StepReader
                     }
 
                     var rgb = _colors.TryGetValue(face.Id, out var fc) ? fc.Rgb : solidColor;
-                    var material = rgb >= 0 ? MaterialFor(rgb) : -1;
-                    var vertexBase = positions.Count / 3;
-                    foreach (var p in mesh.Positions)
-                    {
-                        positions.Add((float)p.X * scale);
-                        positions.Add((float)p.Y * scale);
-                        positions.Add((float)p.Z * scale);
-                    }
-
-                    foreach (var n in mesh.Normals)
-                    {
-                        normals.Add((float)n.X);
-                        normals.Add((float)n.Y);
-                        normals.Add((float)n.Z);
-                    }
-
-                    var start = indices.Count;
-                    foreach (var i in mesh.Indices)
-                    {
-                        indices.Add((uint)(vertexBase + i));
-                    }
-
-                    faceData.Add((start, indices.Count - start, material));
-                    if (indices.Count / 3 > _options.MaxTriangles)
-                    {
-                        throw new ModelFormatException("The STEP file produces more triangles than the configured limit.");
-                    }
+                    assembler.Add(mesh, rgb >= 0 ? MaterialFor(rgb) : -1);
                 }
             }
 
-            if (indices.Count == 0)
-            {
-                return null;
-            }
-
-            // Order faces by material so that each material is one contiguous range; keep each face's own range.
-            var order = faceData.Select((d, i) => (d, i)).OrderBy(x => x.d.Material).ThenBy(x => x.i).ToList();
-            var sorted = new uint[indices.Count];
-            var meshFaces = new MeshFace[faceData.Count];
-            var cursor = 0;
-            var mesh2 = new MeshData { Name = name, Positions = positions.ToArray(), Normals = normals.ToArray() };
-            var groupStart = 0;
-            for (var k = 0; k < order.Count; k++)
-            {
-                var (d, original) = order[k];
-                for (var t = 0; t < d.Count; t++)
-                {
-                    sorted[cursor + t] = indices[d.Start + t];
-                }
-
-                meshFaces[original] = new MeshFace(cursor, d.Count);
-                cursor += d.Count;
-                if (k + 1 == order.Count || order[k + 1].d.Material != d.Material)
-                {
-                    mesh2.Groups.Add(new MeshGroup(groupStart, cursor - groupStart, d.Material));
-                    groupStart = cursor;
-                }
-            }
-
-            mesh2.Indices = sorted;
-            mesh2.Faces = meshFaces;
-            if (mesh2.Groups.Count == 1 && mesh2.Groups[0].Material < 0)
-            {
-                mesh2.Groups.Clear();
-            }
-
-            return mesh2;
+            return assembler.ToMesh(name);
         }
 
         private int MaterialFor(int rgb)

@@ -1663,5 +1663,41 @@
   "source": "tools/fixtures/make_step_ap242.py",
   "bytes": 17081,
   "sha256": "d6f66826a121c0d6da731b8ac41b8ebea37893715107cc11c71565b2ec0551c1"
+ },
+ {
+  "file": "synthetic/iges-brep-quadrics.igs",
+  "format": "iges",
+  "title": "Plate written by OpenCASCADE's IGES writer",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_surfaces.py",
+  "bytes": 27297,
+  "sha256": "8e96e09add0219f10d859ff44d8a0ed259290836c80d9888905c62408310ae33"
+ },
+ {
+  "file": "synthetic/iges-trimmed-faces.igs",
+  "format": "iges",
+  "title": "Plate written by OpenCASCADE's IGES writer",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_surfaces.py",
+  "bytes": 29889,
+  "sha256": "7700f229d6a93ad7c8cceca91a31efe0a5984c0758afd3e11b3b43178d2e02c0"
+ },
+ {
+  "file": "synthetic/iges-nurbs-brep.igs",
+  "format": "iges",
+  "title": "Plate written by OpenCASCADE's IGES writer",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_surfaces.py",
+  "bytes": 37908,
+  "sha256": "e1f3ef73aaaafdd42587653e2d039bcf6d79c65c6e874998280f506c285d90eb"
+ },
+ {
+  "file": "synthetic/iges-nurbs-faces.igs",
+  "format": "iges",
+  "title": "Plate written by OpenCASCADE's IGES writer",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_surfaces.py",
+  "bytes": 47547,
+  "sha256": "c666de119138ea2d3730dc971c72df0ab5073aad698dcc63b3c7d05f886dbca4"
  }
 ]

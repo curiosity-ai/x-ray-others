@@ -156,10 +156,10 @@ internal static class BSpline
         return mid;
     }
 
-    public static void Basis(int span, double u, int degree, double[] knots, double[] result)
+    public static void Basis(int span, double u, int degree, double[] knots, Span<double> result)
     {
-        var left = new double[degree + 1];
-        var right = new double[degree + 1];
+        Span<double> left = degree < 32 ? stackalloc double[degree + 1] : new double[degree + 1];
+        Span<double> right = degree < 32 ? stackalloc double[degree + 1] : new double[degree + 1];
         result[0] = 1;
         for (var j = 1; j <= degree; j++)
         {
@@ -256,7 +256,7 @@ internal sealed class SplineCurve : Curve
     {
         var n = Control.Length - 1;
         var span = BSpline.FindSpan(n, Degree, t, Knots);
-        var basis = new double[Degree + 1];
+        Span<double> basis = Degree < 32 ? stackalloc double[Degree + 1] : new double[Degree + 1];
         BSpline.Basis(span, t, Degree, Knots, basis);
         double x = 0, y = 0, z = 0, w = 0;
         for (var j = 0; j <= Degree; j++)
@@ -338,6 +338,8 @@ internal sealed class SplineCurve : Curve
 internal sealed class PolylineCurve : Curve
 {
     public List<V3> Points = [];
+
+    public override (double Min, double Max)? Range => Points.Count > 1 ? (0, Points.Count - 1) : null;
 
     public override V3 At(double t)
     {
@@ -555,8 +557,8 @@ internal sealed class SplineSurface : Surface
         v = Math.Clamp(v, RangeV.Min, RangeV.Max);
         var su = BSpline.FindSpan(nu, DegreeU, u, KnotsU);
         var sv = BSpline.FindSpan(nv, DegreeV, v, KnotsV);
-        var bu = new double[DegreeU + 1];
-        var bv = new double[DegreeV + 1];
+        Span<double> bu = DegreeU < 32 ? stackalloc double[DegreeU + 1] : new double[DegreeU + 1];
+        Span<double> bv = DegreeV < 32 ? stackalloc double[DegreeV + 1] : new double[DegreeV + 1];
         BSpline.Basis(su, u, DegreeU, KnotsU, bu);
         BSpline.Basis(sv, v, DegreeV, KnotsV, bv);
         double x = 0, y = 0, z = 0, w = 0;
@@ -700,6 +702,31 @@ internal sealed class RevolutionSurface : Surface
     public override bool PeriodicU => true;
 
     private Frame F => _frame ??= Frame.From(AxisOrigin, AxisDirection, null);
+
+    /// <summary>Where the profile ends on the axis (a sphere's poles, a cone's apex).</summary>
+    public override double[] PoleV
+    {
+        get
+        {
+            if (Profile.Range is not { } range)
+            {
+                return [];
+            }
+
+            var poles = new List<double>(2);
+            foreach (var t in new[] { range.Min, range.Max })
+            {
+                var p = Profile.At(t);
+                var (x, y, _) = F.ToLocal(p);
+                if (Math.Sqrt(x * x + y * y) < 1e-7 * (1 + p.Length))
+                {
+                    poles.Add(t);
+                }
+            }
+
+            return poles.ToArray();
+        }
+    }
 
     public override V3 At(double u, double v)
     {
