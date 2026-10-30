@@ -955,7 +955,8 @@ internal static class GltfReader
                     Str(extension, "filter"),
                     source.AsSpan(offset, length),
                     Int(extension, "count"),
-                    Int(extension, "byteStride"));
+                    Int(extension, "byteStride"),
+                    _options.Cancellation);
             }
 
             _meshoptViews[viewIndex] = decoded;

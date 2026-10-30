@@ -185,6 +185,7 @@ public static class GlbWriter
     private sealed class Accessors
     {
         public readonly List<Accessor> List = new();
+        public CancellationToken Cancellation;
         public readonly List<View> Views = new();
         public long FallbackSize;
         public bool AnyCompressed;
@@ -299,7 +300,7 @@ public static class GlbWriter
 
     private static void WriteJson(Model3D model, GlbWriteOptions options, Utf8JsonWriter w, MemoryStream bin)
     {
-        var accessors = new Accessors();
+        var accessors = new Accessors { Cancellation = options.Cancellation };
         var meshPrimitives = new List<List<(int Position, int Normal, int Color, int TexCoord, int Indices, int Material, bool IsEdges)>>();
 
         foreach (var mesh in model.Meshes)
@@ -1364,7 +1365,7 @@ public static class GlbWriter
         int view;
         if (compress)
         {
-            var encoded = triangles ? MeshoptEncoder.EncodeTriangles(indices) : MeshoptEncoder.EncodeIndexSequence(indices);
+            var encoded = triangles ? MeshoptEncoder.EncodeTriangles(indices, accessors.Cancellation) : MeshoptEncoder.EncodeIndexSequence(indices, accessors.Cancellation);
             view = AddCompressedView(accessors, bin, encoded, raw.Length, indices.Length, wide ? 4 : 2, triangles ? "TRIANGLES" : "INDICES", null, 34963, 0);
         }
         else
@@ -1383,7 +1384,7 @@ public static class GlbWriter
             return AddPlainView(accessors, bin, raw, target, parentStride);
         }
 
-        var encoded = MeshoptEncoder.EncodeVertices(raw, count, stride);
+        var encoded = MeshoptEncoder.EncodeVertices(raw, count, stride, accessors.Cancellation);
         return AddCompressedView(accessors, bin, encoded, raw.Length, count, stride, mode, filter, target, parentStride);
     }
 

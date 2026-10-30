@@ -22,6 +22,7 @@ in this repository. `LICENSE` is MIT for Curiosity GmbH.
 | `src/XRay.ThreeD/ModelLoader.cs` | entry point: `Detect`, `ReadMetadata`, `Load`, `ConvertToGlb`; the exception guard and sanitiser |
 | `tests/XRay.ThreeD.Tests/` | `SolidWorksTests` (golden), `MeshFormatTests`, `GlbWriterTests`, `FormatTests`, `RobustnessTests` |
 | `dataset/` | committed fixtures (about 30 MB); `manifest.json` has licence, source and sha256 of each |
+| `docs/benchmarks.md` | the timing harness (`BenchmarkTests`, skipped unless `XRAY_3D_BENCH` is set) and its reference numbers |
 | `tools/oracle/make_dxf_golden.py` | regenerates `dxf-golden.json` from ezdxf (an independent DXF reader) |
 | `tools/oracle/make_golden.mjs` | regenerates `tests/.../Corpus/solidworks-golden.json` from the reference reader (not in the repo) |
 | `tools/fixtures/make_fixtures.py` | writes `dataset/synthetic/` byte for byte |

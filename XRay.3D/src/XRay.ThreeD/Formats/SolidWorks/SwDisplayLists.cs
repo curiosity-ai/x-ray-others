@@ -429,7 +429,15 @@ internal static class SwDisplayLists
         }
 
         // Stable order by material so each material is one contiguous index range.
-        var order = Enumerable.Range(0, faces.Count).OrderBy(f => materials[f]).ToArray();
+        var order = new int[faces.Count];
+        var orderKeys = new long[faces.Count];
+        for (var f = 0; f < order.Length; f++)
+        {
+            order[f] = f;
+            orderKeys[f] = ((long)materials[f] << 32) | (uint)f; // unique keys: the unstable sort is then stable in effect
+        }
+
+        Array.Sort(orderKeys, order);
         var positions = new float[vertexTotal * 3];
         var normals = new float[vertexTotal * 3];
         var indices = new uint[indexCounts.Sum()];

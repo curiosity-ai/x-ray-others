@@ -52,7 +52,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 - [x] Unit/up-axis hints from the caller for formats that do not say (`LoadOptions.AssumedUnits`, `AssumedUpAxis`)
 - [x] Far-from-origin recentring per mesh (`RecentreFarModels`; the centre is in `mesh.extras.origin` and in the node transforms). Open: one global shift for a whole assembly
 - [x] Pass-through for GLB input in `ConvertToGlb` (when no options are given)
-- [ ] Layers on nodes for the formats that have them; synthesise "part" layers like the viewer does
+- [x] Layers on nodes where the format has them, and synthesised "part" layers (one per named part, instances share it; `LoadOptions.SynthesizePartLayers`, `ModelLayer.Synthesized`) for models with two or more parts and no layers of their own
 - [ ] Streaming readers for very large OBJ/STL/PLY (inputs are currently held in memory)
 
 ## Next: Tesserae component
@@ -70,4 +70,5 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 
 - [ ] Family registration in curiosity-ai/x-ray (`Members.props`, docs section; see its `add-family-member` skill)
 - [ ] Verify the licences of anything that gets ported from a third party (the research notes flag laz-perf as unverified; the LAZ decoder is not a port of it, it was written from the public LASzip description and verified against lazrs output)
-- [ ] Benchmarks (large assemblies), fuzz target in the style of `XRay.Psd/fuzz`
+- [x] Benchmarks (large assemblies): `BenchmarkTests`, skipped unless `XRAY_3D_BENCH` is set (`docs/benchmarks.md`). Allocation pass on the Part 21 tokenizer, STEP tessellator, DXF reader, meshopt codecs and SolidWorks display-list ordering, with per-loop cancellation in the meshopt encoder and decoder. Open: STEP surface tessellation still allocates about 130 bytes per input byte; the SolidWorks display-list decode already works on spans and was left as is
+- [ ] Fuzz target in the style of `XRay.Psd/fuzz`

@@ -24,6 +24,12 @@ public sealed class LoadOptions
     public CancellationToken Cancellation { get; set; }
 
     /// <summary>
+    /// When a model has two or more parts and no layers, give every mesh node a layer named after its part (instances of one part share it), so
+    /// that a layer list can show and hide parts (default true). Layers made this way have <see cref="ModelLayer.Synthesized"/> set.
+    /// </summary>
+    public bool SynthesizePartLayers { get; set; } = true;
+
+    /// <summary>
     /// Supplies files a model refers to but does not contain (the .mtl of an OBJ, for example), given the name as the model writes it. Returns
     /// null when there is no such file. ZIP archives set this to look among their own entries.
     /// </summary>
@@ -86,7 +92,53 @@ public static class ModelLoader
 
     public static Model3D Load(ReadOnlyMemory<byte> data, string? fileName = null, LoadOptions? options = null)
     {
-        return Guard(data, fileName, options, (format, d, o) => Sanitize(ApplyHints(format, Dispatch(format, d, o), o)));
+        return Guard(data, fileName, options, (format, d, o) => PartLayers(Sanitize(ApplyHints(format, Dispatch(format, d, o), o)), o));
+    }
+
+    /// <summary>Layers for models that have parts but no layers: one per distinct part name on the nodes that carry a mesh.</summary>
+    private static Model3D PartLayers(Model3D model, LoadOptions options)
+    {
+        if (!options.SynthesizePartLayers || model.Layers.Count > 0 || model.Is2D)
+        {
+            return model;
+        }
+
+        var parts = 0;
+        foreach (var node in model.Nodes())
+        {
+            if (node.Mesh is not null && ++parts >= 2)
+            {
+                break;
+            }
+        }
+
+        if (parts < 2)
+        {
+            return model;
+        }
+
+        var byName = new Dictionary<string, int>(StringComparer.Ordinal);
+        var tick = 0L;
+        foreach (var node in model.Nodes())
+        {
+            Internal.Cancel.Every(options.Cancellation, tick++);
+            if (node.Mesh is null || node.Layer >= 0)
+            {
+                continue;
+            }
+
+            var name = !string.IsNullOrWhiteSpace(node.Name) ? node.Name! : !string.IsNullOrWhiteSpace(node.Mesh.Name) ? node.Mesh.Name! : "Part " + (model.Meshes.IndexOf(node.Mesh) + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (!byName.TryGetValue(name, out var layer))
+            {
+                layer = model.Layers.Count;
+                model.Layers.Add(new ModelLayer(name) { Synthesized = true });
+                byName[name] = layer;
+            }
+
+            node.Layer = layer;
+        }
+
+        return model;
     }
 
     private static readonly HashSet<string> UnstatedUnits = new(StringComparer.Ordinal) { "stl", "obj", "ply", "off", "3ds", "xyz", "pts" };

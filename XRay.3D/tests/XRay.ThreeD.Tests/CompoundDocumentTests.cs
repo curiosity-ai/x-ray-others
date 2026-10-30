@@ -12,17 +12,17 @@ public class CompoundDocumentTests
     {
         foreach (var name in new[] { "part.ipt", "model.rvt" })
         {
-            var file = new Internal.CompoundFile(File.ReadAllBytes(DatasetPaths.File("synthetic/" + name)), default);
+            var file = new Internal.CompoundFile(File.ReadAllBytes(DatasetPaths.File("synthetic/" + name)), TestContext.Current.CancellationToken);
             var expected = Golden.GetProperty(name).GetProperty("streams").EnumerateArray().Select(e => e.GetString()!).Order(StringComparer.Ordinal);
             Assert.Equal(expected, file.StreamNames.Order(StringComparer.Ordinal));
         }
 
-        var part = new Internal.CompoundFile(File.ReadAllBytes(DatasetPaths.File("synthetic/part.ipt")), default);
-        var big = part.Read("RSeStorageData", default)!;
+        var part = new Internal.CompoundFile(File.ReadAllBytes(DatasetPaths.File("synthetic/part.ipt")), TestContext.Current.CancellationToken);
+        var big = part.Read("RSeStorageData", TestContext.Current.CancellationToken)!;
         Assert.Equal(9000, big.Length);
         Assert.Equal(Golden.GetProperty("part.ipt").GetProperty("big_sum").GetInt64(), big.Sum(b => (long)b));
-        Assert.Equal("tiny stream", System.Text.Encoding.ASCII.GetString(part.Read("Small", default)!));
-        Assert.Equal(5000, new Internal.CompoundFile(File.ReadAllBytes(DatasetPaths.File("synthetic/model.rvt")), default).Read("Formats/Latest", default)!.Length);
+        Assert.Equal("tiny stream", System.Text.Encoding.ASCII.GetString(part.Read("Small", TestContext.Current.CancellationToken)!));
+        Assert.Equal(5000, new Internal.CompoundFile(File.ReadAllBytes(DatasetPaths.File("synthetic/model.rvt")), TestContext.Current.CancellationToken).Read("Formats/Latest", TestContext.Current.CancellationToken)!.Length);
     }
 
     [Fact]

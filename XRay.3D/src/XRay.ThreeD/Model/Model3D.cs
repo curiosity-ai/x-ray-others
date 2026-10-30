@@ -349,6 +349,9 @@ public sealed class ModelLayer
     public string Name { get; set; }
 
     public bool Visible { get; set; } = true;
+
+    /// <summary>True for a layer the loader made up (one per named part, see <see cref="LoadOptions.SynthesizePartLayers"/>) rather than one the file defines.</summary>
+    public bool Synthesized { get; init; }
 }
 
 /// <summary>A line of text in a drawing: <see cref="Height"/> in model units, <see cref="Rotation"/> in degrees counter-clockwise.</summary>

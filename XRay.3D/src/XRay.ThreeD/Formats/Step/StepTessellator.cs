@@ -149,7 +149,14 @@ internal sealed class StepTessellator
 
                 break;
             case "POLY_LOOP":
-                points.AddRange(loop.Arg(1).Refs.Select(_geo.Point));
+                foreach (var item in loop.Arg(1).Items)
+                {
+                    if (item.IsRef)
+                    {
+                        points.Add(_geo.Point(item.Ref));
+                    }
+                }
+
                 break;
             case "VERTEX_LOOP":
                 break;
@@ -173,9 +180,14 @@ internal sealed class StepTessellator
     {
         var loops = new List<List<V3>>();
         outerFirst = false;
-        var bounds = face.Arg(1).Refs.ToList();
-        foreach (var id in bounds)
+        foreach (var boundRef in face.Arg(1).Items)
         {
+            if (!boundRef.IsRef)
+            {
+                continue;
+            }
+
+            var id = boundRef.Ref;
             var bound = _file.Get(id);
             if (bound is null || bound.Type is not ("FACE_BOUND" or "FACE_OUTER_BOUND"))
             {
@@ -231,6 +243,12 @@ internal sealed class StepTessellator
             sameSense = face.Arg(3).Bool;
         }
 
-        return Faces.Tessellate(surface, loops.Select(l => new FaceLoop(l)).ToList(), sameSense, $"Face #{face.Id}", approximatedWarning: advanced);
+        var faceLoops = new List<FaceLoop>(loops.Count);
+        foreach (var l in loops)
+        {
+            faceLoops.Add(new FaceLoop(l));
+        }
+
+        return Faces.Tessellate(surface, faceLoops, sameSense, $"Face #{face.Id}", approximatedWarning: advanced);
     }
 }

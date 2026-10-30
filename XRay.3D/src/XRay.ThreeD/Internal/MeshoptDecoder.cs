@@ -2,6 +2,7 @@
 // MIT License; see THIRD_PARTY_NOTICES.md) for the glTF extension EXT_meshopt_compression: attribute versions 0 and 1,
 // triangles, index sequences and the octahedral, quaternion and exponential filters. Every read is bounds-checked; damaged
 // streams raise ModelFormatException.
+using System.Buffers;
 using System.Buffers.Binary;
 
 namespace XRay.ThreeD.Internal;
@@ -11,8 +12,9 @@ internal static class MeshoptDecoder
     private const int ByteGroupSize = 16;
     private static readonly int[] BitsV0 = [0, 2, 4, 8];
     private static readonly int[] BitsV1 = [0, 1, 2, 4, 8];
+    private static readonly int[][] BitsV1Variants = [BitsV1[0..4], BitsV1[1..5]];
 
-    public static byte[] Decode(string mode, string? filter, ReadOnlySpan<byte> source, int count, int stride)
+    public static byte[] Decode(string mode, string? filter, ReadOnlySpan<byte> source, int count, int stride, CancellationToken cancellation = default)
     {
         if (count < 0 || stride <= 0 || (long)count * stride > int.MaxValue)
         {
@@ -23,19 +25,19 @@ internal static class MeshoptDecoder
         switch (mode)
         {
             case "ATTRIBUTES":
-                result = DecodeVertices(source, count, stride);
-                ApplyFilter(result, count, stride, filter ?? "NONE");
+                result = DecodeVertices(source, count, stride, cancellation);
+                ApplyFilter(result, count, stride, filter ?? "NONE", cancellation);
                 return result;
             case "TRIANGLES":
-                return PackIndices(DecodeTriangles(source, count), stride);
+                return PackIndices(DecodeTriangles(source, count, cancellation), stride, cancellation);
             case "INDICES":
-                return PackIndices(DecodeIndexSequence(source, count), stride);
+                return PackIndices(DecodeIndexSequence(source, count, cancellation), stride, cancellation);
             default:
                 throw new ModelFormatException($"Unknown meshopt mode '{mode}'.");
         }
     }
 
-    private static byte[] PackIndices(uint[] indices, int stride)
+    private static byte[] PackIndices(uint[] indices, int stride, CancellationToken cancellation)
     {
         if (stride is not (2 or 4))
         {
@@ -45,6 +47,7 @@ internal static class MeshoptDecoder
         var bytes = new byte[indices.Length * stride];
         for (var i = 0; i < indices.Length; i++)
         {
+            Cancel.Every(cancellation, i);
             if (stride == 4)
             {
                 BinaryPrimitives.WriteUInt32LittleEndian(bytes.AsSpan(4 * i), indices[i]);
@@ -60,7 +63,7 @@ internal static class MeshoptDecoder
 
     // ---- attributes ------------------------------------------------------------------------------------------------
 
-    public static byte[] DecodeVertices(ReadOnlySpan<byte> source, int count, int stride)
+    public static byte[] DecodeVertices(ReadOnlySpan<byte> source, int count, int stride, CancellationToken cancellation = default)
     {
         if (stride % 4 != 0 || stride > 256)
         {
@@ -87,7 +90,8 @@ internal static class MeshoptDecoder
 
         var dataEnd = source.Length;
         var tail = source[(dataEnd - tailSize)..];
-        var lastVertex = new byte[256];
+        Span<byte> lastVertex = stackalloc byte[256];
+        lastVertex.Clear();
         tail[..stride].CopyTo(lastVertex);
         var channels = version == 0 ? default : tail.Slice(stride, stride / 4);
 
@@ -95,12 +99,22 @@ internal static class MeshoptDecoder
         var blockSizeMax = Math.Min((8192 / stride) & ~(ByteGroupSize - 1), 256);
         var position = 1;
         var offset = 0;
-        var buffer = new byte[256 * 4 + 16];
-        while (offset < count)
+        var buffer = ArrayPool<byte>.Shared.Rent(256 * 4 + 16);
+        var transposed = ArrayPool<byte>.Shared.Rent(8192 + 256);
+        try
         {
-            var block = Math.Min(blockSizeMax, count - offset);
-            position = DecodeBlock(source, position, dataEnd, result.AsSpan(offset * stride, block * stride), block, stride, lastVertex, channels, version, buffer);
-            offset += block;
+            while (offset < count)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                var block = Math.Min(blockSizeMax, count - offset);
+                position = DecodeBlock(source, position, dataEnd, result.AsSpan(offset * stride, block * stride), block, stride, lastVertex, channels, version, buffer, transposed);
+                offset += block;
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+            ArrayPool<byte>.Shared.Return(transposed);
         }
 
         if (dataEnd - position != tailPad)
@@ -111,7 +125,7 @@ internal static class MeshoptDecoder
         return result;
     }
 
-    private static int DecodeBlock(ReadOnlySpan<byte> source, int position, int dataEnd, Span<byte> vertices, int count, int stride, byte[] lastVertex, ReadOnlySpan<byte> channels, int version, byte[] buffer)
+    private static int DecodeBlock(ReadOnlySpan<byte> source, int position, int dataEnd, Span<byte> vertices, int count, int stride, Span<byte> lastVertex, ReadOnlySpan<byte> channels, int version, byte[] buffer, byte[] transposed)
     {
         var aligned = (count + ByteGroupSize - 1) & ~(ByteGroupSize - 1);
         var controlSize = version == 0 ? 0 : stride / 4;
@@ -122,7 +136,11 @@ internal static class MeshoptDecoder
 
         var control = source.Slice(position, controlSize);
         position += controlSize;
-        var transposed = new byte[count * stride];
+        if (count * stride > transposed.Length)
+        {
+            throw new ModelFormatException("A meshopt attribute block is larger than the format allows.");
+        }
+
         for (var k = 0; k < stride; k += 4)
         {
             var controlByte = version == 0 ? 0 : control[k / 4];
@@ -147,7 +165,7 @@ internal static class MeshoptDecoder
                 }
                 else
                 {
-                    position = DecodeBytes(source, position, dataEnd, lane, aligned, version == 0 ? BitsV0 : BitsV1.AsSpan(ctrl, 4).ToArray());
+                    position = DecodeBytes(source, position, dataEnd, lane, aligned, version == 0 ? BitsV0 : BitsV1Variants[ctrl]);
                 }
             }
 
@@ -168,7 +186,7 @@ internal static class MeshoptDecoder
             }
         }
 
-        transposed.CopyTo(vertices);
+        transposed.AsSpan(0, count * stride).CopyTo(vertices);
         transposed.AsSpan((count - 1) * stride, stride).CopyTo(lastVertex);
         return position;
     }
@@ -253,7 +271,7 @@ internal static class MeshoptDecoder
         return r;
     }
 
-    private static void DecodeDeltas(byte[] buffer, int aligned, byte[] transposed, int count, int stride, byte[] lastVertex, int k, int width, int rotation, bool xor)
+    private static void DecodeDeltas(byte[] buffer, int aligned, byte[] transposed, int count, int stride, ReadOnlySpan<byte> lastVertex, int k, int width, int rotation, bool xor)
     {
         // Four byte lanes starting at vertex byte k, decoded as 4 / width channels of width bytes.
         for (var c = 0; c < 4; c += width)
@@ -297,7 +315,7 @@ internal static class MeshoptDecoder
 
     // ---- indices ---------------------------------------------------------------------------------------------------
 
-    public static uint[] DecodeTriangles(ReadOnlySpan<byte> source, int indexCount)
+    public static uint[] DecodeTriangles(ReadOnlySpan<byte> source, int indexCount, CancellationToken cancellation = default)
     {
         if (indexCount % 3 != 0 || source.Length < 1 + indexCount / 3 + 16)
         {
@@ -327,6 +345,7 @@ internal static class MeshoptDecoder
 
         while (code < codeEnd)
         {
+            Cancel.Every(cancellation, code);
             var tri = source[code++];
             uint a, b, c;
             if (tri < 0xF0)
@@ -441,7 +460,7 @@ internal static class MeshoptDecoder
         return result;
     }
 
-    public static uint[] DecodeIndexSequence(ReadOnlySpan<byte> source, int indexCount)
+    public static uint[] DecodeIndexSequence(ReadOnlySpan<byte> source, int indexCount, CancellationToken cancellation = default)
     {
         if (source.Length < 1 + indexCount + 4)
         {
@@ -459,6 +478,7 @@ internal static class MeshoptDecoder
         var result = new uint[indexCount];
         for (var i = 0; i < indexCount; i++)
         {
+            Cancel.Every(cancellation, i);
             if (data >= safeEnd)
             {
                 throw new ModelFormatException("A meshopt index stream is truncated.");
@@ -530,7 +550,7 @@ internal static class MeshoptDecoder
 
     // ---- filters ---------------------------------------------------------------------------------------------------
 
-    public static void ApplyFilter(byte[] data, int count, int stride, string filter)
+    public static void ApplyFilter(byte[] data, int count, int stride, string filter, CancellationToken cancellation = default)
     {
         switch (filter)
         {
@@ -544,6 +564,7 @@ internal static class MeshoptDecoder
 
                 for (var i = 0; i < count; i++)
                 {
+                    Cancel.Every(cancellation, i);
                     DecodeOctahedral(data.AsSpan(i * stride, stride), stride == 8);
                 }
 
@@ -556,6 +577,7 @@ internal static class MeshoptDecoder
 
                 for (var i = 0; i < count; i++)
                 {
+                    Cancel.Every(cancellation, i);
                     DecodeQuaternion(data.AsSpan(i * 8, 8));
                 }
 
@@ -568,6 +590,7 @@ internal static class MeshoptDecoder
 
                 for (var i = 0; i < count * stride / 4; i++)
                 {
+                    Cancel.Every(cancellation, i);
                     var input = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(4 * i, 4));
                     var e = input >> 24;
                     var m = (input << 8) >> 8;

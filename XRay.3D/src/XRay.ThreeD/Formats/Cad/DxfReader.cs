@@ -39,7 +39,7 @@ internal static class DxfReader
 
         public double Num(int code, double fallback = 0) => Get(code) is { } v ? ParseDouble(v, fallback) : fallback;
 
-        public int Int(int code, int fallback = 0) => Get(code) is { } v && int.TryParse(v.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var i) ? i : fallback;
+        public int Int(int code, int fallback = 0) => Get(code) is { } v && int.TryParse(v.AsSpan().Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var i) ? i : fallback;
 
         public IEnumerable<string> All(int code) => Groups.Where(g => g.Code == code).Select(g => g.Value);
 
@@ -101,15 +101,18 @@ internal static class DxfReader
     }
 
     internal static double ParseDouble(string text, double fallback = 0) =>
-        double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) && double.IsFinite(v) ? v : fallback;
+        double.TryParse(text.AsSpan().Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) && double.IsFinite(v) ? v : fallback;
 
     // ---- parsing -------------------------------------------------------------------------------------------------
 
     private sealed class Parser
     {
-        private readonly string[] _lines;
+        private readonly string _text;
+        private readonly int[] _lineStart;
         private readonly LoadOptions _options;
         private int _position;
+        private readonly Dictionary<string, string> _interned = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> _internLookup;
 
         public readonly Dictionary<string, List<(int Code, string Value)>> Header = new(StringComparer.Ordinal);
         public readonly List<LayerInfo> Layers = new();
@@ -118,23 +121,76 @@ internal static class DxfReader
 
         public Parser(string text, LoadOptions options)
         {
-            _lines = text.Split('\n');
+            // Line starts instead of a string per line: the same lines (split at '\n', a trailing empty one included), no copies.
+            _text = text;
+            var lines = 1;
+            foreach (var c in text.AsSpan())
+            {
+                if (c == '\n')
+                {
+                    lines++;
+                }
+            }
+
+            _lineStart = new int[lines + 1];
+            var n = 1;
+            for (var i = 0; i < text.Length; i++)
+            {
+                if (text[i] == '\n')
+                {
+                    _lineStart[n++] = i + 1;
+                }
+            }
+
+            _lineStart[lines] = text.Length + 1;
             _options = options;
+            _internLookup = _interned.GetAlternateLookup<ReadOnlySpan<char>>();
+        }
+
+        private int LineCount => _lineStart.Length - 1;
+
+        private ReadOnlySpan<char> Line(int index) => _text.AsSpan(_lineStart[index], Math.Max(0, _lineStart[index + 1] - 1 - _lineStart[index]));
+
+        /// <summary>Short values repeat (entity names, layer names, section names); one string serves them all.</summary>
+        private string Value(ReadOnlySpan<char> span)
+        {
+            if (span.Length == 0)
+            {
+                return "";
+            }
+
+            if (span.Length > 32)
+            {
+                return span.ToString();
+            }
+
+            if (_internLookup.TryGetValue(span, out var existing))
+            {
+                return existing;
+            }
+
+            var text = span.ToString();
+            if (_interned.Count < 4096)
+            {
+                _interned[text] = text;
+            }
+
+            return text;
         }
 
         private bool TryRead(out int code, out string value)
         {
             code = 0;
             value = "";
-            if (_position >= _lines.Length)
+            if (_position >= LineCount)
             {
                 return false;
             }
 
-            var codeLine = _lines[_position].Trim();
+            var codeLine = Line(_position).Trim();
             if (!int.TryParse(codeLine, NumberStyles.Integer, CultureInfo.InvariantCulture, out code))
             {
-                if (codeLine.Length == 0 && _position == _lines.Length - 1)
+                if (codeLine.Length == 0 && _position == LineCount - 1)
                 {
                     return false;
                 }
@@ -142,7 +198,7 @@ internal static class DxfReader
                 throw new ModelFormatException($"DXF group code expected at line {_position + 1}.");
             }
 
-            value = _position + 1 < _lines.Length ? _lines[_position + 1].TrimEnd('\r') : "";
+            value = _position + 1 < LineCount ? Value(Line(_position + 1).TrimEnd('\r')) : "";
             _position += 2;
             return true;
         }
@@ -454,7 +510,7 @@ internal static class DxfReader
                 meta.Application = AutoCadName(version);
             }
 
-            if (Var("$INSUNITS", 70) is { } units && int.TryParse(units.Trim(), out var code))
+            if (Var("$INSUNITS", 70) is { } units && int.TryParse(units.AsSpan().Trim(), out var code))
             {
                 meta.Units = UnitOf(code);
             }
@@ -477,7 +533,7 @@ internal static class DxfReader
 
         private static DateTimeOffset? JulianDate(string? text)
         {
-            if (text is null || !double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var jd) || jd < 2_000_000 || jd > 3_000_000)
+            if (text is null || !double.TryParse(text.AsSpan().Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var jd) || jd < 2_000_000 || jd > 3_000_000)
             {
                 return null;
             }
@@ -534,7 +590,7 @@ internal static class DxfReader
 
         private int ColorOf(Entity e, string layerName, int blockRgb)
         {
-            if (e.Get(420) is { } trueColor && int.TryParse(trueColor.Trim(), out var tc) && tc >= 0)
+            if (e.Get(420) is { } trueColor && int.TryParse(trueColor.AsSpan().Trim(), out var tc) && tc >= 0)
             {
                 return tc & 0xFFFFFF;
             }
@@ -1109,7 +1165,7 @@ internal static class DxfReader
                     points.Add(new Vector3((float)x, (float)y, (float)ParseDouble(value)));
                     phase = 0;
                 }
-                else if (inFaces && code == 90 && int.TryParse(value.Trim(), out var i))
+                else if (inFaces && code == 90 && int.TryParse(value.AsSpan().Trim(), out var i))
                 {
                     faceInts.Add(i);
                 }
@@ -1268,7 +1324,7 @@ internal static class DxfReader
 
             if (i < groups.Count)
             {
-                pathCount = int.Parse(groups[i].Value.Trim(), CultureInfo.InvariantCulture);
+                pathCount = int.Parse(groups[i].Value.AsSpan().Trim(), CultureInfo.InvariantCulture);
                 i++;
             }
 
@@ -1286,7 +1342,7 @@ internal static class DxfReader
                     break;
                 }
 
-                var type = int.Parse(groups[i].Value.Trim(), CultureInfo.InvariantCulture);
+                var type = int.Parse(groups[i].Value.AsSpan().Trim(), CultureInfo.InvariantCulture);
                 i++;
                 if ((type & 2) != 0)
                 {
@@ -1297,11 +1353,11 @@ internal static class DxfReader
                     {
                         if (groups[i].Code == 72)
                         {
-                            hasBulge = groups[i].Value.Trim() != "0";
+                            hasBulge = !groups[i].Value.AsSpan().Trim().SequenceEqual("0");
                         }
                         else if (groups[i].Code == 73)
                         {
-                            closed = groups[i].Value.Trim() != "0";
+                            closed = !groups[i].Value.AsSpan().Trim().SequenceEqual("0");
                         }
 
                         i++;
@@ -1309,7 +1365,7 @@ internal static class DxfReader
 
                     if (i < groups.Count)
                     {
-                        count = int.Parse(groups[i].Value.Trim(), CultureInfo.InvariantCulture);
+                        count = int.Parse(groups[i].Value.AsSpan().Trim(), CultureInfo.InvariantCulture);
                         i++;
                     }
 
@@ -1351,7 +1407,7 @@ internal static class DxfReader
 
                     if (i < groups.Count)
                     {
-                        edgeCount = int.Parse(groups[i].Value.Trim(), CultureInfo.InvariantCulture);
+                        edgeCount = int.Parse(groups[i].Value.AsSpan().Trim(), CultureInfo.InvariantCulture);
                         i++;
                     }
 
@@ -1362,7 +1418,7 @@ internal static class DxfReader
                             break;
                         }
 
-                        var edgeType = int.Parse(groups[i].Value.Trim(), CultureInfo.InvariantCulture);
+                        var edgeType = int.Parse(groups[i].Value.AsSpan().Trim(), CultureInfo.InvariantCulture);
                         i++;
                         var values = new Dictionary<int, double>();
                         while (i < groups.Count && groups[i].Code is not (72 or 92 or 97 or 75 or 98))

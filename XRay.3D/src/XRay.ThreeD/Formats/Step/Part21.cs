@@ -24,7 +24,15 @@ internal sealed class StepArg
     public double Number;
     public int Ref;
     public string Text = "";
-    public List<StepArg> Items = [];
+    private List<StepArg>? _items;
+
+    private static readonly List<StepArg> NoItems = [];
+
+    /// <summary>The elements of a list or typed value; a shared empty list for a scalar (most arguments are scalars: no list is allocated for them).</summary>
+    public List<StepArg> Items => _items ?? NoItems;
+
+    /// <summary>The list the parser fills; created on first use.</summary>
+    internal List<StepArg> OpenItems => _items ??= [];
 
     public static readonly StepArg Null = new() { Type = Kind.Null };
 
@@ -42,7 +50,40 @@ internal sealed class StepArg
 
     public int ToRef => Type == Kind.Ref ? Ref : -1;
 
-    public IEnumerable<int> Refs => Items.Where(i => i.Type == Kind.Ref).Select(i => i.Ref);
+    public IEnumerable<int> Refs
+    {
+        get
+        {
+            foreach (var item in Items)
+            {
+                if (item.Type == Kind.Ref)
+                {
+                    yield return item.Ref;
+                }
+            }
+        }
+    }
+}
+
+/// <summary>One string per distinct entity type name: a file repeats a few hundred names a million times.</summary>
+internal sealed class NameInterner
+{
+    private readonly Dictionary<string, string> _names = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> _lookup;
+
+    public NameInterner() => _lookup = _names.GetAlternateLookup<ReadOnlySpan<char>>();
+
+    public string Get(ReadOnlySpan<char> name)
+    {
+        if (_lookup.TryGetValue(name, out var existing))
+        {
+            return existing;
+        }
+
+        var text = name.ToString();
+        _names[text] = text;
+        return text;
+    }
 }
 
 /// <summary>One data-section entity. A complex entity (several types in one instance) lists them in <see cref="Parts"/>.</summary>
@@ -153,6 +194,7 @@ internal sealed class StepFile
         }
 
         // Data: #id = TYPE(args); or #id = (TYPE(args) TYPE(args));
+        var names = new NameInterner();
         p = dataStart + 5;
         var count = 0;
         while (p < text.Length)
@@ -213,7 +255,7 @@ internal sealed class StepFile
                         q++;
                     }
 
-                    var type = text[ts..q].Trim();
+                    var type = names.Get(text.AsSpan(ts, q - ts).Trim());
                     q = SkipSpace(text, q);
                     var argEnd = q < inner && text[q] == '(' ? MatchParen(text, q, inner) : q;
                     entity.Parts.Add((type, q + 1, argEnd));
@@ -232,7 +274,7 @@ internal sealed class StepFile
                     p++;
                 }
 
-                entity.Type = text[ts..p].Trim();
+                entity.Type = names.Get(text.AsSpan(ts, p - ts).Trim());
                 entity.Start = p + 1;
                 entity.End = Math.Max(entity.Start, statementEnd - 1);
                 entity.Parts.Add((entity.Type, entity.Start, entity.End));
@@ -471,7 +513,7 @@ internal static class Part21
                             break;
                         }
 
-                        list.Items.Add(ParseValue(s, ref p, end, depth + 1));
+                        list.OpenItems.Add(ParseValue(s, ref p, end, depth + 1));
                     }
 
                     return list;
@@ -523,7 +565,7 @@ internal static class Part21
                                 break;
                             }
 
-                            typed.Items.Add(ParseValue(s, ref p, end, depth + 1));
+                            typed.OpenItems.Add(ParseValue(s, ref p, end, depth + 1));
                         }
                     }
 
