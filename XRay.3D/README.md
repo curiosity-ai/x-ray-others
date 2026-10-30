@@ -1,12 +1,9 @@
 # X-Ray.3D: 3D and CAD files for .NET
 
-`X-Ray.3D` (assembly and namespace `XRay.ThreeD`, because `3D` is not a valid identifier) identifies 3D and CAD
+`X-Ray.3D` (assembly and namespace `XRay.ThreeD`, identifies 3D and CAD
 files, extracts their metadata (part and assembly names, component files, layers, units, document properties,
 previews) and converts their geometry to **binary glTF (`.glb`)**, the format browsers load directly. Pure managed
 code, no dependencies beyond the BCL, no native binaries.
-
-It re-implements, without any web technology, what a browser-based universal 3D viewer does with a file before it
-draws it. A Tesserae component that displays the GLB is planned next (see [TODO.md](TODO.md)).
 
 ```csharp
 using XRay.ThreeD;
