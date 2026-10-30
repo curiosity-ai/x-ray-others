@@ -32,7 +32,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 - [x] IGES: metadata, curve geometry (110, 100, 106, 126, 102, 124) and surfaces: 128, 144, 143, 142/141 boundaries, 108/120/122, quadrics 190 to 198, B-rep 186/514/510/508/504/502, checked against OpenCASCADE's IGES reader. Open: 114 parametric spline and 118 ruled surfaces, 112 splines, 108 bounded planes drawn free-standing, instances (408) and subfigures, per-face colours given by 314 on loops
 - [ ] DWG: wrap or port a pure-C# reader (the viewer's own TypeScript fallback decoder is a readable reference); layers, blocks, units
 - [x] IFC (STEP physical file): spatial tree, names, GUIDs, property sets and quantities, units, styles; face sets, faceted B-reps, extrusions, mapped items. Open: openings and boolean operations (first operand drawn), swept disks, revolved and B-spline solids, IfcXML
-- [x] FBX, COLLADA, 3DS, USDA, VRML/X3D, OFF, AMF (open: USDC/USDZ)
+- [x] FBX, COLLADA, 3DS, USDA, USDC (crate 0.4+) and USDZ, VRML/X3D, OFF, AMF (USD open: cross-layer references, payloads, variants, time samples, textures)
 - [x] FreeCAD (`.FCStd`): document, object tree, properties, placements, colours, thumbnail, embedded STL/OBJ meshes. Open: tessellating `.brp` (OpenCASCADE text BREP), decoding `.bms` meshes, Link/App::Link placement
 - [ ] OpenSCAD (needs a CSG kernel; metadata only first)
 - [x] Sweet Home 3D (`Home.xml`, 5.3+): levels, walls, rooms, furniture with fitted OBJ models. Open: the Java-serialised `Home` of older files, curved walls, doors cut into walls, textures

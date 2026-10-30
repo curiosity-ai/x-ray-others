@@ -47,7 +47,7 @@ A command line tool lives in `tools/XRay.ThreeD.Cli`: `xray3d info <file> [--jso
 | FBX | `.fbx` (binary, ASCII) | scene, node and material names | meshes, node transforms, materials |
 | COLLADA | `.dae` | asset, units, up axis, node names | geometry, scene graph, effect colours |
 | X3D / VRML | `.x3d` `.wrl` | titles, meta, DEF names | shapes, transforms, colours |
-| USD | `.usda` | stage metadata, prim names, units | meshes, xforms, display colours |
+| USD | `.usda`, `.usdc`, `.usdz` | stage metadata, prim names, units | meshes, xforms (matrix, translate, Euler, scale, orient), display colours, materials and geom subsets, primitives, same-file references. The binary crate (versions 0.4 and later: LZ4, compressed integer and float arrays) is read from the public format description and checked against pxr; a USDZ's root layer may be text or crate. Open: references to other layers (also inside a USDZ), payloads, variants, time samples, textures |
 | 3DS, AMF, OFF | `.3ds` `.amf` `.off` | names, units, materials | triangles, colours |
 | Point clouds | `.las` `.pcd` `.xyz` `.pts` | header, point counts, bounds, CRS where given | points with colours |
 | Recognised only | DWG, 3DM, ... | the format is named | `UnsupportedModelFormatException` |

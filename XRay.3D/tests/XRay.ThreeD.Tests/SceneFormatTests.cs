@@ -262,17 +262,113 @@ public class UsdTests
     }
 
     [Fact]
-    public void Binary_usd_is_recognised_and_refused()
+    public void Crate_matches_the_text_layer_it_was_exported_from()
     {
-        var crate = File.ReadAllBytes(DatasetPaths.File("synthetic/scene.usdc"));
+        var text = ModelLoader.Load(DatasetPaths.File("synthetic/scene.usda"));
+        var crate = ModelLoader.Load(DatasetPaths.File("synthetic/scene.usdc"));
 
-        Assert.Equal("usd", ModelLoader.Detect(crate, "x.usdc").Id);
-        Assert.Throws<UnsupportedModelFormatException>(() => ModelLoader.Load(crate, "x.usdc"));
+        Assert.Equal("usd", ModelLoader.Detect(File.ReadAllBytes(DatasetPaths.File("synthetic/scene.usdc")), "x.usdc").Id);
+        Assert.Equal(text.Nodes().Select(n => n.Name), crate.Nodes().Select(n => n.Name));
+        Assert.Equal(text.Metadata.UpAxis, crate.Metadata.UpAxis);
+        Assert.Equal(text.Metadata.Units, crate.Metadata.Units);
+        Assert.Equal(text.Materials.Select(m => m.Name), crate.Materials.Select(m => m.Name));
+        var a = text.ComputeBounds()!.Value;
+        var b = crate.ComputeBounds()!.Value;
+        Assert.True(Vector3.Distance(a.Min, b.Min) < 1e-4f && Vector3.Distance(a.Max, b.Max) < 1e-4f);
+        Assert.Equal(text.ComputeStatistics().Triangles, crate.ComputeStatistics().Triangles);
     }
 
     [Fact]
     public void Output_is_valid_glb()
     {
         GlbValidation.Validate(ModelLoader.ConvertToGlb(File.ReadAllBytes(DatasetPaths.File("synthetic/scene.usda")), "scene.usda"));
+    }
+}
+
+/// <summary>Crate (.usdc) files with compressed arrays, matrices, quaternions, geom subsets and materials, against pxr.</summary>
+public class UsdcTests
+{
+    private static readonly System.Text.Json.JsonElement Golden =
+        System.Text.Json.JsonDocument.Parse(File.ReadAllText(DatasetPaths.CorpusFile("usdc-golden.json"))).RootElement;
+
+    private static IEnumerable<(SceneNode Node, Matrix4x4 World)> Walk(Model3D model)
+    {
+        var stack = new Stack<(SceneNode, Matrix4x4)>();
+        foreach (var root in model.Roots)
+        {
+            stack.Push((root, Matrix4x4.Identity));
+        }
+
+        while (stack.Count > 0)
+        {
+            var (node, parent) = stack.Pop();
+            var world = node.Transform * parent;
+            yield return (node, world);
+            foreach (var child in node.Children)
+            {
+                stack.Push((child, world));
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData("synthetic/rich.usdc")]
+    [InlineData("synthetic/rich.usdz")]
+    public void Meshes_transforms_and_materials_match_pxr(string file)
+    {
+        var model = ModelLoader.Load(DatasetPaths.File(file));
+
+        Assert.Equal(UpAxis.Y, model.Metadata.UpAxis);
+        Assert.Contains("Paint", model.Materials.Select(m => m.Name));
+        Assert.Contains("Glass", model.Materials.Select(m => m.Name));
+        foreach (var name in new[] { "Terrain", "Plate" })
+        {
+            var expected = Golden.GetProperty(name);
+            var (node, world) = Walk(model).Single(x => x.Node.Name == name);
+            var mesh = node.Mesh!;
+            Assert.Equal(expected.GetProperty("triangles").GetInt32(), mesh.TriangleCount);
+            var min = new Vector3(float.MaxValue);
+            var max = new Vector3(float.MinValue);
+            var sum = Vector3.Zero;
+            for (var i = 0; i < mesh.Positions.Length; i += 3)
+            {
+                var p = Vector3.Transform(new Vector3(mesh.Positions[i], mesh.Positions[i + 1], mesh.Positions[i + 2]), world);
+                min = Vector3.Min(min, p);
+                max = Vector3.Max(max, p);
+            }
+
+            // Welded vertices repeat per attribute, so compare the sum over the original points through the index order instead.
+            var seen = new HashSet<(int, int, int)>();
+            for (var i = 0; i < mesh.Positions.Length; i += 3)
+            {
+                var p = Vector3.Transform(new Vector3(mesh.Positions[i], mesh.Positions[i + 1], mesh.Positions[i + 2]), world);
+                if (seen.Add(((int)MathF.Round(p.X * 1e4f), (int)MathF.Round(p.Y * 1e4f), (int)MathF.Round(p.Z * 1e4f))))
+                {
+                    sum += p;
+                }
+            }
+
+            var gmin = expected.GetProperty("min").EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();
+            var gmax = expected.GetProperty("max").EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();
+            var gsum = expected.GetProperty("sum").EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();
+            Assert.True(Vector3.Distance(min, new Vector3(gmin[0], gmin[1], gmin[2])) < 1e-3f, $"{name} min {min} vs {string.Join(',', gmin)}");
+            Assert.True(Vector3.Distance(max, new Vector3(gmax[0], gmax[1], gmax[2])) < 1e-3f, $"{name} max {max} vs {string.Join(',', gmax)}");
+            Assert.True(Vector3.Distance(sum, new Vector3(gsum[0], gsum[1], gsum[2])) < 0.05f, $"{name} sum {sum} vs {string.Join(',', gsum)}");
+        }
+
+        // Constant display colour on one mesh, material subsets on the other.
+        var terrain = model.Nodes().Single(n => n.Name == "Terrain").Mesh!;
+        Assert.Equal(terrain.VertexCount * 4, terrain.Colors.Length);
+        Assert.Equal(0.2f, terrain.Colors[0], 3);
+        Assert.Equal(0.6f, terrain.Colors[1], 3);
+        var plate = model.Nodes().Single(n => n.Name == "Plate").Mesh!;
+        Assert.Equal(2, plate.Groups.Count);
+        Assert.Contains("Pipe", model.Nodes().Select(n => n.Name));
+    }
+
+    [Fact]
+    public void Output_is_valid_glb()
+    {
+        GlbValidation.Validate(ModelLoader.ConvertToGlb(File.ReadAllBytes(DatasetPaths.File("synthetic/rich.usdc")), "rich.usdc"));
     }
 }

@@ -8,11 +8,11 @@ namespace XRay.ThreeD.Formats.Mesh;
 using XRay.ThreeD.Internal;
 
 /// <summary>
-/// Universal Scene Description in its text form (.usda) and USDZ packages that hold one: the prim hierarchy with transform ops
+/// Universal Scene Description in its text form (.usda) and USDZ packages (text or crate root layer): the prim hierarchy with transform ops
 /// (translate, rotateXYZ and the other Euler orders, scale, orient, transform) in xformOpOrder, Mesh prims (points, face counts and
 /// indices, normals, display colours with their interpolation, GeomSubsets), the cube, sphere, cylinder, cone and capsule
 /// primitives, materials bound through material:binding (UsdPreviewSurface diffuse colour, metallic, roughness, opacity), same-file
-/// references, metersPerUnit and upAxis. Binary USD (.usdc, "PXR-USDC") and references to other files are not read.
+/// references, metersPerUnit and upAxis. The binary crate layer is read by <see cref="UsdcReader"/> into the same stage model. References to other files are not read.
 /// </summary>
 internal static class UsdaReader
 {
@@ -21,20 +21,18 @@ internal static class UsdaReader
     public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options)
     {
         var span = data.Span;
-        string text;
         if (span.Length > 4 && span[0] == 'P' && span[1] == 'K')
         {
-            text = ReadUsdz(data);
-        }
-        else if (span.StartsWith("PXR-USDC"u8))
-        {
-            throw new UnsupportedModelFormatException(ModelFormats.Usd, "Binary USD (crate) files are not supported yet; export the stage as .usda.");
-        }
-        else
-        {
-            text = Encoding.UTF8.GetString(span);
+            data = ReadUsdz(data, options);
+            span = data.Span;
         }
 
+        if (UsdcReader.IsCrate(span))
+        {
+            return new Builder(UsdcReader.ReadStage(data, options), options).Build();
+        }
+
+        var text = Encoding.UTF8.GetString(span);
         if (!text.StartsWith("#usda", StringComparison.Ordinal))
         {
             throw new ModelFormatException("Not a USDA text file.");
@@ -45,38 +43,35 @@ internal static class UsdaReader
         return new Builder(stage, options).Build();
     }
 
-    private static string ReadUsdz(ReadOnlyMemory<byte> data)
+    /// <summary>The package's root layer: the first stored layer (text or crate) in the archive.</summary>
+    private static ReadOnlyMemory<byte> ReadUsdz(ReadOnlyMemory<byte> data, LoadOptions options)
     {
         using var zip = new ZipArchive(new MemoryStream(data.ToArray(), writable: false), ZipArchiveMode.Read);
-        var candidates = zip.Entries.Where(e => e.FullName.EndsWith(".usda", StringComparison.OrdinalIgnoreCase) || e.FullName.EndsWith(".usd", StringComparison.OrdinalIgnoreCase)).ToList();
-        if (candidates.Count == 0)
+        foreach (var entry in zip.Entries)
         {
-            throw new UnsupportedModelFormatException(ModelFormats.Usd, "The USDZ holds no text USD layer (.usda); binary .usdc layers are not supported yet.");
-        }
-
-        foreach (var entry in candidates)
-        {
-            if (entry.Length > 1L << 30)
+            options.Cancellation.ThrowIfCancellationRequested();
+            var name = entry.FullName;
+            if (!(name.EndsWith(".usda", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".usd", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".usdc", StringComparison.OrdinalIgnoreCase)) || entry.Length > 1L << 30)
             {
                 continue;
             }
 
             using var stream = entry.Open();
-            using var buffer = new MemoryStream();
+            using var buffer = new MemoryStream((int)Math.Min(entry.Length, int.MaxValue));
             stream.CopyTo(buffer);
             var bytes = buffer.ToArray();
-            if (bytes.AsSpan().StartsWith("#usda"u8))
+            if (bytes.AsSpan().StartsWith("#usda"u8) || UsdcReader.IsCrate(bytes))
             {
-                return Encoding.UTF8.GetString(bytes);
+                return bytes;
             }
         }
 
-        throw new UnsupportedModelFormatException(ModelFormats.Usd, "The USDZ's layers are binary USD, which is not supported yet.");
+        throw new UnsupportedModelFormatException(ModelFormats.Usd, "The USDZ holds no readable USD layer.");
     }
 
     // ---- stage model -----------------------------------------------------------------------------------------------
 
-    private sealed class Prim
+    internal sealed class Prim
     {
         public string Kind = "";
         public string Type = "";
@@ -86,6 +81,9 @@ internal static class UsdaReader
         /// <summary>For a prim composed from a same-file reference: the prim whose mesh data it shares.</summary>
         public Prim? Source;
         public readonly Dictionary<string, object> Attributes = new(StringComparer.Ordinal);
+
+        /// <summary>Numeric values the binary reader decoded, flattened; an entry here wins over the boxed value in <see cref="Attributes"/>.</summary>
+        public readonly Dictionary<string, double[]> Arrays = new(StringComparer.Ordinal);
         public readonly Dictionary<string, string> Interpolation = new(StringComparer.Ordinal);
         public readonly List<Prim> Children = new();
         public readonly Dictionary<string, object> Metadata = new(StringComparer.Ordinal);
@@ -94,6 +92,11 @@ internal static class UsdaReader
 
         public double[] Numbers(string name)
         {
+            if (Arrays.TryGetValue(name, out var direct))
+            {
+                return direct;
+            }
+
             var result = new List<double>();
             if (Attributes.TryGetValue(name, out var value))
             {
@@ -125,7 +128,7 @@ internal static class UsdaReader
         public List<string> Strings(string name) => Attributes.TryGetValue(name, out var v) && v is List<object> l ? l.OfType<string>().ToList() : [];
     }
 
-    private sealed class Stage
+    internal sealed class Stage
     {
         public readonly Dictionary<string, object> Metadata = new(StringComparer.Ordinal);
         public readonly List<Prim> Roots = new();
@@ -472,7 +475,7 @@ internal static class UsdaReader
 
     // ---- building --------------------------------------------------------------------------------------------------
 
-    private sealed class Builder
+    internal sealed class Builder
     {
         private readonly Stage _stage;
         private readonly LoadOptions _options;
@@ -582,6 +585,16 @@ internal static class UsdaReader
                     foreach (var (k, v) in source.Attributes)
                     {
                         copy.Attributes[k] = v;
+                    }
+
+                    foreach (var (k, v) in source.Arrays)
+                    {
+                        copy.Arrays[k] = v;
+                    }
+
+                    foreach (var (k, v) in composed.Arrays)
+                    {
+                        copy.Arrays[k] = v;
                     }
 
                     foreach (var (k, v) in source.Interpolation)
