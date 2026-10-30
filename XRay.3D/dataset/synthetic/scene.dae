@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+ <asset><contributor><authoring_tool>fixture script</authoring_tool></contributor><created>2026-01-01T00:00:00Z</created><modified>2026-01-01T00:00:00Z</modified><unit name="centimeter" meter="0.01"/><up_axis>Z_UP</up_axis></asset>
+ <library_effects>
+  <effect id="red-fx"><profile_COMMON><technique sid="t"><phong><diffuse><color>1 0 0 1</color></diffuse></phong></technique></profile_COMMON></effect>
+  <effect id="blue-fx"><profile_COMMON><technique sid="t"><lambert><diffuse><color>0 0 1 1</color></diffuse></lambert></technique></profile_COMMON></effect>
+ </library_effects>
+ <library_materials>
+  <material id="red" name="Red"><instance_effect url="#red-fx"/></material>
+  <material id="blue" name="Blue"><instance_effect url="#blue-fx"/></material>
+ </library_materials>
+ <library_geometries>
+  <geometry id="cube-geom" name="cube"><mesh>
+   <source id="cube-pos"><float_array id="cube-pos-a" count="24">0 0 0 1 0 0 1 1 0 0 1 0 0 0 1 1 0 1 1 1 1 0 1 1</float_array><technique_common><accessor source="#cube-pos-a" count="8" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source>
+   <vertices id="cube-vtx"><input semantic="POSITION" source="#cube-pos"/></vertices>
+   <polylist material="mat" count="6"><input semantic="VERTEX" source="#cube-vtx" offset="0"/><vcount>4 4 4 4 4 4</vcount><p>0 3 2 1 4 5 6 7 0 1 5 4 1 2 6 5 2 3 7 6 3 0 4 7</p></polylist>
+  </mesh></geometry>
+  <geometry id="pyr-geom" name="pyramid"><mesh>
+   <source id="pyr-pos"><float_array id="pyr-pos-a" count="15">0 0 0 2 0 0 2 2 0 0 2 0 1 1 3</float_array><technique_common><accessor source="#pyr-pos-a" count="5" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source>
+   <vertices id="pyr-vtx"><input semantic="POSITION" source="#pyr-pos"/></vertices>
+   <triangles material="mat" count="6"><input semantic="VERTEX" source="#pyr-vtx" offset="0"/><p>0 2 1 0 3 2 0 1 4 1 2 4 2 3 4 3 0 4</p></triangles>
+  </mesh></geometry>
+ </library_geometries>
+ <library_visual_scenes><visual_scene id="scene">
+  <node id="root" name="root"><translate>1 2 3</translate>
+   <node id="cube-node" name="cube-node"><instance_geometry url="#cube-geom"><bind_material><technique_common><instance_material symbol="mat" target="#red"/></technique_common></bind_material></instance_geometry></node>
+   <node id="pyr-node" name="pyr-node"><translate>10 0 0</translate><rotate>0 0 1 90</rotate><scale>2 2 2</scale><instance_geometry url="#pyr-geom"><bind_material><technique_common><instance_material symbol="mat" target="#blue"/></technique_common></bind_material></instance_geometry></node>
+   <node id="matrix-node" name="matrix-node"><matrix>1 0 0 0 0 1 0 20 0 0 1 0 0 0 0 1</matrix><instance_geometry url="#cube-geom"><bind_material><technique_common><instance_material symbol="mat" target="#blue"/></technique_common></bind_material></instance_geometry></node>
+  </node>
+ </visual_scene></library_visual_scenes>
+ <scene><instance_visual_scene url="#scene"/></scene>
+</COLLADA>

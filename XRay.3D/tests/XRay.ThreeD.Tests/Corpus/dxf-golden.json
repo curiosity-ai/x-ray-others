@@ -1,0 +1,643 @@
+{
+ "a4-symbol-fire-extinguisher-location-wayfinding.dxf": {
+  "version": "AC1024",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-SIGN",
+   "A-SIGN-PICTOGRAM",
+   "A-ANNO-TEXT",
+   "A-ANNO-DIMS",
+   "A-ANNO-BORDER",
+   "A-SIGN-FRAME"
+  ],
+  "entities": {
+   "INSERT": 1,
+   "DIMENSION": 2,
+   "TEXT": 1
+  },
+  "extents": {
+   "min": [
+    -14.9995,
+    -22.5122,
+    0.0
+   ],
+   "max": [
+    210.065,
+    297.065,
+    0.0
+   ]
+  },
+  "textFree": false
+ },
+ "a4-symbol-first-aid-wayfinding.dxf": {
+  "version": "AC1024",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-SIGN",
+   "A-SIGN-PICTOGRAM",
+   "A-ANNO-TEXT",
+   "A-ANNO-DIMS",
+   "A-ANNO-BORDER",
+   "A-SIGN-FRAME"
+  ],
+  "entities": {
+   "INSERT": 1,
+   "DIMENSION": 2,
+   "TEXT": 1
+  },
+  "extents": {
+   "min": [
+    -14.9995,
+    -22.5122,
+    0.0
+   ],
+   "max": [
+    210.065,
+    297.065,
+    0.0
+   ]
+  },
+  "textFree": false
+ },
+ "a4-symbol-lift-wayfinding.dxf": {
+  "version": "AC1024",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-SIGN",
+   "A-SIGN-PICTOGRAM",
+   "A-ANNO-TEXT",
+   "A-ANNO-DIMS",
+   "A-ANNO-BORDER",
+   "A-SIGN-FRAME"
+  ],
+  "entities": {
+   "INSERT": 1,
+   "DIMENSION": 2,
+   "TEXT": 1
+  },
+  "extents": {
+   "min": [
+    -14.9995,
+    -22.5122,
+    0.0
+   ],
+   "max": [
+    210.065,
+    297.065,
+    0.0
+   ]
+  },
+  "textFree": false
+ },
+ "a4-symbol-male-toilet-wayfinding.dxf": {
+  "version": "AC1024",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-SIGN",
+   "A-SIGN-PICTOGRAM",
+   "A-ANNO-TEXT",
+   "A-ANNO-DIMS",
+   "A-ANNO-BORDER",
+   "A-SIGN-FRAME"
+  ],
+  "entities": {
+   "INSERT": 1,
+   "DIMENSION": 2,
+   "TEXT": 1
+  },
+  "extents": {
+   "min": [
+    -14.9995,
+    -22.5122,
+    0.0
+   ],
+   "max": [
+    210.065,
+    297.065,
+    0.0
+   ]
+  },
+  "textFree": false
+ },
+ "a4-symbol-room-101-wayfinding.dxf": {
+  "version": "AC1024",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-SIGN",
+   "A-SIGN-PICTOGRAM",
+   "A-ANNO-TEXT",
+   "A-ANNO-DIMS",
+   "A-ANNO-BORDER",
+   "A-SIGN-FRAME"
+  ],
+  "entities": {
+   "INSERT": 1,
+   "DIMENSION": 2,
+   "TEXT": 1
+  },
+  "extents": {
+   "min": [
+    -14.9995,
+    -22.5122,
+    0.0
+   ],
+   "max": [
+    210.065,
+    297.065,
+    0.0
+   ]
+  },
+  "textFree": false
+ },
+ "a4-symbol-room-102-wayfinding.dxf": {
+  "version": "AC1024",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-SIGN",
+   "A-SIGN-PICTOGRAM",
+   "A-ANNO-TEXT",
+   "A-ANNO-DIMS",
+   "A-ANNO-BORDER",
+   "A-SIGN-FRAME"
+  ],
+  "entities": {
+   "INSERT": 1,
+   "DIMENSION": 2,
+   "TEXT": 1
+  },
+  "extents": {
+   "min": [
+    -14.9995,
+    -22.5122,
+    0.0
+   ],
+   "max": [
+    210.065,
+    297.065,
+    0.0
+   ]
+  },
+  "textFree": false
+ },
+ "a4-symbol-stairs-wayfinding.dxf": {
+  "version": "AC1024",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-SIGN",
+   "A-SIGN-PICTOGRAM",
+   "A-ANNO-TEXT",
+   "A-ANNO-DIMS",
+   "A-ANNO-BORDER",
+   "A-SIGN-FRAME"
+  ],
+  "entities": {
+   "INSERT": 1,
+   "DIMENSION": 2,
+   "TEXT": 1
+  },
+  "extents": {
+   "min": [
+    -14.9995,
+    -22.5122,
+    0.0
+   ],
+   "max": [
+    210.065,
+    297.065,
+    0.0
+   ]
+  },
+  "textFree": false
+ },
+ "a4-symbol-unisex-toilet-wayfinding.dxf": {
+  "version": "AC1024",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-SIGN",
+   "A-SIGN-PICTOGRAM",
+   "A-ANNO-TEXT",
+   "A-ANNO-DIMS",
+   "A-ANNO-BORDER",
+   "A-SIGN-FRAME"
+  ],
+  "entities": {
+   "INSERT": 1,
+   "DIMENSION": 2,
+   "TEXT": 1
+  },
+  "extents": {
+   "min": [
+    -14.9995,
+    -22.5122,
+    0.0
+   ],
+   "max": [
+    210.065,
+    297.065,
+    0.0
+   ]
+  },
+  "textFree": false
+ },
+ "flange-drawing.dxf": {
+  "version": "AC1024",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "OUTLINE",
+   "CENTER",
+   "HIDDEN",
+   "DIMS",
+   "HATCH",
+   "TITLE"
+  ],
+  "entities": {
+   "CIRCLE": 10,
+   "LINE": 23,
+   "LWPOLYLINE": 6,
+   "HATCH": 2,
+   "DIMENSION": 5,
+   "TEXT": 5
+  },
+  "extents": {
+   "min": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "max": [
+    297.0,
+    210.0,
+    0.0
+   ]
+  },
+  "textFree": false
+ },
+ "godown-warehouse-30-x-20-m-with-loading-dock-plan-drawing.dxf": {
+  "version": "AC1024",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-WALL",
+   "A-DOOR",
+   "A-GLAZ",
+   "A-FIXT",
+   "A-GRID",
+   "A-HATCH",
+   "A-STRC",
+   "A-REBAR",
+   "M-EQUIP",
+   "M-FLOW",
+   "A-DIMS",
+   "A-TEXT",
+   "A-BORDER"
+  ],
+  "entities": {
+   "INSERT": 2
+  },
+  "extents": {
+   "min": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "max": [
+    74220.2702,
+    26880.0,
+    0.0
+   ]
+  },
+  "textFree": false
+ },
+ "studio-floor-plan.dxf": {
+  "version": "AC1024",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "WALLS",
+   "DOORS",
+   "WINDOWS",
+   "FURNITURE",
+   "LIGHTING",
+   "TEXT",
+   "HATCH",
+   "DIMS"
+  ],
+  "entities": {
+   "LWPOLYLINE": 23,
+   "HATCH": 10,
+   "LINE": 14,
+   "ARC": 2,
+   "CIRCLE": 6,
+   "TEXT": 5,
+   "DIMENSION": 2
+  },
+  "extents": {
+   "min": [
+    -815.6798,
+    -1471.3329,
+    0.0
+   ],
+   "max": [
+    8000.0,
+    6000.0,
+    0.0
+   ]
+  },
+  "textFree": false
+ },
+ "urinal-plan-plumbing-and-hvac-cad-symbol.dxf": {
+  "version": "AC1032",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-ENTOURAGE",
+   "A-FURN",
+   "A-EQPM",
+   "A-ANNO-HATCH",
+   "A-ANNO-DIMS",
+   "A-ANNO-TEXT",
+   "A-SHEET",
+   "A-DOOR",
+   "A-GLAZ",
+   "L-PLNT",
+   "E-LITE",
+   "E-POWR",
+   "P-FIXT",
+   "M-HVAC",
+   "C-PARK",
+   "C-SPRT"
+  ],
+  "entities": {
+   "INSERT": 1
+  },
+  "extents": {
+   "min": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "max": [
+    450.0,
+    500.0,
+    0.0
+   ]
+  },
+  "textFree": true
+ },
+ "utility-sink-plan-plumbing-and-hvac-cad-symbol.dxf": {
+  "version": "AC1032",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-ENTOURAGE",
+   "A-FURN",
+   "A-EQPM",
+   "A-ANNO-HATCH",
+   "A-ANNO-DIMS",
+   "A-ANNO-TEXT",
+   "A-SHEET",
+   "A-DOOR",
+   "A-GLAZ",
+   "L-PLNT",
+   "E-LITE",
+   "E-POWR",
+   "P-FIXT",
+   "M-HVAC",
+   "C-PARK",
+   "C-SPRT"
+  ],
+  "entities": {
+   "INSERT": 1
+  },
+  "extents": {
+   "min": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "max": [
+    600.0,
+    550.0,
+    0.0
+   ]
+  },
+  "textFree": true
+ },
+ "volume-control-damper-plumbing-and-hvac-cad-symbol.dxf": {
+  "version": "AC1032",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-ENTOURAGE",
+   "A-FURN",
+   "A-EQPM",
+   "A-ANNO-HATCH",
+   "A-ANNO-DIMS",
+   "A-ANNO-TEXT",
+   "A-SHEET",
+   "A-DOOR",
+   "A-GLAZ",
+   "L-PLNT",
+   "E-LITE",
+   "E-POWR",
+   "P-FIXT",
+   "M-HVAC",
+   "C-PARK",
+   "C-SPRT"
+  ],
+  "entities": {
+   "INSERT": 1
+  },
+  "extents": {
+   "min": [
+    -300.0,
+    -200.0,
+    0.0
+   ],
+   "max": [
+    300.0,
+    330.0,
+    0.0
+   ]
+  },
+  "textFree": true
+ },
+ "wall-basin-plan-plumbing-and-hvac-cad-symbol.dxf": {
+  "version": "AC1032",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-ENTOURAGE",
+   "A-FURN",
+   "A-EQPM",
+   "A-ANNO-HATCH",
+   "A-ANNO-DIMS",
+   "A-ANNO-TEXT",
+   "A-SHEET",
+   "A-DOOR",
+   "A-GLAZ",
+   "L-PLNT",
+   "E-LITE",
+   "E-POWR",
+   "P-FIXT",
+   "M-HVAC",
+   "C-PARK",
+   "C-SPRT"
+  ],
+  "entities": {
+   "INSERT": 1
+  },
+  "extents": {
+   "min": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "max": [
+    600.0,
+    480.0,
+    0.0
+   ]
+  },
+  "textFree": true
+ },
+ "wall-extractor-fan-plumbing-and-hvac-cad-symbol.dxf": {
+  "version": "AC1032",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-ENTOURAGE",
+   "A-FURN",
+   "A-EQPM",
+   "A-ANNO-HATCH",
+   "A-ANNO-DIMS",
+   "A-ANNO-TEXT",
+   "A-SHEET",
+   "A-DOOR",
+   "A-GLAZ",
+   "L-PLNT",
+   "E-LITE",
+   "E-POWR",
+   "P-FIXT",
+   "M-HVAC",
+   "C-PARK",
+   "C-SPRT"
+  ],
+  "entities": {
+   "INSERT": 1
+  },
+  "extents": {
+   "min": [
+    -250.0,
+    -250.0,
+    0.0
+   ],
+   "max": [
+    250.0,
+    250.0,
+    0.0
+   ]
+  },
+  "textFree": true
+ },
+ "wall-hung-wc-plan-plumbing-and-hvac-cad-symbol.dxf": {
+  "version": "AC1032",
+  "units": 4,
+  "layers": [
+   "0",
+   "Defpoints",
+   "A-ENTOURAGE",
+   "A-FURN",
+   "A-EQPM",
+   "A-ANNO-HATCH",
+   "A-ANNO-DIMS",
+   "A-ANNO-TEXT",
+   "A-SHEET",
+   "A-DOOR",
+   "A-GLAZ",
+   "L-PLNT",
+   "E-LITE",
+   "E-POWR",
+   "P-FIXT",
+   "M-HVAC",
+   "C-PARK",
+   "C-SPRT"
+  ],
+  "entities": {
+   "INSERT": 1
+  },
+  "extents": {
+   "min": [
+    -80.0,
+    5.0,
+    0.0
+   ],
+   "max": [
+    510.0,
+    680.0,
+    0.0
+   ]
+  },
+  "textFree": true
+ },
+ "entities.dxf": {
+  "version": "AC1015",
+  "units": 6,
+  "layers": [
+   "L1",
+   "L2",
+   "HIDDEN",
+   "0",
+   "Defpoints"
+  ],
+  "entities": {
+   "INSERT": 2,
+   "LWPOLYLINE": 1,
+   "CIRCLE": 1,
+   "ARC": 1,
+   "3DFACE": 1,
+   "POLYLINE": 1,
+   "SPLINE": 1,
+   "TEXT": 1,
+   "LINE": 1
+  },
+  "extents": {
+   "min": [
+    -3.0,
+    -3.0,
+    0.0
+   ],
+   "max": [
+    16.7448,
+    52.5,
+    7.0
+   ]
+  },
+  "textFree": false
+ }
+}

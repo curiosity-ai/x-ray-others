@@ -1,0 +1,165 @@
+{
+ "muon-detector-case.sldprt": {
+  "kind": "part",
+  "streams": 45,
+  "componentFiles": [],
+  "sheets": [],
+  "faceColors": {
+   "cad1ee": 92
+  },
+  "faces": 92,
+  "vertices": 1990,
+  "triangles": 1440,
+  "instances": 0,
+  "min": [
+   -0.0355600006878376,
+   0,
+   -0.04349062591791153
+  ],
+  "max": [
+   0.0355600006878376,
+   0.06984999775886536,
+   0.04349062591791153
+  ],
+  "sum": [
+   0.0520662902854383,
+   69.1514977812767,
+   -0.0355816890951246
+  ]
+ },
+ "nist-ctc-02-part.sldprt": {
+  "kind": "part",
+  "streams": 52,
+  "componentFiles": [],
+  "sheets": [],
+  "faceColors": {
+   "b7e8ff": 488
+  },
+  "faces": 488,
+  "vertices": 30676,
+  "triangles": 21232,
+  "instances": 0,
+  "min": [
+   -0.3400000035762787,
+   -0.03999999910593033,
+   -0.36000001430511475
+  ],
+  "max": [
+   0.3400000035762787,
+   0.8199999928474426,
+   0.03999999910593033
+  ],
+  "sum": [
+   -81.67988960072398,
+   9356.190753202074,
+   -4468.452137174318
+  ]
+ },
+ "nist-ftc-10-part.sldprt": {
+  "kind": "part",
+  "streams": 56,
+  "componentFiles": [],
+  "sheets": [],
+  "faceColors": {
+   "cad1ee": 1,
+   "e4e4e4": 82,
+   "008000": 123
+  },
+  "faces": 206,
+  "vertices": 14932,
+  "triangles": 10954,
+  "instances": 0,
+  "min": [
+   -0.07898871600627899,
+   -2.7755575615628914e-17,
+   -0.03750000149011612
+  ],
+  "max": [
+   0.07898871600627899,
+   0.03099999949336052,
+   0.03750000149011612
+  ],
+  "sum": [
+   114.56817477966888,
+   281.848058714997,
+   -10.425964646798093
+  ]
+ },
+ "servo-mount.sldprt": {
+  "kind": "part",
+  "streams": 42,
+  "componentFiles": [],
+  "sheets": [],
+  "faceColors": {
+   "cad1ee": 90
+  },
+  "faces": 90,
+  "vertices": 3250,
+  "triangles": 2432,
+  "instances": 0,
+  "min": [
+   -0.012369800359010696,
+   -0.004579739645123482,
+   -0.0188595000654459
+  ],
+  "max": [
+   0.012369800359010696,
+   0.02964179962873459,
+   0.0188595000654459
+  ],
+  "sum": [
+   -19.755771185969934,
+   31.121048777044052,
+   -0.29273497813846916
+  ]
+ },
+ "nist-mtc-assembly.sldasm": {
+  "kind": "assembly",
+  "streams": 46,
+  "componentFiles": [
+   "nist_mtc_crada_box_rev-D.SLDPRT",
+   "91274A141_COATED ALLOY STEEL SOCKET HEAD CAP SCREW.SLDPRT",
+   "nist_mtc_crada_plate_rev-A.SLDPRT",
+   "91304A112_BLUE FLAT-HEAD SOCKET CAP SCREW.SLDPRT",
+   "nist_mtc_crada_cover_rev-B.SLDPRT",
+   "nist_mtc_crada_polycarb-window.SLDPRT",
+   "91274A118_COATED ALLOY STEEL SOCKET HEAD CAP SCREW.SLDPRT",
+   "90591A141_ZINC PLATED STEEL HEX NUT.SLDPRT"
+  ],
+  "sheets": [],
+  "faceColors": {
+   "none": 408,
+   "dde8ff": 108,
+   "c0c0c0": 96,
+   "fff2e8": 869,
+   "ffffff": 350
+  },
+  "faces": 1831,
+  "vertices": 617027,
+  "triangles": 436251,
+  "instances": 36,
+  "min": [
+   0,
+   -2.7321894746634712e-17,
+   -0.00860000029206276
+  ],
+  "max": [
+   0.15240000188350677,
+   0.10159999877214432,
+   0.09905000030994415
+  ],
+  "sum": [
+   42214.21985918225,
+   31247.156359673245,
+   38035.64287571654
+  ]
+ },
+ "rocket-fin-set.slddrw": {
+  "kind": "drawing",
+  "streams": 31,
+  "componentFiles": [],
+  "sheets": [
+   "Sheet1"
+  ]
+ }
+}

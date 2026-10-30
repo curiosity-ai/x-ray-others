@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);CA1707;CA1515;CA1861</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" Version="4.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Corpus/solidworks-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/dxf-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/usd-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/step-golden.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/XRay.ThreeD/XRay.ThreeD.csproj" />
+  </ItemGroup>
+</Project>

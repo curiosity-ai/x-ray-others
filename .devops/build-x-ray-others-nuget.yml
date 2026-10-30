@@ -4,6 +4,7 @@
 #   X-Ray.Ics                                    (XRay.Ics/)
 #   X-Ray.PS, X-Ray.PS.Skia                      (XRay.PS/)
 #   X-Ray.OneNote                                (XRay.OneNote/)
+#   X-Ray.3D                                     (XRay.3D/)
 # Modelled on x-ray-content's .devops/build-x-ray-nuget.yml: CalVer versioning off the build id,
 # pack, then push through the shared service connection.
 #
@@ -23,6 +24,7 @@ variables:
   ps: './XRay.PS/src/XRay.PS/XRay.PS.csproj'
   psSkia: './XRay.PS/src/XRay.PS.Skia/XRay.PS.Skia.csproj'
   oneNote: './XRay.OneNote/src/XRay.OneNote/XRay.OneNote.csproj'
+  threeD: './XRay.3D/src/XRay.ThreeD/XRay.ThreeD.csproj'
   buildConfiguration: 'Release'
   targetVersion: yy.M.$(build.buildId)
 
@@ -39,6 +41,7 @@ trigger:
     - XRay.Ics/*
     - XRay.PS/*
     - XRay.OneNote/*
+    - XRay.3D/*
     - Directory.Build.props
     - Directory.Build.targets
     - assets/*
@@ -81,6 +84,7 @@ steps:
       $(ps)
       $(psSkia)
       $(oneNote)
+      $(threeD)
   displayName: 'restore nuget'
 
 - task: DotNetCoreCLI@2
@@ -95,6 +99,7 @@ steps:
       $(ps)
       $(psSkia)
       $(oneNote)
+      $(threeD)
     arguments: '-c $(buildConfiguration) /p:Version=$(targetVersion) /p:LangVersion=latest /p:GeneratePackageOnBuild=true'
   displayName: 'build'
 

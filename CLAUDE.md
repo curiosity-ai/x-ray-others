@@ -18,6 +18,7 @@ the rules there (provenance, reference implementations, parity checks) are speci
 | `XRay.Ics/` | `X-Ray.Ics` | Written from RFC 5545 for this family; checked against Python `icalendar` and `dateutil` on 434 fixtures |
 | `XRay.PS/` | `X-Ray.PS` | Ported from an MIT-licensed open-source Python PostScript/XPS library |
 | `XRay.OneNote/` | `X-Ray.OneNote` | Ported from an MIT-licensed open-source Python OneNote reader |
+| `XRay.3D/` | `X-Ray.3D` | Written for this family. Re-implements, in C# and without web technology, what a browser 3D viewer does before drawing: format detection, metadata, conversion to GLB. Its dataset is committed under `XRay.3D/dataset/` |
 | `.devops/` | `build-x-ray-others-nuget.yml`, the one pipeline that publishes every package | |
 | `assets/logo.png` | the family icon, packed into every package | |
 | `test_documents/` | git submodule: curiosity-ai/test_documents | |

@@ -1,0 +1,19 @@
+# two objects: a quad plate and a triangle, with materials
+mtllib scene.mtl
+v 0 0 0
+v 2 0 0
+v 2 2 0
+v 0 2 0
+v 0 0 1
+v 2 0 1
+v 1 2 1
+vn 0 0 1
+vn 0 1 0
+o plate
+usemtl steel
+f 1//1 2//1 3//1 4//1
+o wedge
+usemtl paint
+f 5/1/2 6/1/2 7/1/2
+usemtl steel
+f -3 -2 -1
