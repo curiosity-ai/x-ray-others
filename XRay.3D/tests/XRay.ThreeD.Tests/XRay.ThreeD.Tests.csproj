@@ -19,6 +19,8 @@
     <None Include="Corpus/laz-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/cfb-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/zstd-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/xz-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/jt-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/blend-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/cfb-real-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/skp-golden.json" CopyToOutputDirectory="PreserveNewest" />

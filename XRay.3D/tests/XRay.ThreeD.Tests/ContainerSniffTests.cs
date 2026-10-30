@@ -10,7 +10,7 @@ public class ContainerSniffTests
     {
         var header = Encoding.ASCII.GetBytes("Version 9.5 JT".PadRight(80)).Concat(new byte[200]).ToArray();
         Assert.Equal("jt", ModelLoader.Detect(header, "part.bin").Id);
-        Assert.Equal(FormatSupport.Identified, ModelLoader.Detect(header, null).Support);
+        Assert.Equal(FormatSupport.Full, ModelLoader.Detect(header, null).Support);
     }
 
     [Fact]

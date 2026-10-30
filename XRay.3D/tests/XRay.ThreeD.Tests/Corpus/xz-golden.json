@@ -1,0 +1,46 @@
+{
+ "concat.xz": {
+  "length": 25247,
+  "sha256": "46b3d5bbd5b6078918ed23b95755e73ddd8051647cecacaf848c2fb016979d4d"
+ },
+ "crc64.xz": {
+  "length": 32367,
+  "sha256": "4c8b6e4bcb79af7277b739bb06640bdb01792f5df618795c6fbcc230ad84ad07"
+ },
+ "floats-p9.xz": {
+  "length": 240000,
+  "sha256": "fb3f319c20ce74d60846274d197888012d4da13deb400a5d13c975d942a582c9"
+ },
+ "lc0lp2.xz": {
+  "length": 51515,
+  "sha256": "883b7e61967ca4249a0756ee2ca27212c7fa9851010b3c39cb3b1bac0e1f61c9"
+ },
+ "nocheck.xz": {
+  "length": 33082,
+  "sha256": "b5d4e36c26376ba78e57e6be5c7e26f584bcb34bb695ab8099a810a742c9722a"
+ },
+ "random.xz": {
+  "length": 70000,
+  "sha256": "97b09d08daf88c6622d8cc2d60e57e4d24fff4e52fa386d79162c9c5206fe581"
+ },
+ "repeat.xz": {
+  "length": 360000,
+  "sha256": "5839aef7c8e15b479a961775a505cc499111224adcc8bfc821b5a022868359e9"
+ },
+ "text-p0.xz": {
+  "length": 126685,
+  "sha256": "97133d31055b2f8b5fd002a359157dfb3cbf4e9f360e753dcb46f176756f5174"
+ },
+ "text-p6.xz": {
+  "length": 193545,
+  "sha256": "97d267188f7cf2e924e18aff21a5a36efc9a779bcfc9c1aeebf2b1c8e84546ee"
+ },
+ "tiny.xz": {
+  "length": 8,
+  "sha256": "0e6b67cd60012451f285e8a9c6ca2e1db5f7f6ffb9545351c9158891f5b29483"
+ },
+ "zeros.xz": {
+  "length": 300000,
+  "sha256": "886715e4051e827f4fe215df3053af3f85ad0d352db2c829c7487af6d78efe30"
+ }
+}

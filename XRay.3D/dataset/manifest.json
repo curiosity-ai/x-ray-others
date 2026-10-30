@@ -2455,5 +2455,105 @@
   "source": "original work",
   "bytes": 1841,
   "sha256": "c93133d7ea34800837a0d76307af91bc08ad293fe5f70ed065a256397407fce5"
+
+ },
+ {
+  "file": "synthetic/xz/concat.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 9764,
+  "sha256": "a636da979ccfa3c478c7e4dede86e4301e0cd1550b2eecf603ab543716520a8e"
+ },
+ {
+  "file": "synthetic/xz/crc64.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 10912,
+  "sha256": "8d44695d6cc2884c7cf1cfe567d5793848e95f5bf4c1b520d03398f4c2bffb83"
+ },
+ {
+  "file": "synthetic/xz/floats-p9.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 101392,
+  "sha256": "6b7758e366dd16130e05e4b260cc2d55c41ada64341a061125245539b765be46"
+ },
+ {
+  "file": "synthetic/xz/lc0lp2.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 17152,
+  "sha256": "cd487b72523345fd094694e001245133b36ba61d7f5839571c2ba076a1ac3473"
+ },
+ {
+  "file": "synthetic/xz/nocheck.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 10972,
+  "sha256": "05b87fe38820ff529006be3e260c933450a6689624391afa2a1ca6fc4db63316"
+ },
+ {
+  "file": "synthetic/xz/random.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 70060,
+  "sha256": "85061ca864f3d929b1c825ef105a35e4539378ac55f252ed85b7c07bd10e527e"
+ },
+ {
+  "file": "synthetic/xz/repeat.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 188,
+  "sha256": "c12c87985567317244278ffa508eea9f5b5c615829d621960e8a3a2f3e3b8d45"
+ },
+ {
+  "file": "synthetic/xz/text-p0.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 44488,
+  "sha256": "85c04d3a64e31a8975b972083bcc190a2f9dcb68b10862340dc167b6ca7940ff"
+ },
+ {
+  "file": "synthetic/xz/text-p6.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 58956,
+  "sha256": "7ba289ec9d680f34c7b9b7e228df302594ce8a648858730d3a0706cced93701b"
+ },
+ {
+  "file": "synthetic/xz/tiny.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 60,
+  "sha256": "90f88e3b97b09c88359e2289393a60fbd0c08ceed66b1db7c8924cc3a225b144"
+ },
+ {
+  "file": "synthetic/xz/zeros.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 172,
+  "sha256": "16f9b26ed68b4271311429dd35521be4de6e5e1a5ce84c98f96a5abea7c7fe23"
  }
 ]

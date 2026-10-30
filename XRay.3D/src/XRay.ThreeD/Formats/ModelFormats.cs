@@ -86,6 +86,8 @@ public static class ModelFormats
 
     public static FormatInfo Archicad { get; } = new("archicad", "Archicad", "bim", [".pln", ".pla", ".gsm"], FormatSupport.Full);
 
+    public static FormatInfo Jt { get; } = new("jt", "JT", "cad", [".jt"], FormatSupport.Full);
+
     public static FormatInfo SketchUp { get; } = new("sketchup", "SketchUp", "cad", [".skp"], FormatSupport.Metadata);
 
     public static FormatInfo Catia { get; } = new("catia", "CATIA V5", "cad", [".catpart", ".catproduct", ".catdrawing", ".catshape", ".cgr"], FormatSupport.Full);
@@ -99,7 +101,6 @@ public static class ModelFormats
     /// <summary>Formats that are recognised but not yet read. See TODO.md for the order they are planned in.</summary>
     private static readonly FormatInfo[] Identified =
     [
-        new("jt", "JT", "cad", [".jt"], FormatSupport.Identified),
         new("ifcxml", "IFC XML", "bim", [".ifcxml"], FormatSupport.Identified),
         new("revit", "Revit", "bim", [".rvt", ".rfa", ".rft"], FormatSupport.Metadata),
         new("inventor", "Autodesk Inventor", "cad", [".ipt", ".iam", ".idw"], FormatSupport.Metadata),
@@ -111,7 +112,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Psu, Rlf, Unreal, E57, Blender, Archicad, SketchUp, Fusion, Catia, Acis, Dwf, Parasolid, ThreeDxml];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Psu, Rlf, Unreal, E57, Blender, Archicad, SketchUp, Jt, Fusion, Catia, Acis, Dwf, Parasolid, ThreeDxml];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -247,10 +248,10 @@ public static class ModelFormats
             return ThreeDxml;
         }
 
-        // Identified by their first bytes only (no reader): JT ("Version 9.5 JT" in an 80-byte header), the CATIA V5 container and the Creo / Pro/ENGINEER UGC header.
+        // JT ("Version 9.5 JT" in an 80-byte header).
         if (head.Length >= 20 && StartsWith(head, "Version ") && Encoding.ASCII.GetString(head[..Math.Min(head.Length, 24)]).Contains(" JT", StringComparison.Ordinal))
         {
-            return Find("jt");
+            return Jt;
         }
 
         if (Formats.Catia.CatiaReader.Sniff(head))

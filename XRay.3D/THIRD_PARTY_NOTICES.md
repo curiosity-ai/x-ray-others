@@ -130,3 +130,33 @@ licensed under <https://creativecommons.org/licenses/by/4.0/>.
 [Dictor/HaneulMyo](https://github.com/Dictor/HaneulMyo) (copyright (c) 2019 Dictor). The MIT licence text is in the first section of this file
 (meshoptimizer) with the corresponding copyright lines above.
 
+
+## FerroJT (JT segment layout and codecs)
+
+`src/XRay.ThreeD/Formats/Jt/` reads JT files. The element layouts of the logical scene graph, the integer codecs (bitlength, Huffman, arithmetic, chopper), the dual-mesh topology decoder, the vertex and unit-normal quantisation and the segment envelopes were taken from the reading code of [FerroJT](https://github.com/jriegel/FerroJT) (MIT licence), re-implemented in C# with this repository's own scene and mesh model and checked against the JSON that the JT Open reference toolkit wrote for five sample files (`JtTests`). The licence:
+
+```
+MIT License
+
+Copyright (c) 2024 Maksym Pavlenko
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+The `.xz` decoder (`Internal/XzDecoder.cs`) is written from the public xz and LZMA2 format descriptions and checked against liblzma.
