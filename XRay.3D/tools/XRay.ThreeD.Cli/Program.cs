@@ -89,7 +89,7 @@ try
                 Console.WriteLine($"{output}: {model.Metadata.Statistics?.Triangles:N0} triangles, {model.Meshes.Count} meshes, {model.Nodes().Count()} nodes");
                 if (model.Metadata.Statistics is { SurfaceArea: > 0 } stats)
                 {
-                    Console.WriteLine($"area {Figure(stats.SurfaceArea)}, volume {Figure(stats.Volume)}");
+                    Console.WriteLine($"area {Figure(stats.SurfaceArea)}, volume {Figure(stats.Volume)}{(stats.OpenMeshes > 0 ? $" ({stats.OpenMeshes} open mesh(es) with {stats.OpenEdges} open edges are not counted)" : "")}");
                 }
                 foreach (var w in model.Warnings)
                 {
@@ -143,7 +143,7 @@ static void Print(ModelMetadata m)
     Console.WriteLine($"Geometry:     {(m.HasGeometry ? "yes" : "no")}  {m.Statistics}");
     if (m.Statistics is { SurfaceArea: > 0 } stats)
     {
-        Console.WriteLine($"Area/volume:  {Figure(stats.SurfaceArea)} / {Figure(stats.Volume)}");
+        Console.WriteLine($"Area/volume:  {Figure(stats.SurfaceArea)} / {Figure(stats.Volume)}  (closed meshes {stats.ClosedMeshes}, open {stats.OpenMeshes}, inside out {stats.InsideOutMeshes})");
     }
 
     if (m.Bounds is { } box)
