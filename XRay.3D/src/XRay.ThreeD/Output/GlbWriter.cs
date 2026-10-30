@@ -383,6 +383,19 @@ public static class GlbWriter
             Collect(root);
         }
 
+        // A node whose mesh is stored in its own frame (dequantised, or recentred) and that also has children cannot carry that frame in its own
+        // matrix: the children would inherit it. Its mesh moves to an extra child node holding the frame; the extra nodes follow the root wrapper.
+        var meshChild = new Dictionary<SceneNode, int>(ReferenceEqualityComparer.Instance);
+        var meshChildOrder = new List<SceneNode>();
+        foreach (var node in flat)
+        {
+            if (node.Mesh is { } own && ChildrenOf(node).Count > 0 && (accessors.Dequantise.ContainsKey(own) || accessors.Origin.ContainsKey(own)) && !(plan is not null && plan.Synthetic.ContainsKey(node)))
+            {
+                meshChild[node] = flat.Count + (wrap ? 1 : 0) + meshChildOrder.Count;
+                meshChildOrder.Add(node);
+            }
+        }
+
         w.WriteNumber("scene", 0);
         w.WriteStartArray("scenes");
         w.WriteStartObject();
@@ -408,7 +421,7 @@ public static class GlbWriter
         foreach (var node in flat)
         {
             Cancel.Every(options.Cancellation, nodeTick++, 255);
-            WriteNode(w, node, indexOf, model, options, accessors, plan);
+            WriteNode(w, node, indexOf, model, options, accessors, plan, meshChild.TryGetValue(node, out var holder) ? holder : -1);
         }
 
         if (wrap)
@@ -443,6 +456,11 @@ public static class GlbWriter
 
             w.WriteEndArray();
             w.WriteEndObject();
+        }
+
+        foreach (var node in meshChildOrder)
+        {
+            WriteMeshHolder(w, node, model, options, accessors);
         }
 
         w.WriteEndArray();
@@ -851,7 +869,7 @@ public static class GlbWriter
 
     private static float Srgb(float c) => c <= 0.04045f ? c / 12.92f : MathF.Pow((c + 0.055f) / 1.055f, 2.4f);
 
-    private static void WriteNode(Utf8JsonWriter w, SceneNode node, Dictionary<SceneNode, int> indexOf, Model3D model, GlbWriteOptions options, Accessors accessors, InstancePlan? plan)
+    private static void WriteNode(Utf8JsonWriter w, SceneNode node, Dictionary<SceneNode, int> indexOf, Model3D model, GlbWriteOptions options, Accessors accessors, InstancePlan? plan, int meshChild)
     {
         w.WriteStartObject();
         if (!string.IsNullOrEmpty(node.Name))
@@ -859,13 +877,13 @@ public static class GlbWriter
             w.WriteString("name", node.Name);
         }
 
-        if (node.Mesh is { } mesh)
+        if (node.Mesh is { } mesh && meshChild < 0)
         {
             w.WriteNumber("mesh", model.Meshes.IndexOf(mesh));
         }
 
         var children = plan is not null && plan.Children.TryGetValue(node, out var planned) ? planned : node.Children;
-        if (children.Count > 0)
+        if (children.Count > 0 || meshChild >= 0)
         {
             w.WriteStartArray("children");
             foreach (var child in children)
@@ -873,33 +891,19 @@ public static class GlbWriter
                 w.WriteNumberValue(indexOf[child]);
             }
 
-            w.WriteEndArray();
-        }
-
-        var transform = node.Transform;
-        if (node.Mesh is not null && accessors.Origin.TryGetValue(node.Mesh, out var origin))
-        {
-            // The mesh is stored around its own centre; the centre goes back in through the node.
-            transform = Matrix4x4.CreateTranslation(origin) * transform;
-        }
-
-        if (node.Mesh is not null && accessors.Dequantise.TryGetValue(node.Mesh, out var dequantise))
-        {
-            // Quantised positions are integers in [0, 65535]; the dequantisation is applied first, then the node's own transform.
-            transform = dequantise * transform;
-        }
-
-        if (transform != Matrix4x4.Identity)
-        {
-            var m = transform;
-            w.WriteStartArray("matrix");
-            Span<float> values = [m.M11, m.M12, m.M13, m.M14, m.M21, m.M22, m.M23, m.M24, m.M31, m.M32, m.M33, m.M34, m.M41, m.M42, m.M43, m.M44];
-            foreach (var v in values)
+            if (meshChild >= 0)
             {
-                w.WriteNumberValue(v);
+                w.WriteNumberValue(meshChild);
             }
 
             w.WriteEndArray();
+        }
+
+        // With the mesh on its own child node, this node keeps only its own transform: the children must not inherit the mesh's frame.
+        var transform = meshChild >= 0 ? node.Transform : MeshFrame(node, accessors) * node.Transform;
+        if (transform != Matrix4x4.Identity)
+        {
+            WriteMatrix(w, transform);
         }
 
         if (plan is not null && plan.Synthetic.TryGetValue(node, out var synthetic))
@@ -938,7 +942,52 @@ public static class GlbWriter
                 w.WriteEndObject();
             }
         }
-        else if (options.IncludeMetadata && (node.Properties.Count > 0 || node.Layer >= 0))
+        else
+        {
+            WriteNodeExtras(w, node, model, options);
+        }
+
+        w.WriteEndObject();
+    }
+
+    /// <summary>The node's mesh sits in its own frame (dequantisation, then recentring); this maps it back to the model's.</summary>
+    private static Matrix4x4 MeshFrame(SceneNode node, Accessors accessors)
+    {
+        var frame = Matrix4x4.Identity;
+        if (node.Mesh is null)
+        {
+            return frame;
+        }
+
+        // Quantised positions are integers in [0, 65535]: the dequantisation is applied first, then the recentring shift.
+        if (accessors.Dequantise.TryGetValue(node.Mesh, out var dequantise))
+        {
+            frame = dequantise;
+        }
+
+        if (accessors.Origin.TryGetValue(node.Mesh, out var origin))
+        {
+            frame *= Matrix4x4.CreateTranslation(origin);
+        }
+
+        return frame;
+    }
+
+    private static void WriteMatrix(Utf8JsonWriter w, Matrix4x4 m)
+    {
+        w.WriteStartArray("matrix");
+        Span<float> values = [m.M11, m.M12, m.M13, m.M14, m.M21, m.M22, m.M23, m.M24, m.M31, m.M32, m.M33, m.M34, m.M41, m.M42, m.M43, m.M44];
+        foreach (var v in values)
+        {
+            w.WriteNumberValue(v);
+        }
+
+        w.WriteEndArray();
+    }
+
+    private static void WriteNodeExtras(Utf8JsonWriter w, SceneNode node, Model3D model, GlbWriteOptions options)
+    {
+        if (options.IncludeMetadata && (node.Properties.Count > 0 || node.Layer >= 0))
         {
             w.WriteStartObject("extras");
             foreach (var (key, value) in node.Properties)
@@ -953,7 +1002,25 @@ public static class GlbWriter
 
             w.WriteEndObject();
         }
+    }
 
+    /// <summary>The extra child of a node that has both a mesh in its own frame and children: it carries the mesh and the frame, and repeats the node's name and extras so a pick on it finds the same part.</summary>
+    private static void WriteMeshHolder(Utf8JsonWriter w, SceneNode node, Model3D model, GlbWriteOptions options, Accessors accessors)
+    {
+        w.WriteStartObject();
+        if (!string.IsNullOrEmpty(node.Name))
+        {
+            w.WriteString("name", node.Name);
+        }
+
+        w.WriteNumber("mesh", model.Meshes.IndexOf(node.Mesh!));
+        var frame = MeshFrame(node, accessors);
+        if (frame != Matrix4x4.Identity)
+        {
+            WriteMatrix(w, frame);
+        }
+
+        WriteNodeExtras(w, node, model, options);
         w.WriteEndObject();
     }
 
