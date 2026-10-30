@@ -20,8 +20,7 @@ nameLength(2)  extraLength(2)  name(nameLength)  extra  data(compressedSize)
   `Contents/Config-0-ResolvedFeatures`) whose sizes overrun the next header. And the end holds a
   directory-like tail with other signatures. The reader accepts an entry only when its data inflates to
   exactly `size` bytes and matches `crc32`, and its name is printable.
-* Older files (SolidWorks 2014 and before) use an OLE compound file with `__ZLB`-suffixed zlib streams.
-  Not implemented (see TODO.md).
+* Older files (SolidWorks 2014 and before) use an OLE compound file with `__ZLB`-suffixed zlib streams: the 16-byte signature `23 1D D5 71 DA 81 48 A2 A8 58 98 B2 1B 89 EF 99`, then chunks of `u32 inflated size, u32 deflated size, zlib stream` (at most 1 MiB inflated per chunk), ended by two zero words (an empty stream is the signature and the two zero words). The logical streams are the ones listed below (`swXmlContents/KeyWords__ZLB`, `Contents/DisplayLists__ZLB`, `PreviewPNG`...); the `docProps` XML is replaced by the OLE property sets (`\u0005SummaryInformation`, `ISolidWorksInformation` with its names `SW-Author(Author)`, `Config-0-Properties`) and a `_MO_VERSION_7000` storage names the model version. The display-list payload has the same face and instance records, in meters.
 
 ## Streams that matter
 
@@ -87,7 +86,6 @@ The sample assembly decodes to 1131 stored faces / 110,035 vertices in 8 meshes,
   records are in the same stream (`satin finish`, `stainless steel`, a type byte, three RGB bytes, then float
   material coefficients), but the face-to-material link is not understood yet. Meshes are written without colours.
 * **2024+ saves** keep the mesh in a `FaceTessellations/` store instead of `DisplayLists`.
-* **The compound-file envelope** (SolidWorks 2014 and before).
 * Drawings: the vector content is not decoded.
 
 ## Drawings

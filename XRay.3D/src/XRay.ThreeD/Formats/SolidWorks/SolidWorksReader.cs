@@ -440,6 +440,7 @@ internal static class SolidWorksReader
 
         ReadCoreProperties(c, metadata);
         ReadApp(c, metadata);
+        ReadCompoundProperties(c, metadata, cancellation);
         ReadPropertySet(c, "docProps/custom.xml", "custom", metadata);
         ReadPropertySet(c, "docProps/ISolidWorksInformation.xml", "document", metadata);
         ReadPropertySet(c, "swXmlContents/CustomProperties", "custom", metadata, skipNamesAlreadyPresent: true);
@@ -455,6 +456,70 @@ internal static class SolidWorksReader
         metadata.HasPreview = c.Contains("PreviewPNG");
         return metadata;
     }
+
+    /// <summary>
+    /// SolidWorks 2014 and earlier keep what the XML property streams hold in OLE property sets: summary information (title, author, dates),
+    /// document summary (company), <c>ISolidWorksInformation</c> (the SW-* document properties, named in the set's dictionary as
+    /// <c>SW-Author(Author)</c>) and <c>Config-0-Properties</c> (custom properties). The model-version marker (<c>_MO_VERSION_7000</c>) is the format version.
+    /// </summary>
+    private static void ReadCompoundProperties(SwContainer c, ModelMetadata metadata, CancellationToken cancellation)
+    {
+        if (c.Compound is not { } file)
+        {
+            return;
+        }
+
+        List<OlePropertySet> Sets(string stream) => file.Read(stream, cancellation, 1 << 22) is { } bytes ? OlePropertySet.ParseAll(bytes, cancellation) : [];
+
+        if (Sets("\u0005SummaryInformation").FirstOrDefault() is { } summary)
+        {
+            metadata.Title ??= NonEmpty(summary.Text(2));
+            metadata.Author ??= NonEmpty(summary.Text(4));
+            metadata.LastModifiedBy ??= NonEmpty(summary.Text(8));
+            metadata.Created ??= summary.Time(12);
+            metadata.Modified ??= summary.Time(13);
+        }
+
+        if (Sets("\u0005DocumentSummaryInformation").FirstOrDefault() is { } document)
+        {
+            metadata.Company ??= NonEmpty(document.Text(15));
+        }
+
+        foreach (var (stream, group) in new[] { ("ISolidWorksInformation", "document"), ("Config-0-Properties", "custom") })
+        {
+            foreach (var set in Sets(stream))
+            {
+                foreach (var (id, value) in set.Values.OrderBy(v => v.Key))
+                {
+                    if (!set.Names.TryGetValue(id, out var name) || value is not string or int or double or uint or short)
+                    {
+                        continue;
+                    }
+
+                    var open = name.IndexOf('(');
+                    var shown = open > 0 && name.EndsWith(')') ? name[..open] : name;
+                    var text = Convert.ToString(value, CultureInfo.InvariantCulture);
+                    if (!string.IsNullOrWhiteSpace(text) && !metadata.Properties.Any(p => p.Name == shown))
+                    {
+                        metadata.Properties.Add(new ModelProperty(shown, text.Trim(), group));
+                    }
+                }
+            }
+        }
+
+        if (metadata.Author is null && metadata.GetProperty("SW-Author") is { Length: > 0 } author)
+        {
+            metadata.Author = author;
+        }
+
+        if (c.CompoundVersion() is { } version)
+        {
+            metadata.FormatVersion ??= version;
+            metadata.Application ??= "SolidWorks (2014 or earlier)";
+        }
+    }
+
+    private static string? NonEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static void CopyInto(ModelMetadata target, ModelMetadata source)
     {

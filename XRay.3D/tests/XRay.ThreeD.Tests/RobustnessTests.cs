@@ -61,6 +61,7 @@ public class RobustnessTests
         "synthetic/blend/scene-zstd.blend",
         "synthetic/inventor-hashed.iam",
         "synthetic/revit-2021.rvt",
+        "synthetic/legacy-cube.sldprt",
         "sh3d/sweet-home-cottage.sh3d",
         "synthetic/package-obj-mtl.zip",
         "synthetic/package-obj-textured.zip",
