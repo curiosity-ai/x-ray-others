@@ -12,15 +12,81 @@ using XRay.ThreeD.Internal;
 /// <c>Manifest.json</c>, <c>DesignDescription.json</c> and one <c>.f3d</c> or <c>.f2d</c> member per document). Read from the format's public clean-room
 /// description (see THIRD_PARTY_NOTICES): the top-level <c>Manifest.dat</c> (length-prefixed strings: version, document type, display name, description, document
 /// and asset GUIDs, a capability registry, the asset folders and the lineage), the per-asset manifest (asset type, revision, capabilities), <c>Properties.dat</c>
-/// (the <c>docstruct</c> declaring a part or an assembly), configuration tables and the list of B-rep streams. The B-rep (ASM binary streams), the design records
-/// and the display buffers are not decoded; <see cref="Read"/> says so.
+/// (the <c>docstruct</c> declaring a part or an assembly), configuration tables and the list of B-rep streams. The B-rep (ASM binary streams) is read through the ACIS reader; the design
+/// records (timeline, sketches, parameters) and the display buffers are not decoded.
 /// </summary>
 internal static class FusionReader
 {
-    public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options)
+    private const int MaxBrepBlobs = 64;
+
+    /// <summary>
+    /// The exact B-rep of a design: the ASM binary streams of <c>Breps.BlobParts</c> (tag grammar and unit rule from the public clean-room description), run
+    /// through the ACIS reader and tessellated there. A design carries two kinds: <c>.smbh</c> streams hold the bodies of the model, <c>.smb</c> streams hold
+    /// snapshots of every timeline state, so the model's set is the <c>.smbh</c> one when there is one (the body map that says so lives in the design records,
+    /// which are not decoded). A <c>.f3z</c> archive loads its root document.
+    /// </summary>
+    public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options) => Read(data, options, 0);
+
+    private static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options, int depth)
     {
-        var meta = ReadMetadata(data, options);
-        throw new UnsupportedModelFormatException(ModelFormats.Fusion, "Fusion geometry (ASM B-rep streams and display buffers) is not decoded; the manifest, document type, configurations and stream inventory are available through ReadMetadata" + (meta.Notes.Count > 0 ? " (" + meta.Notes[0] + ")" : "") + ".");
+        var token = options.Cancellation;
+        var zip = ZipPackage.TryOpen(data, token) ?? throw new ModelFormatException("Not a Fusion package: the ZIP directory is damaged.");
+        if (depth == 0 && zip.Find("Manifest.json") is { } manifest && zip.Read(manifest, 1 << 20, token) is { } json && RootMember(json) is { } root
+            && root.EndsWith(".f3d", StringComparison.OrdinalIgnoreCase) && zip.Find(root) is { } member && zip.Read(member, 1L << 28, token) is { } inner)
+        {
+            var archive = Read(inner, options, 1);
+            archive.Metadata.ComponentFiles.AddRange(ReadMetadata(data, options).ComponentFiles);
+            return archive;
+        }
+
+        var model = new Model3D();
+        var meta = ReadMetadata(data, options, depth, model.Metadata);
+        var streams = zip.Entries.Where(e => e.Size > 0 && e.Name.Contains("/Breps.BlobParts/", StringComparison.Ordinal)).ToList();
+        var chosen = streams.Where(e => e.Name.EndsWith(".smbh", StringComparison.Ordinal)).ToList();
+        if (chosen.Count == 0)
+        {
+            chosen = streams.Where(e => e.Name.EndsWith(".smb", StringComparison.Ordinal)).ToList();
+        }
+
+        if (chosen.Count == 0)
+        {
+            chosen = streams.Where(e => e.Name.EndsWith(".sat", StringComparison.Ordinal) || e.Name.EndsWith(".smt", StringComparison.Ordinal)).ToList();
+        }
+
+        var design = new SceneNode(meta.Title ?? "Fusion design");
+        design.Properties["kind"] = meta.DocumentKind ?? "design";
+        foreach (var entry in chosen.OrderBy(e => e.Name, StringComparer.Ordinal).Take(MaxBrepBlobs))
+        {
+            Cancel.Every(token, 0);
+            if (zip.Read(entry, 1L << 28, token) is not { Length: > 40 } bytes)
+            {
+                continue;
+            }
+
+            try
+            {
+                var body = entry.Name.EndsWith(".smb", StringComparison.Ordinal) || entry.Name.EndsWith(".smbh", StringComparison.Ordinal)
+                    ? Acis.SabReader.Read(bytes, options)
+                    : Acis.SatReader.Read(bytes, options);
+                ModelMerge.Append(model, design, body, null);
+            }
+            catch (ModelFormatException ex) when (ex is not UnsupportedModelFormatException)
+            {
+                meta.Notes.Add("A B-rep stream could not be read (" + entry.Name[(entry.Name.LastIndexOf('/') + 1)..] + "): " + ex.Message);
+            }
+        }
+
+        if (model.Meshes.Count == 0)
+        {
+            throw new UnsupportedModelFormatException(ModelFormats.Fusion, "The Fusion package holds no B-rep stream that could be tessellated; the manifest, document type, configurations and stream inventory are available through ReadMetadata" + (meta.Notes.Count > 0 ? " (" + meta.Notes[0] + ")" : "") + ".");
+        }
+
+        model.Roots.Add(design);
+        meta.Units = LengthUnit.Centimeter;
+        meta.HasGeometry = true;
+        meta.Statistics = model.ComputeStatistics();
+        meta.Bounds = model.ComputeBounds();
+        return model;
     }
 
     public static PreviewImage? ReadPreview(ReadOnlyMemory<byte> data, LoadOptions options) => ReadPreview(data, options, 0);
@@ -52,11 +118,15 @@ internal static class FusionReader
 
     public static ModelMetadata ReadMetadata(ReadOnlyMemory<byte> data, LoadOptions options) => ReadMetadata(data, options, 0);
 
-    private static ModelMetadata ReadMetadata(ReadOnlyMemory<byte> data, LoadOptions options, int depth)
+    private static ModelMetadata ReadMetadata(ReadOnlyMemory<byte> data, LoadOptions options, int depth, ModelMetadata? into = null)
     {
         var token = options.Cancellation;
         var zip = ZipPackage.TryOpen(data, token) ?? throw new ModelFormatException("Not a Fusion package: the ZIP directory is damaged.");
-        var meta = new ModelMetadata { Format = ModelFormats.Fusion, DocumentKind = "design", Units = LengthUnit.Centimeter, HasGeometry = false };
+        var meta = into ?? new ModelMetadata();
+        meta.Format = ModelFormats.Fusion;
+        meta.DocumentKind = "design";
+        meta.Units = LengthUnit.Centimeter;
+        meta.HasGeometry = false;
 
         if (zip.Find("Manifest.json") is { } manifestJson && zip.Find("DesignDescription.json") is not null)
         {
@@ -108,10 +178,11 @@ internal static class FusionReader
             }
         }
 
+        meta.HasGeometry = breps > 0;
         meta.HasPreview = zip.Entries.Any(e => e.Size > 0 && (e.Name.Contains("/Previews/", StringComparison.OrdinalIgnoreCase) || e.Name.Contains("/Images.BlobParts/", StringComparison.OrdinalIgnoreCase)) && (e.Name.EndsWith(".png", StringComparison.OrdinalIgnoreCase) || e.Name.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)));
         meta.Properties.Add(new ModelProperty("B-rep streams", breps.ToString(CultureInfo.InvariantCulture) + " (" + brepBytes.ToString(CultureInfo.InvariantCulture) + " bytes)", "package"));
         meta.Notes.Add(breps > 0
-            ? "The geometry is stored as " + breps.ToString(CultureInfo.InvariantCulture) + " ASM B-rep stream(s) and display buffers, which are not decoded."
+            ? "The geometry is stored as " + breps.ToString(CultureInfo.InvariantCulture) + " ASM B-rep stream(s) (read by Load: .smbh when present, else .smb) and display buffers (not decoded)."
             : "The package holds no B-rep stream (an assembly of external references, or mesh bodies only).");
         return meta;
     }

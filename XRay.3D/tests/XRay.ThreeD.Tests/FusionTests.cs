@@ -3,7 +3,7 @@ namespace XRay.ThreeD.Tests;
 /// <summary>
 /// Fusion design files: a real CC0 .f3d (Zstandard-compressed entries, written by Fusion 360; from the cadmpeg corpus, see the dataset manifest), a synthetic
 /// part package in the Manifest.dat grammar of the public description, and a synthetic multi-document .f3z. The expected values of the real file were read with
-/// an independent decoder (python zipfile with the zstandard package) while writing tools/oracle/make_f3d_golden.py. Geometry is not decoded.
+/// an independent decoder (python zipfile with the zstandard package) while writing tools/oracle/make_f3d_golden.py. The geometry is the ASM B-rep (see RealPackageBrepLoads).
 /// </summary>
 public class FusionTests
 {
@@ -24,8 +24,27 @@ public class FusionTests
         Assert.Equal("20", meta.GetProperty("Asset revision"));
         Assert.Equal("Application, ParaMesh, Server, VolField", meta.GetProperty("Capabilities"));
         Assert.Equal("2 (6144287 bytes)", meta.GetProperty("B-rep streams"));
-        Assert.False(meta.HasGeometry);
-        Assert.Throws<UnsupportedModelFormatException>(() => ModelLoader.Load(data, "x.f3d"));
+        Assert.True(meta.HasGeometry);
+    }
+
+    /// <summary>
+    /// The exact B-rep: the design's two ASM binary streams are a snapshot set (.smb, 141 bodies of the timeline states) and the model set (.smbh, 4 bodies:
+    /// the enclosure parts). The model set is loaded; extents in centimetres, which is what the ASM streams store whatever their header scale says.
+    /// Counts and bounds only (no independent decoder reads these files; the closed-form checks of the same ACIS tessellator are in SatTests).
+    /// </summary>
+    [Fact]
+    public void RealPackageBrepLoads()
+    {
+        var data = File.ReadAllBytes(DatasetPaths.File("fusion/1WireRGBWController.f3d"));
+        var model = ModelLoader.Load(data, "1WireRGBWController.f3d");
+        Assert.Equal(4, model.Meshes.Count);
+        Assert.Equal(6834, model.ComputeStatistics().Triangles);
+        Assert.Equal(LengthUnit.Centimeter, model.Metadata.Units);
+        var bounds = model.ComputeBounds()!.Value;
+        Assert.InRange(bounds.Size.X, 16.4f, 16.5f);
+        Assert.InRange(bounds.Size.Y, 4.8f, 4.9f);
+        Assert.InRange(bounds.Size.Z, 10.9f, 11.0f);
+        Assert.NotEmpty(ModelLoader.ConvertToGlb(data, "1WireRGBWController.f3d"));
     }
 
     [Fact]

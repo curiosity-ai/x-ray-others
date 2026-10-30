@@ -26,6 +26,10 @@ internal static class SabReader
             throw new ModelFormatException("The ACIS binary file is too short.");
         }
 
+        // ASM streams (Autodesk Fusion, Inventor) say in the last magic byte how wide the integers, references and string lengths are.
+        var isAsm = span.StartsWith("ASM "u8);
+        var refSize = isAsm && span[14] == (byte)'8' ? 8 : 4;
+
         int Int()
         {
             if (p + 4 > data.Length)
@@ -35,6 +39,18 @@ internal static class SabReader
 
             var v = BinaryPrimitives.ReadInt32LittleEndian(data.Span.Slice(p, 4));
             p += 4;
+            return v;
+        }
+
+        // A tag payload of the stream's width: the low word counts, the high word is skipped.
+        int Wide()
+        {
+            var v = Int();
+            if (refSize == 8)
+            {
+                Int();
+            }
+
             return v;
         }
 
@@ -93,6 +109,11 @@ internal static class SabReader
             304.8 => LengthUnit.Foot,
             _ => null,
         };
+        if (isAsm)
+        {
+            meta.Units = LengthUnit.Centimeter; // ASM streams store centimetres whatever the header scale says
+        }
+
         meta.Properties.Add(new ModelProperty("Millimetres per model unit", numbers[0].ToString("R", CultureInfo.InvariantCulture)));
 
         var records = new List<SatRecord>();
@@ -160,10 +181,13 @@ internal static class SabReader
                 }
 
                 case 0x04:
-                    tokens.Add(Int().ToString(CultureInfo.InvariantCulture));
+                    tokens.Add(Wide().ToString(CultureInfo.InvariantCulture));
+                    break;
+                case 0x15:
+                    tokens.Add(Wide().ToString(CultureInfo.InvariantCulture));
                     break;
                 case 0x0C:
-                    tokens.Add("$" + Int().ToString(CultureInfo.InvariantCulture));
+                    tokens.Add("$" + Wide().ToString(CultureInfo.InvariantCulture));
                     break;
                 case 0x06:
                     tokens.Add(ReadDouble(span, ref p));
@@ -173,6 +197,19 @@ internal static class SabReader
                     tokens.Add(ReadDouble(span, ref p));
                     tokens.Add(ReadDouble(span, ref p));
                     tokens.Add(ReadDouble(span, ref p));
+                    break;
+                case 0x16:
+                    tokens.Add(ReadDouble(span, ref p));
+                    tokens.Add(ReadDouble(span, ref p));
+                    break;
+                case 0x17:
+                    if (p + 8 > span.Length)
+                    {
+                        throw new ModelFormatException("The ACIS binary file is truncated.");
+                    }
+
+                    tokens.Add(BinaryPrimitives.ReadInt64LittleEndian(span.Slice(p, 8)).ToString(CultureInfo.InvariantCulture));
+                    p += 8;
                     break;
                 case 0x0A:
                     tokens.Add("reversed");
@@ -191,13 +228,13 @@ internal static class SabReader
                 case 0x09:
                 case 0x12:
                 {
-                    var width = tag == 0x07 ? 1 : tag == 0x08 ? 2 : 4;
+                    var width = tag == 0x07 ? 1 : tag == 0x08 ? 2 : refSize;
                     if (p + width > span.Length)
                     {
                         throw new ModelFormatException("An ACIS binary string is truncated.");
                     }
 
-                    long n = width == 1 ? span[p] : width == 2 ? BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(p, 2)) : BinaryPrimitives.ReadUInt32LittleEndian(span.Slice(p, 4));
+                    long n = width == 1 ? span[p] : width == 2 ? BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(p, 2)) : width == 4 ? BinaryPrimitives.ReadUInt32LittleEndian(span.Slice(p, 4)) : (long)Math.Min(BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(p, 8)), long.MaxValue);
                     p += width;
                     if (n > span.Length - p)
                     {
