@@ -21,6 +21,9 @@ internal sealed class DwgBits
 
     public long Position;
 
+    /// <summary>The encoding of inline text (before AC1021): the file's code page, Latin-1 when unknown.</summary>
+    public Encoding TextEncoding = Encoding.Latin1;
+
     /// <summary>The string stream of an AC1021 or later object, or null (text is inline).</summary>
     public DwgBits? Strings;
 
@@ -188,7 +191,7 @@ internal sealed class DwgBits
         }
 
         var zero = Array.IndexOf(bytes, (byte)0);
-        return Encoding.Latin1.GetString(bytes, 0, zero < 0 ? length : zero);
+        return TextEncoding.GetString(bytes, 0, zero < 0 ? length : zero);
     }
 
     /// <summary>A UTF-16 string: bit short length in characters, then two bytes each.</summary>

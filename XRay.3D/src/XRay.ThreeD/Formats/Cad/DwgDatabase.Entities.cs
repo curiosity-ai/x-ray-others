@@ -677,11 +677,12 @@ internal sealed partial class DwgDatabase
         var control = new List<(double, double, double)>();
         var weights = new List<double>();
         bool rational = false, closed = false, periodic = false;
+        (double, double, double) startTangent = default, endTangent = default;
         if (scenario == 2)
         {
             b.BD();
-            b.BD3();
-            b.BD3();
+            startTangent = b.BD3();
+            endTangent = b.BD3();
             var n = b.BL();
             if (n < 0 || n > 10_000_000 || b.Position + (long)n * 3 > b.End)
             {
@@ -721,6 +722,13 @@ internal sealed partial class DwgDatabase
                     weights.Add(b.BD());
                 }
             }
+        }
+
+        if (control.Count == 0 && degree == 3 && DwgSplineFit.TryCompute(fit, startTangent, endTangent, out var computed, out var computedKnots))
+        {
+            // A spline stored by its fit points only: the control points and knots AutoCAD would derive from them.
+            control = computed;
+            knots = computedKnots;
         }
 
         d.G(70, (closed ? 1 : 0) | (periodic ? 2 : 0) | (rational ? 4 : 8)).G(71, degree).G(72, knots.Count).G(73, control.Count).G(74, fit.Count);

@@ -15,6 +15,7 @@ internal sealed partial class DwgDatabase
 {
     private readonly DwgSections _sections;
     private readonly int _generation;
+    private readonly System.Text.Encoding _textEncoding;
     private readonly LoadOptions _options;
     private readonly CancellationToken _cancel;
 
@@ -66,6 +67,7 @@ internal sealed partial class DwgDatabase
     {
         _sections = sections;
         _generation = sections.Generation;
+        _textEncoding = DwgCodePages.For(sections.CodePage);
         _options = options;
         _cancel = options.Cancellation;
     }
@@ -164,7 +166,7 @@ internal sealed partial class DwgDatabase
         }
 
         var start = p * 8;
-        bits = new DwgBits(data, start, Math.Min(data.Length * 8L, (p + size) * 8));
+        bits = new DwgBits(data, start, Math.Min(data.Length * 8L, (p + size) * 8)) { TextEncoding = _textEncoding };
         record.Type = bits.ObjectType(_generation);
         if (_generation < 24)
         {
@@ -359,12 +361,12 @@ internal sealed partial class DwgDatabase
         }
 
         var end = start * 8L + size * 8;
-        var main = new DwgBits(c, start * 8L, end);
+        var main = new DwgBits(c, start * 8L, end) { TextEncoding = _textEncoding };
         if (_generation >= 21)
         {
             // The bit size counts from the size field itself (byte 24); the string stream ends there.
             var strEnd = 24 * 8L + bitSize;
-            main = new DwgBits(c, start * 8L, strEnd);
+            main = new DwgBits(c, start * 8L, strEnd) { TextEncoding = _textEncoding };
             main.OpenStrings(strEnd);
         }
 

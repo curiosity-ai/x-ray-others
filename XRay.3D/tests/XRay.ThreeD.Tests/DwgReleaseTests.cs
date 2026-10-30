@@ -262,4 +262,61 @@ public class DwgReleaseTests
             }
         }
     }
+
+    [Fact]
+    public void The_code_page_id_of_the_file_header_selects_the_text_encoding_of_releases_before_2007()
+    {
+        Assert.Equal('\u20AC', DwgCodePages.For(30).GetString([0x80])[0]);
+        Assert.Equal("\u041F\u0440", DwgCodePages.For(29).GetString([0xCF, 0xF0]));
+        Assert.Equal("\u05D0", DwgCodePages.For(34).GetString([0xE0]));
+        Assert.Equal("\u00E9", DwgCodePages.For(0).GetString([0xE9]));
+        Assert.Equal("\u00E9", DwgCodePages.For(9999).GetString([0xE9]));
+        Assert.Equal("\u3042", DwgCodePages.For(22).GetString([0x82, 0xA0]));
+    }
+
+    [Theory]
+    [InlineData("2004")]
+    [InlineData("2007")]
+    public void A_spline_stored_by_its_fit_points_gets_the_control_points_and_knots_AutoCAD_reports(string release)
+    {
+        var root = Environment.GetEnvironmentVariable("XRAY_3D_LOCAL_SAMPLES") ?? "/tmp/claude-0/samples";
+        var path = Path.Combine(root, "dwg", release, "Spline.dwg");
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        // The property dump next to the sample (Spline.txt, from AutoCAD): 3 fit points, 5 control points starting (28.059, 8.80677), (33.9643, 7.72128), knots 0 0 0 0 12.2776 26.0835 ...
+        var lines = DwgReader.ToDxf(File.ReadAllBytes(path), new LoadOptions(), out _).Replace("\r", "", StringComparison.Ordinal).Split('\n');
+        var at = Array.FindIndex(lines, l => l == "SPLINE");
+        Assert.True(at >= 0);
+        var xs = new List<double>();
+        var ys = new List<double>();
+        var knots = new List<double>();
+        for (var i = at + 1; i + 1 < lines.Length && lines[i].Trim() != "0"; i += 2)
+        {
+            var code = lines[i].Trim();
+            var value = double.TryParse(lines[i + 1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : 0;
+            if (code == "10")
+            {
+                xs.Add(value);
+            }
+            else if (code == "20" && xs.Count > ys.Count)
+            {
+                ys.Add(value);
+            }
+            else if (code == "40")
+            {
+                knots.Add(value);
+            }
+        }
+
+        Assert.Equal(5, xs.Count);
+        Assert.Equal(9, knots.Count);
+        Assert.Equal(28.059, xs[0], 3);
+        Assert.Equal(33.9643, xs[1], 2);
+        Assert.Equal(7.72128, ys[1], 2);
+        Assert.Equal(12.2776, knots[4], 3);
+        Assert.InRange(knots[5], 26.0834, 26.0836);
+    }
 }

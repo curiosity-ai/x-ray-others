@@ -25,6 +25,9 @@ internal sealed class DwgSections
 
     /// <summary>The preview section (AC1018 and later keep it in a page of its own); empty when there is none.</summary>
     public byte[] Preview { get; init; } = [];
+
+    /// <summary>The code page id of the file header (offset 0x13) that the text of releases before AC1021 is in; 0 when unknown.</summary>
+    public int CodePage { get; set; }
 }
 
 /// <summary>
@@ -60,13 +63,15 @@ internal static class DwgContainer
     public static DwgSections Open(ReadOnlyMemory<byte> data, LoadOptions options)
     {
         var generation = Generation(data.Span);
-        return generation switch
+        var sections = generation switch
         {
             15 => OpenR2000(data),
             18 or 24 or 27 or 32 => OpenR2004(data, generation, options.Cancellation),
             21 => OpenR2007(data, options.Cancellation),
             _ => throw new UnsupportedModelFormatException(ModelFormats.Dwg, "This DWG release is not decoded."),
         };
+        sections.CodePage = data.Length >= 0x15 ? BinaryPrimitives.ReadUInt16LittleEndian(data.Span[0x13..]) : 0;
+        return sections;
     }
 
     private static DwgSections OpenR2000(ReadOnlyMemory<byte> data)
