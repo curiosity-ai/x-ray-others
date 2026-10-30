@@ -8,7 +8,7 @@ using XRay.ThreeD.Internal;
 namespace XRay.ThreeD.Formats.Bim;
 
 /// <summary>
-/// IFC (ISO 16739, STEP physical file; .ifc and .ifczip): the project, site, building and storey tree with every product as a node,
+/// IFC (ISO 16739, STEP physical file; .ifc and .ifczip, and the XML encoding .ifcxml through <see cref="IfcXml"/>): the project, site, building and storey tree with every product as a node,
 /// names, GlobalIds, property sets and quantities in each node's extras, units and header metadata, and geometry for face sets,
 /// faceted B-reps and extruded solids placed by their local placement chains. Other representations leave a node without
 /// geometry and a warning.
@@ -28,6 +28,11 @@ internal static class IfcReader
             var entry = zip.Entries.FirstOrDefault(e => e.FullName.EndsWith(".ifc", StringComparison.OrdinalIgnoreCase))
                 ?? throw new ModelFormatException("The zipped IFC has no .ifc entry.");
             data = ZipEntries.Read(entry, options.MaxInputBytes, options.Cancellation);
+        }
+
+        if (IfcXml.Sniff(data.Span))
+        {
+            return StepFile.Parse(IfcXml.ToStep(data, options), options);
         }
 
         return StepFile.Parse(Encoding.Latin1.GetString(data.Span), options);

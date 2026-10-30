@@ -8,8 +8,8 @@ using XRay.ThreeD.Internal;
 /// LAZ: the LASzip compression of LAS point records, written from the public LASzip format description. A "laszip encoded" VLR
 /// lists the record's items and the chunk size; points come in chunks, each starting with one raw record followed by an arithmetic
 /// coded stream (range coder with adaptive symbol and bit models, integers coded as a bit-length class plus a corrector) in which
-/// every field is predicted from the previous point. Pointwise-chunked coding of the point types 0 to 3 (POINT10, GPSTIME11, RGB12
-/// and extra bytes, version 2) is decoded here; the layered 1.4 types are reported as unsupported.
+/// every field is predicted from the previous point. Pointwise-chunked and unchunked coding of the point types 0 to 3 (POINT10, GPSTIME11,
+/// RGB12 and extra bytes, version 2) is decoded here, and the layered 1.4 types (6 to 10) by <see cref="LazLayered"/>.
 /// </summary>
 internal static class LazDecoder
 {
@@ -83,20 +83,16 @@ internal static class LazDecoder
     /// </summary>
     public static (byte[] Records, int Kept) Decode(ReadOnlyMemory<byte> file, Info info, long pointOffset, long count, int recordLength, int stride, LoadOptions options)
     {
-        if (info.Compressor is not (2 or 1) || info.Coder != 0)
+        if (info.Compressor is not (1 or 2 or 3) || info.Coder != 0)
         {
             throw new UnsupportedModelFormatException(ModelFormats.Laz, $"LAZ coding (compressor {info.Compressor}, coder {info.Coder}) is not supported.");
         }
 
-        if (info.Compressor == 3 || info.Items.Any(i => i.Type >= 10))
-        {
-            throw new UnsupportedModelFormatException(ModelFormats.Laz, "LAZ point types 6 to 10 (layered 1.4 compression) are not supported yet.");
-        }
-
+        var layered = info.Compressor == 3;
         var sizeSum = 0;
         foreach (var item in info.Items)
         {
-            if ((item.Type is 6 or 7 or 8 or 0) && item.Version == 2)
+            if (layered ? LazLayered.Supports(item) : (item.Type is 6 or 7 or 8 or 0) && item.Version == 2)
             {
                 sizeSum += item.Size;
             }
@@ -106,9 +102,9 @@ internal static class LazDecoder
             }
         }
 
-        if (sizeSum != recordLength || info.Compressor != 2)
+        if (sizeSum != recordLength)
         {
-            throw new UnsupportedModelFormatException(ModelFormats.Laz, info.Compressor != 2 ? "Pointwise (unchunked) LAZ is not supported." : "The LAZ items do not add up to the record length.");
+            throw new UnsupportedModelFormatException(ModelFormats.Laz, "The LAZ items do not add up to the record length.");
         }
 
         var token = options.Cancellation;
@@ -118,6 +114,11 @@ internal static class LazDecoder
         if (pointOffset + 8 > span.Length)
         {
             throw new ModelFormatException("The LAZ point data is missing.");
+        }
+
+        if (info.Compressor == 1)
+        {
+            return DecodePointwise(file, info, pointOffset, count, recordLength, stride, sizeSum, options);
         }
 
         var tableOffset = BinaryPrimitives.ReadInt64LittleEndian(span[(int)pointOffset..]);
@@ -172,6 +173,23 @@ internal static class LazDecoder
                 throw new ModelFormatException("A LAZ chunk starts beyond the chunk table.");
             }
 
+            if (layered)
+            {
+                var buffer = new byte[inChunk * recordLength];
+                var decodedInChunk = LazLayered.DecodeChunk(file, (int)chunkStart, (int)Math.Min(tableOffset, chunkStart + bytes[chunk]), info.Items, recordLength, inChunk, buffer, 0, token);
+                for (var p = 0; p < decodedInChunk; p++, global++)
+                {
+                    if (global % stride == 0 && written < kept)
+                    {
+                        buffer.AsSpan(p * recordLength, recordLength).CopyTo(records.AsSpan(written * recordLength));
+                        written++;
+                    }
+                }
+
+                chunkStart += bytes[chunk];
+                continue;
+            }
+
             // The first point of a chunk is stored raw; it seeds the predictors of every item.
             var offset = 0;
             for (var k = 0; k < items.Length; k++)
@@ -205,6 +223,68 @@ internal static class LazDecoder
             }
 
             chunkStart += bytes[chunk];
+        }
+
+        if (written == 0)
+        {
+            throw new ModelFormatException("The LAZ file holds no decodable points.");
+        }
+
+        return (records, written);
+    }
+
+    /// <summary>Unchunked LAZ (compressor 1): the first record raw at the point offset, then one range-coded stream for all other points; no chunk table.</summary>
+    private static (byte[] Records, int Kept) DecodePointwise(ReadOnlyMemory<byte> file, Info info, long pointOffset, long count, int recordLength, int stride, int sizeSum, LoadOptions options)
+    {
+        var span = file.Span;
+        var token = options.Cancellation;
+        var kept = (int)((count + stride - 1) / stride);
+        var records = new byte[(long)kept * recordLength];
+        var record = new byte[recordLength];
+        var items = new ItemDecoder[info.Items.Length];
+        var start = (int)pointOffset;
+        if (start + sizeSum > span.Length)
+        {
+            throw new ModelFormatException("The LAZ point data is missing.");
+        }
+
+        var offset = 0;
+        for (var k = 0; k < items.Length; k++)
+        {
+            var item = info.Items[k];
+            items[k] = item.Type switch { 6 => new Point10(), 7 => new GpsTime11(), 8 => new Rgb12(), _ => new ExtraBytes(item.Size) };
+            items[k].Init(span.Slice(start + offset, item.Size));
+            span.Slice(start + offset, item.Size).CopyTo(record.AsSpan(offset));
+            offset += item.Size;
+        }
+
+        var decoder = new Arithmetic(file, start + sizeSum, token);
+        var written = 0;
+        try
+        {
+            for (long p = 0; p < count; p++)
+            {
+                Cancel.Every(token, p);
+                if (p > 0)
+                {
+                    offset = 0;
+                    for (var k = 0; k < items.Length; k++)
+                    {
+                        items[k].Read(decoder, record.AsSpan(offset, info.Items[k].Size));
+                        offset += info.Items[k].Size;
+                    }
+                }
+
+                if (p % stride == 0 && written < kept)
+                {
+                    record.CopyTo(records.AsSpan(written * recordLength));
+                    written++;
+                }
+            }
+        }
+        catch (ModelFormatException) when (written > 0)
+        {
+            // A truncated unchunked file still holds the points that decoded.
         }
 
         if (written == 0)

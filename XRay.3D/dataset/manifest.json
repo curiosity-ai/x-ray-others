@@ -2167,5 +2167,131 @@
   "source": "hand-written",
   "bytes": 1921,
   "sha256": "a7a59529ca08dae966a0e4fd39e1c16356ec8cf2861d9ea5ff161514b9348230"
+ },
+ {
+  "file": "synthetic/las14-f6.las",
+  "format": "las",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 27375,
+  "sha256": "58d55a7bea54459c288ba4b6de64b6e510d563449fc00f7ed5c4e461a58a0747"
+ },
+ {
+  "file": "synthetic/las14-f7.las",
+  "format": "las",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 32775,
+  "sha256": "cedd8b952259045f2292112603e5d611be56f6b12c7e98f2299b9bae68f6a63d"
+ },
+ {
+  "file": "synthetic/las14-f8.las",
+  "format": "las",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 34575,
+  "sha256": "b1918cb7a93d74ff3de55c1d0bfa3f35d01ff88544b2cdf906739240e011953d"
+ },
+ {
+  "file": "synthetic/las14-f9.las",
+  "format": "las",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 53475,
+  "sha256": "821e1a60a30301276af00b116be2d0803ac4a1252496d64fc64a6fb1bc38ab7d"
+ },
+ {
+  "file": "synthetic/las14-f10.las",
+  "format": "las",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 62913,
+  "sha256": "a16f0050595d8e05ecb42a3913e068839a45319905b29085ecfcc42712f77f59"
+ },
+ {
+  "file": "synthetic/laz14-f6.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 16985,
+  "sha256": "ee32ebb2ca97d488306561d00073fd2be1dc57759bed2031381c984fed09671a"
+ },
+ {
+  "file": "synthetic/laz14-f7.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 22015,
+  "sha256": "256c4463511cf0ebee2ba29315be27088f6c44ec4bc9e6d2260ab64e1b71e299"
+ },
+ {
+  "file": "synthetic/laz14-f8.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 23108,
+  "sha256": "6b2e5296be13ce7d22ea926ac630c8d786f96ba7949dc9be1be35062b74b436a"
+ },
+ {
+  "file": "synthetic/laz14-f9.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 39518,
+  "sha256": "1660df2c9b8fd4d141a9876fa0b78013cff512c719451078570d01dcad752726"
+ },
+ {
+  "file": "synthetic/laz14-f10.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 47801,
+  "sha256": "c715d221e6e3f778f542d59309985cdc62dd251cd49cd5e5590607d9fa87d809"
+ },
+ {
+  "file": "synthetic/laz14c-f6.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 17832,
+  "sha256": "e24ea09f29437019afdfa0565488af065c03204b46d5d1dbc3562ae3f9cc2638"
+ },
+ {
+  "file": "synthetic/laz14c-f7.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 23020,
+  "sha256": "ea33200524ffbc7cabb4f1608c391c07ff4f59a8d60c2696a16f0f86026d89f8"
+ },
+ {
+  "file": "synthetic/laz14c-f8.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 24240,
+  "sha256": "de13de5d0d660ad87f89acc9debbc622fda68c2acc25c52ba2d5eaead4f0d7d8"
+ },
+ {
+  "file": "synthetic/laz-pointwise-f3.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 2042,
+  "sha256": "56d426944a65f7f282f39cba747e6d4dca44189687235e615606e74ceffca723"
  }
 ]

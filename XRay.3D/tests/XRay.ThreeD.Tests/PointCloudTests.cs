@@ -228,3 +228,105 @@ public class LazTests
         Assert.ThrowsAny<OperationCanceledException>(() => ModelLoader.Load(data, "x.laz", new LoadOptions { Cancellation = cts.Token }));
     }
 }
+
+/// <summary>Uncompressed LAS 1.4 point formats 6 to 10 against laspy's values (positions, colours) and the committed point records.</summary>
+public class Las14Tests
+{
+    private static readonly JsonElement Golden = JsonDocument.Parse(File.ReadAllText(DatasetPaths.CorpusFile("las14-golden.json"))).RootElement;
+
+    [Theory]
+    [InlineData(6)]
+    [InlineData(7)]
+    [InlineData(8)]
+    [InlineData(9)]
+    [InlineData(10)]
+    public void Points_and_colours_match_laspy(int format)
+    {
+        var name = $"las14-f{format}";
+        var expected = Golden.GetProperty(name);
+        var data = File.ReadAllBytes(DatasetPaths.File($"synthetic/{name}.las"));
+        var model = ModelLoader.Load(data, name + ".las");
+        var mesh = Assert.Single(model.Meshes);
+        var origin = model.Metadata.Origin!;
+
+        Assert.Equal("las", model.Metadata.Format.Id);
+        Assert.Equal("1.4", model.Metadata.FormatVersion);
+        Assert.Equal(900, mesh.VertexCount);
+        var indexes = new[] { 0, 1, 299, 300, 301, 599, 600, 899 };
+        for (var k = 0; k < indexes.Length; k++)
+        {
+            var i = indexes[k];
+            Assert.InRange(Math.Abs(expected.GetProperty("x")[k].GetDouble() - (mesh.Positions[3 * i] + origin[0])), 0, 0.002);
+            Assert.InRange(Math.Abs(expected.GetProperty("y")[k].GetDouble() - (mesh.Positions[3 * i + 1] + origin[1])), 0, 0.002);
+            Assert.InRange(Math.Abs(expected.GetProperty("z")[k].GetDouble() - (mesh.Positions[3 * i + 2] + origin[2])), 0, 0.002);
+        }
+
+        if (expected.GetProperty("rgb").ValueKind == JsonValueKind.Array)
+        {
+            var rgb = expected.GetProperty("rgb")[0];
+            Assert.Equal(rgb[0].GetInt32() / 65535f, mesh.Colors[0], 3);
+            Assert.Equal(rgb[2].GetInt32() / 65535f, mesh.Colors[2], 3);
+        }
+
+        Assert.Equal(format.ToString(), ModelLoader.ReadMetadata(data, name + ".las").GetProperty("Point data format"));
+    }
+
+    [Theory]
+    [InlineData(6)]
+    [InlineData(7)]
+    [InlineData(8)]
+    [InlineData(9)]
+    [InlineData(10)]
+    public void Layered_laz_records_are_byte_identical_to_the_independent_decoder(int format)
+    {
+        var name = $"las14-f{format}";
+        var expected = Golden.GetProperty(name);
+        var data = File.ReadAllBytes(DatasetPaths.File($"synthetic/laz14-f{format}.laz"));
+        var info = Formats.PointCloud.LazDecoder.ReadInfo(data)!;
+        var recordLength = expected.GetProperty("recordLength").GetInt32();
+        var count = expected.GetProperty("points").GetInt32();
+        var pointOffset = System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(96));
+
+        var (records, kept) = Formats.PointCloud.LazDecoder.Decode(data, info, pointOffset, count, recordLength, 1, new LoadOptions());
+
+        Assert.Equal(3, info.Compressor);
+        Assert.Equal(count, kept);
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(records)).ToLowerInvariant();
+        Assert.Equal(expected.GetProperty("recordsSha256").GetString(), hash);
+    }
+
+    [Theory]
+    [InlineData("laz14c-f6.laz", "las14-f6", 3)]
+    [InlineData("laz14c-f7.laz", "las14-f7", 3)]
+    [InlineData("laz14c-f8.laz", "las14-f8", 3)]
+    [InlineData("laz-pointwise-f3.laz", "laz-pointwise-f3", 1)]
+    public void Chunked_by_the_rust_writer_and_unchunked_files_are_byte_identical(string file, string key, int compressor)
+    {
+        var expected = Golden.GetProperty(key);
+        var data = File.ReadAllBytes(DatasetPaths.File("synthetic/" + file));
+        var info = Formats.PointCloud.LazDecoder.ReadInfo(data)!;
+        var recordLength = expected.GetProperty("recordLength").GetInt32();
+        var count = expected.GetProperty("points").GetInt32();
+        var pointOffset = System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(96));
+
+        var (records, kept) = Formats.PointCloud.LazDecoder.Decode(data, info, pointOffset, count, recordLength, 1, new LoadOptions());
+
+        Assert.Equal(compressor, info.Compressor == 3 ? 3 : info.Compressor);
+        Assert.Equal(count, kept);
+        if (compressor == 3)
+        {
+            Assert.Equal(300u, info.ChunkSize);
+        }
+
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(records)).ToLowerInvariant();
+        Assert.Equal(expected.GetProperty("recordsSha256").GetString(), hash);
+    }
+
+    [Fact]
+    public void Layered_laz_loads_as_a_model()
+    {
+        var model = ModelLoader.Load(File.ReadAllBytes(DatasetPaths.File("synthetic/laz14-f8.laz")), "x.laz");
+        Assert.Equal("laz", model.Metadata.Format.Id);
+        Assert.Equal(900, model.Meshes[0].VertexCount);
+    }
+}

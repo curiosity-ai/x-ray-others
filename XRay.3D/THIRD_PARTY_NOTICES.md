@@ -45,3 +45,14 @@ bindings of Draco, used only by `tools/fixtures/make_draco_fixtures.py` to produ
 `tools/fixtures/make_ifc_schema_tables.py` from the schema data that ships with IfcOpenShell (used only as a build-time data source; none of its code
 is included), which in turn carries buildingSMART International's published IFC schemas. Only names and structural facts are kept, no documentation
 text. The maintainers should confirm that buildingSMART's schema licence is satisfied by this use before the package is published.
+
+## laz-rs (layered LAZ decoding)
+
+`src/XRay.ThreeD/Formats/PointCloud/LazLayered.cs` (the LAS 1.4 point formats 6 to 10 of LAZ: POINT14, RGB14, RGBNIR14, WAVEPACKET14 and BYTE14,
+versions 3 and 4) is a C# port of the decompressor of [laz-rs](https://github.com/tmontaigu/laz-rs) (Apache License 2.0, copyright
+2019 to 2023 Thomas Montaigu), which is itself a port of the LASzip reference implementation (copyright 2007 to 2015 Martin Isenburg,
+rapidlasso). The context tables (`NumberReturnMap6`, `NumberReturnLevel8`), the model sizes, the GPS time sequence logic and the per-layer
+context handling follow that source; the range decoder, the symbol and bit models and the integer decoder are this repository's own (see
+`LazDecoder.cs`, written from the public LASzip description). The Apache License 2.0 text is at
+<https://www.apache.org/licenses/LICENSE-2.0>; the port is checked byte for byte against the C++ LASzip (through laspy's `laszip` back end) and
+against lazrs on the fixtures written by `tools/fixtures/make_las14_fixtures.py`.

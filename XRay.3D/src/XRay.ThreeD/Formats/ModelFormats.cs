@@ -48,7 +48,7 @@ public static class ModelFormats
 
     public static FormatInfo Step { get; } = new("step", "STEP (ISO 10303-21)", "cad", [".step", ".stp", ".p21"], FormatSupport.Full);
 
-    public static FormatInfo Ifc { get; } = new("ifc", "IFC (BIM)", "bim", [".ifc", ".ifczip"], FormatSupport.Full);
+    public static FormatInfo Ifc { get; } = new("ifc", "IFC (BIM)", "bim", [".ifc", ".ifczip", ".ifcxml"], FormatSupport.Full);
 
     public static FormatInfo Iges { get; } = new("iges", "IGES", "cad", [".iges", ".igs"], FormatSupport.Full);
 
@@ -271,6 +271,11 @@ public static class ModelFormats
         if (StartsWith(head, "#X3D"))
         {
             return X3dv;
+        }
+
+        if (Formats.Bim.IfcXml.Sniff(head))
+        {
+            return Ifc;
         }
 
         if (head.Length > 0 && head[0] == '<' && Contains(head, "<X3D", ""))
