@@ -92,6 +92,10 @@ public static class ModelLoader
             }
         }
 
+        var texts = model.Texts.RemoveAll(t => !float.IsFinite(t.Position.X) || !float.IsFinite(t.Position.Y) || !float.IsFinite(t.Position.Z) || !float.IsFinite(t.Height) || !float.IsFinite(t.Rotation));
+        var fills = model.Fills.RemoveAll(f => f.Loops.Any(l => l.Any(p => !float.IsFinite(p.X) || !float.IsFinite(p.Y) || !float.IsFinite(p.Z))));
+        repaired |= texts + fills > 0;
+
         foreach (var node in model.Nodes())
         {
             var m = node.Transform;
@@ -192,6 +196,22 @@ public static class ModelLoader
 
     public static Model3D Load(string path, LoadOptions? options = null) =>
         Load(File.ReadAllBytes(path), Path.GetFileName(path), options);
+
+    /// <summary>
+    /// Loads a drawing (a model with <see cref="Model3D.Is2D"/>) and writes it as SVG. Three-dimensional content is refused unless
+    /// <see cref="SvgWriteOptions.ProjectFlat"/> asks for its top view: GLB is the output for 3D.
+    /// </summary>
+    public static byte[] ConvertToSvg(ReadOnlyMemory<byte> data, string? fileName = null, SvgWriteOptions? svg = null, LoadOptions? options = null)
+    {
+        var model = Load(data, fileName, options);
+        svg = svg?.Clone() ?? new SvgWriteOptions();
+        if (!svg.Cancellation.CanBeCanceled && options is not null)
+        {
+            svg.Cancellation = options.Cancellation;
+        }
+
+        return System.Text.Encoding.UTF8.GetBytes(SvgWriter.ToString(model, svg));
+    }
 
     /// <summary>Load and write binary glTF in one step.</summary>
     public static byte[] ConvertToGlb(ReadOnlyMemory<byte> data, string? fileName = null, GlbWriteOptions? glb = null, LoadOptions? options = null)

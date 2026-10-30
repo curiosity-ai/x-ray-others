@@ -173,6 +173,40 @@ entities = dxf(
     (0, 'ENDSEC'), (0, 'EOF'))
 write('entities.dxf', header + tables + blocks + entities)
 
+# ---- DXF drawing, everything in the XY plane: rotated TEXT, MTEXT, a SOLID quad, a solid HATCH with a hole, a block used twice, a circle.
+drawing_blocks = dxf(
+    (0, 'SECTION'), (2, 'BLOCKS'),
+    (0, 'BLOCK'), (8, '0'), (2, 'SQUARE'), (70, 0), (10, 0.0), (20, 0.0), (30, 0.0), (3, 'SQUARE'),
+    (0, 'LINE'), (8, '0'), (10, 0.0), (20, 0.0), (11, 4.0), (21, 0.0),
+    (0, 'LINE'), (8, '0'), (10, 4.0), (20, 0.0), (11, 4.0), (21, 4.0),
+    (0, 'LINE'), (8, '0'), (10, 4.0), (20, 4.0), (11, 0.0), (21, 4.0),
+    (0, 'LINE'), (8, '0'), (10, 0.0), (20, 4.0), (11, 0.0), (21, 0.0),
+    (0, 'ENDBLK'), (8, '0'),
+    (0, 'ENDSEC'))
+drawing_entities = dxf(
+    (0, 'SECTION'), (2, 'ENTITIES'),
+    (0, 'LINE'), (8, 'WALLS'), (10, 0.0), (20, 0.0), (30, 0.0), (11, 40.0), (21, 0.0), (31, 0.0),
+    (0, 'LINE'), (8, 'WALLS'), (10, 40.0), (20, 0.0), (30, 0.0), (11, 40.0), (21, 25.0), (31, 0.0),
+    (0, 'CIRCLE'), (8, 'WALLS'), (10, 20.0), (20, 12.0), (30, 0.0), (40, 3.0),
+    (0, 'INSERT'), (8, 'WALLS'), (2, 'SQUARE'), (10, 5.0), (20, 5.0), (30, 0.0),
+    (0, 'INSERT'), (8, 'WALLS'), (2, 'SQUARE'), (10, 30.0), (20, 5.0), (30, 0.0), (41, 2.0), (42, 2.0), (43, 1.0), (50, 90.0),
+    (0, 'TEXT'), (100, 'AcDbEntity'), (8, 'NOTES'), (100, 'AcDbText'), (10, 10.0), (20, 20.0), (30, 0.0), (40, 3.0), (1, 'Room 101'), (50, 90.0), (100, 'AcDbText'),
+    (0, 'MTEXT'), (100, 'AcDbEntity'), (8, 'NOTES'), (100, 'AcDbMText'), (10, 30.0), (20, 22.0), (30, 0.0), (40, 2.5), (71, 1), (1, 'Line one\\PLine two'),
+    (0, 'SOLID'), (100, 'AcDbEntity'), (8, 'FILLS'), (62, 3), (100, 'AcDbTrace'), (10, 0.0), (20, 30.0), (30, 0.0), (11, 4.0), (21, 30.0), (31, 0.0), (12, 0.0), (22, 34.0), (32, 0.0), (13, 4.0), (23, 34.0), (33, 0.0),
+    (0, 'HATCH'), (100, 'AcDbEntity'), (8, 'FILLS'), (62, 1), (100, 'AcDbHatch'), (10, 0.0), (20, 0.0), (30, 0.0), (210, 0.0), (220, 0.0), (230, 1.0), (2, 'SOLID'), (70, 1), (71, 0), (91, 2),
+    (92, 7), (72, 0), (73, 1), (93, 4), (10, 10.0), (20, 30.0), (10, 20.0), (20, 30.0), (10, 20.0), (20, 40.0), (10, 10.0), (20, 40.0), (97, 0),
+    (92, 7), (72, 0), (73, 1), (93, 4), (10, 13.0), (20, 33.0), (10, 17.0), (20, 33.0), (10, 17.0), (20, 37.0), (10, 13.0), (20, 37.0), (97, 0),
+    (75, 0), (76, 1), (98, 0),
+    (0, 'ENDSEC'), (0, 'EOF'))
+drawing_tables = dxf(
+    (0, 'SECTION'), (2, 'TABLES'), (0, 'TABLE'), (2, 'LAYER'), (70, 3),
+    (0, 'LAYER'), (2, 'WALLS'), (70, 0), (62, 7), (6, 'CONTINUOUS'),
+    (0, 'LAYER'), (2, 'NOTES'), (70, 0), (62, 5), (6, 'CONTINUOUS'),
+    (0, 'LAYER'), (2, 'FILLS'), (70, 0), (62, 2), (6, 'CONTINUOUS'),
+    (0, 'ENDTAB'), (0, 'ENDSEC'))
+drawing_header = dxf((0, 'SECTION'), (2, 'HEADER'), (9, '$ACADVER'), (1, 'AC1015'), (9, '$INSUNITS'), (70, 4), (0, 'ENDSEC'))
+write('drawing.dxf', drawing_header + drawing_tables + drawing_blocks + drawing_entities)
+
 # ---- point clouds: LAS (written with laspy when available, so an independent writer), PCD in three encodings, XYZ, PTS
 import math
 cloud = [(500000.0 + i * 0.25 % 10, 4000000.0 + (i * 7) % 13 * 0.5, 100.0 + (i % 5) * 1.5) for i in range(200)]

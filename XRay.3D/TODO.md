@@ -60,6 +60,12 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 - [ ] `XRay.ThreeD.Tesserae` (separate package, transpiled): load a GLB, orbit/pan/zoom, assembly tree with visibility, per-node properties from `extras`, explode, section plane, measure, wireframe/edges, lighting presets, layer list
 - [ ] The viewer's data-model gaps to improve on: it has no assembly tree panel and no property panel, drops node properties, and does not convert units on export
 
+## 2D output
+
+- [x] `Model3D.Is2D`, text and filled-area primitives, DXF TEXT/MTEXT/ATTRIB/SOLID/solid HATCH, `SvgWriter` and `ModelLoader.ConvertToSvg` (layers, strokes, text, fills, `<use>` for shared meshes, metadata), checked against ezdxf for text and fills
+- [ ] DXF blocks as shared meshes (they are expanded per insert, so DXF output has no `<use>` yet), line weights, line types, hatch patterns and gradients, text styles and fonts, dimension geometry as text, paper-space layouts
+- [ ] SolidWorks drawing sheets as vector content (flagged `Is2D`, no geometry extracted yet)
+
 ## Housekeeping
 
 - [ ] Family registration in curiosity-ai/x-ray (`Members.props`, docs section; see its `add-family-member` skill)

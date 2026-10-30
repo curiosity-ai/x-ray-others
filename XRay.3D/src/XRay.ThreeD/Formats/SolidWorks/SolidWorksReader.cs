@@ -55,6 +55,7 @@ internal static class SolidWorksReader
             model.Metadata.Bounds = model.ComputeBounds();
         }
 
+        model.Is2D = model.Metadata.DocumentKind == "drawing";
         FinishNotes(model.Metadata);
         model.Warnings.AddRange(model.Metadata.Notes);
         return model;

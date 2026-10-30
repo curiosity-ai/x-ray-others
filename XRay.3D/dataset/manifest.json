@@ -1636,5 +1636,14 @@
   "source": "Cesium / Khronos glTF-Sample-Assets, Models/Box/glTF-Draco",
   "bytes": 120,
   "sha256": "610dc6e08aba7c2720c8e4ec0578efd91cf2d88a5e638dab7811a22f0235bf2e"
+ },
+ {
+  "file": "synthetic/drawing.dxf",
+  "format": "dxf",
+  "title": "Hand-made fixture: DXF drawing with rotated text, MTEXT, SOLID, solid HATCH with a hole and a block used twice",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 1473,
+  "sha256": "2de43edb2d852a70f4651b5227e428386212dd82075150f35939a61b2b2fc4b6"
  }
 ]

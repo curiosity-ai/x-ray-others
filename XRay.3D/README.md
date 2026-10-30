@@ -36,7 +36,7 @@ A command line tool lives in `tools/XRay.ThreeD.Cli`: `xray3d info <file> [--jso
 | PLY | `.ply` (ASCII, binary LE/BE) | comments | triangles, vertex colours, normals; no faces = point cloud |
 | glTF 2.0 | `.glb` `.gltf` | scene, node names, extras, materials, generator | node tree, shared meshes, PBR base colours, `TEXCOORD_0` and base-colour textures (samplers, `KHR_texture_transform`; images from buffer views, data URIs or companions); `EXT_meshopt_compression` and `KHR_draco_mesh_compression` (EdgeBreaker and sequential, all attribute codings) decoded; external `.bin` files through companions |
 | 3MF | `.3mf` | title, designer, units, materials | objects, components, build transforms, base-material colours, `texture2d`/`texture2dgroup` textures |
-| AutoCAD DXF | `.dxf` (ASCII) | version, units, layers (colour, visibility), blocks, text, entity counts, dates | one node per layer; lines, polylines, arcs, splines, hatch outlines as lines; 3D faces, polyface meshes, MESH, solids as triangles; blocks and arrays expanded |
+| AutoCAD DXF | `.dxf` (ASCII) | version, units, layers (colour, visibility), blocks, text, entity counts, dates | one node per layer; lines, polylines, arcs, splines, hatch outlines as lines; 3D faces, polyface meshes, MESH, solids as triangles; blocks and arrays expanded; TEXT/MTEXT/ATTRIB as positioned text and SOLID/solid HATCH as filled areas (`Model3D.Texts`, `Fills`); drawings are flagged `Is2D` and convert to SVG |
 | STEP | `.step` `.stp` `.p21` | header, product tree, descriptions, versions, materials, layers, units | B-rep faces triangulated (planes, quadrics, tori, B-spline, revolution, extrusion; faceted B-reps), NAUO assembly instances, STYLED_ITEM colours; area and volume match OpenCASCADE within 0.3% |
 | IFC | `.ifc` `.ifczip` (STEP physical file) | header, schema, units, project/site/building/storey tree, GlobalIds, property sets and quantities (node extras), materials | face sets (triangulated, polygonal), faceted B-reps and surface models, extruded solids (rectangle, circle, hollow, polyline and indexed-curve profiles with voids), mapped items, local placement chains; other representations leave a node and a warning |
 | IGES | `.igs` `.iges` | start and global sections (names, units, author, dates, version), entity counts by type | lines, arcs, copious-data paths and rational B-spline curves sampled as line meshes by level and colour, placed by transformation matrices; surfaces and B-rep faces are counted and reported, not tessellated |
@@ -54,6 +54,16 @@ A command line tool lives in `tools/XRay.ThreeD.Cli`: `xray3d info <file> [--jso
 
 `ModelFormats.All` lists everything the library can name. Detection looks at the content first (magic bytes, ZIP
 entry names) and the file name second.
+
+## Drawings as SVG
+
+A model whose content is a drawing (`Model3D.Is2D`: a DXF with nothing out of its plane, a SolidWorks drawing, planar curve-only
+IGES) can be written as SVG instead of GLB: `ModelLoader.ConvertToSvg(bytes, name)` or `SvgWriter.ToString(model)`. One `<g>` per layer
+(`id`, `data-name`, hidden layers `display="none"`), strokes with the layer or entity colour and a constant pixel width, real
+`<text>` (height, rotation, anchor; multi-line as `<tspan>`), filled areas (even-odd, so hatch holes work), meshes that several nodes
+share defined once in `<defs>` and placed with `<use>`, Y flipped to screen space, a `viewBox` from the drawing's bounds, and the
+model's metadata in `<metadata>` and `data-*` attributes. GLB stays the output for 3D: a 3D model is refused unless
+`SvgWriteOptions.ProjectFlat` asks for its top view. The CLI writes `.svg` for drawings (`xray3d convert part.dxf`).
 
 ## Why GLB
 

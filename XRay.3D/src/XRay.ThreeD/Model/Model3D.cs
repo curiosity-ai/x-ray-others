@@ -20,6 +20,33 @@ public sealed class Model3D
 
     public List<ModelLayer> Layers { get; } = new();
 
+    /// <summary>
+    /// True when the content is a drawing rather than a model: planar entities (a DXF with nothing out of its plane, a SolidWorks drawing,
+    /// curve-only IGES). <see cref="SvgWriter"/> writes such a model as SVG; <see cref="GlbWriter"/> stays the output for 3D content.
+    /// </summary>
+    public bool Is2D { get; set; }
+
+    /// <summary>Text drawn in the model's plane (drawings): annotations, dimension text, attributes. Positions are in world space.</summary>
+    public List<ModelText> Texts { get; } = new();
+
+    /// <summary>Filled areas (solid hatches, SOLID entities) of a drawing, in world space.</summary>
+    public List<ModelFill> Fills { get; } = new();
+
+    /// <summary>Sets <see cref="Is2D"/> when there is something to draw and none of it leaves the XY plane; returns the result.</summary>
+    public bool DetectIs2D()
+    {
+        var any = Texts.Count > 0 || Fills.Count > 0 || Meshes.Any(m => m.VertexCount > 0);
+        var box = ComputeBounds();
+        var flat = box is not { } b || b.Size.Z <= 1e-6f * Math.Max(Math.Max(b.Size.X, b.Size.Y), 1e-9f);
+        foreach (var fill in Fills)
+        {
+            flat &= fill.Loops.All(l => l.All(p => Math.Abs(p.Z) <= 1e-6f * Math.Max(box?.Size.X ?? 1, 1)));
+        }
+
+        Is2D = any && flat;
+        return Is2D;
+    }
+
     /// <summary>The preview image saved in the file (PNG, BMP or JPEG bytes), when it carries one.</summary>
     public PreviewImage? Preview { get; set; }
 
@@ -316,6 +343,37 @@ public sealed class ModelLayer
     public string Name { get; set; }
 
     public bool Visible { get; set; } = true;
+}
+
+/// <summary>A line of text in a drawing: <see cref="Height"/> in model units, <see cref="Rotation"/> in degrees counter-clockwise.</summary>
+public sealed class ModelText
+{
+    public string Text { get; set; } = "";
+
+    public Vector3 Position { get; set; }
+
+    public float Height { get; set; } = 1;
+
+    public float Rotation { get; set; }
+
+    /// <summary>"start", "middle" or "end": which side of the text <see cref="Position"/> is on.</summary>
+    public string Anchor { get; set; } = "start";
+
+    /// <summary>Index into <see cref="Model3D.Layers"/>, or -1.</summary>
+    public int Layer { get; set; } = -1;
+
+    /// <summary>0xRRGGBB, or -1 for the default colour.</summary>
+    public int Rgb { get; set; } = -1;
+}
+
+/// <summary>A filled area: one or more closed loops (even-odd rule, so inner loops are holes).</summary>
+public sealed class ModelFill
+{
+    public List<Vector3[]> Loops { get; } = new();
+
+    public int Layer { get; set; } = -1;
+
+    public int Rgb { get; set; } = -1;
 }
 
 public sealed record PreviewImage(string MediaType, byte[] Data);

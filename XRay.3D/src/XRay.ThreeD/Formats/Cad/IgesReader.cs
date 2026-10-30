@@ -151,6 +151,10 @@ internal static class IgesReader
                 meta.HasGeometry = _model.Meshes.Count > 0;
                 meta.Statistics = _model.ComputeStatistics();
                 meta.Bounds = _model.ComputeBounds();
+                if (_model.Meshes.All(m => m.Indices.Length == 0))
+                {
+                    _model.DetectIs2D(); // curves only, all in one plane: a drawing
+                }
             }
 
             return _model;

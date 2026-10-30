@@ -436,6 +436,8 @@ internal static class DxfReader
             }
 
             meta.DocumentKind = _any3d ? "model" : "drawing";
+            _model.DetectIs2D();
+            _model.Is2D &= !_any3d;
             meta.HasGeometry = _model.Meshes.Count > 0;
             meta.Statistics = _model.ComputeStatistics();
             meta.Bounds = _model.ComputeBounds();
@@ -589,6 +591,14 @@ internal static class DxfReader
             }
 
             Charge(points.Count);
+            if (_hatchLoop is not null)
+            {
+                foreach (var point in points)
+                {
+                    _hatchLoop.Add(Vector3.Transform(point, m));
+                }
+            }
+
             var sink = SinkFor(style.Layer, style.Rgb, Kind.Lines);
             var start = (uint)(sink.Positions.Count / 3);
             foreach (var point in points)
@@ -729,6 +739,7 @@ internal static class DxfReader
                         var c = new[] { e.Point(10), e.Point(11), e.Point(13, e.Point(10).Z), e.Point(12) };
                         var last = e.Get(13) is null ? 2 : 3;
                         AddTriangles(style, c, last == 3 ? [0, 1, 2, 0, 2, 3] : [0, 1, 2], ocs * m);
+                        AddFill(style, c.Take(last + 1).ToArray(), ocs * m);
                         break;
                     }
 
@@ -757,6 +768,11 @@ internal static class DxfReader
                         _texts.Add(CleanText(content));
                     }
 
+                    if (e.Type != "ATTDEF")
+                    {
+                        AddText(e, style, m);
+                    }
+
                     break;
                 case "3DSOLID":
                 case "BODY":
@@ -780,7 +796,7 @@ internal static class DxfReader
             }
         }
 
-        private static string CleanText(string text)
+        private static string CleanText(string text, char paragraphBreak = ' ')
         {
             // MTEXT carries formatting codes: \P is a paragraph break, {\fArial|b0;text} a run, \U+XXXX a character.
             var sb = new StringBuilder();
@@ -792,7 +808,7 @@ internal static class DxfReader
                     var n = text[i + 1];
                     if (n == 'P' || n == 'p')
                     {
-                        sb.Append(' ');
+                        sb.Append(paragraphBreak);
                         i++;
                     }
                     else if (n == 'U' && i + 6 < text.Length && text[i + 2] == '+' && int.TryParse(text.AsSpan(i + 3, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var cp))
@@ -1132,7 +1148,112 @@ internal static class DxfReader
             }
         }
 
+        /// <summary>A TEXT, MTEXT or ATTRIB as drawn text: position, height and rotation in world space.</summary>
+        private void AddText(Entity e, Style style, Matrix4x4 m)
+        {
+            if (_model.Texts.Count >= 20_000)
+            {
+                return;
+            }
+
+            var raw = e.Type == "MTEXT" ? string.Concat(e.All(3)) + e.Get(1) : e.Get(1) ?? "";
+            var text = CleanText(raw, '\n');
+            if (text.Length == 0)
+            {
+                return;
+            }
+
+            var ocs = Ocs(NormalOf(e)) * m;
+            var aligned = e.Type != "MTEXT" && e.Get(11) is not null && (e.Int(72) != 0 || e.Int(73) != 0);
+            var position = Vector3.Transform(aligned ? e.Point(11) : e.Point(10), ocs);
+            double angle = e.Num(50);
+            if (e.Type == "MTEXT" && e.Get(11) is not null)
+            {
+                angle = Math.Atan2(e.Num(21), e.Num(11)) * 180 / Math.PI;
+            }
+
+            var along = Vector3.TransformNormal(new Vector3((float)Math.Cos(angle * Math.PI / 180), (float)Math.Sin(angle * Math.PI / 180), 0), ocs);
+            var up = Vector3.TransformNormal(Vector3.UnitY, ocs);
+            var height = (float)e.Num(40, 1) * up.Length();
+            if (!(height > 0) || !float.IsFinite(height))
+            {
+                height = 1;
+            }
+
+            var anchor = "start";
+            if (e.Type == "MTEXT")
+            {
+                anchor = e.Int(71, 1) switch { 2 or 5 or 8 => "middle", 3 or 6 or 9 => "end", _ => "start" };
+            }
+            else
+            {
+                anchor = e.Int(72) switch { 1 or 4 => "middle", 2 or 3 or 5 => "end", _ => "start" };
+            }
+
+            _model.Texts.Add(new ModelText
+            {
+                Text = text,
+                Position = position,
+                Height = height,
+                Rotation = (float)(Math.Atan2(along.Y, along.X) * 180 / Math.PI),
+                Anchor = anchor,
+                Layer = style.Layer,
+                Rgb = style.Rgb,
+            });
+            if (MathF.Abs(position.Z) > 1e-6f)
+            {
+                _any3d = true;
+            }
+        }
+
+        private void AddFill(Style style, IReadOnlyList<Vector3> corners, Matrix4x4 m)
+        {
+            if (corners.Count < 3 || _model.Fills.Count >= 20_000)
+            {
+                return;
+            }
+
+            var fill = new ModelFill { Layer = style.Layer, Rgb = style.Rgb };
+            fill.Loops.Add(corners.Select(c => Vector3.Transform(c, m)).ToArray());
+            _model.Fills.Add(fill);
+        }
+
+        private List<Vector3>? _hatchLoop;
+
         private void EmitHatch(Entity e, Style style, Matrix4x4 m)
+        {
+            var solid = e.Int(70) == 1;
+            var loops = new List<List<Vector3>>();
+            EmitHatchOutlines(e, style, m, loops);
+            _hatchLoop = null;
+            if (solid && loops.Count > 0 && _model.Fills.Count < 20_000)
+            {
+                var fill = new ModelFill { Layer = style.Layer, Rgb = style.Rgb };
+                foreach (var loop in loops)
+                {
+                    var points = new List<Vector3>();
+                    foreach (var p in loop)
+                    {
+                        if (points.Count == 0 || (points[^1] - p).LengthSquared() > 1e-18f)
+                        {
+                            points.Add(p);
+                        }
+                    }
+
+                    if (points.Count >= 3)
+                    {
+                        fill.Loops.Add(points.ToArray());
+                    }
+                }
+
+                if (fill.Loops.Count > 0)
+                {
+                    _model.Fills.Add(fill);
+                }
+            }
+        }
+
+        private void EmitHatchOutlines(Entity e, Style style, Matrix4x4 m, List<List<Vector3>> loops)
         {
             // Boundary paths are drawn as outlines (the fill is not tessellated). Paths are either polylines (flag bit 2) or edge lists.
             var elevation = (float)e.Num(30);
@@ -1153,6 +1274,8 @@ internal static class DxfReader
 
             for (var path = 0; path < pathCount && i < groups.Count; path++)
             {
+                _hatchLoop = new List<Vector3>();
+                loops.Add(_hatchLoop);
                 while (i < groups.Count && groups[i].Code != 92)
                 {
                     i++;

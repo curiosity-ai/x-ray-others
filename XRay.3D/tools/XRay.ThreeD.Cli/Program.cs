@@ -65,7 +65,15 @@ try
             {
                 var model = ModelLoader.Load(args[1], Loose(args[1]));
                 var positional = args.Skip(2).TakeWhile(a => !a.StartsWith("--", StringComparison.Ordinal)).ToList();
-                var output = positional.Count > 0 ? positional[0] : Path.ChangeExtension(args[1], ".glb");
+                var output = positional.Count > 0 ? positional[0] : Path.ChangeExtension(args[1], model.Is2D ? ".svg" : ".glb");
+                if (output.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Drawings (DXF, ...) can be written as SVG; --flat draws the top view of a 3D model.
+                    File.WriteAllText(output, SvgWriter.ToString(model, new SvgWriteOptions { ProjectFlat = args.Contains("--flat") }));
+                    Console.WriteLine($"{output}: {model.Texts.Count} texts, {model.Fills.Count} fills");
+                    return 0;
+                }
+
                 var options = new GlbWriteOptions();
                 if (Option(args, "--compress") is { } compress)
                 {
