@@ -1,0 +1,256 @@
+{
+ "a4-symbol-fire-extinguisher-location-wayfinding.dxf": {
+  "texts": [
+   {
+    "text": "MODEL SPACE 1:1 mm / ORIGINAL CC0 SYMBOL / INSERT AT FRAME LOWER LEFT",
+    "x": 0.0,
+    "y": -22.0,
+    "height": 1.795,
+    "rotation": 0
+   }
+  ],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "a4-symbol-first-aid-wayfinding.dxf": {
+  "texts": [
+   {
+    "text": "MODEL SPACE 1:1 mm / ORIGINAL CC0 SYMBOL / INSERT AT FRAME LOWER LEFT",
+    "x": 0.0,
+    "y": -22.0,
+    "height": 1.795,
+    "rotation": 0
+   }
+  ],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "a4-symbol-lift-wayfinding.dxf": {
+  "texts": [
+   {
+    "text": "MODEL SPACE 1:1 mm / ORIGINAL CC0 SYMBOL / INSERT AT FRAME LOWER LEFT",
+    "x": 0.0,
+    "y": -22.0,
+    "height": 1.795,
+    "rotation": 0
+   }
+  ],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "a4-symbol-male-toilet-wayfinding.dxf": {
+  "texts": [
+   {
+    "text": "MODEL SPACE 1:1 mm / ORIGINAL CC0 SYMBOL / INSERT AT FRAME LOWER LEFT",
+    "x": 0.0,
+    "y": -22.0,
+    "height": 1.795,
+    "rotation": 0
+   }
+  ],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "a4-symbol-room-101-wayfinding.dxf": {
+  "texts": [
+   {
+    "text": "MODEL SPACE 1:1 mm / ORIGINAL CC0 SYMBOL / INSERT AT FRAME LOWER LEFT",
+    "x": 0.0,
+    "y": -22.0,
+    "height": 1.795,
+    "rotation": 0
+   }
+  ],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "a4-symbol-room-102-wayfinding.dxf": {
+  "texts": [
+   {
+    "text": "MODEL SPACE 1:1 mm / ORIGINAL CC0 SYMBOL / INSERT AT FRAME LOWER LEFT",
+    "x": 0.0,
+    "y": -22.0,
+    "height": 1.795,
+    "rotation": 0
+   }
+  ],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "a4-symbol-stairs-wayfinding.dxf": {
+  "texts": [
+   {
+    "text": "MODEL SPACE 1:1 mm / ORIGINAL CC0 SYMBOL / INSERT AT FRAME LOWER LEFT",
+    "x": 0.0,
+    "y": -22.0,
+    "height": 1.795,
+    "rotation": 0
+   }
+  ],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "a4-symbol-unisex-toilet-wayfinding.dxf": {
+  "texts": [
+   {
+    "text": "MODEL SPACE 1:1 mm / ORIGINAL CC0 SYMBOL / INSERT AT FRAME LOWER LEFT",
+    "x": 0.0,
+    "y": -22.0,
+    "height": 1.795,
+    "rotation": 0
+   }
+  ],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "flange-drawing.dxf": {
+  "texts": [
+   {
+    "text": "6X %%c11 EQ. SP. ON %%c90 PCD",
+    "x": 40.0,
+    "y": 42.0,
+    "height": 3.5,
+    "rotation": 0
+   },
+   {
+    "text": "SECTION A-A",
+    "x": 245.0,
+    "y": 35.0,
+    "height": 4.0,
+    "rotation": 0
+   },
+   {
+    "text": "HUB FLANGE, 6-BOLT",
+    "x": 192.0,
+    "y": 30.0,
+    "height": 5.0,
+    "rotation": 0
+   },
+   {
+    "text": "MATL: 6061-T6",
+    "x": 190.0,
+    "y": 15.0,
+    "height": 3.0,
+    "rotation": 0
+   },
+   {
+    "text": "SCALE 1:1  mm",
+    "x": 240.0,
+    "y": 15.0,
+    "height": 3.0,
+    "rotation": 0
+   }
+  ],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "godown-warehouse-30-x-20-m-with-loading-dock-plan-drawing.dxf": {
+  "texts": [],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "studio-floor-plan.dxf": {
+  "texts": [
+   {
+    "text": "LIVING / DINING",
+    "x": 3600.0,
+    "y": 1000.0,
+    "height": 180.0,
+    "rotation": 0
+   },
+   {
+    "text": "SLEEPING",
+    "x": 1400.0,
+    "y": 3300.0,
+    "height": 180.0,
+    "rotation": 0
+   },
+   {
+    "text": "BATH",
+    "x": 6300.0,
+    "y": 4200.0,
+    "height": 180.0,
+    "rotation": 0
+   },
+   {
+    "text": "KITCHEN",
+    "x": 1100.0,
+    "y": 2800.0,
+    "height": 180.0,
+    "rotation": 0
+   },
+   {
+    "text": "STUDIO APARTMENT PLAN  1:50",
+    "x": 0.0,
+    "y": -1400.0,
+    "height": 250.0,
+    "rotation": 0
+   }
+  ],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "urinal-plan-plumbing-and-hvac-cad-symbol.dxf": {
+  "texts": [],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "utility-sink-plan-plumbing-and-hvac-cad-symbol.dxf": {
+  "texts": [],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "volume-control-damper-plumbing-and-hvac-cad-symbol.dxf": {
+  "texts": [],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "wall-basin-plan-plumbing-and-hvac-cad-symbol.dxf": {
+  "texts": [],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "wall-extractor-fan-plumbing-and-hvac-cad-symbol.dxf": {
+  "texts": [],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "wall-hung-wc-plan-plumbing-and-hvac-cad-symbol.dxf": {
+  "texts": [],
+  "solids": 0,
+  "solidHatches": 0
+ },
+ "drawing.dxf": {
+  "texts": [
+   {
+    "text": "Room 101",
+    "x": 10.0,
+    "y": 20.0,
+    "height": 3.0,
+    "rotation": 90.0
+   },
+   {
+    "text": "Line one\nLine two",
+    "x": 30.0,
+    "y": 22.0,
+    "height": 2.5,
+    "rotation": 0
+   }
+  ],
+  "solids": 1,
+  "solidHatches": 1
+ },
+ "entities.dxf": {
+  "texts": [
+   {
+    "text": "Hello DXF",
+    "x": 0.0,
+    "y": 50.0,
+    "height": 2.5,
+    "rotation": 0
+   }
+  ],
+  "solids": 0,
+  "solidHatches": 0
+ }
+}

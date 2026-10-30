@@ -18,6 +18,10 @@ public static class ModelFormats
 
     public static FormatInfo Las { get; } = new("las", "LAS point cloud", "pointcloud", [".las"], FormatSupport.Full);
 
+    public static FormatInfo Dwg { get; } = new("dwg", "AutoCAD DWG", "cad", [".dwg"], FormatSupport.Metadata);
+
+    public static FormatInfo Laz { get; } = new("laz", "LAZ (compressed LAS)", "pointcloud", [".laz"], FormatSupport.Full);
+
     public static FormatInfo Pcd { get; } = new("pcd", "Point Cloud Library PCD", "pointcloud", [".pcd"], FormatSupport.Full);
 
     public static FormatInfo Xyz { get; } = new("xyz", "XYZ text point cloud", "pointcloud", [".xyz"], FormatSupport.Full);
@@ -34,6 +38,8 @@ public static class ModelFormats
 
     public static FormatInfo X3d { get; } = new("x3d", "X3D (XML)", "scene", [".x3d"], FormatSupport.Full);
 
+    public static FormatInfo X3dv { get; } = new("x3dv", "X3D classic encoding", "scene", [".x3dv"], FormatSupport.Full);
+
     public static FormatInfo Vrml { get; } = new("vrml", "VRML97", "scene", [".wrl", ".vrml"], FormatSupport.Full);
 
     public static FormatInfo Fbx { get; } = new("fbx", "Autodesk FBX", "scene", [".fbx"], FormatSupport.Full);
@@ -42,7 +48,7 @@ public static class ModelFormats
 
     public static FormatInfo Step { get; } = new("step", "STEP (ISO 10303-21)", "cad", [".step", ".stp", ".p21"], FormatSupport.Full);
 
-    public static FormatInfo Ifc { get; } = new("ifc", "IFC (BIM)", "bim", [".ifc", ".ifczip"], FormatSupport.Full);
+    public static FormatInfo Ifc { get; } = new("ifc", "IFC (BIM)", "bim", [".ifc", ".ifczip", ".ifcxml"], FormatSupport.Full);
 
     public static FormatInfo Iges { get; } = new("iges", "IGES", "cad", [".iges", ".igs"], FormatSupport.Full);
 
@@ -52,43 +58,61 @@ public static class ModelFormats
 
     public static FormatInfo Sh3d { get; } = new("sh3d", "Sweet Home 3D", "bim", [".sh3d"], FormatSupport.Full);
 
+    public static FormatInfo B3d { get; } = new("b3d", "Blitz3D model (and the Bazis container)", "scene", [".b3d"], FormatSupport.Full);
+
+    public static FormatInfo Unity { get; } = new("unity", "Unity package", "scene", [".unitypackage"], FormatSupport.Full);
+
     public static FormatInfo Dxf { get; } = new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Full);
+
+    public static FormatInfo OpenScad { get; } = new("openscad", "OpenSCAD", "cad", [".scad"], FormatSupport.Full);
+
+    public static FormatInfo Unreal { get; } = new("unreal", "Unreal asset", "scene", [".uasset", ".umap"], FormatSupport.Full);
+
+    public static FormatInfo E57 { get; } = new("e57", "ASTM E57", "pointcloud", [".e57"], FormatSupport.Full);
+
+    public static FormatInfo Psu { get; } = new("psu", "PlayStation 2 save", "scene", [".psu"], FormatSupport.Full);
+
+    public static FormatInfo Rlf { get; } = new("rlf", "Relief height map", "mesh", [".rlf"], FormatSupport.Metadata);
+
+    public static FormatInfo Blender { get; } = new("blender", "Blender", "scene", [".blend"], FormatSupport.Full);
+
+    public static FormatInfo Rhino { get; } = new("rhino", "Rhino 3DM", "cad", [".3dm"], FormatSupport.Full);
+
+    public static FormatInfo Acis { get; } = new("sat", "ACIS SAT", "cad", [".sat", ".sab"], FormatSupport.Full);
+
+    public static FormatInfo Dwf { get; } = new("dwf", "Autodesk DWF", "cad", [".dwf", ".dwfx"], FormatSupport.Full);
+
+    public static FormatInfo Parasolid { get; } = new("parasolid", "Parasolid", "cad", [".x_t", ".x_b", ".xmt_txt", ".xmt_bin"], FormatSupport.Metadata);
+
+    public static FormatInfo Archicad { get; } = new("archicad", "Archicad", "bim", [".pln", ".pla", ".gsm"], FormatSupport.Full);
+
+    public static FormatInfo Jt { get; } = new("jt", "JT", "cad", [".jt"], FormatSupport.Full);
+
+    public static FormatInfo SketchUp { get; } = new("sketchup", "SketchUp", "cad", [".skp"], FormatSupport.Metadata);
+
+    public static FormatInfo Catia { get; } = new("catia", "CATIA V5", "cad", [".catpart", ".catproduct", ".catdrawing", ".catshape", ".cgr"], FormatSupport.Full);
+
+    public static FormatInfo Fusion { get; } = new("fusion", "Fusion 360", "cad", [".f3d", ".f3z"], FormatSupport.Metadata);
+
+    public static FormatInfo ThreeDxml { get; } = new("3dxml", "3DXML", "cad", [".3dxml"], FormatSupport.Full);
 
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
 
     /// <summary>Formats that are recognised but not yet read. See TODO.md for the order they are planned in.</summary>
     private static readonly FormatInfo[] Identified =
     [
-        new("sat", "ACIS SAT", "cad", [".sat", ".sab"], FormatSupport.Identified),
-        new("parasolid", "Parasolid", "cad", [".x_t", ".x_b", ".xmt_txt", ".xmt_bin"], FormatSupport.Identified),
-        new("jt", "JT", "cad", [".jt"], FormatSupport.Identified),
-        new("dwg", "AutoCAD DWG", "cad", [".dwg"], FormatSupport.Identified),
         new("ifcxml", "IFC XML", "bim", [".ifcxml"], FormatSupport.Identified),
-        new("rhino", "Rhino 3DM", "cad", [".3dm"], FormatSupport.Identified),
-        new("x3dv", "X3D classic encoding", "scene", [".x3dv"], FormatSupport.Identified),
-        new("sketchup", "SketchUp", "cad", [".skp"], FormatSupport.Identified),
-        new("revit", "Revit", "bim", [".rvt", ".rfa", ".rft"], FormatSupport.Identified),
-        new("inventor", "Autodesk Inventor", "cad", [".ipt", ".iam", ".idw"], FormatSupport.Identified),
-        new("catia", "CATIA", "cad", [".catpart", ".catproduct"], FormatSupport.Identified),
+        new("revit", "Revit", "bim", [".rvt", ".rfa", ".rft"], FormatSupport.Metadata),
+        new("inventor", "Autodesk Inventor", "cad", [".ipt", ".iam", ".idw"], FormatSupport.Metadata),
         new("creo", "PTC Creo / Pro/E", "cad", [".prt", ".asm", ".drw"], FormatSupport.Identified),
-        new("nx", "Siemens NX", "cad", [".prt"], FormatSupport.Identified),
-        new("solidedge", "Solid Edge", "cad", [".par", ".psm", ".asm"], FormatSupport.Identified),
-        new("fusion", "Fusion 360", "cad", [".f3d", ".f3z"], FormatSupport.Identified),
-        new("openscad", "OpenSCAD", "cad", [".scad"], FormatSupport.Identified),
-        new("blender", "Blender", "scene", [".blend"], FormatSupport.Identified),
-        new("archicad", "Archicad", "bim", [".pln", ".pla", ".gsm"], FormatSupport.Identified),
-        new("laz", "LAZ (compressed LAS)", "pointcloud", [".laz"], FormatSupport.Identified),
-        new("e57", "ASTM E57", "pointcloud", [".e57"], FormatSupport.Identified),
-        new("dwf", "Autodesk DWF", "cad", [".dwf", ".dwfx"], FormatSupport.Identified),
-        new("b3d", "Blitz3D / Bazis", "scene", [".b3d"], FormatSupport.Identified),
-        new("unity", "Unity package", "scene", [".unitypackage"], FormatSupport.Identified),
-        new("unreal", "Unreal asset", "scene", [".uasset", ".umap"], FormatSupport.Identified),
+        new("nx", "Siemens NX", "cad", [".prt"], FormatSupport.Full),
+        new("solidedge", "Solid Edge", "cad", [".par", ".psm", ".asm"], FormatSupport.Full),
     ];
 
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Psu, Rlf, Unreal, E57, Blender, Archicad, SketchUp, Jt, Fusion, Catia, Acis, Dwf, Parasolid, ThreeDxml];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -119,6 +143,26 @@ public static class ModelFormats
             return Gltf;
         }
 
+        if (Formats.Parasolid.ParasolidReader.Sniff(head))
+        {
+            return Parasolid;
+        }
+
+        if (Formats.Dwf.DwfReader.Sniff(head))
+        {
+            return Dwf;
+        }
+
+        if (Formats.Acis.SabReader.Sniff(head))
+        {
+            return Acis;
+        }
+
+        if (Formats.Acis.SatReader.Sniff(head) && (byExtension?.Id == "sat" || byExtension is null))
+        {
+            return Acis;
+        }
+
         if (StartsWith(head, "AutoCAD Binary DXF") || LooksLikeDxf(head))
         {
             return Dxf;
@@ -131,7 +175,7 @@ public static class ModelFormats
 
         if (StartsWith(head, "LASF"))
         {
-            return (head.Length > 104 && (head[104] & 0x80) != 0) || byExtension?.Id == "laz" ? Find("laz") : Las;
+            return (head.Length > 104 && (head[104] & 0x80) != 0) || byExtension?.Id == "laz" ? Laz : Las;
         }
 
         if (StartsWith(head, "# .PCD") || StartsWith(head, "VERSION .7") || StartsWith(head, "VERSION 0.7"))
@@ -164,14 +208,81 @@ public static class ModelFormats
             return Fbx;
         }
 
+        if (Formats.Mesh.B3dReader.IsBlitz(head) || Formats.Mesh.B3dReader.IsBazis(head))
+        {
+            return B3d;
+        }
+
+        if (Formats.PointCloud.E57Reader.Sniff(head))
+        {
+            return E57;
+        }
+
+        if (Formats.Game.UassetReader.Sniff(head))
+        {
+            return Unreal;
+        }
+
+        if (Formats.Saves.PsuReader.Sniff(head))
+        {
+            return Psu;
+        }
+
+        if (Formats.Relief.RlfReader.Sniff(head))
+        {
+            return Rlf;
+        }
+
+        if (Formats.Blender.BlendFile.Sniff(head) || (byExtension?.Id == "blender" && Formats.Blender.BlendFile.IsCompressed(head)))
+        {
+            return Blender;
+        }
+
+        if (Formats.SketchUp.SketchUpReader.Sniff(head))
+        {
+            return SketchUp;
+        }
+
+        if (Formats.Dassault.ThreeDxmlReader.SniffXml(head))
+        {
+            return ThreeDxml;
+        }
+
+        // JT ("Version 9.5 JT" in an 80-byte header).
+        if (head.Length >= 20 && StartsWith(head, "Version ") && Encoding.ASCII.GetString(head[..Math.Min(head.Length, 24)]).Contains(" JT", StringComparison.Ordinal))
+        {
+            return Jt;
+        }
+
+        if (Formats.Catia.CatiaReader.Sniff(head))
+        {
+            return Catia;
+        }
+
+        if (StartsWith(head, "SPLMSSTR"))
+        {
+            // The structured storage of Siemens NX part files.
+            return Find("nx");
+        }
+
+        if (StartsWith(head, "#UGC:") && Contains(head, "#-END_OF_UGC_HEADER", "") || StartsWith(head, "#UGC:") && Contains(head, "P_OBJECT", ""))
+        {
+            return Find("creo");
+        }
+
+        if (head.Length > 0x34 && head[0] == (byte)'W' && head[1] == (byte)'W' && Formats.Archicad.GsmReader.Sniff(data.Span))
+        {
+            return Archicad;
+        }
+
         if (StartsWith(head, "3D Geometry File Format"))
         {
-            return Find("rhino");
+            return Rhino;
         }
 
         if (StartsWith(head, "AC10"))
         {
-            return Find("dwg");
+            return Dwg;
         }
 
         if (StartsWith(head, "ISO-10303-21"))
@@ -187,6 +298,16 @@ public static class ModelFormats
         if (StartsWith(head, "#VRML V2.0") || StartsWith(head, "#VRML V1.0"))
         {
             return Vrml;
+        }
+
+        if (StartsWith(head, "#X3D"))
+        {
+            return X3dv;
+        }
+
+        if (Formats.Bim.IfcXml.Sniff(head))
+        {
+            return Ifc;
         }
 
         if (head.Length > 0 && head[0] == '<' && Contains(head, "<X3D", ""))
@@ -261,6 +382,11 @@ public static class ModelFormats
         {
             using var zip = new System.IO.Compression.ZipArchive(new MemoryStream(data.ToArray(), writable: false), System.IO.Compression.ZipArchiveMode.Read);
             var names = zip.Entries.Select(e => e.FullName).ToList();
+            if (Formats.Dassault.ThreeDxmlReader.IsPackage(names))
+            {
+                return ThreeDxml;
+            }
+
             if (names.Any(n => n.EndsWith(".model", StringComparison.OrdinalIgnoreCase) && n.StartsWith("3D/", StringComparison.OrdinalIgnoreCase)))
             {
                 return ThreeMf;
@@ -274,6 +400,16 @@ public static class ModelFormats
             if (names.Count <= 3 && names.Any(n => n.EndsWith(".ifc", StringComparison.OrdinalIgnoreCase)))
             {
                 return Ifc;
+            }
+
+            if (names.Contains("manifest.xml", StringComparer.OrdinalIgnoreCase) && (names.Any(n => n.EndsWith(".w2d", StringComparison.OrdinalIgnoreCase) || n.EndsWith(".w3d", StringComparison.OrdinalIgnoreCase)) || names.Any(n => n.EndsWith(".fpage", StringComparison.OrdinalIgnoreCase))))
+            {
+                return Dwf;
+            }
+
+            if (names.Any(n => n.Contains("Breps.BlobParts/", StringComparison.Ordinal) || n.StartsWith("FusionAssetName", StringComparison.Ordinal)) || (names.Contains("Manifest.json", StringComparer.Ordinal) && names.Contains("DesignDescription.json", StringComparer.Ordinal) && names.Any(n => n.EndsWith(".f3d", StringComparison.OrdinalIgnoreCase))))
+            {
+                return Fusion;
             }
 
             if (names.Contains("Document.xml", StringComparer.Ordinal))

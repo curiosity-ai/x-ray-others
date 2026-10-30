@@ -1,0 +1,213 @@
+{
+ "usfs-ldfp6005-steel-flip-top-fireplace.dwf": {
+  "units": "in",
+  "width": 17.0,
+  "height": 11.0,
+  "scale": 0.0001,
+  "polylines": 2040,
+  "points": 5670,
+  "colours": 6,
+  "texts": 110,
+  "firstText": "0",
+  "lastText": "STEEL FLIP-TOP FIREPLACE",
+  "fontHeights": [
+   1316,
+   1974,
+   3947
+  ],
+  "min": [
+   0.25,
+   0.25
+  ],
+  "max": [
+   16.75,
+   10.75
+  ]
+ },
+ "usfs-rec00020-foot-bridge.dwf": {
+  "units": "in",
+  "width": 17.0,
+  "height": 11.0,
+  "scale": 0.0001,
+  "polylines": 8266,
+  "points": 19082,
+  "colours": 6,
+  "texts": 127,
+  "firstText": "U.S. DEPARTMENT OF AGRICULTURE",
+  "lastText": "INSERT FACTOR IS .04166 FOR ALL RECBLOCK",
+  "fontHeights": [
+   277,
+   442,
+   482,
+   553,
+   564,
+   619,
+   1106,
+   1659
+  ],
+  "min": [
+   0.25,
+   0.25
+  ],
+  "max": [
+   16.75,
+   10.75
+  ]
+ },
+ "usfs-rhc3-horse-corral.dwf": {
+  "units": "in",
+  "width": 17.0,
+  "height": 11.0,
+  "scale": 0.0001,
+  "polylines": 936,
+  "points": 4346,
+  "colours": 6,
+  "texts": 140,
+  "firstText": "1-1/4\"",
+  "lastText": "H",
+  "fontHeights": [
+   371,
+   379,
+   504,
+   742,
+   891,
+   1483,
+   1632
+  ],
+  "min": [
+   0.25,
+   0.25
+  ],
+  "max": [
+   16.75,
+   10.75
+  ]
+ },
+ "usfs-ro1-observation-deck.dwf": {
+  "units": "in",
+  "width": 17.0,
+  "height": 11.0,
+  "scale": 0.0001,
+  "polylines": 1468,
+  "points": 5245,
+  "colours": 7,
+  "texts": 108,
+  "firstText": "BACKFILL TO DRAIN",
+  "lastText": "VENEER.",
+  "fontHeights": [
+   466,
+   699,
+   1397
+  ],
+  "min": [
+   0.25,
+   0.25
+  ],
+  "max": [
+   16.75,
+   10.75
+  ]
+ },
+ "usfs-rpsl1-play-structure.dwf": {
+  "units": "in",
+  "width": 17.0,
+  "height": 11.0,
+  "scale": 0.0001,
+  "polylines": 5594,
+  "points": 13390,
+  "colours": 4,
+  "texts": 60,
+  "firstText": "1. POST TREATED WITH NON-TOXIC PRESER-",
+  "lastText": "DATED 11/66",
+  "fontHeights": [
+   612,
+   816,
+   872,
+   2253
+  ],
+  "min": [
+   0.25,
+   0.25
+  ],
+  "max": [
+   16.75,
+   10.75
+  ]
+ },
+ "usfs-rtr2-tent-platform.dwf": {
+  "units": "in",
+  "width": 17.0,
+  "height": 11.0,
+  "scale": 0.0001,
+  "polylines": 983,
+  "points": 3205,
+  "colours": 4,
+  "texts": 25,
+  "firstText": "3\\'",
+  "lastText": "FROM GROUND",
+  "fontHeights": [
+   601,
+   902
+  ],
+  "min": [
+   0.25,
+   0.25
+  ],
+  "max": [
+   16.75,
+   10.75
+  ]
+ },
+ "usfs-rwfc1-fish-cleaning-station.dwf": {
+  "units": "in",
+  "width": 17.0,
+  "height": 11.0,
+  "scale": 0.0001,
+  "polylines": 731,
+  "points": 2001,
+  "colours": 5,
+  "texts": 78,
+  "firstText": "vacuum breaker in line at 24\" from top of slab.",
+  "lastText": " 800-854-6464",
+  "fontHeights": [
+   20,
+   454,
+   581,
+   605,
+   1452
+  ],
+  "min": [
+   0.25,
+   0.25
+  ],
+  "max": [
+   16.75,
+   10.75
+  ]
+ },
+ "usfs-rwp2_a-fishing-pier-boardwalk-deck.dwf": {
+  "units": "in",
+  "width": 17.0,
+  "height": 11.0,
+  "scale": 0.0001,
+  "polylines": 670,
+  "points": 3378,
+  "colours": 6,
+  "texts": 74,
+  "firstText": "2\\'-8\"",
+  "lastText": "        IF NEEDED",
+  "fontHeights": [
+   620,
+   909,
+   929
+  ],
+  "min": [
+   0.25,
+   0.25
+  ],
+  "max": [
+   16.75,
+   10.75
+  ]
+ }
+}

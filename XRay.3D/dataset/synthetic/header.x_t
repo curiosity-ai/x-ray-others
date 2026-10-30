@@ -1,0 +1,22 @@
+**ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz**************************
+**PART1;
+MC=XRAY-TEST;
+MC_MODEL=generator;
+MC_ID=0001;
+OS=linux;
+OS_RELEASE=6;
+FRU=sdl_xray;
+APPL=Hand-written header fixture;
+SITE=nowhere;
+USER=fixture author;
+FORMAT=text;
+GUISE=transmit;
+KEY=part.x_t;
+FILE=bracket;
+DATE=2024-03-05T10:20:30;
+**PART2;
+SCH=SCH_2900166_28101;
+USFLD_SIZE=0;
+**PART3;
+**END_OF_HEADER*****************************************************************
+T51 : TRANSMIT FILE created by modeller version 2900166 SCH_2900166_28101 82 3 1 0 ?2147483647 82 0 91 1 0 

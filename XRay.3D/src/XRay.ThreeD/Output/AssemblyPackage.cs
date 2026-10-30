@@ -10,6 +10,9 @@ public sealed class AssemblyPackageOptions
 {
     /// <summary>How each part's GLB is written (compression, edges...). The scene-level normalisation is done by the manifest, not the parts.</summary>
     public GlbWriteOptions Glb { get; set; } = new();
+
+    /// <summary>Checked per part and per node; a cancelled call throws <see cref="OperationCanceledException"/>.</summary>
+    public CancellationToken Cancellation { get; set; }
 }
 
 /// <summary>
@@ -54,7 +57,9 @@ public sealed class AssemblyPackage
             Compression = options.Glb.Compression,
             Edges = options.Glb.Edges,
             EdgeCreaseAngle = options.Glb.EdgeCreaseAngle,
+            Cancellation = options.Cancellation.CanBeCanceled ? options.Cancellation : options.Glb.Cancellation,
         };
+        options.Cancellation.ThrowIfCancellationRequested();
 
         using var stream = new MemoryStream();
         using (var w = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true }))
@@ -75,6 +80,7 @@ public sealed class AssemblyPackage
             w.WriteStartArray("parts");
             for (var i = 0; i < model.Meshes.Count; i++)
             {
+                options.Cancellation.ThrowIfCancellationRequested();
                 var mesh = model.Meshes[i];
                 var id = "p" + i.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 partIds[mesh] = id;
@@ -120,9 +126,11 @@ public sealed class AssemblyPackage
                 index[flat[i]] = i;
             }
 
+            var nodeTick = 0L;
             w.WriteStartArray("nodes");
             foreach (var node in flat)
             {
+                Cancel.Every(options.Cancellation, nodeTick++, 255);
                 w.WriteStartObject();
                 if (!string.IsNullOrEmpty(node.Name))
                 {
@@ -203,12 +211,14 @@ public sealed class AssemblyPackage
         part.Metadata.Format = source.Metadata.Format;
         part.Metadata.Title = mesh.Name;
         var remap = new Dictionary<int, int>();
+        var textures = new Dictionary<int, int>();
         var copy = new MeshData
         {
             Name = mesh.Name,
             Positions = mesh.Positions,
             Normals = mesh.Normals,
             Colors = mesh.Colors,
+            TexCoords = mesh.TexCoords,
             Indices = mesh.Indices,
             Faces = mesh.Faces,
             EdgeIndices = mesh.EdgeIndices,
@@ -220,9 +230,8 @@ public sealed class AssemblyPackage
             {
                 if (!remap.TryGetValue(group.Material, out material))
                 {
-                    material = part.Materials.Count;
+                    material = ModelMerge.CopyMaterial(part, source, group.Material, textures);
                     remap[group.Material] = material;
-                    part.Materials.Add(source.Materials[group.Material]);
                 }
             }
 
@@ -279,6 +288,7 @@ public sealed class AssemblyPackage
             var model = new Model3D();
             var partModels = new Dictionary<string, MeshData>(StringComparer.Ordinal);
             var materialMap = new Dictionary<(string, int), int>();
+            var textureMap = new Dictionary<(string, int), int>();
             foreach (var part in root.GetProperty("parts").EnumerateArray())
             {
                 options.Cancellation.ThrowIfCancellationRequested();
@@ -306,9 +316,20 @@ public sealed class AssemblyPackage
                     {
                         if (!materialMap.TryGetValue((id, group.Material), out var mapped))
                         {
-                            mapped = model.Materials.Count;
+                            var partTextures = new Dictionary<int, int>();
+                            foreach (var ((partId, texture), index) in textureMap.Where(t => t.Key.Item1 == id))
+                            {
+                                _ = partId;
+                                partTextures[texture] = index;
+                            }
+
+                            mapped = ModelMerge.CopyMaterial(model, loaded, group.Material, partTextures);
+                            foreach (var (texture, index) in partTextures)
+                            {
+                                textureMap[(id, texture)] = index;
+                            }
+
                             materialMap[(id, group.Material)] = mapped;
-                            model.Materials.Add(loaded.Materials[group.Material]);
                         }
 
                         mesh.Groups[g] = group with { Material = mapped };

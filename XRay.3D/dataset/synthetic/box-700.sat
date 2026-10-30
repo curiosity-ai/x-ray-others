@@ -1,0 +1,90 @@
+700 0 1 0 
+@25 ezdxf v1.4.2 ACIS Builder @12 ACIS 32.0 NT @24 Fri Oct 30 06:08:57 2026 
+1 9.9999999999999995e-007 1e-010 
+body $-1 -1 $-1 $2 $-1 $1 #
+transform $-1 -1 1 0 0 0 1 0 0 0 1 20 10 5 1 no_rotate no_reflect no_shear #
+lump $-1 -1 $-1 $-1 $3 $0 #
+shell $-1 -1 $-1 $-1 $-1 $4 $-1 $2 #
+face $-1 -1 $-1 $7 $5 $3 $-1 $6 forward single #
+loop $-1 -1 $-1 $-1 $8 $4 #
+plane-surface $-1 -1 $-1 -20 -10 -5 0 0 -1 0 1 0 forward_v I I I I #
+face $-1 -1 $-1 $11 $9 $3 $-1 $10 forward single #
+coedge $-1 -1 $-1 $14 $13 $15 $12 forward $5 $-1 #
+loop $-1 -1 $-1 $-1 $16 $7 #
+plane-surface $-1 -1 $-1 20 -10 -5 1 0 0 0 1 0 forward_v I I I I #
+face $-1 -1 $-1 $19 $17 $3 $-1 $18 forward single #
+edge $-1 -1 $-1 $20 0 $21 20 $8 $22 forward @7 unknown #
+coedge $-1 -1 $-1 $8 $24 $25 $23 reversed $5 $-1 #
+coedge $-1 -1 $-1 $24 $8 $27 $26 reversed $5 $-1 #
+coedge $-1 -1 $-1 $30 $29 $8 $12 reversed $28 $-1 #
+coedge $-1 -1 $-1 $33 $32 $24 $31 forward $9 $-1 #
+loop $-1 -1 $-1 $-1 $34 $11 #
+plane-surface $-1 -1 $-1 -20 10 -5 0 1 0 0 0 1 forward_v I I I I #
+face $-1 -1 $-1 $36 $28 $3 $-1 $35 forward single #
+vertex $-1 -1 $-1 $12 $37 #
+vertex $-1 -1 $-1 $12 $38 #
+straight-curve $-1 -1 $-1 -20 -10 -5 0 1 0 I I #
+edge $-1 -1 $-1 $20 0 $39 40 $13 $40 forward @7 unknown #
+coedge $-1 -1 $-1 $13 $14 $16 $31 reversed $5 $-1 #
+coedge $-1 -1 $-1 $43 $42 $13 $23 forward $41 $-1 #
+edge $-1 -1 $-1 $44 0 $21 40 $14 $45 forward @7 unknown #
+coedge $-1 -1 $-1 $34 $46 $14 $26 forward $17 $-1 #
+loop $-1 -1 $-1 $-1 $30 $19 #
+coedge $-1 -1 $-1 $15 $48 $34 $47 reversed $28 $-1 #
+coedge $-1 -1 $-1 $48 $15 $42 $49 forward $28 $-1 #
+edge $-1 -1 $-1 $39 0 $44 20 $24 $50 forward @7 unknown #
+coedge $-1 -1 $-1 $16 $52 $43 $51 reversed $9 $-1 #
+coedge $-1 -1 $-1 $52 $16 $46 $53 forward $9 $-1 #
+coedge $-1 -1 $-1 $54 $27 $29 $47 forward $17 $-1 #
+plane-surface $-1 -1 $-1 -20 -10 -5 -1 0 0 0 0 1 forward_v I I I I #
+face $-1 -1 $-1 $56 $41 $3 $-1 $55 forward single #
+point $-1 -1 $-1 -20 -10 -5 #
+point $-1 -1 $-1 -20 10 -5 #
+vertex $-1 -1 $-1 $31 $57 #
+straight-curve $-1 -1 $-1 -20 -10 -5 1 0 0 I I #
+loop $-1 -1 $-1 $-1 $25 $36 #
+coedge $-1 -1 $-1 $25 $58 $30 $49 reversed $41 $-1 #
+coedge $-1 -1 $-1 $58 $25 $32 $51 forward $41 $-1 #
+vertex $-1 -1 $-1 $26 $59 #
+straight-curve $-1 -1 $-1 20 10 -5 -1 0 0 I I #
+coedge $-1 -1 $-1 $27 $54 $33 $53 reversed $17 $-1 #
+edge $-1 -1 $-1 $21 0 $60 10 $34 $61 forward @7 unknown #
+coedge $-1 -1 $-1 $29 $30 $63 $62 forward $28 $-1 #
+edge $-1 -1 $-1 $20 0 $64 10 $30 $65 forward @7 unknown #
+straight-curve $-1 -1 $-1 20 -10 -5 0 1 0 I I #
+edge $-1 -1 $-1 $39 0 $66 10 $32 $67 forward @7 unknown #
+coedge $-1 -1 $-1 $32 $33 $69 $68 reversed $9 $-1 #
+edge $-1 -1 $-1 $44 0 $70 10 $33 $71 forward @7 unknown #
+coedge $-1 -1 $-1 $46 $34 $73 $72 reversed $17 $-1 #
+plane-surface $-1 -1 $-1 -20 -10 -5 0 -1 0 1 0 0 forward_v I I I I #
+face $-1 -1 $-1 $-1 $74 $3 $-1 $75 forward single #
+point $-1 -1 $-1 20 -10 -5 #
+coedge $-1 -1 $-1 $42 $43 $77 $76 reversed $41 $-1 #
+point $-1 -1 $-1 20 10 -5 #
+vertex $-1 -1 $-1 $47 $78 #
+straight-curve $-1 -1 $-1 -20 10 -5 0 0 1 I I #
+edge $-1 -1 $-1 $64 0 $60 20 $48 $79 forward @7 unknown #
+coedge $-1 -1 $-1 $77 $73 $48 $62 reversed $74 $-1 #
+vertex $-1 -1 $-1 $49 $80 #
+straight-curve $-1 -1 $-1 -20 -10 -5 0 0 1 I I #
+vertex $-1 -1 $-1 $68 $81 #
+straight-curve $-1 -1 $-1 20 -10 -5 0 0 1 I I #
+edge $-1 -1 $-1 $66 0 $70 20 $52 $82 forward @7 unknown #
+coedge $-1 -1 $-1 $73 $77 $52 $68 forward $74 $-1 #
+vertex $-1 -1 $-1 $53 $83 #
+straight-curve $-1 -1 $-1 20 10 -5 0 0 1 I I #
+edge $-1 -1 $-1 $70 0 $60 40 $54 $84 forward @7 unknown #
+coedge $-1 -1 $-1 $63 $69 $54 $72 forward $74 $-1 #
+loop $-1 -1 $-1 $-1 $77 $56 #
+plane-surface $-1 -1 $-1 -20 -10 5 0 0 1 1 0 0 forward_v I I I I #
+edge $-1 -1 $-1 $64 0 $66 40 $58 $85 forward @7 unknown #
+coedge $-1 -1 $-1 $69 $63 $58 $76 forward $74 $-1 #
+point $-1 -1 $-1 -20 10 5 #
+straight-curve $-1 -1 $-1 -20 -10 5 0 1 0 I I #
+point $-1 -1 $-1 -20 -10 5 #
+point $-1 -1 $-1 20 -10 5 #
+straight-curve $-1 -1 $-1 20 -10 5 0 1 0 I I #
+point $-1 -1 $-1 20 10 5 #
+straight-curve $-1 -1 $-1 20 10 5 -1 0 0 I I #
+straight-curve $-1 -1 $-1 -20 -10 5 1 0 0 I I #
+End-of-ACIS-data 

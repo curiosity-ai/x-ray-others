@@ -2,7 +2,7 @@
 
 Published as `X-Ray.3D` (assembly and namespace `XRay.ThreeD`). Identifies 3D/CAD formats, extracts metadata and
 converts geometry to GLB. No package dependencies; the BCL only. Read `README.md` for the public surface,
-`TODO.md` for the plan, `docs/solidworks-format.md` before touching the SolidWorks reader.
+`TODO.md` for the plan, `docs/solidworks-format.md` before touching the SolidWorks reader and `docs/catia-format.md` before touching the CATIA one.
 
 **Provenance.** A re-implementation, in C# and without web technology, of the parts of a browser 3D viewer that
 matter for metadata extraction and conversion. The reference viewer's JavaScript was reviewed and its WebAssembly
@@ -16,12 +16,13 @@ in this repository. `LICENSE` is MIT for Curiosity GmbH.
 | Path | What |
 |---|---|
 | `src/XRay.ThreeD/Model/` | `Model3D`, `SceneNode`, `MeshData`, `ModelMetadata`, `FormatInfo`, exceptions |
-| `src/XRay.ThreeD/Formats/` | `ModelFormats` (registry + detection), `SolidWorks/`, `Mesh/` (STL, OBJ, PLY, glTF, 3MF, OFF, AMF, 3DS, COLLADA, X3D/VRML, FBX, USDA), `Cad/` (DXF, IGES, FreeCAD), `Bim/` (IFC, Sweet Home 3D), `Toolpath/` (G-code), `Packages/` (ZIP archives: primary model and companions), `PointCloud/` (LAS, PCD, XYZ), `Step/` (Part 21 parser, geometry, tessellator, reader) |
-| `src/XRay.ThreeD/Output/` | `GlbWriter` (the output format and its profile), `AssemblyPackage` (manifest + per-part GLBs) |
+| `src/XRay.ThreeD/Formats/` | `ModelFormats` (registry + detection), `SolidWorks/`, `Mesh/` (STL, OBJ, PLY, glTF, 3MF, OFF, AMF, 3DS, COLLADA, X3D/VRML, FBX, USDA), `Cad/` (DXF, IGES, FreeCAD), `Bim/` (IFC, Sweet Home 3D), `Toolpath/` (G-code), `Packages/` (ZIP archives: primary model and companions), `PointCloud/` (LAS, PCD, XYZ), `Step/` (Part 21 parser, geometry, tessellator, reader), `Catia/` (CATIA V5: container, metadata, display tessellation) |
+| `src/XRay.ThreeD/Output/` | `GlbWriter` (the output format and its profile), `SvgWriter` (drawings: layers, text, fills), `AssemblyPackage` (manifest + per-part GLBs) |
 | `src/XRay.ThreeD/Internal/` | `Triangulator` (constrained Delaunay), `MeshoptEncoder`/`MeshoptDecoder` (ports, see `THIRD_PARTY_NOTICES.md`), CRC and binary helpers |
 | `src/XRay.ThreeD/ModelLoader.cs` | entry point: `Detect`, `ReadMetadata`, `Load`, `ConvertToGlb`; the exception guard and sanitiser |
 | `tests/XRay.ThreeD.Tests/` | `SolidWorksTests` (golden), `MeshFormatTests`, `GlbWriterTests`, `FormatTests`, `RobustnessTests` |
 | `dataset/` | committed fixtures (about 30 MB); `manifest.json` has licence, source and sha256 of each |
+| `docs/benchmarks.md` | the timing harness (`BenchmarkTests`, skipped unless `XRAY_3D_BENCH` is set) and its reference numbers |
 | `tools/oracle/make_dxf_golden.py` | regenerates `dxf-golden.json` from ezdxf (an independent DXF reader) |
 | `tools/oracle/make_golden.mjs` | regenerates `tests/.../Corpus/solidworks-golden.json` from the reference reader (not in the repo) |
 | `tools/fixtures/make_fixtures.py` | writes `dataset/synthetic/` byte for byte |
@@ -46,10 +47,21 @@ python3 -I XRay.3D/tools/fixtures/make_fixtures.py XRay.3D/dataset/synthetic
   the cancellation token, and let only `ModelFormatException` (and `OperationCanceledException`) escape. Anything a
   reader returns must be writable as glTF: `ModelLoader.Sanitize` repairs non-finite numbers and rejects bad indices.
   New readers get truncation and mutation coverage by adding their fixture to `RobustnessTests.Fixtures`.
+- **Cancellation.** `LoadOptions.Cancellation` (and `GlbWriteOptions.Cancellation`, `AssemblyPackageOptions.Cancellation`) must
+  reach every parser and writer. Any loop whose bound comes from the file (record, chunk and entity tables, per-point, per-face and
+  per-vertex loops, recursion over references, inflate and codec loops, tessellation and triangulation) calls
+  `Cancel.Every(token, i)` (`Internal/Cancel.cs`; every 1024 iterations by default, never every item in a hot loop), and every
+  stage start checks the token. Cancellation surfaces as `OperationCanceledException`, never `ModelFormatException`;
+  `CancellationTests` covers every fixture and a few heavy inputs (stop within seconds).
+- **Allocations.** Hot paths (parsers, tessellation, codecs, writers) rent scratch buffers from `ArrayPool<T>.Shared` (return in
+  `finally`, never hand a rented array to a caller or keep it past the call, never rely on its length), use `stackalloc` or
+  `Span<T>` for small clamped temporaries (about 256 bytes, never sized from file data), slice spans instead of `Substring` and
+  `ToArray`, avoid LINQ and closures in loops, and pre-size collections from validated counts.
 - **Conventions.** Transforms are System.Numerics row-vector (`world = local * parent`). `MeshData` holds one welded or
   per-face vertex array and an index array in triangles; `Groups` split indices by material. Units and up axis are
   recorded in metadata, never baked into vertices (the GLB writer adds a root node).
-- **Statistics** count what is drawn (instances per use) plus the unique stored counts.
+- **Statistics** count what is drawn (instances per use) plus the unique stored counts. `Volume` counts closed, outward meshes only (`MeshTopology`); a reader that produces a solid must produce a closed one, and `ClosedSolidsTests` holds the dataset to a per-file table (update the table with the reason when a file's openness changes).
+- **Units.** A reader states the unit of the file (never guess; `LoadOptions.AssumedUnits` is the caller's hint for files that say nothing) and a scale that is not a named unit goes through `UnitScaling.Apply`; every unit path has a size test in `UnitTests` (or `BlendUnitsTests`).
 - **A reader's contract.** `Read` returns a `Model3D` whose `Metadata` is complete; formats with cheap metadata
   also get a metadata-only path in `ModelLoader.ReadMetadata` (SolidWorks does). Unrecognised variants throw
   `UnsupportedModelFormatException` with a message saying what is missing.

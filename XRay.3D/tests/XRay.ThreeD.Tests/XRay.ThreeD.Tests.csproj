@@ -14,8 +14,41 @@
   <ItemGroup>
     <None Include="Corpus/solidworks-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/dxf-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/dxf-drawing-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/usd-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/laz-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/cfb-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/zstd-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/xz-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/jt-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/blend-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/blend-units-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/cfb-real-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/skp-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/skp-geometry-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/skp-legacy-geometry-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/gsm-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/sw-legacy-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/usdc-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/step-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/iges-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/rhino-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/dwg-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/dwg-releases-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/dwf-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/step-ap242-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/sat-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/rhino-local-golden.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Corpus/las14-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/iges-splines-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/usd-layers-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/e57-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/e57-local-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/catia-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/catia-assemblies-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/catia-oracle-golden.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/XRay.ThreeD/XRay.ThreeD.csproj" />

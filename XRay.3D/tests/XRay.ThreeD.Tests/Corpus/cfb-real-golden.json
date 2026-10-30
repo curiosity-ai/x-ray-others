@@ -1,0 +1,244 @@
+{
+ "ARCH-Creating-BaseFile.rvt": {
+  "application": "Autodesk Revit 2015 (Build: 20140322_1515(x64))",
+  "guid": "bbc878d4-d532-48a8-aa03-ec1ffc39e622",
+  "history": [
+   "Revit 2015 - Preview Pre-Release 2015 (2015.000) : 20140117_1515",
+   "Revit 2015 2015 (2015.000) : 20140322_1515(x64)"
+  ],
+  "last_save_path": "C:\\node\\Dynamo-Primer-20150701\\dynamo-primer\\08_Dynamo-for-Revit\\datasets\\8-4\\ARCH-Creating-BaseFile.rvt",
+  "links": [
+   "RevitKeynotes_Imperial_2004.txt",
+   "UniformatClassifications.txt"
+  ],
+  "modified": "2015-07-23T14:16:30Z",
+  "preview": {
+   "height": 128,
+   "offset": 231,
+   "width": 128
+  },
+  "project": {
+   "Client Name": "Owner",
+   "Project Address": "Enter address here",
+   "Project Issue Date": "Issue Date",
+   "Project Name": "Project Name",
+   "Project Number": "Project Number",
+   "Project Status": "Project Status"
+  },
+  "title": "ARCH-Creating-BaseFile"
+ },
+ "ARCH-Selecting-BaseFile.rvt": {
+  "application": "Autodesk Revit 2017 (Build: 20171027_0315(x64))",
+  "guid": "1357aa8d-2e33-41bd-8b00-d8f0b41a6840",
+  "history": [
+   "Revit 2015 - Preview Pre-Release 2015 (2015.000) : 20140117_1515",
+   "Revit 2015 2015 (2015.000) : 20140322_1515(x64)",
+   "Revit 2017 2017 (2017.000) : 20171027_0315(x64)"
+  ],
+  "last_save_path": "C:\\Users\\JohnPierson\\GitBook\\Library\\Import\\dynamo_primer\\08_Dynamo-for-Revit\\datasets\\8-2\\ARCH-Selecting-BaseFile.rvt",
+  "links": [
+   "RevitKeynotes_Imperial_2004.txt",
+   "UniformatClassifications.txt"
+  ],
+  "modified": "2018-04-16T16:00:56Z",
+  "preview": {
+   "height": 128,
+   "offset": 259,
+   "width": 128
+  },
+  "project": {
+   "Client Name": "Owner",
+   "Project Address": "Enter address here",
+   "Project Issue Date": "Issue Date",
+   "Project Name": "Project Name",
+   "Project Number": "Project Number",
+   "Project Status": "Project Status"
+  },
+  "title": "ARCH-Selecting-BaseFile"
+ },
+ "PSOL.iam": {
+  "author": "Martin Shetty",
+  "custom": {},
+  "design": {
+   "build": "2021.2 (Build 252289000, 289)",
+   "designer": "Martin Shetty",
+   "part_number": "PSOL",
+   "subtype": "Assembly"
+  },
+  "preview": {
+   "height": 512,
+   "offset": 16,
+   "width": 512
+  },
+  "references": [
+   "M3_screw_10mm_button_hex.ipt",
+   "M3_washer_9mm.ipt",
+   "PSOL.iam",
+   "barbed_fitting_1-4_x_1-8nptm.ipt",
+   "old_pneumatics_tray.ipt",
+   "solenoid_SMC_PVQ31-6G-40-01N.ipt"
+  ]
+ },
+ "Revit-StructuralFraming.rvt": {
+  "application": "Autodesk Revit 2021 (Build: 20200220_1100(x64))",
+  "guid": "cec1dcb0-3356-4bc2-a827-d14499ac2b2f",
+  "history": [
+   "Revit 2015 - Preview Pre-Release 2015 (2015.000) : 20140117_1515",
+   "Revit 2015 2015 (2015.000) : 20140322_1515(x64)",
+   "Revit 2021 2021 (2021.000) : 20200220_1100(x64)"
+  ],
+  "last_save_path": "C:\\Users\\marti\\matterlab\\matterlab-Server - Documents\\03 Client Projects\\Autodesk\\0105 - Dynamo Python 3 Migration UX\\06 Solution\\Update Python References\\Primer\\Section 10.5\\Revit-StructuralFraming.rvt",
+  "links": [
+   "RevitKeynotes_Imperial_2004.txt",
+   "UniformatClassifications.txt"
+  ],
+  "modified": "2020-08-05T18:41:19Z",
+  "preview": {
+   "height": 128,
+   "offset": 301,
+   "width": 128
+  },
+  "project": {
+   "Client Name": "Owner",
+   "Project Address": "Enter address here",
+   "Project Issue Date": "Issue Date",
+   "Project Name": "Project Name",
+   "Project Number": "Project Number",
+   "Project Status": "Project Status"
+  },
+  "title": "Revit-StructuralFraming"
+ },
+ "back.ipt": {
+  "author": "Martin Shetty",
+  "custom": {},
+  "design": {
+   "appearance": "Stainless - Semi-polished",
+   "build": "2022.2 (Build 262287010, 287A)",
+   "description": "Ventilator v0.4 enclosure back panel",
+   "designer": "Martin Shetty",
+   "material": "Stainless Steel",
+   "part_number": "rw04-frame-back1",
+   "subtype": "Sheet Metal"
+  },
+  "preview": {
+   "height": 180,
+   "offset": 16,
+   "width": 180
+  },
+  "references": [
+   "back.ipt",
+   "global_params.ipt",
+   "internal_volume.ipt"
+  ]
+ },
+ "bottom.iam": {
+  "author": "Martin Shetty",
+  "custom": {},
+  "design": {
+   "build": "2022.2 (Build 262287010, 287A)",
+   "description": "Ventilator v0.4 enclosure bottom panel assembly",
+   "designer": "Martin Shetty",
+   "part_number": "rw04_frame_bottom_asm1",
+   "subtype": "Assembly"
+  },
+  "preview": {
+   "height": 180,
+   "offset": 16,
+   "width": 180
+  },
+  "references": [
+   "M6_PEM_nut_thin.ipt",
+   "M6_rubber_bumper.ipt",
+   "bottom.iam",
+   "bottom.ipt"
+  ]
+ },
+ "front.ipt": {
+  "author": "Martin Shetty",
+  "custom": {},
+  "design": {
+   "appearance": "Stainless - Semi-polished",
+   "build": "2022.2 (Build 262287010, 287A)",
+   "description": "Ventilator v0.4 enclosure front panel",
+   "designer": "Martin Shetty",
+   "material": "Stainless Steel",
+   "part_number": "rw04-frame-front1",
+   "subtype": "Sheet Metal"
+  },
+  "preview": {
+   "height": 180,
+   "offset": 16,
+   "width": 180
+  },
+  "references": [
+   "front.ipt",
+   "global_params.ipt",
+   "internal_volume.ipt"
+  ]
+ },
+ "global_params.ipt": {
+  "author": "Martin Shetty",
+  "custom": {
+   "M4_PEM_thick_diameter": "5.410 mm",
+   "M4_PEM_thin_diameter": "5.400 mm",
+   "M4_button_head_dia": "7.600 mm",
+   "M4_clearance_diameter": "4.500 mm",
+   "M4_heat_insert_diameter": "5.940 mm",
+   "M4_heat_insert_long_depth": "8.940 mm",
+   "M4_heat_insert_short_depth": "5.720 mm",
+   "M6_PEM_thin_diameter": "8.750 mm",
+   "acrylic_sheet_thickness": "6.350 mm",
+   "common_support_tab_length": "35.000 mm",
+   "common_support_width": "20.000 mm",
+   "enclosure_metal_thickness": "1.270 mm",
+   "enclosure_roof_length": "50.000 mm",
+   "equipment_tray_metal_thickness": "1.519 mm",
+   "m2_5_clearance_diameter": "2.700 mm",
+   "m3_clearance_diameter": "3.200 mm",
+   "panel_gasket_thickness": "1.000 mm",
+   "rivet_hole_diameter": "3.400 mm",
+   "rivet_tab_width": "12.000 mm",
+   "subpanel_acrylic_thickness": "3.175 mm",
+   "unf4_clearance_diameter": "3.180 mm"
+  },
+  "design": {
+   "appearance": "Default",
+   "build": "2023.1 (Build 271208000, 208)",
+   "designer": "Martin Shetty",
+   "material": "Generic",
+   "part_number": "materials",
+   "subtype": "Modeling"
+  },
+  "preview": {
+   "height": 512,
+   "offset": 16,
+   "width": 512
+  },
+  "references": [
+   "global_params.ipt"
+  ]
+ },
+ "side.ipt": {
+  "author": "Martin Shetty",
+  "custom": {},
+  "design": {
+   "appearance": "Stainless - Semi-polished",
+   "build": "2023.1 (Build 271208000, 208)",
+   "description": "Enclosure right side panel",
+   "designer": "Martin Shetty",
+   "material": "Stainless Steel",
+   "part_number": "rw04-frame-side1r",
+   "subtype": "Sheet Metal"
+  },
+  "preview": {
+   "height": 512,
+   "offset": 16,
+   "width": 512
+  },
+  "references": [
+   "global_params.ipt",
+   "internal_volume.ipt",
+   "side.ipt"
+  ]
+ }
+}

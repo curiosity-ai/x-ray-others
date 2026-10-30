@@ -4,6 +4,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.Cad;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>
 /// ASCII DXF (R10 to 2018): layers with colours and visibility, header (version, units, dates), blocks and their inserts
 /// (nested, with scale, rotation and arrays), and the geometry entities: lines, polylines (with bulges, 3D, polyface and polygon
@@ -37,7 +39,7 @@ internal static class DxfReader
 
         public double Num(int code, double fallback = 0) => Get(code) is { } v ? ParseDouble(v, fallback) : fallback;
 
-        public int Int(int code, int fallback = 0) => Get(code) is { } v && int.TryParse(v.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var i) ? i : fallback;
+        public int Int(int code, int fallback = 0) => Get(code) is { } v && int.TryParse(v.AsSpan().Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var i) ? i : fallback;
 
         public IEnumerable<string> All(int code) => Groups.Where(g => g.Code == code).Select(g => g.Value);
 
@@ -99,15 +101,18 @@ internal static class DxfReader
     }
 
     internal static double ParseDouble(string text, double fallback = 0) =>
-        double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) && double.IsFinite(v) ? v : fallback;
+        double.TryParse(text.AsSpan().Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) && double.IsFinite(v) ? v : fallback;
 
     // ---- parsing -------------------------------------------------------------------------------------------------
 
     private sealed class Parser
     {
-        private readonly string[] _lines;
+        private readonly string _text;
+        private readonly int[] _lineStart;
         private readonly LoadOptions _options;
         private int _position;
+        private readonly Dictionary<string, string> _interned = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> _internLookup;
 
         public readonly Dictionary<string, List<(int Code, string Value)>> Header = new(StringComparer.Ordinal);
         public readonly List<LayerInfo> Layers = new();
@@ -116,23 +121,76 @@ internal static class DxfReader
 
         public Parser(string text, LoadOptions options)
         {
-            _lines = text.Split('\n');
+            // Line starts instead of a string per line: the same lines (split at '\n', a trailing empty one included), no copies.
+            _text = text;
+            var lines = 1;
+            foreach (var c in text.AsSpan())
+            {
+                if (c == '\n')
+                {
+                    lines++;
+                }
+            }
+
+            _lineStart = new int[lines + 1];
+            var n = 1;
+            for (var i = 0; i < text.Length; i++)
+            {
+                if (text[i] == '\n')
+                {
+                    _lineStart[n++] = i + 1;
+                }
+            }
+
+            _lineStart[lines] = text.Length + 1;
             _options = options;
+            _internLookup = _interned.GetAlternateLookup<ReadOnlySpan<char>>();
+        }
+
+        private int LineCount => _lineStart.Length - 1;
+
+        private ReadOnlySpan<char> Line(int index) => _text.AsSpan(_lineStart[index], Math.Max(0, _lineStart[index + 1] - 1 - _lineStart[index]));
+
+        /// <summary>Short values repeat (entity names, layer names, section names); one string serves them all.</summary>
+        private string Value(ReadOnlySpan<char> span)
+        {
+            if (span.Length == 0)
+            {
+                return "";
+            }
+
+            if (span.Length > 32)
+            {
+                return span.ToString();
+            }
+
+            if (_internLookup.TryGetValue(span, out var existing))
+            {
+                return existing;
+            }
+
+            var text = span.ToString();
+            if (_interned.Count < 4096)
+            {
+                _interned[text] = text;
+            }
+
+            return text;
         }
 
         private bool TryRead(out int code, out string value)
         {
             code = 0;
             value = "";
-            if (_position >= _lines.Length)
+            if (_position >= LineCount)
             {
                 return false;
             }
 
-            var codeLine = _lines[_position].Trim();
+            var codeLine = Line(_position).Trim();
             if (!int.TryParse(codeLine, NumberStyles.Integer, CultureInfo.InvariantCulture, out code))
             {
-                if (codeLine.Length == 0 && _position == _lines.Length - 1)
+                if (codeLine.Length == 0 && _position == LineCount - 1)
                 {
                     return false;
                 }
@@ -140,7 +198,7 @@ internal static class DxfReader
                 throw new ModelFormatException($"DXF group code expected at line {_position + 1}.");
             }
 
-            value = _position + 1 < _lines.Length ? _lines[_position + 1].TrimEnd('\r') : "";
+            value = _position + 1 < LineCount ? Value(Line(_position + 1).TrimEnd('\r')) : "";
             _position += 2;
             return true;
         }
@@ -434,6 +492,8 @@ internal static class DxfReader
             }
 
             meta.DocumentKind = _any3d ? "model" : "drawing";
+            _model.DetectIs2D();
+            _model.Is2D &= !_any3d;
             meta.HasGeometry = _model.Meshes.Count > 0;
             meta.Statistics = _model.ComputeStatistics();
             meta.Bounds = _model.ComputeBounds();
@@ -450,9 +510,13 @@ internal static class DxfReader
                 meta.Application = AutoCadName(version);
             }
 
-            if (Var("$INSUNITS", 70) is { } units && int.TryParse(units.Trim(), out var code))
+            var insertUnits = Var("$INSUNITS", 70) is { } units && int.TryParse(units.AsSpan().Trim(), out var code) ? code : 0;
+            meta.Units = UnitOf(insertUnits);
+            if (insertUnits == 0 && Var("$MEASUREMENT", 70) is { } measurement && int.TryParse(measurement.AsSpan().Trim(), out var system))
             {
-                meta.Units = UnitOf(code);
+                // A drawing that states no insertion unit still says whether it is an imperial (0) or a metric (1) one: inches, or millimetres (the metric template's unit).
+                meta.Units = system == 0 ? LengthUnit.Inch : LengthUnit.Millimeter;
+                meta.Notes.Add("The drawing states no insertion unit ($INSUNITS is 0); " + (system == 0 ? "inches" : "millimetres") + " are assumed from $MEASUREMENT.");
             }
 
             meta.Created = JulianDate(Var("$TDCREATE", 40));
@@ -473,7 +537,7 @@ internal static class DxfReader
 
         private static DateTimeOffset? JulianDate(string? text)
         {
-            if (text is null || !double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var jd) || jd < 2_000_000 || jd > 3_000_000)
+            if (text is null || !double.TryParse(text.AsSpan().Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var jd) || jd < 2_000_000 || jd > 3_000_000)
             {
                 return null;
             }
@@ -530,7 +594,7 @@ internal static class DxfReader
 
         private int ColorOf(Entity e, string layerName, int blockRgb)
         {
-            if (e.Get(420) is { } trueColor && int.TryParse(trueColor.Trim(), out var tc) && tc >= 0)
+            if (e.Get(420) is { } trueColor && int.TryParse(trueColor.AsSpan().Trim(), out var tc) && tc >= 0)
             {
                 return tc & 0xFFFFFF;
             }
@@ -587,6 +651,14 @@ internal static class DxfReader
             }
 
             Charge(points.Count);
+            if (_hatchLoop is not null)
+            {
+                foreach (var point in points)
+                {
+                    _hatchLoop.Add(Vector3.Transform(point, m));
+                }
+            }
+
             var sink = SinkFor(style.Layer, style.Rgb, Kind.Lines);
             var start = (uint)(sink.Positions.Count / 3);
             foreach (var point in points)
@@ -727,6 +799,7 @@ internal static class DxfReader
                         var c = new[] { e.Point(10), e.Point(11), e.Point(13, e.Point(10).Z), e.Point(12) };
                         var last = e.Get(13) is null ? 2 : 3;
                         AddTriangles(style, c, last == 3 ? [0, 1, 2, 0, 2, 3] : [0, 1, 2], ocs * m);
+                        AddFill(style, c.Take(last + 1).ToArray(), ocs * m);
                         break;
                     }
 
@@ -755,6 +828,11 @@ internal static class DxfReader
                         _texts.Add(CleanText(content));
                     }
 
+                    if (e.Type != "ATTDEF")
+                    {
+                        AddText(e, style, m);
+                    }
+
                     break;
                 case "3DSOLID":
                 case "BODY":
@@ -778,7 +856,7 @@ internal static class DxfReader
             }
         }
 
-        private static string CleanText(string text)
+        private static string CleanText(string text, char paragraphBreak = ' ')
         {
             // MTEXT carries formatting codes: \P is a paragraph break, {\fArial|b0;text} a run, \U+XXXX a character.
             var sb = new StringBuilder();
@@ -790,7 +868,7 @@ internal static class DxfReader
                     var n = text[i + 1];
                     if (n == 'P' || n == 'p')
                     {
-                        sb.Append(' ');
+                        sb.Append(paragraphBreak);
                         i++;
                     }
                     else if (n == 'U' && i + 6 < text.Length && text[i + 2] == '+' && int.TryParse(text.AsSpan(i + 3, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var cp))
@@ -906,8 +984,10 @@ internal static class DxfReader
             var elevation = (float)e.Num(38);
             var closed = (e.Int(70) & 1) != 0;
             var points = new List<Vector3>();
+            var tick909 = 0L;
             for (var i = 0; i < n; i++)
             {
+                Cancel.Every(_options.Cancellation, tick909++);
                 var a = new Vector3((float)xs[i], (float)ys[i], elevation);
                 points.Add(a);
                 var next = i + 1 < n ? i + 1 : (closed ? 0 : -1);
@@ -1010,8 +1090,10 @@ internal static class DxfReader
             var points = new List<Vector3>();
             var elevation = (float)e.Point(10).Z;
             var is3d = (flags & 8) != 0;
+            var tick1013 = 0L;
             for (var i = 0; i < vertices.Count; i++)
             {
+                Cancel.Every(_options.Cancellation, tick1013++);
                 var v = vertices[i];
                 if ((v.Int(70) & 16) != 0 && !is3d)
                 {
@@ -1087,7 +1169,7 @@ internal static class DxfReader
                     points.Add(new Vector3((float)x, (float)y, (float)ParseDouble(value)));
                     phase = 0;
                 }
-                else if (inFaces && code == 90 && int.TryParse(value.Trim(), out var i))
+                else if (inFaces && code == 90 && int.TryParse(value.AsSpan().Trim(), out var i))
                 {
                     faceInts.Add(i);
                 }
@@ -1126,7 +1208,112 @@ internal static class DxfReader
             }
         }
 
+        /// <summary>A TEXT, MTEXT or ATTRIB as drawn text: position, height and rotation in world space.</summary>
+        private void AddText(Entity e, Style style, Matrix4x4 m)
+        {
+            if (_model.Texts.Count >= 20_000)
+            {
+                return;
+            }
+
+            var raw = e.Type == "MTEXT" ? string.Concat(e.All(3)) + e.Get(1) : e.Get(1) ?? "";
+            var text = CleanText(raw, '\n');
+            if (text.Length == 0)
+            {
+                return;
+            }
+
+            var ocs = Ocs(NormalOf(e)) * m;
+            var aligned = e.Type != "MTEXT" && e.Get(11) is not null && (e.Int(72) != 0 || e.Int(73) != 0);
+            var position = Vector3.Transform(aligned ? e.Point(11) : e.Point(10), ocs);
+            double angle = e.Num(50);
+            if (e.Type == "MTEXT" && e.Get(11) is not null)
+            {
+                angle = Math.Atan2(e.Num(21), e.Num(11)) * 180 / Math.PI;
+            }
+
+            var along = Vector3.TransformNormal(new Vector3((float)Math.Cos(angle * Math.PI / 180), (float)Math.Sin(angle * Math.PI / 180), 0), ocs);
+            var up = Vector3.TransformNormal(Vector3.UnitY, ocs);
+            var height = (float)e.Num(40, 1) * up.Length();
+            if (!(height > 0) || !float.IsFinite(height))
+            {
+                height = 1;
+            }
+
+            var anchor = "start";
+            if (e.Type == "MTEXT")
+            {
+                anchor = e.Int(71, 1) switch { 2 or 5 or 8 => "middle", 3 or 6 or 9 => "end", _ => "start" };
+            }
+            else
+            {
+                anchor = e.Int(72) switch { 1 or 4 => "middle", 2 or 3 or 5 => "end", _ => "start" };
+            }
+
+            _model.Texts.Add(new ModelText
+            {
+                Text = text,
+                Position = position,
+                Height = height,
+                Rotation = (float)(Math.Atan2(along.Y, along.X) * 180 / Math.PI),
+                Anchor = anchor,
+                Layer = style.Layer,
+                Rgb = style.Rgb,
+            });
+            if (MathF.Abs(position.Z) > 1e-6f)
+            {
+                _any3d = true;
+            }
+        }
+
+        private void AddFill(Style style, IReadOnlyList<Vector3> corners, Matrix4x4 m)
+        {
+            if (corners.Count < 3 || _model.Fills.Count >= 20_000)
+            {
+                return;
+            }
+
+            var fill = new ModelFill { Layer = style.Layer, Rgb = style.Rgb };
+            fill.Loops.Add(corners.Select(c => Vector3.Transform(c, m)).ToArray());
+            _model.Fills.Add(fill);
+        }
+
+        private List<Vector3>? _hatchLoop;
+
         private void EmitHatch(Entity e, Style style, Matrix4x4 m)
+        {
+            var solid = e.Int(70) == 1;
+            var loops = new List<List<Vector3>>();
+            EmitHatchOutlines(e, style, m, loops);
+            _hatchLoop = null;
+            if (solid && loops.Count > 0 && _model.Fills.Count < 20_000)
+            {
+                var fill = new ModelFill { Layer = style.Layer, Rgb = style.Rgb };
+                foreach (var loop in loops)
+                {
+                    var points = new List<Vector3>();
+                    foreach (var p in loop)
+                    {
+                        if (points.Count == 0 || (points[^1] - p).LengthSquared() > 1e-18f)
+                        {
+                            points.Add(p);
+                        }
+                    }
+
+                    if (points.Count >= 3)
+                    {
+                        fill.Loops.Add(points.ToArray());
+                    }
+                }
+
+                if (fill.Loops.Count > 0)
+                {
+                    _model.Fills.Add(fill);
+                }
+            }
+        }
+
+        private void EmitHatchOutlines(Entity e, Style style, Matrix4x4 m, List<List<Vector3>> loops)
         {
             // Boundary paths are drawn as outlines (the fill is not tessellated). Paths are either polylines (flag bit 2) or edge lists.
             var elevation = (float)e.Num(30);
@@ -1141,12 +1328,14 @@ internal static class DxfReader
 
             if (i < groups.Count)
             {
-                pathCount = int.Parse(groups[i].Value.Trim(), CultureInfo.InvariantCulture);
+                pathCount = int.Parse(groups[i].Value.AsSpan().Trim(), CultureInfo.InvariantCulture);
                 i++;
             }
 
             for (var path = 0; path < pathCount && i < groups.Count; path++)
             {
+                _hatchLoop = new List<Vector3>();
+                loops.Add(_hatchLoop);
                 while (i < groups.Count && groups[i].Code != 92)
                 {
                     i++;
@@ -1157,7 +1346,7 @@ internal static class DxfReader
                     break;
                 }
 
-                var type = int.Parse(groups[i].Value.Trim(), CultureInfo.InvariantCulture);
+                var type = int.Parse(groups[i].Value.AsSpan().Trim(), CultureInfo.InvariantCulture);
                 i++;
                 if ((type & 2) != 0)
                 {
@@ -1168,11 +1357,11 @@ internal static class DxfReader
                     {
                         if (groups[i].Code == 72)
                         {
-                            hasBulge = groups[i].Value.Trim() != "0";
+                            hasBulge = !groups[i].Value.AsSpan().Trim().SequenceEqual("0");
                         }
                         else if (groups[i].Code == 73)
                         {
-                            closed = groups[i].Value.Trim() != "0";
+                            closed = !groups[i].Value.AsSpan().Trim().SequenceEqual("0");
                         }
 
                         i++;
@@ -1180,7 +1369,7 @@ internal static class DxfReader
 
                     if (i < groups.Count)
                     {
-                        count = int.Parse(groups[i].Value.Trim(), CultureInfo.InvariantCulture);
+                        count = int.Parse(groups[i].Value.AsSpan().Trim(), CultureInfo.InvariantCulture);
                         i++;
                     }
 
@@ -1222,7 +1411,7 @@ internal static class DxfReader
 
                     if (i < groups.Count)
                     {
-                        edgeCount = int.Parse(groups[i].Value.Trim(), CultureInfo.InvariantCulture);
+                        edgeCount = int.Parse(groups[i].Value.AsSpan().Trim(), CultureInfo.InvariantCulture);
                         i++;
                     }
 
@@ -1233,7 +1422,7 @@ internal static class DxfReader
                             break;
                         }
 
-                        var edgeType = int.Parse(groups[i].Value.Trim(), CultureInfo.InvariantCulture);
+                        var edgeType = int.Parse(groups[i].Value.AsSpan().Trim(), CultureInfo.InvariantCulture);
                         i++;
                         var values = new Dictionary<int, double>();
                         while (i < groups.Count && groups[i].Code is not (72 or 92 or 97 or 75 or 98))

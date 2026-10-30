@@ -1,0 +1,36 @@
+{
+ "prims": [
+  "/World/FromSubLayer",
+  "/World/RefBox",
+  "/World/PayloadBall",
+  "/World/Variants/Body",
+  "/World/Anim",
+  "/World/Quad"
+ ],
+ "min": [
+  -3.25,
+  -5.0,
+  -6.0
+ ],
+ "max": [
+  12.0,
+  4.75,
+  9.5
+ ],
+ "triangles": 51,
+ "area": 95.5,
+ "crate": {
+  "min": [
+   -3.25,
+   -0.25,
+   -0.25
+  ],
+  "max": [
+   12.0,
+   1.0,
+   3.0
+  ],
+  "triangles": 24,
+  "area": 23.5
+ }
+}

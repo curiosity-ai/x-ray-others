@@ -1,3 +1,4 @@
+using XRay.ThreeD.Internal;
 using System.Globalization;
 using System.Numerics;
 using System.Text;
@@ -61,7 +62,9 @@ internal static class StepReader
         private readonly Model3D _model = new();
         private readonly Dictionary<int, Product> _products = new();
         private readonly Dictionary<int, (int Rgb, bool Has)> _colors = new();
-        private readonly Dictionary<int, int> _layerOf = new();
+        private readonly Dictionary<int, List<int>> _layersOf = new();
+        private StepTessellated? _tri;
+        private int _nodeBudget = 500_000;
         private readonly Dictionary<int, MeshData?> _repMeshes = new();
         private readonly Dictionary<int, int> _materialByRgb = new();
         private StepTessellator? _tessellator;
@@ -89,7 +92,8 @@ internal static class StepReader
             }
 
             ReadLayers();
-            meta.HasGeometry = _f.OfType("MANIFOLD_SOLID_BREP").Count + _f.OfType("FACETED_BREP").Count + _f.OfType("BREP_WITH_VOIDS").Count > 0;
+            meta.HasGeometry = _f.OfType("MANIFOLD_SOLID_BREP").Count + _f.OfType("FACETED_BREP").Count + _f.OfType("BREP_WITH_VOIDS").Count
+                + _f.OfType("TESSELLATED_SOLID").Count + _f.OfType("TRIANGULATED_FACE").Count + _f.OfType("COMPLEX_TRIANGULATED_FACE").Count > 0;
             return meta;
         }
 
@@ -103,7 +107,8 @@ internal static class StepReader
             ReadLayers();
 
             var size = ModelSize();
-            _tessellator = new StepTessellator(_f, _geo, Math.Max(size * _options.LinearDeflection, 1e-9), _options.AngularDeflection);
+            _tri = new StepTessellated(_f, _options.Cancellation);
+            _tessellator = new StepTessellator(_f, _geo, Math.Max(size * _options.LinearDeflection, 1e-9), _options.AngularDeflection) { Cancel = _options.Cancellation };
 
             // Roots: product definitions no assembly uses as a component. Without any product structure, all solids form one part.
             var childIds = _products.Values.SelectMany(p => p.Children.Select(c => c.ChildDefinition)).ToHashSet();
@@ -133,14 +138,15 @@ internal static class StepReader
                 throw new ModelFormatException("The STEP file holds no solid geometry this reader can tessellate.");
             }
 
-            foreach (var warning in _tessellator.Warnings.Distinct().Take(20))
+            var allWarnings = _tessellator.Warnings.Concat(_tri.Warnings).ToList();
+            foreach (var warning in allWarnings.Distinct().Take(20))
             {
                 _model.Warnings.Add(warning);
             }
 
-            if (_tessellator.Warnings.Count > 20)
+            if (allWarnings.Count > 20)
             {
-                _model.Warnings.Add($"{_tessellator.Warnings.Count - 20} more tessellation warnings were suppressed.");
+                _model.Warnings.Add($"{allWarnings.Count - 20} more tessellation warnings were suppressed.");
             }
 
             meta.PartNames.Clear();
@@ -455,7 +461,7 @@ internal static class StepReader
         }
 
         private static bool IsSolid(StepEntity e) => e.Type is "MANIFOLD_SOLID_BREP" or "BREP_WITH_VOIDS" or "FACETED_BREP" or "SHELL_BASED_SURFACE_MODEL" or "MANIFOLD_SURFACE_SHAPE_REPRESENTATION" or "MAPPED_ITEM"
-            || e.Is("MANIFOLD_SOLID_BREP") || e.Is("FACETED_BREP");
+            || StepTessellated.IsTessellated(e) || e.Is("MANIFOLD_SOLID_BREP") || e.Is("FACETED_BREP");
 
         // ---- colours and layers ----------------------------------------------------------------------------------
 
@@ -557,7 +563,15 @@ internal static class StepReader
 
                 foreach (var item in layer.Arg(2).Refs)
                 {
-                    _layerOf[item] = index;
+                    if (!_layersOf.TryGetValue(item, out var list))
+                    {
+                        _layersOf[item] = list = new List<int>(1);
+                    }
+
+                    if (!list.Contains(index))
+                    {
+                        list.Add(index);
+                    }
                 }
             }
         }
@@ -625,11 +639,7 @@ internal static class StepReader
 
                 if (product.ShapeRep >= 0)
                 {
-                    var mesh = MeshOfRepresentation(product.ShapeRep, product.Name);
-                    if (mesh is not null)
-                    {
-                        node.Mesh = mesh;
-                    }
+                    FillFromRepresentation(node, product.ShapeRep, product.Name, 0, new HashSet<int>());
                 }
 
                 foreach (var usage in product.Children)
@@ -654,6 +664,91 @@ internal static class StepReader
             }
         }
 
+        /// <summary>
+        /// Gives <paramref name="node"/> the mesh of a representation's own solids and one child per MAPPED_ITEM (an instance of another
+        /// representation under the placement that takes the map's origin to the item's target); instances share the mapped representation's mesh.
+        /// </summary>
+        private void FillFromRepresentation(SceneNode node, int rep, string? name, int depth, HashSet<int> path)
+        {
+            _options.Cancellation.ThrowIfCancellationRequested();
+            node.Mesh = MeshOfRepresentation(rep, name);
+            if (_f.Get(rep) is not { } representation || depth > 16 || !path.Add(rep))
+            {
+                return;
+            }
+
+            try
+            {
+                var layers = new List<int>();
+                AddLayers(layers, rep);
+                foreach (var itemId in representation.Arg(1).Refs)
+                {
+                    AddLayers(layers, itemId);
+                    if (_f.Get(itemId) is not { Type: "MAPPED_ITEM" } item || _f.Get(item.Arg(1).ToRef) is not { Type: "REPRESENTATION_MAP" } map)
+                    {
+                        continue;
+                    }
+
+                    if (--_nodeBudget < 0)
+                    {
+                        throw new ModelFormatException("The STEP file instantiates more than 500000 mapped items.");
+                    }
+
+                    var origin = _geo.Axis2(map.Arg(0).ToRef).ToMatrix();
+                    var target = _geo.Axis2(item.Arg(2).ToRef).ToMatrix();
+                    var child = new SceneNode(item.Arg(0).Str is { Length: > 0 } itemName ? itemName : null)
+                    {
+                        Transform = Matrix4x4.Invert(origin, out var inverse) ? inverse * target : target,
+                    };
+                    var childLayers = new List<int>();
+                    AddLayers(childLayers, itemId);
+                    ApplyLayers(child, childLayers);
+                    FillFromRepresentation(child, map.Arg(1).ToRef, name, depth + 1, path);
+                    if (child.Mesh is null && child.Children.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    node.Children.Add(child);
+                }
+
+                ApplyLayers(node, layers);
+            }
+            finally
+            {
+                path.Remove(rep);
+            }
+        }
+
+        private void AddLayers(List<int> into, int id)
+        {
+            if (_layersOf.TryGetValue(id, out var list))
+            {
+                foreach (var layer in list)
+                {
+                    if (!into.Contains(layer))
+                    {
+                        into.Add(layer);
+                    }
+                }
+            }
+        }
+
+        /// <summary>The first layer goes to <see cref="SceneNode.Layer"/>; a node on several lists them all in its <c>layers</c> property.</summary>
+        private void ApplyLayers(SceneNode node, List<int> layers)
+        {
+            if (layers.Count == 0 || node.Layer >= 0)
+            {
+                return;
+            }
+
+            node.Layer = layers[0];
+            if (layers.Count > 1)
+            {
+                node.Properties["layers"] = string.Join(", ", layers.Select(i => _model.Layers[i].Name));
+            }
+        }
+
         private MeshData? MeshOfRepresentation(int rep, string? name)
         {
             if (_repMeshes.TryGetValue(rep, out var cached))
@@ -664,9 +759,16 @@ internal static class StepReader
             var solids = new List<StepEntity>();
             if (_f.Get(rep) is { } representation)
             {
-                foreach (var item in representation.Arg(1).Refs.Select(r => _f.Get(r)).Where(e => e is not null && IsSolid(e!) && e!.Type != "MAPPED_ITEM"))
+                var drawn = representation.Arg(1).Refs.Select(r => _f.Get(r)).Where(e => e is not null && IsSolid(e!) && e!.Type != "MAPPED_ITEM").Select(e => e!).ToList();
+                foreach (var item in drawn)
                 {
-                    solids.Add(item!);
+                    // A tessellation derived from a B-rep drawn here is the same shape twice.
+                    if (StepTessellated.IsTessellated(item) && drawn.Any(d => d.Id == _tri!.LinkOf(item)))
+                    {
+                        continue;
+                    }
+
+                    solids.Add(item);
                 }
             }
 
@@ -680,98 +782,50 @@ internal static class StepReader
             return mesh;
         }
 
-        private IEnumerable<StepEntity> AllSolids() =>
-            _f.OfType("MANIFOLD_SOLID_BREP").Concat(_f.OfType("BREP_WITH_VOIDS")).Concat(_f.OfType("FACETED_BREP")).Concat(_f.OfType("SHELL_BASED_SURFACE_MODEL")).Distinct();
+        private IEnumerable<StepEntity> AllSolids()
+        {
+            var solids = _f.OfType("MANIFOLD_SOLID_BREP").Concat(_f.OfType("BREP_WITH_VOIDS")).Concat(_f.OfType("FACETED_BREP")).Concat(_f.OfType("SHELL_BASED_SURFACE_MODEL")).Distinct().ToList();
+            // Tessellated solids and shells, then the faces and surface sets no solid or shell holds.
+            var held = new HashSet<int>();
+            foreach (var group in _f.OfType("TESSELLATED_SOLID").Concat(_f.OfType("TESSELLATED_SHELL")))
+            {
+                solids.Add(group);
+                foreach (var face in _tri!.FacesOf(group))
+                {
+                    held.Add(face.Id);
+                }
+            }
+
+            foreach (var type in new[] { "TRIANGULATED_FACE", "COMPLEX_TRIANGULATED_FACE", "TRIANGULATED_SURFACE_SET", "COMPLEX_TRIANGULATED_SURFACE_SET" })
+            {
+                solids.AddRange(_f.OfType(type).Where(f => !held.Contains(f.Id)));
+            }
+
+            return solids;
+        }
 
         private MeshData? BuildMeshForSolids(IEnumerable<StepEntity> solids, string? name)
         {
-            var positions = new List<float>();
-            var normals = new List<float>();
-            var indices = new List<uint>();
-            var faces = new List<MeshFace>();
-            // Per face colour -> material, with index runs sorted by material at the end.
-            var faceData = new List<(int Start, int Count, int Material)>();
-            var scale = (float)(1.0);
+            var assembler = new FaceMeshAssembler(_options.MaxTriangles, "STEP");
             foreach (var solid in solids)
             {
                 var solidColor = _colors.TryGetValue(solid.Id, out var sc) ? sc.Rgb : -1;
-                foreach (var face in FacesOf(solid))
+                var tessellated = StepTessellated.IsTessellated(solid);
+                foreach (var face in tessellated ? _tri!.FacesOf(solid) : FacesOf(solid))
                 {
                     _options.Cancellation.ThrowIfCancellationRequested();
-                    var mesh = _tessellator!.TessellateFace(face);
+                    var mesh = tessellated ? _tri!.Build(face) : _tessellator!.TessellateFace(face);
                     if (mesh is null)
                     {
                         continue;
                     }
 
                     var rgb = _colors.TryGetValue(face.Id, out var fc) ? fc.Rgb : solidColor;
-                    var material = rgb >= 0 ? MaterialFor(rgb) : -1;
-                    var vertexBase = positions.Count / 3;
-                    foreach (var p in mesh.Positions)
-                    {
-                        positions.Add((float)p.X * scale);
-                        positions.Add((float)p.Y * scale);
-                        positions.Add((float)p.Z * scale);
-                    }
-
-                    foreach (var n in mesh.Normals)
-                    {
-                        normals.Add((float)n.X);
-                        normals.Add((float)n.Y);
-                        normals.Add((float)n.Z);
-                    }
-
-                    var start = indices.Count;
-                    foreach (var i in mesh.Indices)
-                    {
-                        indices.Add((uint)(vertexBase + i));
-                    }
-
-                    faceData.Add((start, indices.Count - start, material));
-                    if (indices.Count / 3 > _options.MaxTriangles)
-                    {
-                        throw new ModelFormatException("The STEP file produces more triangles than the configured limit.");
-                    }
+                    assembler.Add(mesh, rgb >= 0 ? MaterialFor(rgb) : -1);
                 }
             }
 
-            if (indices.Count == 0)
-            {
-                return null;
-            }
-
-            // Order faces by material so that each material is one contiguous range; keep each face's own range.
-            var order = faceData.Select((d, i) => (d, i)).OrderBy(x => x.d.Material).ThenBy(x => x.i).ToList();
-            var sorted = new uint[indices.Count];
-            var meshFaces = new MeshFace[faceData.Count];
-            var cursor = 0;
-            var mesh2 = new MeshData { Name = name, Positions = positions.ToArray(), Normals = normals.ToArray() };
-            var groupStart = 0;
-            for (var k = 0; k < order.Count; k++)
-            {
-                var (d, original) = order[k];
-                for (var t = 0; t < d.Count; t++)
-                {
-                    sorted[cursor + t] = indices[d.Start + t];
-                }
-
-                meshFaces[original] = new MeshFace(cursor, d.Count);
-                cursor += d.Count;
-                if (k + 1 == order.Count || order[k + 1].d.Material != d.Material)
-                {
-                    mesh2.Groups.Add(new MeshGroup(groupStart, cursor - groupStart, d.Material));
-                    groupStart = cursor;
-                }
-            }
-
-            mesh2.Indices = sorted;
-            mesh2.Faces = meshFaces;
-            if (mesh2.Groups.Count == 1 && mesh2.Groups[0].Material < 0)
-            {
-                mesh2.Groups.Clear();
-            }
-
-            return mesh2;
+            return assembler.ToMesh(name);
         }
 
         private int MaterialFor(int rgb)

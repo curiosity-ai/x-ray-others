@@ -3,6 +3,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.Mesh;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>Object File Format: OFF, COFF (vertex colours), NOFF (normals) and the 4OFF/nOFF variants are refused. Polygons are fan triangulated; face colours become material groups.</summary>
 internal static class OffReader
 {
@@ -10,8 +12,10 @@ internal static class OffReader
     {
         var text = Encoding.ASCII.GetString(data.Span);
         var tokens = new List<string>();
+        var tick13 = 0L;
         foreach (var raw in text.AsSpan().EnumerateLines())
         {
+            Cancel.Every(options.Cancellation, tick13++);
             var line = raw;
             var hash = line.IndexOf('#');
             if (hash >= 0)
@@ -69,8 +73,10 @@ internal static class OffReader
         }
 
         float F(string t) => float.Parse(t, NumberStyles.Float, CultureInfo.InvariantCulture);
+        var tick72 = 0L;
         for (var v = 0; v < vertexCount; v++)
         {
+            Cancel.Every(options.Cancellation, tick72++);
             for (var a = 0; a < 3; a++)
             {
                 mesh.Positions[3 * v + a] = F(tokens[p++]);
@@ -98,8 +104,10 @@ internal static class OffReader
         var byMaterial = new Dictionary<int, List<uint>>();
         var order = new List<int>();
         var materialIds = new Dictionary<(float, float, float), int>();
+        var tick101 = 0L;
         for (var f = 0; f < faceCount; f++)
         {
+            Cancel.Every(options.Cancellation, tick101++);
             if (p >= tokens.Count)
             {
                 throw new ModelFormatException("The OFF face list is truncated.");

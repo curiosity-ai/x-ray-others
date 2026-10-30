@@ -16,7 +16,7 @@ internal static class MeshoptEncoder
     // ---- attributes (mode 0), version 0 -------------------------------------------------------------------------
 
     /// <summary>Encodes <paramref name="count"/> vertices of <paramref name="stride"/> bytes (a multiple of 4, at most 256).</summary>
-    public static byte[] EncodeVertices(ReadOnlySpan<byte> vertices, int count, int stride)
+    public static byte[] EncodeVertices(ReadOnlySpan<byte> vertices, int count, int stride, CancellationToken cancellation = default)
     {
         if (stride <= 0 || stride > 256 || stride % 4 != 0 || vertices.Length < count * stride)
         {
@@ -24,21 +24,31 @@ internal static class MeshoptEncoder
         }
 
         var output = new List<byte>(count * stride / 2 + 64) { 0xA0 };
-        var firstVertex = new byte[256];
+        Span<byte> firstVertex = stackalloc byte[256];
+        firstVertex.Clear();
         if (count > 0)
         {
             vertices[..stride].CopyTo(firstVertex);
         }
 
-        var lastVertex = (byte[])firstVertex.Clone();
+        Span<byte> lastVertex = stackalloc byte[256];
+        firstVertex.CopyTo(lastVertex);
         var blockSize = Math.Min((VertexBlockSizeBytes / stride) & ~(ByteGroupSize - 1), VertexBlockMaxSize);
         var offset = 0;
-        var buffers = new byte[VertexBlockMaxSize * 4];
-        while (offset < count)
+        var buffers = System.Buffers.ArrayPool<byte>.Shared.Rent(VertexBlockMaxSize * 4);
+        try
         {
-            var n = Math.Min(blockSize, count - offset);
-            EncodeBlock(output, vertices.Slice(offset * stride, n * stride), n, stride, lastVertex, buffers);
-            offset += n;
+            while (offset < count)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                var n = Math.Min(blockSize, count - offset);
+                EncodeBlock(output, vertices.Slice(offset * stride, n * stride), n, stride, lastVertex, buffers.AsSpan(0, VertexBlockMaxSize * 4));
+                offset += n;
+            }
+        }
+        finally
+        {
+            System.Buffers.ArrayPool<byte>.Shared.Return(buffers);
         }
 
         // Tail: the baseline vertex, padded to at least 32 bytes.
@@ -56,10 +66,10 @@ internal static class MeshoptEncoder
         return output.ToArray();
     }
 
-    private static void EncodeBlock(List<byte> output, ReadOnlySpan<byte> vertices, int count, int stride, byte[] lastVertex, byte[] buffers)
+    private static void EncodeBlock(List<byte> output, ReadOnlySpan<byte> vertices, int count, int stride, Span<byte> lastVertex, Span<byte> buffers)
     {
         var aligned = (count + ByteGroupSize - 1) & ~(ByteGroupSize - 1);
-        Array.Clear(buffers);
+        buffers.Clear();
         for (var k = 0; k < stride; k++)
         {
             if (k % 4 == 0)
@@ -77,7 +87,7 @@ internal static class MeshoptEncoder
                 }
             }
 
-            EncodeBytes(output, buffers.AsSpan((k % 4) * VertexBlockMaxSize, aligned));
+            EncodeBytes(output, buffers.Slice((k % 4) * VertexBlockMaxSize, aligned));
         }
 
         vertices.Slice((count - 1) * stride, stride).CopyTo(lastVertex);
@@ -192,7 +202,7 @@ internal static class MeshoptEncoder
 
     private static readonly byte[] CodeAuxTable = [0x00, 0x76, 0x87, 0x56, 0x67, 0x78, 0xA9, 0x86, 0x65, 0x89, 0x68, 0x98, 0x01, 0x69, 0, 0];
 
-    public static byte[] EncodeTriangles(ReadOnlySpan<uint> indices)
+    public static byte[] EncodeTriangles(ReadOnlySpan<uint> indices, CancellationToken cancellation = default)
     {
         if (indices.Length % 3 != 0)
         {
@@ -215,6 +225,7 @@ internal static class MeshoptEncoder
 
         for (var i = 0; i < indices.Length; i += 3)
         {
+            Cancel.Every(cancellation, i / 3);
             var fer = GetEdgeFifo(edgeFifo, indices[i], indices[i + 1], indices[i + 2], edgeOffset);
             if (fer >= 0 && (fer >> 2) < 15)
             {
@@ -390,13 +401,15 @@ internal static class MeshoptEncoder
         return output.ToArray();
     }
 
-    public static byte[] EncodeIndexSequence(ReadOnlySpan<uint> indices)
+    public static byte[] EncodeIndexSequence(ReadOnlySpan<uint> indices, CancellationToken cancellation = default)
     {
         var output = new List<byte>(indices.Length + 8) { 0xD1 };
         Span<uint> last = stackalloc uint[2];
         var current = 0;
+        var tick = 0;
         foreach (var index in indices)
         {
+            Cancel.Every(cancellation, tick++);
             var cd = (int)(index - last[current]);
             current ^= Math.Abs(cd) >= 30 ? 1 : 0;
             var d = index - last[current];

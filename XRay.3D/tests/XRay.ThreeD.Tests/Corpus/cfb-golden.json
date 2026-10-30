@@ -1,0 +1,32 @@
+{
+ "part.ipt": {
+  "streams": [
+   "\u0005DocumentSummaryInformation",
+   "\u0005SummaryInformation",
+   "RSeStorageData",
+   "Small"
+  ],
+  "title": "Bracket, left",
+  "subject": "Mounting bracket",
+  "author": "A. Draftsperson",
+  "keywords": "bracket; steel",
+  "comments": "Rev B",
+  "last_saved_by": "B. Reviewer",
+  "application": "Autodesk Inventor Professional 2025",
+  "created": "2025-03-14T09:26:53Z",
+  "saved": "2025-11-02T16:05:00Z",
+  "category": "Brackets",
+  "company": "Example Works",
+  "big_sum": 1147092
+ },
+ "model.rvt": {
+  "streams": [
+   "BasicFileInfo",
+   "Formats/Latest",
+   "Global/Latest",
+   "RevitPreview4.0"
+  ],
+  "basic_len": 484,
+  "formats_latest": 5000
+ }
+}

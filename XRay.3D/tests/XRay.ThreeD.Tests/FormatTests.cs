@@ -43,9 +43,12 @@ public class FormatTests
     [Fact]
     public void Recognised_but_unread_formats_throw_the_unsupported_exception()
     {
-        var ex = Assert.Throws<UnsupportedModelFormatException>(() => ModelLoader.Load(DatasetPaths.File("dwg/" + Path.GetFileName(DatasetPaths.Files("dwg").First()))));
+        // AC1015 and the AC1018 family load now; AC1014 is recognised but its geometry is not decoded.
+        var header = new byte[0x200];
+        "AC1014"u8.CopyTo(header);
+        var ex = Assert.Throws<UnsupportedModelFormatException>(() => ModelLoader.Load(header, "x.dwg"));
         Assert.Equal("dwg", ex.Format.Id);
-        Assert.Equal(FormatSupport.Identified, ex.Format.Support);
+        Assert.Equal(FormatSupport.Metadata, ex.Format.Support);
     }
 
     [Fact]

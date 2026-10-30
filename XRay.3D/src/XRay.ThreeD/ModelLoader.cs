@@ -24,10 +24,27 @@ public sealed class LoadOptions
     public CancellationToken Cancellation { get; set; }
 
     /// <summary>
+    /// When a model has two or more parts and no layers, give every mesh node a layer named after its part (instances of one part share it), so
+    /// that a layer list can show and hide parts (default true). Layers made this way have <see cref="ModelLayer.Synthesized"/> set.
+    /// </summary>
+    public bool SynthesizePartLayers { get; set; } = true;
+
+    /// <summary>
     /// Supplies files a model refers to but does not contain (the .mtl of an OBJ, for example), given the name as the model writes it. Returns
     /// null when there is no such file. ZIP archives set this to look among their own entries.
     /// </summary>
     public Func<string, byte[]?>? ResolveCompanion { get; set; }
+
+    /// <summary>
+    /// The unit of the coordinates for a file that does not state one: always for STL, OBJ, PLY, OFF, 3DS, XYZ, PTS and OpenSCAD (whose files never
+    /// do), and for any other format only when the file itself gave none (an ACIS save before version 2, a DWG or DXF with $INSUNITS 0 and no
+    /// $MEASUREMENT, an IGES file with no unit flag, a Blitz3D or PSU model). A unit the file states is never overridden.
+    /// Null leaves the unit unknown, as before; an unknown unit is written to the GLB as metres (nothing is scaled) and carries no <c>sourceUnits</c>.
+    /// </summary>
+    public LengthUnit? AssumedUnits { get; set; }
+
+    /// <summary>The up axis for formats that do not state one (STL, OBJ, PLY, OFF, 3DS, XYZ, PTS); ignored for formats that do.</summary>
+    public UpAxis? AssumedUpAxis { get; set; }
 
     /// <summary>How many archives deep this load is; nested packages stop at three.</summary>
     internal int ArchiveDepth { get; set; }
@@ -43,22 +60,133 @@ public static class ModelLoader
 {
     public static FormatInfo Detect(ReadOnlyMemory<byte> data, string? fileName = null) => ModelFormats.Detect(data, fileName);
 
+    /// <summary>Like <see cref="Detect(ReadOnlyMemory{byte}, string?)"/>, stopping with <see cref="OperationCanceledException"/> when the options' token is cancelled (archives are opened to look inside).</summary>
+    public static FormatInfo Detect(ReadOnlyMemory<byte> data, string? fileName, LoadOptions options) => ModelFormats.Detect(data, fileName, options.Cancellation);
+
     public static ModelMetadata ReadMetadata(ReadOnlyMemory<byte> data, string? fileName = null, LoadOptions? options = null)
     {
         return Guard(data, fileName, options, (format, d, o) => format.Id switch
         {
             "solidworks" => SolidWorksReader.ReadMetadata(d, o.Cancellation),
-            "las" => Formats.PointCloud.LasReader.ReadMetadata(d),
+            "las" or "laz" => Formats.PointCloud.LasReader.ReadMetadata(d),
             "step" => Formats.Step.StepReader.ReadMetadata(d, o),
             "ifc" => Formats.Bim.IfcReader.ReadMetadata(d, o),
             "iges" => Formats.Cad.IgesReader.ReadMetadata(d, o),
-            _ => Dispatch(format, d, o).Metadata,
+            "dwg" => Formats.Cad.DwgReader.ReadMetadata(d, o),
+            "sketchup" => Formats.SketchUp.SketchUpReader.ReadMetadata(d, o),
+            "jt" => Formats.Jt.JtReader.ReadMetadata(d, o),
+            "fusion" => Formats.Fusion.FusionReader.ReadMetadata(d, o),
+            "catia" => Formats.Catia.CatiaReader.ReadMetadata(d, o),
+            "parasolid" => Formats.Parasolid.ParasolidReader.ReadMetadata(d, o.Cancellation),
+            "rlf" => Formats.Relief.RlfReader.Read(d, o).Metadata,
+            "e57" => Formats.PointCloud.E57Reader.ReadMetadata(d, o),
+            "unreal" => Formats.Game.UassetReader.Read(d, o).Metadata,
+            "revit" or "inventor" => Formats.Cad.CompoundDocumentReader.ReadMetadata(format, d, o),
+            _ => ApplyHints(format, Dispatch(format, d, o), o).Metadata,
+        });
+    }
+
+    /// <summary>
+    /// The preview image saved in the file, without loading its geometry, for formats whose geometry is not decoded (DWG) as well as those that
+    /// are; null when the file has none.
+    /// </summary>
+    public static PreviewImage? ReadPreview(ReadOnlyMemory<byte> data, string? fileName = null, LoadOptions? options = null)
+    {
+        return Guard(data, fileName, options, (format, d, o) => format.Id switch
+        {
+            "dwg" => Formats.Cad.DwgReader.ReadPreview(d, o),
+            "sketchup" => Formats.SketchUp.SketchUpReader.ReadPreview(d, o),
+            "fusion" => Formats.Fusion.FusionReader.ReadPreview(d, o),
+            "catia" => Formats.Catia.CatiaReader.ReadPreview(d, o),
+            "e57" => Formats.PointCloud.E57Reader.ReadPreview(d, o),
+            "revit" or "inventor" => Formats.Cad.CompoundDocumentReader.ReadPreview(format, d, o),
+            _ => format.Support == FormatSupport.Full ? Dispatch(format, d, o).Preview : null,
         });
     }
 
     public static Model3D Load(ReadOnlyMemory<byte> data, string? fileName = null, LoadOptions? options = null)
     {
-        return Guard(data, fileName, options, (format, d, o) => Sanitize(Dispatch(format, d, o)));
+        return Guard(data, fileName, options, (format, d, o) => PartLayers(Sanitize(ApplyHints(format, Dispatch(format, d, o), o)), o));
+    }
+
+    /// <summary>Layers for models that have parts but no layers: one per distinct part name on the nodes that carry a mesh.</summary>
+    private static Model3D PartLayers(Model3D model, LoadOptions options)
+    {
+        if (!options.SynthesizePartLayers || model.Layers.Count > 0 || model.Is2D)
+        {
+            return model;
+        }
+
+        var parts = 0;
+        foreach (var node in model.Nodes())
+        {
+            if (node.Mesh is not null && ++parts >= 2)
+            {
+                break;
+            }
+        }
+
+        if (parts < 2)
+        {
+            return model;
+        }
+
+        var byName = new Dictionary<string, int>(StringComparer.Ordinal);
+        var tick = 0L;
+        foreach (var node in model.Nodes())
+        {
+            Internal.Cancel.Every(options.Cancellation, tick++);
+            if (node.Mesh is null || node.Layer >= 0)
+            {
+                continue;
+            }
+
+            var name = !string.IsNullOrWhiteSpace(node.Name) ? node.Name! : !string.IsNullOrWhiteSpace(node.Mesh.Name) ? node.Mesh.Name! : "Part " + (model.Meshes.IndexOf(node.Mesh) + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (!byName.TryGetValue(name, out var layer))
+            {
+                layer = model.Layers.Count;
+                model.Layers.Add(new ModelLayer(name) { Synthesized = true });
+                byName[name] = layer;
+            }
+
+            node.Layer = layer;
+        }
+
+        return model;
+    }
+
+    private static readonly HashSet<string> UnstatedUnits = new(StringComparer.Ordinal) { "stl", "obj", "ply", "off", "3ds", "xyz", "pts", "openscad" };
+
+    /// <summary>The caller's unit and up-axis hints, for the formats whose files do not carry them.</summary>
+    private static Model3D ApplyHints(FormatInfo format, Model3D model, LoadOptions options)
+    {
+        // A hint fills in what the file does not say, whatever the format; a unit or axis the file states is never overridden.
+        if (UnstatedUnits.Contains(format.Id))
+        {
+            if (options.AssumedUnits is { } units)
+            {
+                model.Metadata.Units = units;
+            }
+
+            if (options.AssumedUpAxis is { } up)
+            {
+                model.Metadata.UpAxis = up;
+            }
+        }
+        else
+        {
+            if (model.Metadata.Units is null && options.AssumedUnits is { } units)
+            {
+                model.Metadata.Units = units;
+            }
+
+            if (model.Metadata.UpAxis is null && options.AssumedUpAxis is { } up)
+            {
+                model.Metadata.UpAxis = up;
+            }
+        }
+
+        return model;
     }
 
     /// <summary>
@@ -71,6 +199,12 @@ public static class ModelLoader
         foreach (var mesh in model.Meshes)
         {
             repaired |= ReplaceNonFinite(mesh.Positions) | ReplaceNonFinite(mesh.Normals) | ReplaceNonFinite(mesh.Colors);
+            repaired |= ReplaceNonFinite(mesh.TexCoords);
+            if (mesh.TexCoords.Length != mesh.VertexCount * 2)
+            {
+                mesh.TexCoords = [];
+            }
+
             if (mesh.Normals.Length > 0 && !NormaliseNormals(mesh))
             {
                 mesh.Normals = [];
@@ -82,6 +216,10 @@ public static class ModelLoader
                 throw new ModelFormatException("A mesh has indices outside its vertex range.");
             }
         }
+
+        var texts = model.Texts.RemoveAll(t => !float.IsFinite(t.Position.X) || !float.IsFinite(t.Position.Y) || !float.IsFinite(t.Position.Z) || !float.IsFinite(t.Height) || !float.IsFinite(t.Rotation));
+        var fills = model.Fills.RemoveAll(f => f.Loops.Any(l => l.Any(p => !float.IsFinite(p.X) || !float.IsFinite(p.Y) || !float.IsFinite(p.Z))));
+        repaired |= texts + fills > 0;
 
         foreach (var node in model.Nodes())
         {
@@ -95,6 +233,21 @@ public static class ModelLoader
 
         foreach (var material in model.Materials)
         {
+            if (material.BaseColorTexture is { } texture)
+            {
+                if (texture.Texture < 0 || texture.Texture >= model.Textures.Count)
+                {
+                    material.BaseColorTexture = null;
+                }
+                else if (!float.IsFinite(texture.Offset.X) || !float.IsFinite(texture.Offset.Y) || !float.IsFinite(texture.Scale.X) || !float.IsFinite(texture.Scale.Y) || !float.IsFinite(texture.Rotation))
+                {
+                    texture.Offset = System.Numerics.Vector2.Zero;
+                    texture.Scale = System.Numerics.Vector2.One;
+                    texture.Rotation = 0;
+                    repaired = true;
+                }
+            }
+
             var c = material.BaseColor;
             if (!float.IsFinite(c.X) || !float.IsFinite(c.Y) || !float.IsFinite(c.Z) || !float.IsFinite(c.W) || !float.IsFinite(material.Metallic) || !float.IsFinite(material.Roughness))
             {
@@ -169,13 +322,46 @@ public static class ModelLoader
     public static Model3D Load(string path, LoadOptions? options = null) =>
         Load(File.ReadAllBytes(path), Path.GetFileName(path), options);
 
+    /// <summary>
+    /// Loads a drawing (a model with <see cref="Model3D.Is2D"/>) and writes it as SVG. Three-dimensional content is refused unless
+    /// <see cref="SvgWriteOptions.ProjectFlat"/> asks for its top view: GLB is the output for 3D.
+    /// </summary>
+    public static byte[] ConvertToSvg(ReadOnlyMemory<byte> data, string? fileName = null, SvgWriteOptions? svg = null, LoadOptions? options = null)
+    {
+        var model = Load(data, fileName, options);
+        svg = svg?.Clone() ?? new SvgWriteOptions();
+        if (!svg.Cancellation.CanBeCanceled && options is not null)
+        {
+            svg.Cancellation = options.Cancellation;
+        }
+
+        return System.Text.Encoding.UTF8.GetBytes(SvgWriter.ToString(model, svg));
+    }
+
     /// <summary>Load and write binary glTF in one step.</summary>
-    public static byte[] ConvertToGlb(ReadOnlyMemory<byte> data, string? fileName = null, GlbWriteOptions? glb = null, LoadOptions? options = null) =>
-        GlbWriter.ToArray(Load(data, fileName, options), glb);
+    public static byte[] ConvertToGlb(ReadOnlyMemory<byte> data, string? fileName = null, GlbWriteOptions? glb = null, LoadOptions? options = null)
+    {
+        var model = Load(data, fileName, options);
+        if (glb is null && IsGlb(data.Span))
+        {
+            // A GLB read without trouble is already what this would write: hand it back untouched (the load above validated it).
+            return data.ToArray();
+        }
+
+        glb = glb?.Clone() ?? new GlbWriteOptions();
+        if (!glb.Cancellation.CanBeCanceled && options is not null)
+        {
+            glb.Cancellation = options.Cancellation;
+        }
+
+        return GlbWriter.ToArray(model, glb);
+    }
+
+    private static bool IsGlb(ReadOnlySpan<byte> data) => data.Length >= 12 && data[0] == (byte)'g' && data[1] == (byte)'l' && data[2] == (byte)'T' && data[3] == (byte)'F';
 
     private static Model3D Dispatch(FormatInfo format, ReadOnlyMemory<byte> data, LoadOptions options) => format.Id switch
     {
-        "solidworks" => SolidWorksReader.Read(data, options.Cancellation),
+        "solidworks" => SolidWorksReader.Read(data, options),
         "stl" => StlReader.Read(data, options),
         "obj" => ObjReader.Read(data, options),
         "ply" => PlyReader.Read(data, options),
@@ -186,6 +372,8 @@ public static class ModelLoader
         "collada" => ColladaReader.Read(data, options),
         "fbx" => FbxReader.Read(data, options),
         "usd" => UsdaReader.Read(data, options),
+        "dwg" => Formats.Cad.DwgReader.Read(data, options),
+        "revit" or "inventor" => Formats.Cad.CompoundDocumentReader.Read(format, data, options),
         "step" => Formats.Step.StepReader.Read(data, options),
         "ifc" => Formats.Bim.IfcReader.Read(data, options),
         "archive" => Formats.Packages.ArchiveReader.Read(data, options),
@@ -193,11 +381,31 @@ public static class ModelLoader
         "freecad" => Formats.Cad.FreecadReader.Read(data, options),
         "gcode" => Formats.Toolpath.GcodeReader.Read(data, options),
         "sh3d" => Formats.Bim.Sh3dReader.Read(data, options),
+        "openscad" => Formats.OpenScad.ScadReader.Read(data, options),
+        "rhino" => Formats.Rhino.RhinoReader.Read(data, options),
+        "dwf" => Formats.Dwf.DwfReader.Read(data, options),
+        "parasolid" => Formats.Parasolid.ParasolidReader.Read(data, options),
+        "nx" or "solidedge" => Formats.Parasolid.ParasolidReader.ReadContainer(format, data, options),
+        "sat" => Formats.Acis.SabReader.Sniff(data.Span) ? Formats.Acis.SabReader.Read(data, options) : Formats.Acis.SatReader.Read(data, options),
+        "blender" => Formats.Blender.BlendReader.Read(data, options),
+        "archicad" => Formats.Archicad.GsmReader.Read(data, options),
+        "sketchup" => Formats.SketchUp.SketchUpReader.Read(data, options),
+        "jt" => Formats.Jt.JtReader.Read(data, options),
+        "3dxml" => Formats.Dassault.ThreeDxmlReader.Read(data, options),
+        "fusion" => Formats.Fusion.FusionReader.Read(data, options),
+        "catia" => Formats.Catia.CatiaReader.Read(data, options),
         "x3d" => X3dReader.ReadXml(data, options),
+        "x3dv" => X3dReader.ReadClassic(data, options),
         "vrml" => X3dReader.ReadVrml(data, options),
+        "unity" => Formats.Game.UnityPackageReader.Read(data, options),
+        "b3d" => B3dReader.Read(data, options),
+        "unreal" => Formats.Game.UassetReader.Read(data, options, requireGeometry: true),
+        "e57" => Formats.PointCloud.E57Reader.Read(data, options),
+        "psu" => Formats.Saves.PsuReader.Read(data, options),
+        "rlf" => throw new UnsupportedModelFormatException(format, "Relief files keep their heights in a proprietary compressed raster that is not decoded; use ReadMetadata for the dimensions."),
         "off" => OffReader.Read(data, options),
         "amf" => AmfReader.Read(data, options),
-        "las" => Formats.PointCloud.LasReader.Read(data, options),
+        "las" or "laz" => Formats.PointCloud.LasReader.Read(data, options),
         "pcd" => Formats.PointCloud.PcdReader.Read(data, options),
         "xyz" => Formats.PointCloud.XyzReader.Read(data, ModelFormats.Xyz, options),
         "pts" => Formats.PointCloud.XyzReader.Read(data, ModelFormats.Pts, options),
@@ -211,6 +419,7 @@ public static class ModelLoader
     private static T Guard<T>(ReadOnlyMemory<byte> data, string? fileName, LoadOptions? options, Func<FormatInfo, ReadOnlyMemory<byte>, LoadOptions, T> body)
     {
         options ??= new LoadOptions();
+        options.Cancellation.ThrowIfCancellationRequested();
         if (data.Length > options.MaxInputBytes)
         {
             throw new ModelFormatException($"The file is larger than the {options.MaxInputBytes} byte limit.");

@@ -142,7 +142,8 @@ public class SolidWorksTests
         var quick = ModelLoader.ReadMetadata(path);
         var full = ModelLoader.Load(path).Metadata;
 
-        Assert.Equal(full.Statistics!.Triangles, quick.Statistics!.Triangles);
+        // The display lists are not inflated for metadata alone, so there are no counts; everything else is the same.
+        Assert.Null(quick.Statistics);
         Assert.Equal(full.PartNames, quick.PartNames);
         Assert.Equal(full.Properties.Count, quick.Properties.Count);
         Assert.True(quick.HasGeometry);

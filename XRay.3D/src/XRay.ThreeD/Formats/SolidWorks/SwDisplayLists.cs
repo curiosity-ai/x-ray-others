@@ -58,6 +58,9 @@ internal static class SwDisplayLists
         public List<Instance> Instances { get; } = new();
 
         public List<Appearance> Appearances { get; } = new();
+
+        /// <summary>Instance records no stored geometry belongs to (an assembly saved with its components as external files): name and placement only.</summary>
+        public List<Instance> Unplaced { get; } = new();
     }
 
     /// <summary>Finds faces and instances. With <paramref name="useInstances"/> false (a part) everything is one geometry.</summary>
@@ -67,6 +70,14 @@ internal static class SwDisplayLists
         var result = new Result();
         if (faces.Count == 0)
         {
+            if (useInstances)
+            {
+                foreach (var record in FindStringRecords(stream, true).Instances)
+                {
+                    result.Unplaced.Add(new Instance { Name = record.Name, Transform = record.Transform });
+                }
+            }
+
             return result;
         }
 
@@ -111,6 +122,7 @@ internal static class SwDisplayLists
 
             if (current < 0)
             {
+                result.Unplaced.Add(new Instance { Name = instances[i].Name, Transform = instances[i].Transform });
                 continue;
             }
 
@@ -417,7 +429,15 @@ internal static class SwDisplayLists
         }
 
         // Stable order by material so each material is one contiguous index range.
-        var order = Enumerable.Range(0, faces.Count).OrderBy(f => materials[f]).ToArray();
+        var order = new int[faces.Count];
+        var orderKeys = new long[faces.Count];
+        for (var f = 0; f < order.Length; f++)
+        {
+            order[f] = f;
+            orderKeys[f] = ((long)materials[f] << 32) | (uint)f; // unique keys: the unstable sort is then stable in effect
+        }
+
+        Array.Sort(orderKeys, order);
         var positions = new float[vertexTotal * 3];
         var normals = new float[vertexTotal * 3];
         var indices = new uint[indexCounts.Sum()];

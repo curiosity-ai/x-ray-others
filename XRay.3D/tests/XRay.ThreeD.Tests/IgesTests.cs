@@ -78,7 +78,8 @@ public class IgesTests
         Assert.NotNull(meta.Created);
         Assert.Equal(surfaces.ToString(), meta.Properties.Single(p => p.Name.StartsWith("128 ", StringComparison.Ordinal)).Value);
         Assert.Equal("1", meta.Properties.Single(p => p.Name.StartsWith("186 ", StringComparison.Ordinal)).Value);
-        Assert.Contains(model.Warnings, w => w.Contains("not tessellated", StringComparison.Ordinal));
+        Assert.DoesNotContain(model.Warnings, w => w.Contains("not tessellated", StringComparison.Ordinal));
+        Assert.True(model.ComputeStatistics().Triangles > 1000);
         Assert.True(meta.HasGeometry);
         var size = meta.Bounds!.Value.Size;
         Assert.True(size.X > 10 && size.X < 5000 && size.Y > 5 && size.Z > 5);

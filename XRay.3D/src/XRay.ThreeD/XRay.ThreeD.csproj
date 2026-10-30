@@ -21,6 +21,9 @@
     <None Include="../../LICENSE" Pack="true" PackagePath="/" Visible="false" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Formats/Bim/Schemas/*.txt.gz" LogicalName="XRay.ThreeD.Schemas.%(Filename)" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="XRay.ThreeD.Tests" />
   </ItemGroup>
 </Project>

@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Numerics;
 using System.Xml;
 using System.Xml.Linq;
+using XRay.ThreeD.Internal;
 
 namespace XRay.ThreeD.Formats.Mesh;
 
@@ -95,6 +96,62 @@ internal static class ThreeMfReader
             colorGroups[(string?)group.Attribute("id") ?? ""] = list;
         }
 
+        // Materials extension: texture2d (an image part), texture2dgroup (UV coordinates over one image; triangles name three per corner).
+        var texturePaths = new Dictionary<string, XElement>(StringComparer.Ordinal);
+        foreach (var texture in resources.Elements().Where(e => e.Name.LocalName == "texture2d"))
+        {
+            texturePaths[(string?)texture.Attribute("id") ?? ""] = texture;
+        }
+
+        var textureGroups = new Dictionary<string, TextureGroup>(StringComparer.Ordinal);
+        var textureIndex = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var group in resources.Elements().Where(e => e.Name.LocalName == "texture2dgroup"))
+        {
+            var coords = new List<Vector2>();
+            foreach (var c in group.Elements().Where(e => e.Name.LocalName == "tex2coord"))
+            {
+                coords.Add(new Vector2(
+                    float.Parse((string?)c.Attribute("u") ?? "0", CultureInfo.InvariantCulture),
+                    float.Parse((string?)c.Attribute("v") ?? "0", CultureInfo.InvariantCulture)));
+            }
+
+            textureGroups[(string?)group.Attribute("id") ?? ""] = new TextureGroup((string?)group.Attribute("texid") ?? "", coords);
+        }
+
+        int LoadTexture(string id)
+        {
+            if (textureIndex.TryGetValue(id, out var existing))
+            {
+                return existing;
+            }
+
+            var result = -1;
+            if (texturePaths.TryGetValue(id, out var element))
+            {
+                var path = ((string?)element.Attribute("path") ?? "").TrimStart('/');
+                var entry = ZipEntries.Find(zip, path);
+                if (entry is null)
+                {
+                    model.Warnings.Add($"The texture part '{path}' is missing from the package.");
+                }
+                else if (TextureImages.Create(path, ZipEntries.Read(entry, options.MaxInputBytes, options.Cancellation), out var problem, options.Cancellation) is { } created)
+                {
+                    created.WrapU = Tile((string?)element.Attribute("tilestyleu"));
+                    created.WrapV = Tile((string?)element.Attribute("tilestylev"));
+                    created.Nearest = string.Equals((string?)element.Attribute("filter"), "nearest", StringComparison.OrdinalIgnoreCase);
+                    result = model.Textures.Count;
+                    model.Textures.Add(created);
+                }
+                else if (problem is not null)
+                {
+                    model.Warnings.Add(problem);
+                }
+            }
+
+            textureIndex[id] = result;
+            return result;
+        }
+
         var objects = resources.Elements().Where(e => e.Name.LocalName == "object").ToDictionary(e => (string?)e.Attribute("id") ?? "", e => e, StringComparer.Ordinal);
         var materialIds = new Dictionary<(string, int), int>();
         var built = new Dictionary<string, (SceneNode? Template, MeshData? Mesh)>(StringComparer.Ordinal);
@@ -122,7 +179,7 @@ internal static class ThreeMfReader
             if (meshElement is not null)
             {
                 options.Cancellation.ThrowIfCancellationRequested();
-                var mesh = BuildMesh(meshElement, (string?)obj.Attribute("pid"), (string?)obj.Attribute("pindex"), colorGroups, materialIds, model, options, ref triangles);
+                var mesh = BuildMesh(meshElement, (string?)obj.Attribute("pid"), (string?)obj.Attribute("pindex"), colorGroups, textureGroups, LoadTexture, materialIds, model, options, ref triangles);
                 mesh.Name = node.Name;
                 model.Meshes.Add(mesh);
                 node.Mesh = mesh;
@@ -167,6 +224,15 @@ internal static class ThreeMfReader
         return model;
     }
 
+    private sealed record TextureGroup(string TextureId, List<Vector2> Coordinates);
+
+    private static TextureWrap Tile(string? style) => style?.ToLowerInvariant() switch
+    {
+        "clamp" => TextureWrap.ClampToEdge,
+        "mirror" => TextureWrap.MirroredRepeat,
+        _ => TextureWrap.Repeat,
+    };
+
     private static string? FindModelPath(ZipArchive zip)
     {
         var rels = zip.GetEntry("_rels/.rels");
@@ -189,19 +255,26 @@ internal static class ThreeMfReader
         string? pid,
         string? pindex,
         Dictionary<string, List<Vector4>> colorGroups,
+        Dictionary<string, TextureGroup> textureGroups,
+        Func<string, int> loadTexture,
         Dictionary<(string, int), int> materialIds,
         Model3D model,
         LoadOptions options,
         ref long triangleTotal)
     {
         var vertices = mesh.Elements().FirstOrDefault(e => e.Name.LocalName == "vertices")?.Elements().ToList() ?? [];
-        var positions = new float[vertices.Count * 3];
+        var positions = new List<float>(vertices.Count * 3);
         for (var i = 0; i < vertices.Count; i++)
         {
-            positions[3 * i] = float.Parse((string?)vertices[i].Attribute("x") ?? "0", CultureInfo.InvariantCulture);
-            positions[3 * i + 1] = float.Parse((string?)vertices[i].Attribute("y") ?? "0", CultureInfo.InvariantCulture);
-            positions[3 * i + 2] = float.Parse((string?)vertices[i].Attribute("z") ?? "0", CultureInfo.InvariantCulture);
+            positions.Add(float.Parse((string?)vertices[i].Attribute("x") ?? "0", CultureInfo.InvariantCulture));
+            positions.Add(float.Parse((string?)vertices[i].Attribute("y") ?? "0", CultureInfo.InvariantCulture));
+            positions.Add(float.Parse((string?)vertices[i].Attribute("z") ?? "0", CultureInfo.InvariantCulture));
         }
+
+        // A textured corner needs its own vertex per (vertex, coordinate); those are appended after the shared ones.
+        var texCoords = new List<float>(new float[vertices.Count * 2]);
+        var textured = new Dictionary<(int Vertex, string Group, int Coordinate), uint>();
+        var anyTextured = false;
 
         var tris = mesh.Elements().FirstOrDefault(e => e.Name.LocalName == "triangles")?.Elements().ToList() ?? [];
         triangleTotal += tris.Count;
@@ -225,7 +298,50 @@ internal static class ThreeMfReader
             var material = -1;
             var group = (string?)t.Attribute("pid") ?? pid;
             var index = (string?)t.Attribute("p1") ?? pindex;
-            if (group is not null && index is not null && colorGroups.TryGetValue(group, out var colors)
+            var corners = new[] { (uint)v1, (uint)v2, (uint)v3 };
+            if (group is not null && textureGroups.TryGetValue(group, out var uvGroup) && loadTexture(uvGroup.TextureId) is var texture and >= 0)
+            {
+                var vs = new[] { v1, v2, v3 };
+                var ps = new[] { index, (string?)t.Attribute("p2") ?? index, (string?)t.Attribute("p3") ?? index };
+                var ok = true;
+                for (var k = 0; k < 3 && ok; k++)
+                {
+                    if (!int.TryParse(ps[k], NumberStyles.None, CultureInfo.InvariantCulture, out var ci) || ci >= uvGroup.Coordinates.Count)
+                    {
+                        ok = false;
+                        break;
+                    }
+
+                    if (!textured.TryGetValue((vs[k], group, ci), out var copy))
+                    {
+                        copy = (uint)(positions.Count / 3);
+                        textured[(vs[k], group, ci)] = copy;
+                        positions.Add(positions[3 * vs[k]]);
+                        positions.Add(positions[3 * vs[k] + 1]);
+                        positions.Add(positions[3 * vs[k] + 2]);
+                        texCoords.Add(uvGroup.Coordinates[ci].X);
+                        texCoords.Add(1 - uvGroup.Coordinates[ci].Y);
+                    }
+
+                    corners[k] = copy;
+                }
+
+                if (ok)
+                {
+                    anyTextured = true;
+                    if (!materialIds.TryGetValue((group, -1), out material))
+                    {
+                        material = model.Materials.Count;
+                        materialIds[(group, -1)] = material;
+                        model.Materials.Add(new ModelMaterial { Name = $"texture {uvGroup.TextureId}", BaseColor = Vector4.One, BaseColorTexture = new ModelTextureRef(texture) });
+                    }
+                }
+                else
+                {
+                    corners = new[] { (uint)v1, (uint)v2, (uint)v3 };
+                }
+            }
+            else if (group is not null && index is not null && colorGroups.TryGetValue(group, out var colors)
                 && int.TryParse(index, NumberStyles.None, CultureInfo.InvariantCulture, out var ci) && ci < colors.Count)
             {
                 if (!materialIds.TryGetValue((group, ci), out material))
@@ -243,12 +359,17 @@ internal static class ThreeMfReader
                 order.Add(material);
             }
 
-            list.Add((uint)v1);
-            list.Add((uint)v2);
-            list.Add((uint)v3);
+            list.Add(corners[0]);
+            list.Add(corners[1]);
+            list.Add(corners[2]);
         }
 
-        var result = new MeshData { Positions = positions };
+        var result = new MeshData { Positions = positions.ToArray() };
+        if (anyTextured)
+        {
+            result.TexCoords = texCoords.ToArray();
+        }
+
         var indices = new List<uint>();
         foreach (var m in order)
         {

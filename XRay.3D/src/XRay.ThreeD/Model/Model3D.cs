@@ -15,7 +15,40 @@ public sealed class Model3D
 
     public List<ModelMaterial> Materials { get; } = new();
 
+    /// <summary>Images that materials refer to (<see cref="ModelMaterial.BaseColorTexture"/>), as PNG, JPEG or WebP bytes.</summary>
+    public List<ModelTexture> Textures { get; } = new();
+
     public List<ModelLayer> Layers { get; } = new();
+
+    /// <summary>
+    /// True when the content is a drawing rather than a model: planar entities (a DXF with nothing out of its plane, a SolidWorks drawing,
+    /// curve-only IGES). <see cref="SvgWriter"/> writes such a model as SVG; <see cref="GlbWriter"/> stays the output for 3D content.
+    /// </summary>
+    public bool Is2D { get; set; }
+
+    /// <summary>Text drawn in the model's plane (drawings): annotations, dimension text, attributes. Positions are in world space.</summary>
+    public List<ModelText> Texts { get; } = new();
+
+    /// <summary>Filled areas (solid hatches, SOLID entities) of a drawing, in world space.</summary>
+    public List<ModelFill> Fills { get; } = new();
+
+    /// <summary>Raster images placed in the drawing's plane (the sheets of a drawing saved without vector content), drawn behind everything else.</summary>
+    public List<ModelImage> Images { get; } = new();
+
+    /// <summary>Sets <see cref="Is2D"/> when there is something to draw and none of it leaves the XY plane; returns the result.</summary>
+    public bool DetectIs2D()
+    {
+        var any = Texts.Count > 0 || Fills.Count > 0 || Images.Count > 0 || Meshes.Any(m => m.VertexCount > 0);
+        var box = ComputeBounds();
+        var flat = box is not { } b || b.Size.Z <= 1e-6f * Math.Max(Math.Max(b.Size.X, b.Size.Y), 1e-9f);
+        foreach (var fill in Fills)
+        {
+            flat &= fill.Loops.All(l => l.All(p => Math.Abs(p.Z) <= 1e-6f * Math.Max(box?.Size.X ?? 1, 1)));
+        }
+
+        Is2D = any && flat;
+        return Is2D;
+    }
 
     /// <summary>The preview image saved in the file (PNG, BMP or JPEG bytes), when it carries one.</summary>
     public PreviewImage? Preview { get; set; }
@@ -39,7 +72,9 @@ public sealed class Model3D
     }
 
     /// <summary>Counts nodes, meshes and drawn geometry (instances counted per use).</summary>
-    public ModelStatistics ComputeStatistics()
+    public ModelStatistics ComputeStatistics() => ComputeStatisticsCore(CancellationToken.None);
+
+    internal ModelStatistics ComputeStatisticsCore(CancellationToken cancellation)
     {
         long vertices = 0;
         long triangles = 0;
@@ -54,11 +89,17 @@ public sealed class Model3D
             }
         }
 
-        // Area and volume per unique mesh, then scaled by each instance's transform (the determinant scales volumes, area by the
-        // area scale of the linear part; both are exact for similarity transforms and good for the rest).
-        var perMesh = new Dictionary<MeshData, (double Area, double Volume)>(ReferenceEqualityComparer.Instance);
+        // Area and volume per unique mesh (in its own frame), then carried to each instance's world transform. A similarity transform (rotation,
+        // uniform scale, translation) needs no more than the mesh's totals; anything else (a non-uniform scale, a shear: a furniture piece fitted
+        // to a box, a node scaled along one axis) changes every triangle's area by its own factor, so those instances are measured triangle by
+        // triangle (once per distinct matrix of a mesh). The volume of a closed mesh follows from the determinant alone; an open one also depends
+        // on where it sits, which the vector-area term below carries.
+        var perMesh = new Dictionary<MeshData, MeshTotals>(ReferenceEqualityComparer.Instance);
+        var exact = new Dictionary<(MeshData, Matrix4x4), (double Area, double Volume)>();
         double totalArea = 0;
         double totalVolume = 0;
+        double totalSigned = 0;
+        int closedMeshes = 0, openMeshes = 0, insideOutMeshes = 0, openEdges = 0, nonManifoldEdges = 0, inconsistentEdges = 0;
         void Visit(SceneNode node, Matrix4x4 parent)
         {
             var world = node.Transform * parent;
@@ -66,16 +107,35 @@ public sealed class Model3D
             {
                 if (!perMesh.TryGetValue(mesh, out var m))
                 {
-                    m = AreaAndVolume(mesh);
+                    m = Totals(mesh) with { Topology = MeshTopology.Analyze(mesh, MeshTopology.DefaultWeldTolerance, cancellation) };
                     perMesh[mesh] = m;
+                    if (m.Topology.IsSolid)
+                    {
+                        closedMeshes++;
+                    }
+                    else if (m.Topology.IsInsideOut)
+                    {
+                        insideOutMeshes++;
+                    }
+                    else
+                    {
+                        openMeshes++;
+                    }
+
+                    openEdges += m.Topology.OpenEdges;
+                    nonManifoldEdges += m.Topology.NonManifoldEdges;
+                    inconsistentEdges += m.Topology.InconsistentEdges;
                 }
 
-                var det = (double)world.GetDeterminant();
-                var linear = new Matrix4x4(world.M11, world.M12, world.M13, 0, world.M21, world.M22, world.M23, 0, world.M31, world.M32, world.M33, 0, 0, 0, 0, 1);
-                var scale = Math.Pow(Math.Abs(det), 1.0 / 3.0);
-                _ = linear;
-                totalArea += m.Area * scale * scale;
-                totalVolume += m.Volume * det;
+                var (area, volume) = Carry(mesh, m, world, exact);
+                totalArea += area;
+                totalSigned += volume;
+
+                // Only a closed, outward-facing mesh encloses space: the signed sum over an open surface depends on where the origin is.
+                if (m.Topology.IsSolid)
+                {
+                    totalVolume += volume;
+                }
             }
 
             foreach (var child in node.Children)
@@ -93,13 +153,25 @@ public sealed class Model3D
         {
             SurfaceArea = totalArea,
             Volume = totalVolume,
+            SignedVolume = totalSigned,
+            ClosedMeshes = closedMeshes,
+            OpenMeshes = openMeshes,
+            InsideOutMeshes = insideOutMeshes,
+            OpenEdges = openEdges,
+            NonManifoldEdges = nonManifoldEdges,
+            InconsistentEdges = inconsistentEdges,
         };
     }
 
-    private static (double Area, double Volume) AreaAndVolume(MeshData mesh)
+    /// <summary>Area, signed volume about the origin and the sum of the triangles' vector areas of a mesh in its own frame.</summary>
+    private readonly record struct MeshTotals(double Area, double Volume, double Sx, double Sy, double Sz)
     {
-        double area = 0;
-        double volume = 0;
+        public MeshTopology Topology { get; init; }
+    }
+
+    private static MeshTotals Totals(MeshData mesh)
+    {
+        double area = 0, volume = 0, sx = 0, sy = 0, sz = 0;
         var p = mesh.Positions;
         for (var t = 0; t + 2 < mesh.Indices.Length; t += 3)
         {
@@ -110,10 +182,76 @@ public sealed class Model3D
             double ux = bx - ax, uy = by - ay, uz = bz - az, vx = cx - ax, vy = cy - ay, vz = cz - az;
             double nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
             area += 0.5 * Math.Sqrt(nx * nx + ny * ny + nz * nz);
+            sx += 0.5 * nx;
+            sy += 0.5 * ny;
+            sz += 0.5 * nz;
             volume += (ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx)) / 6.0;
         }
 
-        return (area, volume);
+        return new MeshTotals(area, volume, sx, sy, sz);
+    }
+
+    /// <summary>
+    /// Area and volume of one drawn instance. A transform with a negative determinant mirrors the mesh; glTF (and every renderer) then reads the
+    /// triangles' winding the other way, so the solid is drawn with the winding it was meant to have and its volume counts as positive.
+    /// </summary>
+    private static (double Area, double Volume) Carry(MeshData mesh, MeshTotals m, Matrix4x4 w, Dictionary<(MeshData, Matrix4x4), (double Area, double Volume)> exact)
+    {
+        // The linear part's determinant in double: the 4x4 determinant in float loses digits to a large translation.
+        double det = (double)w.M11 * ((double)w.M22 * w.M33 - (double)w.M23 * w.M32)
+            - (double)w.M12 * ((double)w.M21 * w.M33 - (double)w.M23 * w.M31)
+            + (double)w.M13 * ((double)w.M21 * w.M32 - (double)w.M22 * w.M31);
+        if (!double.IsFinite(det) || det == 0)
+        {
+            return (0, 0);
+        }
+
+        // Row-vector convention: the first three rows are the images of the axes. Similarity: they are orthogonal and equally long.
+        double l1 = w.M11 * w.M11 + w.M12 * w.M12 + w.M13 * w.M13;
+        double l2 = w.M21 * w.M21 + w.M22 * w.M22 + w.M23 * w.M23;
+        double l3 = w.M31 * w.M31 + w.M32 * w.M32 + w.M33 * w.M33;
+        double d12 = w.M11 * w.M21 + w.M12 * w.M22 + w.M13 * w.M23;
+        double d13 = w.M11 * w.M31 + w.M12 * w.M32 + w.M13 * w.M33;
+        double d23 = w.M21 * w.M31 + w.M22 * w.M32 + w.M23 * w.M33;
+        var tol = 1e-5 * Math.Max(l1, Math.Max(l2, l3));
+        var similarity = Math.Abs(l1 - l2) <= tol && Math.Abs(l1 - l3) <= tol && Math.Abs(d12) <= tol && Math.Abs(d13) <= tol && Math.Abs(d23) <= tol;
+        var moved = w.M41 != 0 || w.M42 != 0 || w.M43 != 0;
+        var openSurface = Math.Abs(m.Sx) + Math.Abs(m.Sy) + Math.Abs(m.Sz) > 1e-9 * m.Area;
+        if (similarity && !(moved && openSurface))
+        {
+            return (m.Area * l1, Math.Abs(det) * m.Volume);
+        }
+
+        var key = (mesh, w);
+        if (!exact.TryGetValue(key, out var result))
+        {
+            double area = 0, volume = 0;
+            var p = mesh.Positions;
+            for (var t = 0; t + 2 < mesh.Indices.Length; t += 3)
+            {
+                var a = Transform(p, (int)mesh.Indices[t] * 3, w);
+                var b = Transform(p, (int)mesh.Indices[t + 1] * 3, w);
+                var c = Transform(p, (int)mesh.Indices[t + 2] * 3, w);
+                double ux = b.X - a.X, uy = b.Y - a.Y, uz = b.Z - a.Z, vx = c.X - a.X, vy = c.Y - a.Y, vz = c.Z - a.Z;
+                double nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+                area += 0.5 * Math.Sqrt(nx * nx + ny * ny + nz * nz);
+                volume += (a.X * (b.Y * c.Z - b.Z * c.Y) - a.Y * (b.X * c.Z - b.Z * c.X) + a.Z * (b.X * c.Y - b.Y * c.X)) / 6.0;
+            }
+
+            result = (area, det < 0 ? -volume : volume);
+            exact[key] = result;
+        }
+
+        return result;
+    }
+
+    private static (double X, double Y, double Z) Transform(float[] p, int i, Matrix4x4 w)
+    {
+        double x = p[i], y = p[i + 1], z = p[i + 2];
+        return (
+            x * w.M11 + y * w.M21 + z * w.M31 + w.M41,
+            x * w.M12 + y * w.M22 + z * w.M32 + w.M42,
+            x * w.M13 + y * w.M23 + z * w.M33 + w.M43);
     }
 
     /// <summary>Axis-aligned bounds of every mesh under its node's world transform, or null for an empty model.</summary>
@@ -179,8 +317,17 @@ public sealed class MeshData
     /// <summary>x,y,z per vertex, or empty when the file has none.</summary>
     public float[] Normals { get; set; } = [];
 
+    /// <summary>
+    /// u,v per vertex in glTF's convention (the origin is the top left corner of the image, v grows downwards), or empty when the
+    /// file has none. Readers of formats whose origin is the bottom left (OBJ, 3MF) flip v.
+    /// </summary>
+    public float[] TexCoords { get; set; } = [];
+
     /// <summary>r,g,b,a per vertex (0..1, sRGB), or empty when the file has none.</summary>
     public float[] Colors { get; set; } = [];
+
+    /// <summary>For gaussian-splat clouds: the x,y,z extent of each splat's ellipsoid (linear, after the file's log encoding), or empty. Colours carry the splat's colour and opacity (alpha); glTF has no point sizes, so the writer does not use this.</summary>
+    public float[] SplatScales { get; set; } = [];
 
     /// <summary>Three indices per triangle. Empty for a point cloud (the vertices are drawn as points).</summary>
     public uint[] Indices { get; set; } = [];
@@ -201,6 +348,11 @@ public sealed class MeshData
     public List<MeshGroup> Groups { get; } = new();
 
     public int VertexCount => Positions.Length / 3;
+
+    /// <summary>The edge structure of the triangles after welding vertices by position: whether the mesh is closed, how many edges are open or wound against a neighbour, and its signed volume.</summary>
+    public MeshTopology AnalyzeTopology() => MeshTopology.Analyze(this, DefaultWeld, CancellationToken.None);
+
+    private const double DefaultWeld = MeshTopology.DefaultWeldTolerance;
 
     public int TriangleCount => Indices.Length / 3;
 
@@ -233,6 +385,68 @@ public sealed class ModelMaterial
     public float Metallic { get; set; }
 
     public float Roughness { get; set; } = 0.6f;
+
+    /// <summary>The image multiplied with <see cref="BaseColor"/>, drawn with the mesh's <see cref="MeshData.TexCoords"/>; null for a plain colour.</summary>
+    public ModelTextureRef? BaseColorTexture { get; set; }
+
+    /// <summary>A copy that refers to the same texture index; a caller that moves it into another model rebases the index.</summary>
+    public ModelMaterial Clone() => new()
+    {
+        Name = Name,
+        BaseColor = BaseColor,
+        Metallic = Metallic,
+        Roughness = Roughness,
+        BaseColorTexture = BaseColorTexture?.Clone(),
+    };
+}
+
+/// <summary>How a material uses an image: which texture, and the UV transform of <c>KHR_texture_transform</c> (scale, then rotation, then offset).</summary>
+public sealed class ModelTextureRef
+{
+    public ModelTextureRef(int texture)
+    {
+        Texture = texture;
+    }
+
+    /// <summary>Index into <see cref="Model3D.Textures"/>.</summary>
+    public int Texture { get; set; }
+
+    public Vector2 Offset { get; set; }
+
+    /// <summary>Counter-clockwise rotation in radians.</summary>
+    public float Rotation { get; set; }
+
+    public Vector2 Scale { get; set; } = Vector2.One;
+
+    public bool HasTransform => Offset != Vector2.Zero || Rotation != 0 || Scale != Vector2.One;
+
+    public ModelTextureRef Clone() => new(Texture) { Offset = Offset, Rotation = Rotation, Scale = Scale };
+}
+
+/// <summary>How a texture repeats beyond the unit square.</summary>
+public enum TextureWrap
+{
+    Repeat,
+    ClampToEdge,
+    MirroredRepeat,
+}
+
+/// <summary>An image with its sampling: PNG, JPEG or WebP bytes (other raster formats are converted to PNG on read).</summary>
+public sealed class ModelTexture
+{
+    public string? Name { get; set; }
+
+    /// <summary><c>image/png</c>, <c>image/jpeg</c> or <c>image/webp</c>.</summary>
+    public string MediaType { get; set; } = "image/png";
+
+    public byte[] Data { get; set; } = [];
+
+    public TextureWrap WrapU { get; set; }
+
+    public TextureWrap WrapV { get; set; }
+
+    /// <summary>Nearest-neighbour instead of linear filtering.</summary>
+    public bool Nearest { get; set; }
 }
 
 public sealed class ModelLayer
@@ -245,6 +459,59 @@ public sealed class ModelLayer
     public string Name { get; set; }
 
     public bool Visible { get; set; } = true;
+
+    /// <summary>True for a layer the loader made up (one per named part, see <see cref="LoadOptions.SynthesizePartLayers"/>) rather than one the file defines.</summary>
+    public bool Synthesized { get; init; }
+}
+
+/// <summary>A line of text in a drawing: <see cref="Height"/> in model units, <see cref="Rotation"/> in degrees counter-clockwise.</summary>
+public sealed class ModelText
+{
+    public string Text { get; set; } = "";
+
+    public Vector3 Position { get; set; }
+
+    public float Height { get; set; } = 1;
+
+    public float Rotation { get; set; }
+
+    /// <summary>"start", "middle" or "end": which side of the text <see cref="Position"/> is on.</summary>
+    public string Anchor { get; set; } = "start";
+
+    /// <summary>Index into <see cref="Model3D.Layers"/>, or -1.</summary>
+    public int Layer { get; set; } = -1;
+
+    /// <summary>0xRRGGBB, or -1 for the default colour.</summary>
+    public int Rgb { get; set; } = -1;
+}
+
+/// <summary>A filled area: one or more closed loops (even-odd rule, so inner loops are holes).</summary>
+public sealed class ModelFill
+{
+    public List<Vector3[]> Loops { get; } = new();
+
+    public int Layer { get; set; } = -1;
+
+    public int Rgb { get; set; } = -1;
+}
+
+/// <summary>A raster image in a drawing: PNG, JPEG or WebP bytes filling the rectangle from <see cref="Position"/> (its lower left corner) by <see cref="Width"/> and <see cref="Height"/>, in model units.</summary>
+public sealed class ModelImage
+{
+    public string? Name { get; set; }
+
+    public string MediaType { get; set; } = "image/png";
+
+    public byte[] Data { get; set; } = [];
+
+    public Vector3 Position { get; set; }
+
+    public float Width { get; set; } = 1;
+
+    public float Height { get; set; } = 1;
+
+    /// <summary>Index into <see cref="Model3D.Layers"/>, or -1.</summary>
+    public int Layer { get; set; } = -1;
 }
 
 public sealed record PreviewImage(string MediaType, byte[] Data);

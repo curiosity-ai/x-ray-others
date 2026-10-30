@@ -173,6 +173,40 @@ entities = dxf(
     (0, 'ENDSEC'), (0, 'EOF'))
 write('entities.dxf', header + tables + blocks + entities)
 
+# ---- DXF drawing, everything in the XY plane: rotated TEXT, MTEXT, a SOLID quad, a solid HATCH with a hole, a block used twice, a circle.
+drawing_blocks = dxf(
+    (0, 'SECTION'), (2, 'BLOCKS'),
+    (0, 'BLOCK'), (8, '0'), (2, 'SQUARE'), (70, 0), (10, 0.0), (20, 0.0), (30, 0.0), (3, 'SQUARE'),
+    (0, 'LINE'), (8, '0'), (10, 0.0), (20, 0.0), (11, 4.0), (21, 0.0),
+    (0, 'LINE'), (8, '0'), (10, 4.0), (20, 0.0), (11, 4.0), (21, 4.0),
+    (0, 'LINE'), (8, '0'), (10, 4.0), (20, 4.0), (11, 0.0), (21, 4.0),
+    (0, 'LINE'), (8, '0'), (10, 0.0), (20, 4.0), (11, 0.0), (21, 0.0),
+    (0, 'ENDBLK'), (8, '0'),
+    (0, 'ENDSEC'))
+drawing_entities = dxf(
+    (0, 'SECTION'), (2, 'ENTITIES'),
+    (0, 'LINE'), (8, 'WALLS'), (10, 0.0), (20, 0.0), (30, 0.0), (11, 40.0), (21, 0.0), (31, 0.0),
+    (0, 'LINE'), (8, 'WALLS'), (10, 40.0), (20, 0.0), (30, 0.0), (11, 40.0), (21, 25.0), (31, 0.0),
+    (0, 'CIRCLE'), (8, 'WALLS'), (10, 20.0), (20, 12.0), (30, 0.0), (40, 3.0),
+    (0, 'INSERT'), (8, 'WALLS'), (2, 'SQUARE'), (10, 5.0), (20, 5.0), (30, 0.0),
+    (0, 'INSERT'), (8, 'WALLS'), (2, 'SQUARE'), (10, 30.0), (20, 5.0), (30, 0.0), (41, 2.0), (42, 2.0), (43, 1.0), (50, 90.0),
+    (0, 'TEXT'), (100, 'AcDbEntity'), (8, 'NOTES'), (100, 'AcDbText'), (10, 10.0), (20, 20.0), (30, 0.0), (40, 3.0), (1, 'Room 101'), (50, 90.0), (100, 'AcDbText'),
+    (0, 'MTEXT'), (100, 'AcDbEntity'), (8, 'NOTES'), (100, 'AcDbMText'), (10, 30.0), (20, 22.0), (30, 0.0), (40, 2.5), (71, 1), (1, 'Line one\\PLine two'),
+    (0, 'SOLID'), (100, 'AcDbEntity'), (8, 'FILLS'), (62, 3), (100, 'AcDbTrace'), (10, 0.0), (20, 30.0), (30, 0.0), (11, 4.0), (21, 30.0), (31, 0.0), (12, 0.0), (22, 34.0), (32, 0.0), (13, 4.0), (23, 34.0), (33, 0.0),
+    (0, 'HATCH'), (100, 'AcDbEntity'), (8, 'FILLS'), (62, 1), (100, 'AcDbHatch'), (10, 0.0), (20, 0.0), (30, 0.0), (210, 0.0), (220, 0.0), (230, 1.0), (2, 'SOLID'), (70, 1), (71, 0), (91, 2),
+    (92, 7), (72, 0), (73, 1), (93, 4), (10, 10.0), (20, 30.0), (10, 20.0), (20, 30.0), (10, 20.0), (20, 40.0), (10, 10.0), (20, 40.0), (97, 0),
+    (92, 7), (72, 0), (73, 1), (93, 4), (10, 13.0), (20, 33.0), (10, 17.0), (20, 33.0), (10, 17.0), (20, 37.0), (10, 13.0), (20, 37.0), (97, 0),
+    (75, 0), (76, 1), (98, 0),
+    (0, 'ENDSEC'), (0, 'EOF'))
+drawing_tables = dxf(
+    (0, 'SECTION'), (2, 'TABLES'), (0, 'TABLE'), (2, 'LAYER'), (70, 3),
+    (0, 'LAYER'), (2, 'WALLS'), (70, 0), (62, 7), (6, 'CONTINUOUS'),
+    (0, 'LAYER'), (2, 'NOTES'), (70, 0), (62, 5), (6, 'CONTINUOUS'),
+    (0, 'LAYER'), (2, 'FILLS'), (70, 0), (62, 2), (6, 'CONTINUOUS'),
+    (0, 'ENDTAB'), (0, 'ENDSEC'))
+drawing_header = dxf((0, 'SECTION'), (2, 'HEADER'), (9, '$ACADVER'), (1, 'AC1015'), (9, '$INSUNITS'), (70, 4), (0, 'ENDSEC'))
+write('drawing.dxf', drawing_header + drawing_tables + drawing_blocks + drawing_entities)
+
 # ---- point clouds: LAS (written with laspy when available, so an independent writer), PCD in three encodings, XYZ, PTS
 import math
 cloud = [(500000.0 + i * 0.25 % 10, 4000000.0 + (i * 7) % 13 * 0.5, 100.0 + (i % 5) * 1.5) for i in range(200)]
@@ -355,6 +389,9 @@ Shape { appearance Appearance { material Material { diffuseColor 0 0 1 transpare
 Shape { geometry IndexedLineSet { coord Coordinate { point [ %s ] } coordIndex [ 0 1 2 -1 4 5 ] } }
 ''' % (', '.join('%g %g %g' % v for v in V), ', '.join(' '.join(str(i) for i in q) + ' -1' for q in CUBE_QUADS), ', '.join('%g %g %g' % v for v in V))
 write('scene.wrl', vrml)
+
+x3dv = vrml.replace('#VRML V2.0 utf8\n# fixture vrml\n', '#X3D V3.3 utf8\nPROFILE Interchange\nCOMPONENT Geometry3D:2\nMETA "title" "fixture x3dv"\n')
+write('scene.x3dv', x3dv)
 
 # ---- FBX: the same scene as binary 7.4 (32 bit headers, deflated arrays), binary 7.7 (64 bit headers) and ASCII 7.4
 import zlib
@@ -796,3 +833,201 @@ make_zip('home.sh3d', [
                     'f 1 4 3 2\nf 5 6 7 8\nf 1 2 6 5\nf 2 3 7 6\nf 3 4 8 7\nf 4 1 5 8\n'),
     ('0/block.mtl', 'newmtl M\nKd 0.2 0.4 0.6\n'),
 ])
+
+# ---- Textures: a 2 x 2 PNG (red, green / blue, yellow), a 2 x 1 BMP, and the same quad as an OBJ package, a glTF and a 3MF.
+import zlib
+
+def png_rgba(w, h, px):
+    raw = b''.join(b'\0' + bytes(c for p in px[y*w:(y+1)*w] for c in p) for y in range(h))
+    def ch(t, d): return struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d) & 0xffffffff)
+    return b'\x89PNG\r\n\x1a\n' + ch(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 6, 0, 0, 0)) + ch(b'IDAT', zlib.compress(raw, 9)) + ch(b'IEND', b'')
+
+TEX_PNG = png_rgba(2, 2, [(255, 0, 0, 255), (0, 255, 0, 255), (0, 0, 255, 255), (255, 255, 0, 255)])
+
+def bmp24(w, h, rows_top_to_bottom):
+    stride = (w * 3 + 3) // 4 * 4
+    body = b''.join(b''.join(bytes((b, g, r)) for (r, g, b) in row).ljust(stride, b'\0') for row in reversed(rows_top_to_bottom))
+    return b'BM' + struct.pack('<IHHI', 54 + len(body), 0, 0, 54) + struct.pack('<IiiHHIIiiII', 40, w, h, 1, 24, 0, len(body), 2835, 2835, 0, 0) + body
+
+TEX_BMP = bmp24(2, 1, [[(255, 0, 255), (0, 255, 255)]])
+
+# A unit quad in the XY plane, v up: corner (0,0) has uv (0,0), (1,1) has uv (1,1).
+make_zip('package-obj-textured.zip', [
+    ('model/quad.obj', 'mtllib quad.mtl\no quad\nv 0 0 0\nv 1 0 0\nv 1 1 0\nv 0 1 0\nvt 0 0\nvt 1 0\nvt 1 1\nvt 0 1\nvn 0 0 1\n'
+                       'usemtl Checker\nf 1/1/1 2/2/1 3/3/1 4/4/1\n'
+                       'o second\nv 2 0 0\nv 3 0 0\nv 3 1 0\nusemtl Pink\nf 5/1 6/2 7/3\n'),
+    ('model/quad.mtl', 'newmtl Checker\nKd 1 1 1\nmap_Kd -s 2 2 1 -o 0.25 0 0 -clamp on textures\\checker.png\n'
+                       'newmtl Pink\nKd 1 1 1\nmap_Kd textures/pink.bmp\n'),
+    ('model/textures/checker.png', TEX_PNG),
+    ('model/textures/pink.bmp', TEX_BMP),
+])
+
+def gltf_textured():
+    pos = struct.pack('<12f', 0,0,0, 1,0,0, 1,1,0, 0,1,0)
+    uv = struct.pack('<8f', 0,1, 1,1, 1,0, 0,0)
+    idx = struct.pack('<6H', 0,1,2,0,2,3)
+    blob = pos + uv + idx
+    return json.dumps({
+        'asset': {'version': '2.0', 'generator': 'make_fixtures.py'},
+        'scene': 0, 'scenes': [{'nodes': [0]}], 'nodes': [{'name': 'quad', 'mesh': 0}],
+        'meshes': [{'primitives': [{'attributes': {'POSITION': 0, 'TEXCOORD_0': 1}, 'indices': 2, 'material': 0}]}],
+        'materials': [{'name': 'checker', 'pbrMetallicRoughness': {'baseColorTexture': {'index': 0, 'extensions': {'KHR_texture_transform': {'offset': [0.25, 0.5], 'rotation': 0.5, 'scale': [2, 3]}}}, 'metallicFactor': 0}}],
+        'textures': [{'sampler': 0, 'source': 0}],
+        'samplers': [{'magFilter': 9728, 'minFilter': 9728, 'wrapS': 33071, 'wrapT': 33648}],
+        'images': [{'name': 'checker', 'uri': 'data:image/png;base64,' + base64.b64encode(TEX_PNG).decode()}],
+        'extensionsUsed': ['KHR_texture_transform'],
+        'buffers': [{'byteLength': len(blob), 'uri': 'data:application/octet-stream;base64,' + base64.b64encode(blob).decode()}],
+        'bufferViews': [{'buffer': 0, 'byteOffset': 0, 'byteLength': 48}, {'buffer': 0, 'byteOffset': 48, 'byteLength': 32}, {'buffer': 0, 'byteOffset': 80, 'byteLength': 12}],
+        'accessors': [{'bufferView': 0, 'componentType': 5126, 'count': 4, 'type': 'VEC3', 'min': [0,0,0], 'max': [1,1,0]},
+                      {'bufferView': 1, 'componentType': 5126, 'count': 4, 'type': 'VEC2'},
+                      {'bufferView': 2, 'componentType': 5123, 'count': 6, 'type': 'SCALAR'}],
+    }, indent=1, sort_keys=True) + '\n'
+
+write('textured.gltf', gltf_textured())
+
+make_zip('textured.3mf', [
+    ('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/><Default Extension="png" ContentType="image/png"/></Types>'),
+    ('_rels/.rels', '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>'),
+    ('3D/_rels/3dmodel.model.rels', '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/Textures/checker.png" Id="rel1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dtexture"/></Relationships>'),
+    ('3D/Textures/checker.png', TEX_PNG),
+    ('3D/3dmodel.model', '''<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:m="http://schemas.microsoft.com/3dmanufacturing/material/2015/02">
+<resources>
+<m:texture2d id="1" path="/3D/Textures/checker.png" contenttype="image/png" tilestyleu="clamp" tilestylev="mirror"/>
+<m:texture2dgroup id="2" texid="1"><m:tex2coord u="0" v="0"/><m:tex2coord u="1" v="0"/><m:tex2coord u="1" v="1"/><m:tex2coord u="0" v="1"/></m:texture2dgroup>
+<object id="3" type="model" name="textured quad"><mesh>
+<vertices><vertex x="0" y="0" z="0"/><vertex x="10" y="0" z="0"/><vertex x="10" y="10" z="0"/><vertex x="0" y="10" z="0"/></vertices>
+<triangles><triangle v1="0" v2="1" v3="2" pid="2" p1="0" p2="1" p3="2"/><triangle v1="0" v2="2" v3="3" pid="2" p1="0" p2="2" p3="3"/></triangles>
+</mesh></object>
+</resources>
+<build><item objectid="3"/></build>
+</model>
+'''),
+])
+
+# ---- CATIA V5 documents: the V5_CFV2 container with a nested graphical-representation container (see docs/catia-format.md).
+# The layout follows what the sample files show: a 64-byte header, stream bytes, then a directory of named streams (a UTF-16 name behind a
+# length word, a descriptor holding the logical length and the extent list). The tessellation is a cube: 8 coordinates (control bits and
+# scalars), five faces as triangle strips and one as independent triangles, then one colour row per face.
+CATIA_JPEG = bytes.fromhex('ffd8ffe000104a46494600010100000100010000ffdb004300100b0c0e0c0a100e0d0e1211101318281a181616183123251d283a333d3c3933383740485c4e404457453738506d51575f626768673e4d71797064785c656763ffdb0043011112121815182f1a1a2f634238426363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363ffc0001108000c001003011100021101031101ffc4001f0000010501010101010100000000000000000102030405060708090a0bffc400b5100002010303020403050504040000017d01020300041105122131410613516107227114328191a1082342b1c11552d1f02433627282090a161718191a25262728292a3435363738393a434445464748494a535455565758595a636465666768696a737475767778797a838485868788898a92939495969798999aa2a3a4a5a6a7a8a9aab2b3b4b5b6b7b8b9bac2c3c4c5c6c7c8c9cad2d3d4d5d6d7d8d9dae1e2e3e4e5e6e7e8e9eaf1f2f3f4f5f6f7f8f9faffc4001f0100030101010101010101010000000000000102030405060708090a0bffc400b51100020102040403040705040400010277000102031104052131061241510761711322328108144291a1b1c109233352f0156272d10a162434e125f11718191a262728292a35363738393a434445464748494a535455565758595a636465666768696a737475767778797a82838485868788898a92939495969798999aa2a3a4a5a6a7a8a9aab2b3b4b5b6b7b8b9bac2c3c4c5c6c7c8c9cad2d3d4d5d6d7d8d9dae2e3e4e5e6e7e8e9eaf2f3f4f5f6f7f8f9faffda000c03010002110311003f00afff001fbfec6cfc739fff005557fc8b7fbdcdf2dbefee5ffbef95be7bfddd83fe3f7fd8d9f8e73ffeaa3fe45bfdee6f96df7f70ff007df2b7cf7fbbb05fff00cb3fc7fa51947dbf97ea1987d9f9fe817fff002cff001fe94651f6fe5fa8661f67e7fa1fffd9')
+
+def v5_container(streams, kind='outer'):
+    """streams: list of (name, bytes). The bytes are stored back to back after a 64-byte header; the directory follows."""
+    body = bytearray()
+    extents = []
+    for name, data in streams:
+        extents.append((64 + len(body), len(data)))
+        body += data
+    directory = bytearray(b'CATIA_V5 CB0001\0')
+    for (name, data), (off, length) in zip(streams, extents):
+        raw = name.encode('utf-16-le')
+        directory += struct.pack('<H', len(raw) + 2) + raw + b'\0\0\0'
+        descriptor = bytearray(0x50)
+        struct.pack_into('>I', descriptor, 0x0c, length)
+        directory += descriptor + struct.pack('>I', 1) + struct.pack('>5I', off if kind == 'outer' else off, length, length, 0, 0)
+    directory += b'CB__END'
+    dir_offset = 64 + len(body)
+    header = b'V5_CFV2\0' + struct.pack('>II', dir_offset if kind == 'outer' else dir_offset, len(directory)) + b'\xff' * 8 + b'\0' * 32 + b'\0' * 8
+    return bytes(header) + bytes(body) + bytes(directory)
+
+def v5_count(n):
+    return bytes([n]) if n < 255 else b'\xff' + struct.pack('<I', n)
+
+def v5_positions(rows):
+    """The coordinate table: 0xffff020001, n, secondary count, four flag bytes, control bits, the scalar count and the scalars."""
+    ctrl = bytearray((len(rows) + 3) // 4)
+    scalars = []
+    prev = (0.0, 0.0, 0.0)
+    for i, r in enumerate(rows):
+        if i and r == prev: code = 1
+        elif i and r[:2] == prev[:2]: code = 2; scalars.append(r[2])
+        elif i and r[0] == prev[0]: code = 3; scalars += [r[1], r[2]]
+        else: code = 0; scalars += list(r)
+        ctrl[i // 4] |= code << ((i % 4) * 2)
+        prev = r
+    return b'\xff\xff\x02\x00\x01' + v5_count(len(rows)) + v5_count(len(rows)) + b'\0\0\0\0' + bytes(ctrl) + v5_count(len(scalars)) + struct.pack('<%df' % len(scalars), *scalars)
+
+def v5_name_catalog(*names):
+    return b''.join(bytes([len(n) + 1]) + n.encode() for n in names)
+
+def v5_property(name, value):
+    return struct.pack('<H', len(name)) + name.encode() + struct.pack('<II', 0x0e, len(value)) + value.encode()
+
+def v5_properties(version, release, sp, build):
+    last = '<Version>%d/<Version><Release>%d/<Release><ServicePack>%d/<ServicePack><BuildDate>%s/<BuildDate><HotFix>0/<HotFix>' % (version, release, sp, build)
+    return (b'\x01\x01\x00\x03\x00\x00\x00' + struct.pack('<H', 21) + b'CATSummaryInformation' + b'\x07\0\0\0'
+            + v5_property('LastSaveVersion', last) + v5_property('MinimalVersionToRead', 'CATIAV5R%d' % release)
+            + v5_property('CATBuildLevel', build) + v5_property('CATPDMPersistence', 'File'))
+
+def v5_links(*entries):
+    """CATDocumentProperty: octet arrays (0x22, count, every byte as 3b 01 byte) holding file links."""
+    out = bytearray(b'\x34\x13CATDocumentProperty\x80\x01\0\0\0\0')
+    for kind, path in entries:
+        raw = b'\x01o\0\0\0\0\rGenericLocate`\0\0\0\x05DocIdX\0\x01\x04File' + bytes([len(kind)]) + kind.encode() + struct.pack('<H', len(path)) + path.encode()
+        out += b'\x22' + struct.pack('<I', len(raw)) + b''.join(b'\x3b\x01' + bytes([c]) for c in raw) + b'\x9f'
+    return bytes(out)
+
+CUBE = [(0,0,0),(10,0,0),(10,10,0),(0,10,0),(0,0,10),(10,0,10),(10,10,10),(0,10,10)]
+CUBE_FACES = [(0,3,1,2),(4,5,7,6),(0,1,4,5),(1,2,5,6),(2,3,6,7)]   # strips: p0, p1, p3, p2 of a quad that is counter-clockwise from outside
+CUBE_COLOURS = [(255,0,0,255),(0,255,0,255),(0,0,255,255),(255,255,0,255),(0,255,255,255),(210,210,255,255)]
+
+def v5_cube_stream():
+    out = bytearray(b'\0' * 40) + v5_positions([tuple(float(c) for c in v) for v in CUBE])
+    out += bytes(24)                                          # an array the reader does not interpret
+    for strip in CUBE_FACES:
+        out += b'\x01\x42' + v5_count(1) + b'\xff' + struct.pack('<I', 4) + v5_count(4) + bytes(strip)
+    out += b'\x01\x41' + v5_count(2) + b'\xff' + struct.pack('<I', 6) + bytes([0,4,7, 0,7,3])   # two independent triangles: the face at x = 0
+    for r, g, b, a in CUBE_COLOURS:
+        out += bytes([0x30, 0x04, 0x04, 0xff, a, b, g, r])
+    return bytes(out)
+
+def v5_nested(streams):
+    # the nested container starts with its own magic; offsets in its directory are relative to that magic
+    body = bytearray()
+    exts = []
+    for name, data in streams:
+        exts.append((64 + len(body), len(data)))
+        body += data
+    directory = bytearray(b'CATIA_V5 CB0001\0')
+    for (name, data), (off, length) in zip(streams, exts):
+        raw = name.encode('utf-16-le')
+        directory += struct.pack('<H', len(raw) + 2) + raw + b'\0\0\0'
+        descriptor = bytearray(0x50)
+        struct.pack_into('>I', descriptor, 0x0c, length)
+        directory += descriptor + struct.pack('>I', 1) + struct.pack('>5I', off, length, length, 0, 0)
+    directory += b'CB__END'
+    return b'V5_CFV2\0' + struct.pack('>II', 64 + len(body), len(directory)) + b'\xff' * 8 + b'\0' * 32 + b'\0' * 8 + bytes(body) + bytes(directory)
+
+def catia_part(name, part, version, release, sp, build, colours=True):
+    inner = v5_nested([('MAIN', b'\0' * 9), ('MainDataStream', b'\0' * 19), ('MainDataStream', v5_cube_stream()), ('SurfacicReps', b'\0' * 32)])
+    return v5_container([
+        ('Format', bytes(24)),
+        ('Data', b'\0' * 8 + b'CATPrtCont\0CATProdCont\0CATFeatCont\0'),
+        ('BCont_synthetic_0001', v5_name_catalog('ASMPRODUCT', name, '_ViewsList', '_Connectors', '_PartNumber', '_Nomenclature', 'Synthetic cube', '_BagRepsList', 'MechanicalPart', part, '_PartProperties')),
+        ('CATStorageProperty', b'\0' * 8 + b'CATIA\0CATPrtCont\0'),
+        ('CATCGRStream_0001', inner),
+        ('CATStorageProperty', b'\0' * 8 + b'CATIA\0CATCGRCont\0'),
+        ('CATDocumentProperty', v5_links(('CATPart', 'C:\\Models\\%s.CATPart' % name), ('CATPart', 'C:\\Models\\Fastener.CATPart'))),
+        ('CATPropertySets', v5_properties(5, release, sp, build)),
+        ('CATPreview', bytes(4) + CATIA_JPEG),
+    ])
+
+write('catia-cube.CATPart', catia_part('Cube', 'Part1', 5, 21, 0, '04-14-2011.20.00'))
+write('catia-cube-r32.CATPart', catia_part('Cube32', 'Part2', 5, 32, 1, '04-11-2022.03.00'))
+
+write('catia-assembly.CATProduct', v5_container([
+    ('Format', bytes(24)),
+    ('Data', b'\0' * 8 + b'CATMechProdCont\0CATProdCont\0CATFeatCont\0' + v5_name_catalog('ASMPRODUCT', 'Gearbox', 'CATMechProdCont', '_ViewsList', '_Connectors', '_RepresentedBy', '_Component', '_PartNumber', '_BagRepsList', '_PrdVersion', '_Reps', 'Cube', '_InstanceName', 'Cube.1', '_Position', 'Fastener', 'Fastener.1', 'Fastener.2', 'CONNECTOR', '_ShapeConnector')),
+    ('CATStorageProperty', b'\0' * 8 + b'CATIA\0CATMechProdCont\0'),
+    ('CATDocumentProperty', v5_links(('CATProduct', 'D:\\Work\\Gearbox.CATProduct'), ('CATPart', 'D:\\Work\\Cube.CATPart'), ('CATPart', 'D:\\Work\\Fastener.CATPart'), ('STL', 'D:\\Work\\scan.stl'), ('feat', 'Literals.feat'))),
+    ('CATPropertySets', v5_properties(5, 24, 0, '01-15-2014.20.00')),
+    ('CATPreview', bytes(4) + CATIA_JPEG),
+]))
+
+write('catia-drawing.CATDrawing', v5_container([
+    ('Format', bytes(24)),
+    ('Data', b'\0' * 8 + b'CATStdCont\0CATDrwCont\0'),
+    ('CATStorageProperty', b'\0' * 8 + b'CATIA\0CATDrwCont\0'),
+    ('CATPropertySets', v5_properties(5, 21, 0, '04-14-2011.20.00')),
+    ('CATPreview', bytes(4) + CATIA_JPEG),
+]))

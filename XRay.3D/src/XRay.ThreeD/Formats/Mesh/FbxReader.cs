@@ -6,6 +6,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.Mesh;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>
 /// Autodesk FBX, binary (versions 6100 to 7700, 32 and 64 bit record headers, deflated arrays) and ASCII. Reads the object
 /// graph: Model nodes with local transforms (translation, pre/post rotation, rotation order, scaling), Geometry meshes (polygons,
@@ -122,8 +124,10 @@ internal static class FbxReader
 
         var node = new FbxNode { Name = Encoding.UTF8.GetString(s.Slice(position + headerSize, nameLength)) };
         var cursor = new Cursor { P = propStart };
+        var tick125 = 0L;
         for (long i = 0; i < numProps; i++)
         {
+            Cancel.Every(options.Cancellation, tick125++);
             node.Props.Add(ReadProperty(s, cursor, (int)(propStart + propsLength)));
         }
 
@@ -448,15 +452,9 @@ internal static class FbxReader
             }
         }
 
-        meta.Units = unitScale switch
-        {
-            1.0 => LengthUnit.Centimeter,
-            100.0 => LengthUnit.Meter,
-            0.1 => LengthUnit.Millimeter,
-            2.54 => LengthUnit.Inch,
-            30.48 => LengthUnit.Foot,
-            _ => LengthUnit.Centimeter,
-        };
+        // UnitScaleFactor is the size of one unit in centimetres (the default, 1, is centimetres; 100 is metres, 2.54 inches).
+        meta.Units = LengthUnit.Centimeter;
+        var fbxMetersPerUnit = unitScale > 0 && double.IsFinite(unitScale) ? unitScale * 0.01 : 0.01;
 
         var objects = root.Child("Objects");
         if (objects is null)
@@ -601,6 +599,7 @@ internal static class FbxReader
         meta.PartNames.AddRange(model.Nodes().Where(n => n.Mesh is not null && !string.IsNullOrEmpty(n.Name)).Select(n => n.Name!));
         meta.MaterialNames.AddRange(model.Materials.Select(m => m.Name!).Where(n => !string.IsNullOrEmpty(n)));
         meta.HasGeometry = true;
+        UnitScaling.Apply(model, fbxMetersPerUnit);
         meta.Statistics = model.ComputeStatistics();
         meta.Bounds = model.ComputeBounds();
         return model;

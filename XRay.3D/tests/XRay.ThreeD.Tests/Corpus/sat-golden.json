@@ -1,0 +1,65 @@
+{
+ "nist-arm-blank.sat": {
+  "unsupported": "IndexError: list index out of range"
+ },
+ "box-700.sab": {
+  "bodies": 1,
+  "faces": 6,
+  "vertices": 8,
+  "volume": 8000.0,
+  "area": 2800.0,
+  "min": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "max": [
+   40.0,
+   20.0,
+   10.0
+  ]
+ },
+ "box-700.sat": {
+  "bodies": 1,
+  "faces": 6,
+  "vertices": 8,
+  "volume": 8000.0,
+  "area": 2800.0,
+  "min": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "max": [
+   40.0,
+   20.0,
+   10.0
+  ]
+ },
+ "cylinder-400.sat": {
+  "unsupported": "IndexError: list index out of range"
+ },
+ "hexprism-700.sat": {
+  "bodies": 1,
+  "faces": 8,
+  "vertices": 12,
+  "volume": 519.6156,
+  "area": 369.903983,
+  "min": [
+   -5.0,
+   -4.33013,
+   0.0
+  ],
+  "max": [
+   5.0,
+   4.33013,
+   8.0
+  ]
+ },
+ "sphere-400.sat": {
+  "unsupported": "ValueError: zero-size array to reduction operation minimum which has no identity"
+ },
+ "torus-400.sat": {
+  "unsupported": "ValueError: zero-size array to reduction operation minimum which has no identity"
+ }
+}

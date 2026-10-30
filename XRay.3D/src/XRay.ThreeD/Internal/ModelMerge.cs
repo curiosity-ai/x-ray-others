@@ -36,7 +36,19 @@ internal static class ModelMerge
     {
         var materialOffset = target.Materials.Count;
         var layerOffset = target.Layers.Count;
-        target.Materials.AddRange(source.Materials);
+        var textureOffset = target.Textures.Count;
+        target.Textures.AddRange(source.Textures);
+        foreach (var material in source.Materials)
+        {
+            if (textureOffset > 0 && material.BaseColorTexture is { } texture)
+            {
+                material.BaseColorTexture = texture.Clone();
+                material.BaseColorTexture.Texture += textureOffset;
+            }
+
+            target.Materials.Add(material);
+        }
+
         target.Layers.AddRange(source.Layers);
         target.Metadata.LayerNames.AddRange(source.Layers.Select(l => l.Name));
         target.Meshes.AddRange(source.Meshes);
@@ -61,6 +73,36 @@ internal static class ModelMerge
                 node.Layer += layerOffset;
             }
         }
+    }
+
+    /// <summary>
+    /// Adds a copy of <paramref name="source"/>'s material to <paramref name="target"/>, with the texture it uses (an image already copied for an
+    /// earlier material is reused through <paramref name="copiedTextures"/>). Returns the material's index in the target.
+    /// </summary>
+    public static int CopyMaterial(Model3D target, Model3D source, int materialIndex, Dictionary<int, int> copiedTextures)
+    {
+        var material = source.Materials[materialIndex].Clone();
+        if (material.BaseColorTexture is { } reference)
+        {
+            if (reference.Texture < 0 || reference.Texture >= source.Textures.Count)
+            {
+                material.BaseColorTexture = null;
+            }
+            else
+            {
+                if (!copiedTextures.TryGetValue(reference.Texture, out var copied))
+                {
+                    copied = target.Textures.Count;
+                    copiedTextures[reference.Texture] = copied;
+                    target.Textures.Add(source.Textures[reference.Texture]);
+                }
+
+                reference.Texture = copied;
+            }
+        }
+
+        target.Materials.Add(material);
+        return target.Materials.Count - 1;
     }
 
     /// <summary>A copy of a node and its descendants that shares the meshes (properties are copied, the layer is kept).</summary>

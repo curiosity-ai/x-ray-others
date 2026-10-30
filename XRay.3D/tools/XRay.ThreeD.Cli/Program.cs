@@ -25,7 +25,7 @@ try
             return 0;
         case "info" when args.Length >= 2:
             {
-                var meta = ModelLoader.ReadMetadata(args[1]);
+                var meta = ModelLoader.ReadMetadata(args[1], Loose(args[1]));
                 if (args.Contains("--json"))
                 {
                     Console.WriteLine(JsonSerializer.Serialize(Summary(meta), new JsonSerializerOptions { WriteIndented = true }));
@@ -40,7 +40,7 @@ try
 
         case "package" when args.Length >= 3:
             {
-                var model = ModelLoader.Load(args[1]);
+                var model = ModelLoader.Load(args[1], Loose(args[1]));
                 var glb = new GlbWriteOptions();
                 if (Option(args, "--compress") is { } c)
                 {
@@ -63,9 +63,17 @@ try
 
         case "convert" when args.Length >= 2:
             {
-                var model = ModelLoader.Load(args[1]);
+                var model = ModelLoader.Load(args[1], Loose(args[1]));
                 var positional = args.Skip(2).TakeWhile(a => !a.StartsWith("--", StringComparison.Ordinal)).ToList();
-                var output = positional.Count > 0 ? positional[0] : Path.ChangeExtension(args[1], ".glb");
+                var output = positional.Count > 0 ? positional[0] : Path.ChangeExtension(args[1], model.Is2D ? ".svg" : ".glb");
+                if (output.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Drawings (DXF, ...) can be written as SVG; --flat draws the top view of a 3D model.
+                    File.WriteAllText(output, SvgWriter.ToString(model, new SvgWriteOptions { ProjectFlat = args.Contains("--flat") }));
+                    Console.WriteLine($"{output}: {model.Texts.Count} texts, {model.Fills.Count} fills");
+                    return 0;
+                }
+
                 var options = new GlbWriteOptions();
                 if (Option(args, "--compress") is { } compress)
                 {
@@ -81,7 +89,7 @@ try
                 Console.WriteLine($"{output}: {model.Metadata.Statistics?.Triangles:N0} triangles, {model.Meshes.Count} meshes, {model.Nodes().Count()} nodes");
                 if (model.Metadata.Statistics is { SurfaceArea: > 0 } stats)
                 {
-                    Console.WriteLine($"area {stats.SurfaceArea:F3}, volume {stats.Volume:F3}");
+                    Console.WriteLine($"area {Figure(stats.SurfaceArea)}, volume {Figure(stats.Volume)}{(stats.OpenMeshes > 0 ? $" ({stats.OpenMeshes} open mesh(es) with {stats.OpenEdges} open edges are not counted)" : "")}");
                 }
                 foreach (var w in model.Warnings)
                 {
@@ -135,7 +143,7 @@ static void Print(ModelMetadata m)
     Console.WriteLine($"Geometry:     {(m.HasGeometry ? "yes" : "no")}  {m.Statistics}");
     if (m.Statistics is { SurfaceArea: > 0 } stats)
     {
-        Console.WriteLine($"Area/volume:  {stats.SurfaceArea:F3} / {stats.Volume:F3}");
+        Console.WriteLine($"Area/volume:  {Figure(stats.SurfaceArea)} / {Figure(stats.Volume)}  (closed meshes {stats.ClosedMeshes}, open {stats.OpenMeshes}, inside out {stats.InsideOutMeshes})");
     }
 
     if (m.Bounds is { } box)
@@ -171,4 +179,31 @@ static void PrintList(string title, List<string> items)
     {
         Console.WriteLine("  " + i);
     }
+}
+
+// Six significant digits in fixed notation (scripts parse it): a part of a few square centimetres in meters is 0.005 with three decimals, which is
+// not enough to compare against.
+static string Figure(double v)
+{
+    if (v == 0 || !double.IsFinite(v))
+    {
+        return "0.000";
+    }
+
+    var decimals = Math.Clamp(5 - (int)Math.Floor(Math.Log10(Math.Abs(v))), 3, 15);
+    return v.ToString("F" + decimals, System.Globalization.CultureInfo.InvariantCulture);
+}
+
+// Companion files of a loose model (an OBJ's MTL and textures): looked up under the model's own folder, never outside it.
+static LoadOptions Loose(string modelPath)
+{
+    var root = Path.GetFullPath(Path.GetDirectoryName(Path.GetFullPath(modelPath)) ?? ".");
+    return new LoadOptions
+    {
+        ResolveCompanion = name =>
+        {
+            var full = Path.GetFullPath(Path.Combine(root, name.Replace('\\', '/')));
+            return full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal) && File.Exists(full) ? File.ReadAllBytes(full) : null;
+        },
+    };
 }

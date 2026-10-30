@@ -4,6 +4,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.Mesh;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>
 /// Autodesk 3D Studio (.3ds): named objects with vertices, triangle faces, per-face materials and (when present) texture coordinates
 /// (ignored), material diffuse colours, the master scale. Vertices are stored in world space, so the objects are siblings; the
@@ -113,8 +115,10 @@ internal static class Max3dsReader
                                                 }
 
                                                 mesh.Positions = new float[count * 3];
+                                                var tick116 = 0L;
                                                 for (var i = 0; i < count * 3; i++)
                                                 {
+                                                    Cancel.Every(options.Cancellation, tick116++);
                                                     mesh.Positions[i] = BinaryPrimitives.ReadSingleLittleEndian(s.AsSpan((mbody + 2 + 4 * i)));
                                                 }
 
@@ -136,8 +140,10 @@ internal static class Max3dsReader
                                                 }
 
                                                 mesh.Indices = new uint[count * 3];
+                                                var tick139 = 0L;
                                                 for (var i = 0; i < count; i++)
                                                 {
+                                                    Cancel.Every(options.Cancellation, tick139++);
                                                     for (var k = 0; k < 3; k++)
                                                     {
                                                         mesh.Indices[3 * i + k] = BinaryPrimitives.ReadUInt16LittleEndian(s.AsSpan((mbody + 2 + 8 * i + 2 * k)));

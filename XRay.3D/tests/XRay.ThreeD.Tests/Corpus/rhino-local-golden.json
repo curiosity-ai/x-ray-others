@@ -1,0 +1,1823 @@
+{
+ "blocks.3dm": {
+  "version": 80,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 2,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "67bfd040-c5c5-4493-9b0e-8061b7d8c488",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 01",
+    "index": 1,
+    "visible": true,
+    "locked": false,
+    "color": [
+     200,
+     0,
+     0,
+     255
+    ],
+    "id": "7173a954-412b-4606-b14c-c2bdb579af98",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 02",
+    "index": 2,
+    "visible": true,
+    "locked": false,
+    "color": [
+     125,
+     38,
+     205,
+     255
+    ],
+    "id": "a6adc9c5-7df7-4740-a8d5-7ef7545490fe",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 03",
+    "index": 3,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     255,
+     255
+    ],
+    "id": "36831b5f-2273-423a-8ca9-6bc345543400",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 04",
+    "index": 4,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     127,
+     0,
+     255
+    ],
+    "id": "c96883e2-362f-4335-a61c-8ea92714f43d",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 05",
+    "index": 5,
+    "visible": true,
+    "locked": false,
+    "color": [
+     255,
+     255,
+     255,
+     255
+    ],
+    "id": "b3792994-e174-4615-a6e5-94f94b83c2de",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [
+   {
+    "id": "388f436f-d108-4b1a-9a98-bc48f9593dc4",
+    "name": "Block 01",
+    "description": "",
+    "members": 4
+   }
+  ],
+  "objects": [
+   {
+    "kind": "NurbsCurve",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.InstanceDefinitionObject",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {
+     "$block-instance-original-object-id$": "6ec7a239-8a55-4ce1-ba6a-240bc0a7c820"
+    },
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "Brep",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.InstanceDefinitionObject",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {
+     "$block-instance-original-object-id$": "0d5f830d-1aad-4156-a946-2c0f36b59686"
+    },
+    "points": 0,
+    "box": null,
+    "renderTriangles": 0,
+    "renderVertices": 0
+   },
+   {
+    "kind": "Extrusion",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.InstanceDefinitionObject",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {
+     "$block-instance-original-object-id$": "180bcfb6-2879-412c-8851-7c21ad4e1f44"
+    },
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "Extrusion",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.InstanceDefinitionObject",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {
+     "$block-instance-original-object-id$": "4025ca24-bff4-471a-91bd-5127265a1630"
+    },
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "InstanceReference",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "block": "388f436f-d108-4b1a-9a98-bc48f9593dc4",
+    "xform": [
+     1.0,
+     0.0,
+     0.0,
+     -78.830084,
+     0.0,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "kind": "InstanceReference",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "block": "388f436f-d108-4b1a-9a98-bc48f9593dc4",
+    "xform": [
+     1.0,
+     0.0,
+     0.0,
+     42.298874,
+     0.0,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  ]
+ },
+ "file3dm_stuff.3dm": {
+  "version": 80,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 6,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "67bfd040-c5c5-4493-9b0e-8061b7d8c488",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Extrusions",
+    "index": 1,
+    "visible": true,
+    "locked": false,
+    "color": [
+     200,
+     0,
+     0,
+     255
+    ],
+    "id": "7173a954-412b-4606-b14c-c2bdb579af98",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Curves",
+    "index": 2,
+    "visible": true,
+    "locked": false,
+    "color": [
+     125,
+     38,
+     205,
+     255
+    ],
+    "id": "a6adc9c5-7df7-4740-a8d5-7ef7545490fe",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Breps",
+    "index": 3,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     255,
+     255
+    ],
+    "id": "36831b5f-2273-423a-8ca9-6bc345543400",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Points",
+    "index": 4,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     127,
+     0,
+     255
+    ],
+    "id": "c96883e2-362f-4335-a61c-8ea92714f43d",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 05",
+    "index": 5,
+    "visible": true,
+    "locked": false,
+    "color": [
+     255,
+     255,
+     255,
+     255
+    ],
+    "id": "b3792994-e174-4615-a6e5-94f94b83c2de",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [
+   {
+    "name": "Metal",
+    "diffuse": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "transparency": 0.0,
+    "shine": 216.75
+   },
+   {
+    "name": "hops",
+    "diffuse": [
+     255,
+     255,
+     255,
+     255
+    ],
+    "transparency": 0.0,
+    "shine": 0.0
+   }
+  ],
+  "blocks": [
+   {
+    "id": "a6a736ea-89f8-4d26-badc-d7556278f055",
+    "name": "Block 01",
+    "description": "",
+    "members": 3
+   }
+  ],
+  "objects": [
+   {
+    "kind": "Extrusion",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.InstanceDefinitionObject",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {
+     "$block-instance-original-object-id$": "9034b75d-125c-4fbc-85d9-73fcdfbb5877"
+    },
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "Brep",
+    "name": "",
+    "layer": 3,
+    "mode": "ObjectMode.InstanceDefinitionObject",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {
+     "$block-instance-original-object-id$": "0f4e288d-83a4-4413-b48b-8d7883946f79"
+    },
+    "points": 0,
+    "box": null,
+    "renderTriangles": 0,
+    "renderVertices": 0
+   },
+   {
+    "kind": "Brep",
+    "name": "",
+    "layer": 3,
+    "mode": "ObjectMode.InstanceDefinitionObject",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {
+     "$block-instance-original-object-id$": "e57c662d-8b14-448e-97af-50cddfbd0ec3"
+    },
+    "points": 0,
+    "box": null,
+    "renderTriangles": 0,
+    "renderVertices": 0
+   },
+   {
+    "kind": "Extrusion",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 2,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 6,
+    "box": [
+     -5.2121,
+     34.0572,
+     0.0,
+     26.9111,
+     64.6082,
+     0.0
+    ]
+   },
+   {
+    "kind": "Extrusion",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": 0,
+    "materialSource": "ObjectMaterialSource.MaterialFromObject",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "ArcCurve",
+    "name": "",
+    "layer": 2,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": [
+     -50.6434,
+     36.3294,
+     0.0,
+     -17.4298,
+     69.543,
+     0.0
+    ]
+   },
+   {
+    "kind": "NurbsCurve",
+    "name": "",
+    "layer": 2,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "Brep",
+    "name": "",
+    "layer": 3,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null,
+    "renderTriangles": 0,
+    "renderVertices": 0
+   },
+   {
+    "kind": "Brep",
+    "name": "",
+    "layer": 3,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null,
+    "renderTriangles": 0,
+    "renderVertices": 0
+   },
+   {
+    "kind": "Point",
+    "name": "",
+    "layer": 4,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 1,
+    "box": [
+     -37.2739,
+     134.2818,
+     0.0,
+     -37.2739,
+     134.2818,
+     0.0
+    ]
+   },
+   {
+    "kind": "Point",
+    "name": "",
+    "layer": 4,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 1,
+    "box": [
+     4.148,
+     123.9126,
+     0.0,
+     4.148,
+     123.9126,
+     0.0
+    ]
+   },
+   {
+    "kind": "Point",
+    "name": "",
+    "layer": 4,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 1,
+    "box": [
+     -28.4984,
+     111.0071,
+     0.0,
+     -28.4984,
+     111.0071,
+     0.0
+    ]
+   },
+   {
+    "kind": "Point",
+    "name": "",
+    "layer": 4,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 1,
+    "box": [
+     39.0578,
+     115.7856,
+     0.0,
+     39.0578,
+     115.7856,
+     0.0
+    ]
+   },
+   {
+    "kind": "Point",
+    "name": "",
+    "layer": 4,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 1,
+    "box": [
+     25.5015,
+     162.8627,
+     0.0,
+     25.5015,
+     162.8627,
+     0.0
+    ]
+   },
+   {
+    "kind": "Point",
+    "name": "",
+    "layer": 4,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 1,
+    "box": [
+     -21.5848,
+     153.5308,
+     0.0,
+     -21.5848,
+     153.5308,
+     0.0
+    ]
+   },
+   {
+    "kind": "Point",
+    "name": "",
+    "layer": 4,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 1,
+    "box": [
+     6.2842,
+     145.7381,
+     0.0,
+     6.2842,
+     145.7381,
+     0.0
+    ]
+   },
+   {
+    "kind": "Point",
+    "name": "",
+    "layer": 4,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 1,
+    "box": [
+     -0.999,
+     181.5166,
+     0.0,
+     -0.999,
+     181.5166,
+     0.0
+    ]
+   },
+   {
+    "kind": "PointCloud",
+    "name": "",
+    "layer": 4,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 8,
+    "box": [
+     82.3543,
+     111.0071,
+     0.0,
+     158.6861,
+     181.5166,
+     0.0
+    ]
+   },
+   {
+    "kind": "Brep",
+    "name": "hops.png",
+    "layer": 4,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": 1,
+    "materialSource": "ObjectMaterialSource.MaterialFromObject",
+    "userStrings": {},
+    "points": 0,
+    "box": null,
+    "renderTriangles": 2,
+    "renderVertices": 4
+   },
+   {
+    "kind": "InstanceReference",
+    "name": "",
+    "layer": 4,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "block": "a6a736ea-89f8-4d26-badc-d7556278f055",
+    "xform": [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "kind": "InstanceReference",
+    "name": "",
+    "layer": 4,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "block": "a6a736ea-89f8-4d26-badc-d7556278f055",
+    "xform": [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     -190.716486,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  ]
+ },
+ "groups.3dm": {
+  "version": 80,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 2,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "67bfd040-c5c5-4493-9b0e-8061b7d8c488",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 01",
+    "index": 1,
+    "visible": true,
+    "locked": false,
+    "color": [
+     200,
+     0,
+     0,
+     255
+    ],
+    "id": "7173a954-412b-4606-b14c-c2bdb579af98",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 02",
+    "index": 2,
+    "visible": true,
+    "locked": false,
+    "color": [
+     125,
+     38,
+     205,
+     255
+    ],
+    "id": "a6adc9c5-7df7-4740-a8d5-7ef7545490fe",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 03",
+    "index": 3,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     255,
+     255
+    ],
+    "id": "36831b5f-2273-423a-8ca9-6bc345543400",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 04",
+    "index": 4,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     127,
+     0,
+     255
+    ],
+    "id": "c96883e2-362f-4335-a61c-8ea92714f43d",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 05",
+    "index": 5,
+    "visible": true,
+    "locked": false,
+    "color": [
+     255,
+     255,
+     255,
+     255
+    ],
+    "id": "b3792994-e174-4615-a6e5-94f94b83c2de",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "Extrusion",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "Extrusion",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "Extrusion",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "Extrusion",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "Extrusion",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "Brep",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null,
+    "renderTriangles": 0,
+    "renderVertices": 0
+   }
+  ]
+ },
+ "light.3dm": {
+  "version": 80,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 2,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "67bfd040-c5c5-4493-9b0e-8061b7d8c488",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 01",
+    "index": 1,
+    "visible": true,
+    "locked": false,
+    "color": [
+     200,
+     0,
+     0,
+     255
+    ],
+    "id": "7173a954-412b-4606-b14c-c2bdb579af98",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 02",
+    "index": 2,
+    "visible": true,
+    "locked": false,
+    "color": [
+     125,
+     38,
+     205,
+     255
+    ],
+    "id": "a6adc9c5-7df7-4740-a8d5-7ef7545490fe",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 03",
+    "index": 3,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     255,
+     255
+    ],
+    "id": "36831b5f-2273-423a-8ca9-6bc345543400",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 04",
+    "index": 4,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     127,
+     0,
+     255
+    ],
+    "id": "c96883e2-362f-4335-a61c-8ea92714f43d",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 05",
+    "index": 5,
+    "visible": true,
+    "locked": false,
+    "color": [
+     255,
+     255,
+     255,
+     255
+    ],
+    "id": "b3792994-e174-4615-a6e5-94f94b83c2de",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "Light",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   }
+  ]
+ },
+ "mesh.3dm": {
+  "version": 80,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 1,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "67bfd040-c5c5-4493-9b0e-8061b7d8c488",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "Mesh",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 420,
+    "box": [
+     -25.1259,
+     -25.1259,
+     -25.1259,
+     25.1259,
+     25.1259,
+     25.1259
+    ],
+    "vertices": 420,
+    "triangles": 276,
+    "normals": 420,
+    "colors": 420
+   }
+  ]
+ },
+ "meshWithTexture.3dm": {
+  "version": 80,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 2,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "67bfd040-c5c5-4493-9b0e-8061b7d8c488",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 01",
+    "index": 1,
+    "visible": true,
+    "locked": false,
+    "color": [
+     200,
+     0,
+     0,
+     255
+    ],
+    "id": "7173a954-412b-4606-b14c-c2bdb579af98",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 02",
+    "index": 2,
+    "visible": true,
+    "locked": false,
+    "color": [
+     125,
+     38,
+     205,
+     255
+    ],
+    "id": "a6adc9c5-7df7-4740-a8d5-7ef7545490fe",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 03",
+    "index": 3,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     255,
+     255
+    ],
+    "id": "36831b5f-2273-423a-8ca9-6bc345543400",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 04",
+    "index": 4,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     127,
+     0,
+     255
+    ],
+    "id": "c96883e2-362f-4335-a61c-8ea92714f43d",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 05",
+    "index": 5,
+    "visible": true,
+    "locked": false,
+    "color": [
+     255,
+     255,
+     255,
+     255
+    ],
+    "id": "b3792994-e174-4615-a6e5-94f94b83c2de",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [
+   {
+    "name": "Custom",
+    "diffuse": [
+     250,
+     250,
+     250,
+     255
+    ],
+    "transparency": 0.0,
+    "shine": 0.0
+   }
+  ],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "Mesh",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": 0,
+    "materialSource": "ObjectMaterialSource.MaterialFromObject",
+    "userStrings": {},
+    "points": 92,
+    "box": [
+     -27.7396,
+     -3.3362,
+     -17.7943,
+     7.849,
+     30.5105,
+     17.7943
+    ],
+    "vertices": 92,
+    "triangles": 180,
+    "normals": 92,
+    "colors": 0
+   }
+  ]
+ },
+ "object_UserStrings.3dm": {
+  "version": 80,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 3,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "67bfd040-c5c5-4493-9b0e-8061b7d8c488",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 01",
+    "index": 1,
+    "visible": true,
+    "locked": false,
+    "color": [
+     200,
+     0,
+     0,
+     255
+    ],
+    "id": "7173a954-412b-4606-b14c-c2bdb579af98",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 02",
+    "index": 2,
+    "visible": true,
+    "locked": false,
+    "color": [
+     125,
+     38,
+     205,
+     255
+    ],
+    "id": "a6adc9c5-7df7-4740-a8d5-7ef7545490fe",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 03",
+    "index": 3,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     255,
+     255
+    ],
+    "id": "36831b5f-2273-423a-8ca9-6bc345543400",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 04",
+    "index": 4,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     127,
+     0,
+     255
+    ],
+    "id": "c96883e2-362f-4335-a61c-8ea92714f43d",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 05",
+    "index": 5,
+    "visible": true,
+    "locked": false,
+    "color": [
+     255,
+     255,
+     255,
+     255
+    ],
+    "id": "b3792994-e174-4615-a6e5-94f94b83c2de",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "Extrusion",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {
+     "firstKey": "123456",
+     "secondKey": "a value",
+     "volume": "%<Volume(\"eaa1f659-3127-4092-adfc-6cf01a04813a\",\"False\")>%",
+     "Date": "%<Date(\"M/d/yyyy\")>%",
+     "ObjectLayer": "%<ObjectLayer(\"eaa1f659-3127-4092-adfc-6cf01a04813a\")>%"
+    },
+    "points": 0,
+    "box": null
+   }
+  ]
+ },
+ "sphereDecals.3dm": {
+  "version": 80,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 1,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "70f1a04e-a6a0-483c-9eeb-276eca97d023",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "Brep",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null,
+    "renderTriangles": 18752,
+    "renderVertices": 9895
+   }
+  ]
+ },
+ "subd.3dm": {
+  "version": 80,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 7,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "67bfd040-c5c5-4493-9b0e-8061b7d8c488",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [
+   {
+    "name": "Physically Based",
+    "diffuse": [
+     250,
+     250,
+     250,
+     255
+    ],
+    "transparency": 0.0,
+    "shine": 204.0
+   }
+  ],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "SubD",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": 0,
+    "materialSource": "ObjectMaterialSource.MaterialFromObject",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "Point",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 1,
+    "box": [
+     -0.2537,
+     0.0,
+     -0.0,
+     -0.2537,
+     0.0,
+     -0.0
+    ]
+   }
+  ]
+ },
+ "subdBox.3dm": {
+  "version": 80,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 3,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "67bfd040-c5c5-4493-9b0e-8061b7d8c488",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 01",
+    "index": 1,
+    "visible": true,
+    "locked": false,
+    "color": [
+     200,
+     0,
+     0,
+     255
+    ],
+    "id": "7173a954-412b-4606-b14c-c2bdb579af98",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 02",
+    "index": 2,
+    "visible": true,
+    "locked": false,
+    "color": [
+     125,
+     38,
+     205,
+     255
+    ],
+    "id": "a6adc9c5-7df7-4740-a8d5-7ef7545490fe",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 03",
+    "index": 3,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     255,
+     255
+    ],
+    "id": "36831b5f-2273-423a-8ca9-6bc345543400",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 04",
+    "index": 4,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     127,
+     0,
+     255
+    ],
+    "id": "c96883e2-362f-4335-a61c-8ea92714f43d",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 05",
+    "index": 5,
+    "visible": true,
+    "locked": false,
+    "color": [
+     255,
+     255,
+     255,
+     255
+    ],
+    "id": "b3792994-e174-4615-a6e5-94f94b83c2de",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "SubD",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   }
+  ]
+ },
+ "subd_creases.3dm": {
+  "version": 80,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 1,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "e44b50c3-355f-40b9-9dfd-a834df176a5d",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "SubD",
+    "name": "",
+    "layer": -1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   }
+  ]
+ },
+ "test_in.3dm": {
+  "version": 70,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 84,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "07729d66-f534-4ab1-82d3-1b079a310502",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "Brep",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null,
+    "renderTriangles": 18752,
+    "renderVertices": 9897
+   },
+   {
+    "kind": "NurbsCurve",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "Extrusion",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   }
+  ]
+ },
+ "textEntities_r8.3dm": {
+  "version": 80,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 6,
+  "layers": [
+   {
+    "name": "Default",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     0,
+     255
+    ],
+    "id": "67bfd040-c5c5-4493-9b0e-8061b7d8c488",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 01",
+    "index": 1,
+    "visible": true,
+    "locked": false,
+    "color": [
+     200,
+     0,
+     0,
+     255
+    ],
+    "id": "7173a954-412b-4606-b14c-c2bdb579af98",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 02",
+    "index": 2,
+    "visible": true,
+    "locked": false,
+    "color": [
+     125,
+     38,
+     205,
+     255
+    ],
+    "id": "a6adc9c5-7df7-4740-a8d5-7ef7545490fe",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 03",
+    "index": 3,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     255,
+     255
+    ],
+    "id": "36831b5f-2273-423a-8ca9-6bc345543400",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 04",
+    "index": 4,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     127,
+     0,
+     255
+    ],
+    "id": "c96883e2-362f-4335-a61c-8ea92714f43d",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Layer 05",
+    "index": 5,
+    "visible": true,
+    "locked": false,
+    "color": [
+     255,
+     255,
+     255,
+     255
+    ],
+    "id": "b3792994-e174-4615-a6e5-94f94b83c2de",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "Text",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "Text",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "TextDot",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   }
+  ]
+ }
+}

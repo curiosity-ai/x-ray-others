@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    defaultPrim = "Thing"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "Thing" (
+    variants = {
+        string shape = "short"
+    }
+    prepend variantSets = "shape"
+)
+{
+    variantSet "shape" = {
+        "short" {
+            def Cube "Body"
+            {
+                double size = 1
+            }
+
+        }
+        "tall" {
+            def Cube "Body"
+            {
+                double size = 3
+            }
+
+        }
+    }
+}
+

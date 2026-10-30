@@ -4,6 +4,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.Mesh;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>Binary and ASCII STL. Vertices are welded by position and normals are left to the viewer (flat shading).</summary>
 internal static class StlReader
 {
@@ -32,8 +34,10 @@ internal static class StlReader
                 name = header;
             }
 
+            var tick35 = 0L;
             for (var i = 0; i < count; i++)
             {
+                Cancel.Every(options.Cancellation, tick35++);
                 options.Cancellation.ThrowIfCancellationRequested();
                 var o = 84 + 50 * i + 12;
                 for (var v = 0; v < 3; v++)
@@ -82,8 +86,10 @@ internal static class StlReader
         string? name = null;
         var pending = new float[9];
         var n = 0;
+        var tick85 = 0L;
         foreach (var raw in text.AsSpan().EnumerateLines())
         {
+            Cancel.Every(options.Cancellation, tick85++);
             var line = raw.Trim();
             if (line.StartsWith("solid", StringComparison.OrdinalIgnoreCase))
             {

@@ -1,0 +1,416 @@
+{
+ "2000": {
+  "insunits": 4,
+  "layers": [
+   "0",
+   "Tavolo 2",
+   "Tavolo 3",
+   "Defpoints",
+   "ADSK_SYSTEM_LIGHTS"
+  ],
+  "counts": {
+   "3DFACE": 2,
+   "3DSOLID": 1,
+   "ARC": 5,
+   "ARC_DIMENSION": 1,
+   "ATTDEF": 3,
+   "ATTRIB": 2,
+   "CIRCLE": 1,
+   "DIMENSION": 9,
+   "ELLIPSE": 1,
+   "HATCH": 1,
+   "INSERT": 10,
+   "LIGHT": 1,
+   "LINE": 68,
+   "LWPOLYLINE": 11,
+   "MLINE": 1,
+   "MTEXT": 18,
+   "MULTILEADER": 1,
+   "POINT": 46,
+   "POLYLINE": 2,
+   "RAY": 1,
+   "REGION": 2,
+   "SEQEND": 12,
+   "SOLID": 15,
+   "SPLINE": 2,
+   "TEXT": 2,
+   "TOLERANCE": 1,
+   "VERTEX": 13,
+   "VIEWPORT": 2,
+   "WIPEOUT": 2,
+   "XLINE": 1
+  },
+  "header": {
+   "$INSUNITS": 4,
+   "$LUNITS": 2,
+   "$LUPREC": 4,
+   "$AUNITS": 0,
+   "$AUPREC": 0,
+   "$EXTMIN": [
+    -2680430.068109198,
+    -1672547.179547557,
+    -215.9295327147615
+   ],
+   "$EXTMAX": [
+    860276.0217899826,
+    1053820.515069022,
+    215.9295327147615
+   ],
+   "$LTSCALE": 1.0,
+   "$TDCREATE": 2461344.3328703702,
+   "$TEXTSIZE": 100.0,
+   "$LIMMAX": [
+    420.0,
+    297.0
+   ]
+  },
+  "lineSum": 409670.44,
+  "pointSum": 180037.291,
+  "circleSum": 130.049
+ },
+ "2004": {
+  "insunits": 4,
+  "layers": [
+   "0",
+   "Tavolo 2",
+   "Tavolo 3",
+   "Defpoints",
+   "ADSK_SYSTEM_LIGHTS"
+  ],
+  "counts": {
+   "3DFACE": 2,
+   "3DSOLID": 1,
+   "ARC": 5,
+   "ARC_DIMENSION": 1,
+   "ATTDEF": 3,
+   "ATTRIB": 2,
+   "CIRCLE": 1,
+   "DIMENSION": 9,
+   "ELLIPSE": 1,
+   "HATCH": 1,
+   "INSERT": 10,
+   "LIGHT": 1,
+   "LINE": 68,
+   "LWPOLYLINE": 11,
+   "MLINE": 1,
+   "MTEXT": 18,
+   "MULTILEADER": 1,
+   "POINT": 46,
+   "POLYLINE": 2,
+   "RAY": 1,
+   "REGION": 2,
+   "SEQEND": 12,
+   "SOLID": 15,
+   "SPLINE": 2,
+   "TEXT": 2,
+   "TOLERANCE": 1,
+   "VERTEX": 13,
+   "VIEWPORT": 2,
+   "WIPEOUT": 2,
+   "XLINE": 1
+  },
+  "header": {
+   "$INSUNITS": 4,
+   "$LUNITS": 2,
+   "$LUPREC": 4,
+   "$AUNITS": 0,
+   "$AUPREC": 0,
+   "$EXTMIN": [
+    -2680430.068109198,
+    -1672547.179547557,
+    -299.2890450820102
+   ],
+   "$EXTMAX": [
+    860276.0217899826,
+    1053820.515069022,
+    299.289045082009
+   ],
+   "$LTSCALE": 1.0,
+   "$TDCREATE": 2461344.3328703702,
+   "$TEXTSIZE": 100.0,
+   "$LIMMAX": [
+    420.0,
+    297.0
+   ]
+  },
+  "lineSum": 409670.44,
+  "pointSum": 180037.291,
+  "circleSum": 130.049
+ },
+ "2007": {
+  "insunits": 4,
+  "layers": [
+   "0",
+   "Tavolo 2",
+   "Tavolo 3",
+   "Defpoints",
+   "*ADSK_SYSTEM_LIGHTS"
+  ],
+  "counts": {
+   "3DFACE": 2,
+   "3DSOLID": 1,
+   "ARC": 5,
+   "ARC_DIMENSION": 1,
+   "ATTDEF": 3,
+   "ATTRIB": 2,
+   "CIRCLE": 1,
+   "DIMENSION": 9,
+   "ELLIPSE": 1,
+   "HATCH": 1,
+   "INSERT": 10,
+   "LIGHT": 1,
+   "LINE": 68,
+   "LWPOLYLINE": 11,
+   "MLINE": 1,
+   "MTEXT": 18,
+   "MULTILEADER": 1,
+   "POINT": 46,
+   "POLYLINE": 2,
+   "RAY": 1,
+   "REGION": 2,
+   "SEQEND": 12,
+   "SOLID": 15,
+   "SPLINE": 2,
+   "TEXT": 2,
+   "TOLERANCE": 1,
+   "VERTEX": 13,
+   "VIEWPORT": 2,
+   "WIPEOUT": 2,
+   "XLINE": 1
+  },
+  "header": {
+   "$INSUNITS": 4,
+   "$LUNITS": 2,
+   "$LUPREC": 4,
+   "$AUNITS": 0,
+   "$AUPREC": 0,
+   "$EXTMIN": [
+    -2680430.068109198,
+    -1672547.179547557,
+    -299.2890450820102
+   ],
+   "$EXTMAX": [
+    860276.0217899826,
+    1053820.515069022,
+    299.289045082009
+   ],
+   "$LTSCALE": 1.0,
+   "$TDCREATE": 2461344.3328703702,
+   "$TEXTSIZE": 100.0,
+   "$LIMMAX": [
+    420.0,
+    297.0
+   ]
+  },
+  "lineSum": 409670.44,
+  "pointSum": 180037.291,
+  "circleSum": 130.049
+ },
+ "2010": {
+  "insunits": 4,
+  "layers": [
+   "0",
+   "Tavolo 2",
+   "Tavolo 3",
+   "Defpoints",
+   "*ADSK_SYSTEM_LIGHTS"
+  ],
+  "counts": {
+   "3DFACE": 2,
+   "3DSOLID": 1,
+   "ARC": 5,
+   "ARC_DIMENSION": 1,
+   "ATTDEF": 3,
+   "ATTRIB": 2,
+   "CIRCLE": 1,
+   "DIMENSION": 9,
+   "ELLIPSE": 1,
+   "HATCH": 1,
+   "INSERT": 10,
+   "LIGHT": 1,
+   "LINE": 68,
+   "LWPOLYLINE": 11,
+   "MLINE": 1,
+   "MTEXT": 18,
+   "MULTILEADER": 1,
+   "POINT": 46,
+   "POLYLINE": 2,
+   "RAY": 1,
+   "REGION": 2,
+   "SEQEND": 12,
+   "SOLID": 15,
+   "SPLINE": 2,
+   "TEXT": 2,
+   "TOLERANCE": 1,
+   "VERTEX": 13,
+   "VIEWPORT": 2,
+   "WIPEOUT": 2,
+   "XLINE": 1
+  },
+  "header": {
+   "$INSUNITS": 4,
+   "$LUNITS": 2,
+   "$LUPREC": 4,
+   "$AUNITS": 0,
+   "$AUPREC": 0,
+   "$EXTMIN": [
+    -2680430.068109198,
+    -1672547.179547557,
+    -299.2890450820102
+   ],
+   "$EXTMAX": [
+    860276.0217899826,
+    1053820.515069022,
+    299.289045082009
+   ],
+   "$LTSCALE": 1.0,
+   "$TDCREATE": 2461344.3328703702,
+   "$TEXTSIZE": 100.0,
+   "$LIMMAX": [
+    420.0,
+    297.0
+   ]
+  },
+  "lineSum": 409670.44,
+  "pointSum": 180037.291,
+  "circleSum": 130.049
+ },
+ "2013": {
+  "insunits": 4,
+  "layers": [
+   "0",
+   "Tavolo 2",
+   "Tavolo 3",
+   "Defpoints",
+   "*ADSK_SYSTEM_LIGHTS"
+  ],
+  "counts": {
+   "3DFACE": 2,
+   "3DSOLID": 1,
+   "ARC": 5,
+   "ARC_DIMENSION": 1,
+   "ATTDEF": 3,
+   "ATTRIB": 2,
+   "CIRCLE": 1,
+   "DIMENSION": 9,
+   "ELLIPSE": 1,
+   "HATCH": 1,
+   "INSERT": 10,
+   "LIGHT": 1,
+   "LINE": 68,
+   "LWPOLYLINE": 11,
+   "MLINE": 1,
+   "MTEXT": 18,
+   "MULTILEADER": 1,
+   "POINT": 46,
+   "POLYLINE": 2,
+   "RAY": 1,
+   "REGION": 2,
+   "SEQEND": 12,
+   "SOLID": 15,
+   "SPLINE": 2,
+   "TEXT": 2,
+   "TOLERANCE": 1,
+   "VERTEX": 13,
+   "VIEWPORT": 2,
+   "WIPEOUT": 2,
+   "XLINE": 1
+  },
+  "header": {
+   "$INSUNITS": 4,
+   "$LUNITS": 2,
+   "$LUPREC": 4,
+   "$AUNITS": 0,
+   "$AUPREC": 0,
+   "$EXTMIN": [
+    -2680430.068109198,
+    -1672547.179547557,
+    -299.2890450820102
+   ],
+   "$EXTMAX": [
+    860276.0217899826,
+    1053820.515069022,
+    299.289045082009
+   ],
+   "$LTSCALE": 1.0,
+   "$TDCREATE": 2461344.3328703702,
+   "$TEXTSIZE": 100.0,
+   "$LIMMAX": [
+    420.0,
+    297.0
+   ]
+  },
+  "lineSum": 409670.44,
+  "pointSum": 180037.291,
+  "circleSum": 130.049
+ },
+ "2018": {
+  "insunits": 4,
+  "layers": [
+   "0",
+   "Tavolo 2",
+   "Tavolo 3",
+   "Defpoints",
+   "*ADSK_SYSTEM_LIGHTS"
+  ],
+  "counts": {
+   "3DFACE": 2,
+   "3DSOLID": 1,
+   "ARC": 5,
+   "ARC_DIMENSION": 1,
+   "ATTDEF": 3,
+   "ATTRIB": 2,
+   "CIRCLE": 1,
+   "DIMENSION": 9,
+   "ELLIPSE": 1,
+   "HATCH": 1,
+   "INSERT": 10,
+   "LIGHT": 1,
+   "LINE": 68,
+   "LWPOLYLINE": 11,
+   "MLINE": 1,
+   "MTEXT": 18,
+   "MULTILEADER": 1,
+   "POINT": 46,
+   "POLYLINE": 2,
+   "RAY": 1,
+   "REGION": 2,
+   "SEQEND": 12,
+   "SOLID": 15,
+   "SPLINE": 2,
+   "TEXT": 2,
+   "TOLERANCE": 1,
+   "VERTEX": 13,
+   "VIEWPORT": 2,
+   "WIPEOUT": 2,
+   "XLINE": 1
+  },
+  "header": {
+   "$INSUNITS": 4,
+   "$LUNITS": 2,
+   "$LUPREC": 4,
+   "$AUNITS": 0,
+   "$AUPREC": 0,
+   "$EXTMIN": [
+    -2680430.068109198,
+    -1672547.179547557,
+    -299.2890450820102
+   ],
+   "$EXTMAX": [
+    860276.0217899826,
+    1053820.515069022,
+    299.289045082009
+   ],
+   "$LTSCALE": 1.0,
+   "$TDCREATE": 2461344.3328703702,
+   "$TEXTSIZE": 100.0,
+   "$LIMMAX": [
+    420.0,
+    297.0
+   ]
+  },
+  "lineSum": 409670.44,
+  "pointSum": 180037.291,
+  "circleSum": 130.049
+ }
+}

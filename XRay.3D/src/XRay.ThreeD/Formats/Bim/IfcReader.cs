@@ -8,7 +8,7 @@ using XRay.ThreeD.Internal;
 namespace XRay.ThreeD.Formats.Bim;
 
 /// <summary>
-/// IFC (ISO 16739, STEP physical file; .ifc and .ifczip): the project, site, building and storey tree with every product as a node,
+/// IFC (ISO 16739, STEP physical file; .ifc and .ifczip, and the XML encoding .ifcxml through <see cref="IfcXml"/>): the project, site, building and storey tree with every product as a node,
 /// names, GlobalIds, property sets and quantities in each node's extras, units and header metadata, and geometry for face sets,
 /// faceted B-reps and extruded solids placed by their local placement chains. Other representations leave a node without
 /// geometry and a warning.
@@ -27,7 +27,12 @@ internal static class IfcReader
             using var zip = ZipEntries.Open(data);
             var entry = zip.Entries.FirstOrDefault(e => e.FullName.EndsWith(".ifc", StringComparison.OrdinalIgnoreCase))
                 ?? throw new ModelFormatException("The zipped IFC has no .ifc entry.");
-            data = ZipEntries.Read(entry, options.MaxInputBytes);
+            data = ZipEntries.Read(entry, options.MaxInputBytes, options.Cancellation);
+        }
+
+        if (IfcXml.Sniff(data.Span))
+        {
+            return StepFile.Parse(IfcXml.ToStep(data, options), options);
         }
 
         return StepFile.Parse(Encoding.Latin1.GetString(data.Span), options);
@@ -114,6 +119,7 @@ internal static class IfcReader
                 }
 
                 meta.HasGeometry = _model.Meshes.Count > 0;
+                UnitScaling.Apply(_model, double.IsNaN(_metersPerUnit) ? meta.Units?.ToMeters() ?? 1 : _metersPerUnit);
                 meta.Statistics = _model.ComputeStatistics();
                 meta.Bounds = _model.ComputeBounds();
             }
@@ -179,6 +185,9 @@ internal static class IfcReader
             }
         }
 
+        /// <summary>The size of one length unit in metres, from the project's unit assignment.</summary>
+        private double _metersPerUnit = double.NaN;
+
         private void ReadUnits(ModelMetadata meta, StepEntity project)
         {
             var context = _f.Get(project.Arg(8));
@@ -193,6 +202,19 @@ internal static class IfcReader
                     }
 
                     meta.Units = LengthOf(unit);
+                    if (unit.Type == "IFCCONVERSIONBASEDUNIT" && ConversionFactor(unit) is { } factor)
+                    {
+                        // The factor, not the unit's name, is what the file means (an inch is 25.4 millimetres, but a project may define its own).
+                        _metersPerUnit = factor;
+                    }
+                    else if (unit.Type == "IFCSIUNIT")
+                    {
+                        _metersPerUnit = unit.Arg(2).Str.ToUpperInvariant() switch
+                        {
+                            "MILLI" => 1e-3, "CENTI" => 1e-2, "DECI" => 1e-1, "KILO" => 1e3, "HECTO" => 1e2, "DECA" => 10, "MICRO" => 1e-6, "NANO" => 1e-9, _ => 1,
+                        };
+                    }
+
                     break;
                 }
             }
@@ -202,6 +224,19 @@ internal static class IfcReader
                 meta.Units = LengthUnit.Meter;
                 meta.Notes.Add("The file states no length unit; meters are assumed.");
             }
+        }
+
+        /// <summary>The size in metres of an IfcConversionBasedUnit, from its IfcMeasureWithUnit (a value in a named unit: 25.4 in millimetres for an inch), or null.</summary>
+        private double? ConversionFactor(StepEntity unit)
+        {
+            var measure = _f.Get(unit.Arg(3));
+            if (measure is null || measure.Type != "IFCMEASUREWITHUNIT")
+            {
+                return null;
+            }
+
+            var value = measure.Arg(0).Num;
+            return _f.Get(measure.Arg(1)) is { } baseEntity && LengthOf(baseEntity) is { } baseUnit && value > 0 && double.IsFinite(value) ? value * baseUnit.ToMeters() : null;
         }
 
         private LengthUnit? LengthOf(StepEntity unit)
@@ -435,8 +470,10 @@ internal static class IfcReader
             stack.Push((project.Id, null, -1));
             var count = 0;
             var queuedOrphans = false;
+            var tick438 = 0L;
             while (true)
             {
+                Cancel.Every(_options.Cancellation, tick438++);
                 if (stack.Count == 0)
                 {
                     if (queuedOrphans || orphans.Count == 0)
@@ -604,7 +641,7 @@ internal static class IfcReader
                 bodies = reps.Where(r => !SkippedRepresentations.Contains(r.Arg(1).Str, StringComparer.OrdinalIgnoreCase)).ToList();
             }
 
-            var acc = new MeshAccumulator(Math.Max(1, _options.MaxTriangles - _triangles));
+            var acc = new MeshAccumulator(Math.Max(1, _options.MaxTriangles - _triangles)) { Cancel = _options.Cancellation };
             _geo.Runs.Clear();
             var attempted = 0;
             var failed = new List<string>();

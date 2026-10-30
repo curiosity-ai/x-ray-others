@@ -27,7 +27,7 @@ internal static class ZipEntries
     }
 
     /// <summary>Inflates one entry, refusing more than <paramref name="limit"/> bytes however large it claims to be.</summary>
-    public static byte[] Read(ZipArchiveEntry entry, long limit)
+    public static byte[] Read(ZipArchiveEntry entry, long limit, CancellationToken cancel = default)
     {
         if (entry.Length > limit)
         {
@@ -35,17 +35,27 @@ internal static class ZipEntries
         }
 
         using var stream = entry.Open();
-        var output = new MemoryStream();
-        var buffer = new byte[81920];
-        int read;
-        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
-        {
-            if (output.Length + read > limit)
-            {
-                throw new ModelFormatException($"The ZIP entry '{entry.FullName}' is larger than the {limit} byte limit.");
-            }
 
-            output.Write(buffer, 0, read);
+        // The declared size is only a hint for the first allocation; it is never trusted beyond a small cap.
+        var output = new MemoryStream((int)Math.Clamp(entry.Length, 0, 1 << 20));
+        var buffer = System.Buffers.ArrayPool<byte>.Shared.Rent(81920);
+        try
+        {
+            int read;
+            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                cancel.ThrowIfCancellationRequested();
+                if (output.Length + read > limit)
+                {
+                    throw new ModelFormatException($"The ZIP entry '{entry.FullName}' is larger than the {limit} byte limit.");
+                }
+
+                output.Write(buffer, 0, read);
+            }
+        }
+        finally
+        {
+            System.Buffers.ArrayPool<byte>.Shared.Return(buffer);
         }
 
         return output.ToArray();

@@ -871,5 +871,1787 @@
   "source": "tools/fixtures/make_fixtures.py",
   "bytes": 1068,
   "sha256": "482e112a1e7afe774b8cf6d59bab4c79d184a7219e2e39f646fafcea70889985"
+ },
+ {
+  "file": "synthetic/package-obj-textured.zip",
+  "format": "zip",
+  "title": "Hand-made fixture: OBJ package with MTL map_Kd options, PNG and BMP textures",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 801,
+  "sha256": "b790c4cb8feed1230517eef2cfca1d0551021d0adcfc8f2544488c01fb745858"
+ },
+ {
+  "file": "synthetic/textured.gltf",
+  "format": "gltf",
+  "title": "Hand-made fixture: textured quad with sampler and KHR_texture_transform",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 1921,
+  "sha256": "74cb814e515dddad3954c6d96f1b5c106068efb89a3cb4fd95f91c72ffa0fa9f"
+ },
+ {
+  "file": "synthetic/textured.3mf",
+  "format": "3mf",
+  "title": "Hand-made fixture: 3MF texture2d and texture2dgroup",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 1617,
+  "sha256": "8009d06583313ee20ace6fe4162906e2e6d3288d4481e37678a3130bce514cad"
+ },
+ {
+  "file": "draco/big-grid-cl10-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 5761,
+  "sha256": "2c32ac5ddf51f0dc8f18f8ee9ac7e8ebaf3e64abcf2417cb5e691794624e7170"
+ },
+ {
+  "file": "draco/big-grid-cl10-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 156190,
+  "sha256": "abf20bb361b4997f58bac2a8be1d9dd7c608bf00bb71bb29d28ebe26581ce4ea"
+ },
+ {
+  "file": "draco/big-grid-cl3-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 3864,
+  "sha256": "cbc3f5a8e0ab320526fea47b209cd873b118c9ba161b5e767e8c6af99b45b981"
+ },
+ {
+  "file": "draco/big-grid-cl3-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 156310,
+  "sha256": "6f67ca552fb1f6668858fdb17ab6d1f1cc33fe5558565d35a90677c03e3d5fe3"
+ },
+ {
+  "file": "draco/big-grid-cl7-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 5734,
+  "sha256": "7b08ca31e465eb0790e747e83d5a2d185dbcbae2da6dc65d387c607d6dfab831"
+ },
+ {
+  "file": "draco/big-grid-cl7-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 156190,
+  "sha256": "abf20bb361b4997f58bac2a8be1d9dd7c608bf00bb71bb29d28ebe26581ce4ea"
+ },
+ {
+  "file": "draco/big-sphere-cl10-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 8697,
+  "sha256": "37c06d1f918323aee1a27e1c8f83154411aecd2bfb378573d35deea379f5cc4d"
+ },
+ {
+  "file": "draco/big-sphere-cl10-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 229587,
+  "sha256": "4956dcd4daff37915baf6f7bdfaeb313724f8f27d6a2735834ee256f4fddd7b0"
+ },
+ {
+  "file": "draco/big-sphere-cl3-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 7719,
+  "sha256": "f62e1492da3ae2250e2c6ba74105bfef128670a18daedb3256eb112437269436"
+ },
+ {
+  "file": "draco/big-sphere-cl3-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 229669,
+  "sha256": "56e3bf711d4b37e9ed2b08bc8b34d1e4dc130ef20c7133fabc2a378463031242"
+ },
+ {
+  "file": "draco/big-sphere-cl7-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 8794,
+  "sha256": "d6f79a277e759b99129c9b7c6e6ff0e24f7f3f35322958920263038dd82b964f"
+ },
+ {
+  "file": "draco/big-sphere-cl7-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 229587,
+  "sha256": "4956dcd4daff37915baf6f7bdfaeb313724f8f27d6a2735834ee256f4fddd7b0"
+ },
+ {
+  "file": "draco/cube-colors-cl0-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 147,
+  "sha256": "33e4525e3a89d973c999efbcbbb555d03224bacc4f478d5543d1a4fb7320d5f6"
+ },
+ {
+  "file": "draco/cube-colors-cl0-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "25e224b85a0adaaaf83dac8d25740657880b7981b69a299a10d007d97c20e880"
+ },
+ {
+  "file": "draco/cube-colors-cl0-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 147,
+  "sha256": "ddb4b1a1f6518abdcd483952c08b3201ba8b555020031e20a1f858f0596ef9e8"
+ },
+ {
+  "file": "draco/cube-colors-cl0-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "25e224b85a0adaaaf83dac8d25740657880b7981b69a299a10d007d97c20e880"
+ },
+ {
+  "file": "draco/cube-colors-cl1-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 172,
+  "sha256": "e679fa4cdac0074cc0fcf0d5a5776f8bc1e3fe2cb536d2d9756b5108b72de456"
+ },
+ {
+  "file": "draco/cube-colors-cl1-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "ec52b62d4edd5590bcdab142b6245bdded35ffad41ab15c99f21ccb0c10872d0"
+ },
+ {
+  "file": "draco/cube-colors-cl10-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 200,
+  "sha256": "2745766f110997baf473b2dabc80c8a86449354dd2b8796b9884a0b66be04076"
+ },
+ {
+  "file": "draco/cube-colors-cl10-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "07c0453dfb90d74d8e84caad6306dd96cf592014ee514c19fa08c94a5d284de6"
+ },
+ {
+  "file": "draco/cube-colors-cl3-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 183,
+  "sha256": "cb80be8268e027d1295c277c77a3ab5f8019026e818a793a905ab647e925badd"
+ },
+ {
+  "file": "draco/cube-colors-cl3-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "ec52b62d4edd5590bcdab142b6245bdded35ffad41ab15c99f21ccb0c10872d0"
+ },
+ {
+  "file": "draco/cube-colors-cl5-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 201,
+  "sha256": "18746de277efcbfc1c4ba37779c3bc8801a5f4309e5bc257dc7fb73ec0ffad76"
+ },
+ {
+  "file": "draco/cube-colors-cl5-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "07c0453dfb90d74d8e84caad6306dd96cf592014ee514c19fa08c94a5d284de6"
+ },
+ {
+  "file": "draco/cube-colors-cl5-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 201,
+  "sha256": "3ec2fe4ce19df86463a4d4b47c360047f6b4ecf1341e1805bea85124dc9df839"
+ },
+ {
+  "file": "draco/cube-colors-cl5-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "07c0453dfb90d74d8e84caad6306dd96cf592014ee514c19fa08c94a5d284de6"
+ },
+ {
+  "file": "draco/cube-colors-cl7-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 201,
+  "sha256": "3e6308b7445ad3afe6e0c408548c7f53e37479b96db948300d4b8990ac33bbe9"
+ },
+ {
+  "file": "draco/cube-colors-cl7-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "07c0453dfb90d74d8e84caad6306dd96cf592014ee514c19fa08c94a5d284de6"
+ },
+ {
+  "file": "draco/cube-hard-cl0-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 213,
+  "sha256": "a698c0bd3d6a0c9fd25e7f602c422c7b6bcc2fc5d9203aa39bdd549f81309c82"
+ },
+ {
+  "file": "draco/cube-hard-cl0-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "b772258a09ba52afdbbb2e2d39c54ac25f29899a2d0a571422b82956657ba235"
+ },
+ {
+  "file": "draco/cube-hard-cl0-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 204,
+  "sha256": "763b98cddae76cedde16eb97163d00da9ff901907e2d7f4f4b55e1635e15fc7e"
+ },
+ {
+  "file": "draco/cube-hard-cl0-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "b772258a09ba52afdbbb2e2d39c54ac25f29899a2d0a571422b82956657ba235"
+ },
+ {
+  "file": "draco/cube-hard-cl1-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 199,
+  "sha256": "fc1e70cbc71e5fe19402dbbc75afcde234e553d0a74ab37825507933b5b94e6c"
+ },
+ {
+  "file": "draco/cube-hard-cl1-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "17fe6f52899483e3e80d427db7516032bed4faa0e3a6ff6da5cfc7a89e2f6a28"
+ },
+ {
+  "file": "draco/cube-hard-cl10-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 187,
+  "sha256": "28ae4181667240d7660297de2a0593f5e68ce2145ed26ecee05c1959138c399d"
+ },
+ {
+  "file": "draco/cube-hard-cl10-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "edddc01529e5c2c617731848faea4b6152e1369928f5621ec39aa12483d51ae3"
+ },
+ {
+  "file": "draco/cube-hard-cl3-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 197,
+  "sha256": "5a3a6623d168a2c524ef4409a95172d1b62b166e361d8fcf30b3de45c9ed2f80"
+ },
+ {
+  "file": "draco/cube-hard-cl3-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "17fe6f52899483e3e80d427db7516032bed4faa0e3a6ff6da5cfc7a89e2f6a28"
+ },
+ {
+  "file": "draco/cube-hard-cl5-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 205,
+  "sha256": "1188e4ef7acad5434a521e6d1c8d344af268a8f3b3f4b2f5d1f12cf73b89c96d"
+ },
+ {
+  "file": "draco/cube-hard-cl5-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "edddc01529e5c2c617731848faea4b6152e1369928f5621ec39aa12483d51ae3"
+ },
+ {
+  "file": "draco/cube-hard-cl5-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 193,
+  "sha256": "9d32896775a0be329634519c8f671ac417de1238f4594e9e8aeb80d48e8429b2"
+ },
+ {
+  "file": "draco/cube-hard-cl5-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "edddc01529e5c2c617731848faea4b6152e1369928f5621ec39aa12483d51ae3"
+ },
+ {
+  "file": "draco/cube-hard-cl7-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 188,
+  "sha256": "2ed9b58a3b0afca709870bf6610dde3d052ed1f572a7f144d9f0c5753a3a7bc4"
+ },
+ {
+  "file": "draco/cube-hard-cl7-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "edddc01529e5c2c617731848faea4b6152e1369928f5621ec39aa12483d51ae3"
+ },
+ {
+  "file": "draco/grid-holes-cl0-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1336,
+  "sha256": "7984d8f0ee8c6a05580eaba2a0d4360eb086cb25ab715cffebb5907fcb9989cc"
+ },
+ {
+  "file": "draco/grid-holes-cl0-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13462,
+  "sha256": "4a4711e540de99ba00f6b8137dea9daf48e2ed1d5bac022b6f8621b967a4ce9c"
+ },
+ {
+  "file": "draco/grid-holes-cl0-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1016,
+  "sha256": "a361f8948e2ad8838c99d04beb5d04678c1bd8950abbd6885c046f488a9b9399"
+ },
+ {
+  "file": "draco/grid-holes-cl0-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13482,
+  "sha256": "ba9fca72e5a6d2112a7bc01191ea218cef6c4862ba72fad8968a6f408e8afabd"
+ },
+ {
+  "file": "draco/grid-holes-cl1-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1118,
+  "sha256": "61f865cd64d1f4a8e87f05129493df606f90b110f0d800820d7f316d84f3289f"
+ },
+ {
+  "file": "draco/grid-holes-cl1-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13389,
+  "sha256": "7a80346872ac0b169f0db2202ae9a58488e2ed7dc2513654405bd9a82fff8704"
+ },
+ {
+  "file": "draco/grid-holes-cl10-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1051,
+  "sha256": "22d93860dcdc5a277604765c51feda82c81f77cd2cbccc722022717dc4b4f186"
+ },
+ {
+  "file": "draco/grid-holes-cl10-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13391,
+  "sha256": "0c8ee9288ca2f89c2e230e4f8e4f26a01ecdecf3d7f154956cf4d1f3020bdd2e"
+ },
+ {
+  "file": "draco/grid-holes-cl3-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 723,
+  "sha256": "bee2e9c079afe041590685d6b53ba2b89fd4383a4a5b664227d779acfcceb396"
+ },
+ {
+  "file": "draco/grid-holes-cl3-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13389,
+  "sha256": "7a80346872ac0b169f0db2202ae9a58488e2ed7dc2513654405bd9a82fff8704"
+ },
+ {
+  "file": "draco/grid-holes-cl5-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 731,
+  "sha256": "3babe9b52d381ef447164e73b0e5500034536b34c4e200fcdeeda8058c05ab3c"
+ },
+ {
+  "file": "draco/grid-holes-cl5-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13391,
+  "sha256": "0c8ee9288ca2f89c2e230e4f8e4f26a01ecdecf3d7f154956cf4d1f3020bdd2e"
+ },
+ {
+  "file": "draco/grid-holes-cl5-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 388,
+  "sha256": "27a952be693717cf1d45b999c67f7a3ecf89b4c0fe6e63f7cad40723e62527af"
+ },
+ {
+  "file": "draco/grid-holes-cl5-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13411,
+  "sha256": "b3d4eb796447a474939ebdcbe13a523b7b900face3d16aa50f81dbc26f6f7f14"
+ },
+ {
+  "file": "draco/grid-holes-cl7-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1037,
+  "sha256": "e83bee4491d641af4140900f3de26ec7bb89041b16240faf8c343db494c976d9"
+ },
+ {
+  "file": "draco/grid-holes-cl7-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13391,
+  "sha256": "0c8ee9288ca2f89c2e230e4f8e4f26a01ecdecf3d7f154956cf4d1f3020bdd2e"
+ },
+ {
+  "file": "draco/sphere-draco-tangent.expected.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29926,
+  "sha256": "afe1aa0cf1514c9662845d97e42b9eedcc730c20232c4b720860da2a5df9f091"
+ },
+ {
+  "file": "draco/sphere-draco-tangent.glb",
+  "format": "glb",
+  "title": "Hand-made fixture: glTF with KHR_draco_mesh_compression",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 5588,
+  "sha256": "46ebb6912a4103f29c85374c2e953a5c4fa46055ea60ab486d7cc61e9cde2ba4"
+ },
+ {
+  "file": "draco/sphere-draco.expected.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29926,
+  "sha256": "afe1aa0cf1514c9662845d97e42b9eedcc730c20232c4b720860da2a5df9f091"
+ },
+ {
+  "file": "draco/sphere-draco.glb",
+  "format": "glb",
+  "title": "Hand-made fixture: glTF with KHR_draco_mesh_compression",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 2732,
+  "sha256": "dacabe6efe5b8c969f141c9f2a28650186185c7de07c0f6f20c582a3d2bee443"
+ },
+ {
+  "file": "draco/sphere-seam-cl0-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 2119,
+  "sha256": "cff89cf497cc2c0af720f908e1535668d4e98566c7faffd7fcefcc81feb22795"
+ },
+ {
+  "file": "draco/sphere-seam-cl0-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 30011,
+  "sha256": "70b118b8fc309c7d18e41c356a624f7801d027a617a12baae9793aab2f76cfa6"
+ },
+ {
+  "file": "draco/sphere-seam-cl0-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1732,
+  "sha256": "f3178be4efe0eb50ae74013e9ca1c5c007a451e52080a1e853686d473b9be59d"
+ },
+ {
+  "file": "draco/sphere-seam-cl0-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 30020,
+  "sha256": "18f8ac5fa5aee64140e6e6f8ad67c0c41b7118e239ff53cc92d7a1340c8b7cfc"
+ },
+ {
+  "file": "draco/sphere-seam-cl1-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 2030,
+  "sha256": "808c65c2812de21368bbc0cff58448e64bf5792ce79df3e3296981045deff491"
+ },
+ {
+  "file": "draco/sphere-seam-cl1-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29693,
+  "sha256": "710f3811f77bc223f8f504e1da82841f27da1acf402525adb243d8333f94b86f"
+ },
+ {
+  "file": "draco/sphere-seam-cl10-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1873,
+  "sha256": "df3c0a5a6222b656f413e842c8887bd7a45096b337aff5d88679e921013d26dd"
+ },
+ {
+  "file": "draco/sphere-seam-cl10-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29679,
+  "sha256": "a38773105c1337eeb68cea4709035f27dea42becfee37c659811a841a37dcd12"
+ },
+ {
+  "file": "draco/sphere-seam-cl3-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1553,
+  "sha256": "555b52751f9a55d195db59c959da730408d1ce6d7ac5c4acbdc9a0cb2f416a94"
+ },
+ {
+  "file": "draco/sphere-seam-cl3-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29693,
+  "sha256": "710f3811f77bc223f8f504e1da82841f27da1acf402525adb243d8333f94b86f"
+ },
+ {
+  "file": "draco/sphere-seam-cl5-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1504,
+  "sha256": "7b4aa8860daae2cb1ec3f9cd44ef5fe093a18b8c1c70cad8cc68b61d176fa71f"
+ },
+ {
+  "file": "draco/sphere-seam-cl5-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29679,
+  "sha256": "a38773105c1337eeb68cea4709035f27dea42becfee37c659811a841a37dcd12"
+ },
+ {
+  "file": "draco/sphere-seam-cl5-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1014,
+  "sha256": "e29f4d6944a3af0bb5fd377dacdf50fb926339b25b75334828137ed2751e3cf1"
+ },
+ {
+  "file": "draco/sphere-seam-cl5-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29696,
+  "sha256": "f2420f40f8a41b943b7ba7d826e07cf385b742e7bdc22fe2c969c3b5f51d8071"
+ },
+ {
+  "file": "draco/sphere-seam-cl7-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1863,
+  "sha256": "dee3de7c62207e794d3c2f803914de97b5e48047dad61ad896d3021acd45b308"
+ },
+ {
+  "file": "draco/sphere-seam-cl7-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29679,
+  "sha256": "a38773105c1337eeb68cea4709035f27dea42becfee37c659811a841a37dcd12"
+ },
+ {
+  "file": "khronos/Box-Draco.gltf",
+  "format": "gltf",
+  "title": "Box with KHR_draco_mesh_compression (glTF sample asset)",
+  "license": "CC-BY-4.0",
+  "source": "Cesium / Khronos glTF-Sample-Assets, Models/Box/glTF-Draco",
+  "bytes": 2427,
+  "sha256": "3c46acecdfa90b012ec9052d8a1dfa61358e6d56a9e333504189cc78a2de4d1b"
+ },
+ {
+  "file": "khronos/Box-Draco.bin",
+  "format": "bin",
+  "title": "Box with KHR_draco_mesh_compression, buffer (glTF sample asset)",
+  "license": "CC-BY-4.0",
+  "source": "Cesium / Khronos glTF-Sample-Assets, Models/Box/glTF-Draco",
+  "bytes": 120,
+  "sha256": "610dc6e08aba7c2720c8e4ec0578efd91cf2d88a5e638dab7811a22f0235bf2e"
+ },
+ {
+  "file": "synthetic/drawing.dxf",
+  "format": "dxf",
+  "title": "Hand-made fixture: DXF drawing with rotated text, MTEXT, SOLID, solid HATCH with a hole and a block used twice",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py",
+  "bytes": 1473,
+  "sha256": "2de43edb2d852a70f4651b5227e428386212dd82075150f35939a61b2b2fc4b6"
+ },
+ {
+  "file": "synthetic/tessellated.stp",
+  "format": "step",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_step_ap242.py",
+  "bytes": 122041,
+  "sha256": "b0d9350604cc495b0c034a8b6015fb996e8beeb11bd495d10a20458a764428d1"
+ },
+ {
+  "file": "synthetic/mapped.stp",
+  "format": "step",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_step_ap242.py",
+  "bytes": 17081,
+  "sha256": "d6f66826a121c0d6da731b8ac41b8ebea37893715107cc11c71565b2ec0551c1"
+ },
+ {
+  "file": "synthetic/iges-brep-quadrics.igs",
+  "format": "iges",
+  "title": "Plate written by OpenCASCADE's IGES writer",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_surfaces.py",
+  "bytes": 27297,
+  "sha256": "8e96e09add0219f10d859ff44d8a0ed259290836c80d9888905c62408310ae33"
+ },
+ {
+  "file": "synthetic/iges-trimmed-faces.igs",
+  "format": "iges",
+  "title": "Plate written by OpenCASCADE's IGES writer",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_surfaces.py",
+  "bytes": 29889,
+  "sha256": "7700f229d6a93ad7c8cceca91a31efe0a5984c0758afd3e11b3b43178d2e02c0"
+ },
+ {
+  "file": "synthetic/iges-nurbs-brep.igs",
+  "format": "iges",
+  "title": "Plate written by OpenCASCADE's IGES writer",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_surfaces.py",
+  "bytes": 37908,
+  "sha256": "e1f3ef73aaaafdd42587653e2d039bcf6d79c65c6e874998280f506c285d90eb"
+ },
+ {
+  "file": "synthetic/iges-nurbs-faces.igs",
+  "format": "iges",
+  "title": "Plate written by OpenCASCADE's IGES writer",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_surfaces.py",
+  "bytes": 47547,
+  "sha256": "c666de119138ea2d3730dc971c72df0ab5073aad698dcc63b3c7d05f886dbca4"
+ },
+ {
+  "file": "synthetic/blend/scene-zstd.blend",
+  "format": "blend",
+  "title": "Synthetic Blender 5.2 scene (collections, parenting, rotation modes, instances, materials)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend.py",
+  "bytes": 94972,
+  "sha256": "8a0d4417975c0b6168d35ee5f9663d8c6eb045432dc3b47488f06f946e034548"
+ },
+ {
+  "file": "synthetic/blend/scene-gzip.blend",
+  "format": "blend",
+  "title": "Synthetic Blender 5.2 scene (collections, parenting, rotation modes, instances, materials)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend.py",
+  "bytes": 95654,
+  "sha256": "1b708ab87cabff5ac193380edaccf57dfc72ac30cfda2da5e6f57a5bf5c667fb"
+ },
+ {
+  "file": "synthetic/blend/scene-raw.blend",
+  "format": "blend",
+  "title": "Synthetic Blender 5.2 scene (collections, parenting, rotation modes, instances, materials)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend.py",
+  "bytes": 304824,
+  "sha256": "612ba9893283c35444703f8e3e8716ce52b5fc8084c4ced0fd83229c145ef217"
+ },
+ {
+  "file": "synthetic/zstd/tiny.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 19,
+  "sha256": "75ee7cbe13c28cca00fb7bd355b826df49d5fc99ee6a44397e6ae9ccda9ffe12"
+ },
+ {
+  "file": "synthetic/zstd/checksum.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 12121,
+  "sha256": "cecd4efd2fef9a692147cb7b14fd77420376473fbacd0eca8b5e1f5094848606"
+ },
+ {
+  "file": "synthetic/zstd/floats-l19.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 67013,
+  "sha256": "ec795ad568e818f4efdda4f63a1aee57b5ef5bb15d4c3dbb884b05e6367e195e"
+ },
+ {
+  "file": "synthetic/zstd/floats-l3.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 71357,
+  "sha256": "8e1b131445d89a5256ea0e7a0d901b0a66020769b0585c314742a63ac1af7ddd"
+ },
+ {
+  "file": "synthetic/zstd/multi-frame.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 20915,
+  "sha256": "97ef391abc71454d44c9b07bb5dfc16f1d73101958ef68257f36161c1b463060"
+ },
+ {
+  "file": "synthetic/zstd/nosize.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 67813,
+  "sha256": "0469c6f1bd35e9dd074e99191c0ce8c9cd255476f63a59eb58527fa24123451c"
+ },
+ {
+  "file": "synthetic/zstd/runs.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 3759,
+  "sha256": "dabdb8d4c704304c8820f6959e824508b84be368a2ab43427c2c86e8f8256975"
+ },
+ {
+  "file": "synthetic/zstd/small-window.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 151147,
+  "sha256": "7a13564210e6018d13f6824c3d05ef809704b03b448b880471cc2ee548824b10"
+ },
+ {
+  "file": "synthetic/zstd/text-fast.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 123268,
+  "sha256": "628444fab3ad46a7fd922830a575e22ca563d92fe19be03ecb7e2df3278d6c45"
+ },
+ {
+  "file": "synthetic/zstd/text-l1.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 92879,
+  "sha256": "b8e1f9c75bad35c860e3617b338ac8f1a00ddbcf6554e609ab41aba2a303cf07"
+ },
+ {
+  "file": "synthetic/zstd/text-l19.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 82373,
+  "sha256": "b4c9da1356cbfdd786032b15d05ce2d5d1acaeb1bd3fc7f32e4ff73148d4d890"
+ },
+ {
+  "file": "synthetic/zstd/text-l3.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 91351,
+  "sha256": "7b03ae5d3093958b926c170ce50fb57c6aba36f3fc2fb7dbaa8d486f44e4237b"
+ },
+ {
+  "file": "synthetic/zstd/text-l9.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 89947,
+  "sha256": "8f383f8ed7c4f32e3b53c4f247df3e3270a842f29352d34cebde500841ed3087"
+ },
+ {
+  "file": "synthetic/zstd/zeros.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 30,
+  "sha256": "6ddbf9bcdc6b51be2f72cda91542ddb3d5448e0b1092ba36eaa8d16988cb843a"
+ },
+ {
+  "file": "synthetic/rhino-scene.3dm",
+  "format": "3dm",
+  "title": "Rhino 3DM fixture written with rhino3dm",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_3dm_fixtures.py",
+  "bytes": 13687,
+  "sha256": "8521c081baed878d2b790795811abb31f159a7cba64b1b7749dc9cd5631b3f2e"
+ },
+ {
+  "file": "synthetic/rhino-bigmesh.3dm",
+  "format": "3dm",
+  "title": "Rhino 3DM fixture written with rhino3dm",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_3dm_fixtures.py",
+  "bytes": 2027785,
+  "sha256": "a455f95ae365556761ccf263b8d371816389b095d4013d224f54ef73905dcd13"
+ },
+ {
+  "file": "synthetic/rhino-layers.3dm",
+  "format": "3dm",
+  "title": "Rhino 3DM fixture written with rhino3dm",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_3dm_fixtures.py",
+  "bytes": 9160,
+  "sha256": "3282fc1b194df3ed8c0d8338829147e668a1dd9a79948f477449f7b2264c7944"
+ },
+ {
+  "file": "synthetic/box-700.sat",
+  "format": "sat",
+  "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sat_fixtures.py",
+  "bytes": 4175,
+  "sha256": "c5bf261d739b4a31f834eaf8e01cc6bfa839ca7dba9b956c97685417d0485eed"
+ },
+ {
+  "file": "synthetic/box-700.sab",
+  "format": "sat",
+  "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sat_fixtures.py",
+  "bytes": 5536,
+  "sha256": "2017efdc7fcc2a40a5bdc3dfba6efb83a3469b45892f7b69cacc52a97cc48d2d"
+ },
+ {
+  "file": "synthetic/hexprism-700.sat",
+  "format": "sat",
+  "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sat_fixtures.py",
+  "bytes": 6496,
+  "sha256": "f752aa756e15a7ce297665857436c0e92f1f6fa808ef6dbb5a0977af96115c07"
+ },
+ {
+  "file": "synthetic/cylinder-400.sat",
+  "format": "sat",
+  "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sat_fixtures.py",
+  "bytes": 1143,
+  "sha256": "c1e746999410397396e46c7a446a4380b25ae08272fe7e048f7148103b8bcfcd"
+ },
+ {
+  "file": "synthetic/sphere-400.sat",
+  "format": "sat",
+  "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sat_fixtures.py",
+  "bytes": 293,
+  "sha256": "007b07886c3a0efe787dc67ef0e963f5682a7d7817a6eaa1a6c376178f016a43"
+ },
+ {
+  "file": "synthetic/torus-400.sat",
+  "format": "sat",
+  "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sat_fixtures.py",
+  "bytes": 294,
+  "sha256": "425e591f9a77a5abacfda80a41072641f89de3743cf7857ffb32dfe9529dd163"
+ },
+ {
+  "file": "sat/nist-arm-blank.sat",
+  "format": "sat",
+  "title": "NIST arm blank, ACIS 1.5 save (105)",
+  "license": "Public domain (US government work, NIST)",
+  "source": "NIST engineering design models (via the public cq-acis test corpus)",
+  "bytes": 4709,
+  "sha256": "d3477a71195fc5650975314551bf621def89fdbd1752602d9bc6e12a279a0d2d"
+ },
+ {
+  "file": "synthetic/inventor-hashed.iam",
+  "format": "cfb",
+  "title": "Synthetic Inventor and Revit compound files in the layout of real 2019+ files",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_cfb_real_layout.py",
+  "bytes": 11776,
+  "sha256": "bba8bb36e46290113123e18746b9e31af49b240ca29d6671aa9c78e6acb0e7be"
+ },
+ {
+  "file": "synthetic/revit-2021.rvt",
+  "format": "cfb",
+  "title": "Synthetic Inventor and Revit compound files in the layout of real 2019+ files",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_cfb_real_layout.py",
+  "bytes": 11264,
+  "sha256": "46c83f19ed277d4927b1e4b57d48618d4e2b0f0a9b200f5413eaccb0c242a34e"
+ },
+ {
+  "file": "synthetic/drawing.dwfx",
+  "format": "dwf",
+  "title": "DWFx (XPS) page written from the schema",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_dwfx_fixture.py",
+  "bytes": 1964,
+  "sha256": "8f702177fec9b4a19a0140200b8fe2313b4b1a5254d4120a90feb89ece1d705a"
+ },
+ {
+  "file": "synthetic/e57-two-scans.e57",
+  "format": "e57",
+  "title": "Synthetic E57 with two scans (colour, intensity, pose) written with pye57",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_e57_fixtures.py",
+  "bytes": 54272,
+  "sha256": "08027678ddd04d84ef86cbaeb16ca4a0552d1d8396e4709bdb6e85aac2c2b1b4"
+ },
+ {
+  "file": "synthetic/header.x_t",
+  "format": "parasolid",
+  "title": "Parasolid transmit header (placeholder node stream)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_parasolid_fixtures.py",
+  "bytes": 570,
+  "sha256": "feae8e5e1b0a67f6dad3f00ceb2996cc6232c4a248cd961cd5d82342422ccb37"
+ },
+ {
+  "file": "synthetic/header.x_b",
+  "format": "parasolid",
+  "title": "Parasolid transmit header (placeholder node stream)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_parasolid_fixtures.py",
+  "bytes": 114,
+  "sha256": "177bca29e82521d464c49405bd3914137e8b95f58244b286f0cc27a967c5e9f9"
+ },
+ {
+  "file": "synthetic/bare.x_t",
+  "format": "parasolid",
+  "title": "Parasolid transmit header (placeholder node stream)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_parasolid_fixtures.py",
+  "bytes": 111,
+  "sha256": "5d0653b6f1eff22609f9f5a0d013744e3250f89aecdad345fac4a180a8a6acf5"
+ },
+ {
+  "file": "synthetic/disc.x_t",
+  "format": "parasolid",
+  "title": "Parasolid 12 transmit file: a circular sheet with a colour attribute",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_parasolid_fixtures.py",
+  "bytes": 929,
+  "sha256": "8551a38c39738f3deb08017462d1b8f7beb106d0e631db9ae343aa82bcbec7b4"
+ },
+ {
+  "file": "synthetic/disc-embedded.x_t",
+  "format": "parasolid",
+  "title": "Parasolid transmit file that embeds its schema as edits to the 13006 base: the circular sheet again, with an edited BODY and a type declared in full",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_parasolid_fixtures.py",
+  "bytes": 1098,
+  "sha256": "1de446fe9503bf70d88bbe47026dc3cf81bce13e26bda8ac8112379db6827867"
+ },
+ {
+  "file": "synthetic/legacy-cube.sldprt",
+  "format": "sldprt",
+  "title": "Synthetic SolidWorks 2014-style part (OLE compound, __ZLB streams)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sw_legacy.py",
+  "bytes": 6144,
+  "sha256": "d041b7d2b6e4a600c9f4eaf6ea76f83fb171b7335efa3460c5029367949d12f8"
+ },
+ {
+  "file": "synthetic/iges-spline-surface.igs",
+  "format": "iges",
+  "title": "Hand-written IGES with 114, 118, 108 and 112 entities (OpenCASCADE oracle)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_splines.py",
+  "bytes": 3483,
+  "sha256": "eb56bbcadcfc72f94c5644aa30f7036f5369be3278476b8ab95b8709925b14f4"
+ },
+ {
+  "file": "synthetic/iges-ruled.igs",
+  "format": "iges",
+  "title": "Hand-written IGES with 114, 118, 108 and 112 entities (OpenCASCADE oracle)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_splines.py",
+  "bytes": 2511,
+  "sha256": "d8e518e26e5e55c4cfaf13d509dc534819a1419cb9d4a91ad59e78d826b4a241"
+ },
+ {
+  "file": "synthetic/iges-bounded-plane.igs",
+  "format": "iges",
+  "title": "Hand-written IGES with 114, 118, 108 and 112 entities (OpenCASCADE oracle)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_splines.py",
+  "bytes": 2268,
+  "sha256": "1edaf7ee4d765911209838a3a18611a24837c5182af32496a6beb3ae0746e2ad"
+ },
+ {
+  "file": "synthetic/iges-spline-curve.igs",
+  "format": "iges",
+  "title": "Hand-written IGES with 114, 118, 108 and 112 entities (OpenCASCADE oracle)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_iges_splines.py",
+  "bytes": 648,
+  "sha256": "d94e48396920aa5c97bc4cf5bea40d962929e59d3d116bcb095ed571442c07d4"
+ },
+ {
+  "file": "synthetic/gdl-solids.gsm",
+  "format": "gsm",
+  "title": "Synthetic Archicad library part with GDL scripts",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_gsm.py",
+  "bytes": 1884,
+  "sha256": "d45ca9f13950953aa05ce05233be6bdf4c2e5fd949137b760adcb9bbaa2deacc"
+ },
+ {
+  "file": "synthetic/usd-layers/crate-root.usdc",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 1020,
+  "sha256": "c1022426a8ef90c885e81bd7f05b2efc6a0f28ede6a25f823e1d65f7f10f3b53"
+ },
+ {
+  "file": "synthetic/usd-layers/geom/ball.usda",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 221,
+  "sha256": "7efba4f1a1e969c8eb4ab2686d84b380861feeca7ddb740255a45fb6ecf88f69"
+ },
+ {
+  "file": "synthetic/usd-layers/geom/box.usda",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 361,
+  "sha256": "aa24f7267766da3f20564c78aa7f71f6603fd4977201f60b4e977bad88989be7"
+ },
+ {
+  "file": "synthetic/usd-layers/geom/variants.usda",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 461,
+  "sha256": "1ba1baafa557a43d1f418e212408666b7bb869969ed7118be4d2e16c7309d735"
+ },
+ {
+  "file": "synthetic/usd-layers/root.usda",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 2237,
+  "sha256": "9529c1ac89117ad111d26ffa79f6fab0ed90aa0139d63a702da0ad3f33b0cfbf"
+ },
+ {
+  "file": "synthetic/usd-layers/sub.usda",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 245,
+  "sha256": "77c958c4e93d3f000a77245dad8c99be8c7d2bf2e0762e2fc6a5cdde05a83f6d"
+ },
+ {
+  "file": "synthetic/usd-layers.usdz",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 4248,
+  "sha256": "6989afd9c3245bd3a75baacbc0a23d066103a9bd6aaf8622e32a4ff9c28afad5"
+ },
+ {
+  "file": "synthetic/usd-layers/textures/checker.png",
+  "format": "png",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 81,
+  "sha256": "df563d9c80877e3961934352bc71e6f59b0e5f41e5b2829dbdf4bb321d26daec"
+ },
+ {
+  "file": "synthetic/model-2021.skp",
+  "format": "skp",
+  "title": "Synthetic SketchUp-shaped files",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_skp.py",
+  "bytes": 5246,
+  "sha256": "fb4afd436b1ee0da7e1092d96528a93142f7dcf3383a4ea2f36d6268345226ce"
+ },
+ {
+  "file": "synthetic/model-2016.skp",
+  "format": "skp",
+  "title": "Synthetic SketchUp-shaped files",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_skp.py",
+  "bytes": 2942,
+  "sha256": "7f6c331b4d37c8fafaa73057b1ba8aaf6b2852dc82c670c552deaca84bab420a"
+ },
+ {
+  "file": "synthetic/ifcxml-wall.ifcxml",
+  "format": "ifc",
+  "title": "Hand-written wall model as ifcXML and as STEP (the pair describes one model)",
+  "license": "CC0-1.0",
+  "source": "hand-written",
+  "bytes": 4781,
+  "sha256": "66af4f0a58a9aef91fee58bdcf8672986d8b10c053a300e7a91ad6468726b517"
+ },
+ {
+  "file": "synthetic/ifcxml-wall.ifc",
+  "format": "ifc",
+  "title": "Hand-written wall model as ifcXML and as STEP (the pair describes one model)",
+  "license": "CC0-1.0",
+  "source": "hand-written",
+  "bytes": 1921,
+  "sha256": "a7a59529ca08dae966a0e4fd39e1c16356ec8cf2861d9ea5ff161514b9348230"
+ },
+ {
+  "file": "synthetic/las14-f6.las",
+  "format": "las",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 27375,
+  "sha256": "58d55a7bea54459c288ba4b6de64b6e510d563449fc00f7ed5c4e461a58a0747"
+ },
+ {
+  "file": "synthetic/las14-f7.las",
+  "format": "las",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 32775,
+  "sha256": "cedd8b952259045f2292112603e5d611be56f6b12c7e98f2299b9bae68f6a63d"
+ },
+ {
+  "file": "synthetic/las14-f8.las",
+  "format": "las",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 34575,
+  "sha256": "b1918cb7a93d74ff3de55c1d0bfa3f35d01ff88544b2cdf906739240e011953d"
+ },
+ {
+  "file": "synthetic/las14-f9.las",
+  "format": "las",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 53475,
+  "sha256": "821e1a60a30301276af00b116be2d0803ac4a1252496d64fc64a6fb1bc38ab7d"
+ },
+ {
+  "file": "synthetic/las14-f10.las",
+  "format": "las",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 62913,
+  "sha256": "a16f0050595d8e05ecb42a3913e068839a45319905b29085ecfcc42712f77f59"
+ },
+ {
+  "file": "synthetic/laz14-f6.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 16985,
+  "sha256": "ee32ebb2ca97d488306561d00073fd2be1dc57759bed2031381c984fed09671a"
+ },
+ {
+  "file": "synthetic/laz14-f7.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 22015,
+  "sha256": "256c4463511cf0ebee2ba29315be27088f6c44ec4bc9e6d2260ab64e1b71e299"
+ },
+ {
+  "file": "synthetic/laz14-f8.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 23108,
+  "sha256": "6b2e5296be13ce7d22ea926ac630c8d786f96ba7949dc9be1be35062b74b436a"
+ },
+ {
+  "file": "synthetic/laz14-f9.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 39518,
+  "sha256": "1660df2c9b8fd4d141a9876fa0b78013cff512c719451078570d01dcad752726"
+ },
+ {
+  "file": "synthetic/laz14-f10.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 47801,
+  "sha256": "c715d221e6e3f778f542d59309985cdc62dd251cd49cd5e5590607d9fa87d809"
+ },
+ {
+  "file": "synthetic/laz14c-f6.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 17832,
+  "sha256": "e24ea09f29437019afdfa0565488af065c03204b46d5d1dbc3562ae3f9cc2638"
+ },
+ {
+  "file": "synthetic/laz14c-f7.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 23020,
+  "sha256": "ea33200524ffbc7cabb4f1608c391c07ff4f59a8d60c2696a16f0f86026d89f8"
+ },
+ {
+  "file": "synthetic/laz14c-f8.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 24240,
+  "sha256": "de13de5d0d660ad87f89acc9debbc622fda68c2acc25c52ba2d5eaead4f0d7d8"
+ },
+ {
+  "file": "synthetic/laz-pointwise-f3.laz",
+  "format": "laz",
+  "title": "Synthetic LAS 1.4 / LAZ point cloud written with laspy (LASzip C++ and lazrs)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_las14_fixtures.py",
+  "bytes": 2042,
+  "sha256": "56d426944a65f7f282f39cba747e6d4dca44189687235e615606e74ceffca723"
+ },
+ {
+  "file": "fusion/1WireRGBWController.f3d",
+  "format": "fusion",
+  "title": "1-Wire RGBW controller (Fusion 360 design, Zstandard entries)",
+  "license": "CC0-1.0",
+  "source": "cadmpeg corpus (github.com/cadmpeg/cadmpeg, corpus/), donated under CC0-1.0 by its author Alastair D'Silva, made with Autodesk Fusion 360",
+  "bytes": 1280360,
+  "sha256": "89d9366b8fdc313e73f3eccb3851f61b78b70c2af315536a5750f25b903ed4a2"
+ },
+ {
+  "file": "synthetic/part-docstruct.f3d",
+  "format": "fusion",
+  "title": "Synthetic Fusion packages",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_f3z.py",
+  "bytes": 1633,
+  "sha256": "78d9eb14d821d8c2f64d22a91149cc4292f566babbffa2c75752af2426cd01e3"
+ },
+ {
+  "file": "synthetic/design-description.f3z",
+  "format": "fusion",
+  "title": "Synthetic Fusion packages",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_f3z.py",
+  "bytes": 2356,
+  "sha256": "2f463394449485c97df3915c9466e5a706f04c0aac52c7ade239725b9a0867f6"
+ },
+ {
+  "file": "synthetic/assembly.3dxml",
+  "format": "3dxml",
+  "title": "Synthetic 3DXML assembly (ZIP package with a part representation)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_3dxml.py",
+  "bytes": 1544,
+  "sha256": "ec878badd23ec9ae43ee0e776a47c577dada54811526b5f37fed919790bd5a16"
+ },
+ {
+  "file": "synthetic/structure.3dxml",
+  "format": "3dxml",
+  "title": "Synthetic 3DXML assembly (product structure alone)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_3dxml.py",
+  "bytes": 1900,
+  "sha256": "8b2b334185dca219128fcf661d038d9bbf9e4c7579a7c9a5d51adef9dede5416"
+ },
+ {
+  "file": "synthetic/geometry-2021.skp",
+  "format": "skp",
+  "title": "Synthetic SketchUp 2021 file with geometry (plate with a hole, a cube component placed twice)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_skp_geometry.py",
+  "bytes": 1789,
+  "sha256": "8704ef8c01b42c209eccfc22a5bc0b191e83ee39e2b5d97d7195447b9bb6f8db"
+ },
+ {
+  "file": "synthetic/geometry-2017.skp",
+  "format": "skp",
+  "title": "Synthetic SketchUp 2017 file with geometry in the MFC object-stream layout (plate with a hole placed twice)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_skp_legacy_geometry.py",
+  "bytes": 1883,
+  "sha256": "cb901d3f32ea4bdcd19d88bcc46887d177914301465bdf3c0e01b49ef97eb5c4"
+ },
+ {
+  "file": "catia/100nF.CATPart",
+  "format": "catia",
+  "title": "SMD capacitor, CATIA V5 part (.CATPart): a box with its colour, R21",
+  "license": "MIT",
+  "source": "github.com/hssnadr/HTBX_01Ressources (MIT, copyright 2020 Adrien Husson); a CATIA V5 model of a game controller",
+  "bytes": 41514,
+  "sha256": "508ae884d67b6828f9462ce23970498c6892e171c544acb413bffce8eff2a3f4"
+ },
+ {
+  "file": "catia/Case_Logo_Yellow.CATPart",
+  "format": "catia",
+  "title": "Logo plate, CATIA V5 part (.CATPart) with a yellow face colour, R21",
+  "license": "MIT",
+  "source": "github.com/hssnadr/HTBX_01Ressources (MIT, copyright 2020 Adrien Husson); a CATIA V5 model of a game controller",
+  "bytes": 473285,
+  "sha256": "f92a08b7d6e595102ca82aa72b8c2bd04cdcb18eee4e23a1800a10933bf1594a"
+ },
+ {
+  "file": "catia/Plexiglass_top.CATPart",
+  "format": "catia",
+  "title": "Transparent top plate, CATIA V5 part (.CATPart) with face transparency, R21",
+  "license": "MIT",
+  "source": "github.com/hssnadr/HTBX_01Ressources (MIT, copyright 2020 Adrien Husson); a CATIA V5 model of a game controller",
+  "bytes": 355788,
+  "sha256": "cec8b1f29a0b42559b849c64ff5beeb38c6cdb691875b10dcf0aba9fd955fc7a"
+ },
+ {
+  "file": "catia/Weight.CATPart",
+  "format": "catia",
+  "title": "Round weight, CATIA V5 part (.CATPart) with a 27264-vertex tessellation, R21",
+  "license": "MIT",
+  "source": "github.com/hssnadr/HTBX_01Ressources (MIT, copyright 2020 Adrien Husson); a CATIA V5 model of a game controller",
+  "bytes": 570513,
+  "sha256": "477abcad32be62215758eee97e21e6c14213cc0e8c73e427ec4f98ef014194a9"
+ },
+ {
+  "file": "catia/POWER_BOARD.CATProduct",
+  "format": "catia",
+  "title": "Power board, CATIA V5 product (.CATProduct): structure and links only, R21",
+  "license": "MIT",
+  "source": "github.com/hssnadr/HTBX_01Ressources (MIT, copyright 2020 Adrien Husson); a CATIA V5 model of a game controller",
+  "bytes": 112363,
+  "sha256": "be9f98a76b59340f800c42454f540a611b06b643627ccc87df36bb9dbc245784"
+ },
+ {
+  "file": "catia/Product1.CATProduct",
+  "format": "catia",
+  "title": "Robot hand assembly, CATIA V5 product (.CATProduct): structure and links only, R24",
+  "license": "MIT",
+  "source": "github.com/Dictor/HaneulMyo (MIT, copyright 2019 Dictor); a CATIA V5 model of a robot hand",
+  "bytes": 40983,
+  "sha256": "0018ec386764dceac596e9367dac9236548cd859b23ea1359f7170ea2656f26a"
+ },
+ {
+  "file": "catia/BracketMidVer3.CATPart",
+  "format": "catia",
+  "title": "Bracket, CATIA V5 part (.CATPart), R24",
+  "license": "MIT",
+  "source": "github.com/Dictor/HaneulMyo (MIT, copyright 2019 Dictor); a CATIA V5 model of a robot hand",
+  "bytes": 1072570,
+  "sha256": "346091a9dfba55bf7e71b6c200d745247ea337b01d69c1368e20aa1df2d853e6"
+ },
+ {
+  "file": "synthetic/catia-cube.CATPart",
+  "format": "catia",
+  "title": "Hand-made CATIA V5 document in the V5_CFV2 layout (written by tools/fixtures/make_fixtures.py)",
+  "license": "CC0-1.0",
+  "source": "original work",
+  "bytes": 4024,
+  "sha256": "72d7ca831fe6f772f28dabbe2c0b59e83a1e1ba72d9ae5db845af3791bbcc33c"
+ },
+ {
+  "file": "synthetic/catia-cube-r32.CATPart",
+  "format": "catia",
+  "title": "Hand-made CATIA V5 document in the V5_CFV2 layout (written by tools/fixtures/make_fixtures.py)",
+  "license": "CC0-1.0",
+  "source": "original work",
+  "bytes": 4032,
+  "sha256": "9a61c91d39e2756923740baf34e8080ac4d9344239b4090ad95011dd6fe01680"
+ },
+ {
+  "file": "synthetic/catia-assembly.CATProduct",
+  "format": "catia",
+  "title": "Hand-made CATIA V5 document in the V5_CFV2 layout (written by tools/fixtures/make_fixtures.py)",
+  "license": "CC0-1.0",
+  "source": "original work",
+  "bytes": 3293,
+  "sha256": "359dc300ac29cd3053c4c5a37bb193816a3c07127fdfc8c3b6c619abd4bf9ab0"
+ },
+ {
+  "file": "synthetic/catia-drawing.CATDrawing",
+  "format": "catia",
+  "title": "Hand-made CATIA V5 document in the V5_CFV2 layout (written by tools/fixtures/make_fixtures.py)",
+  "license": "CC0-1.0",
+  "source": "original work",
+  "bytes": 1841,
+  "sha256": "c93133d7ea34800837a0d76307af91bc08ad293fe5f70ed065a256397407fce5"
+ },
+ {
+  "file": "synthetic/xz/concat.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 9764,
+  "sha256": "a636da979ccfa3c478c7e4dede86e4301e0cd1550b2eecf603ab543716520a8e"
+ },
+ {
+  "file": "synthetic/xz/crc64.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 10912,
+  "sha256": "8d44695d6cc2884c7cf1cfe567d5793848e95f5bf4c1b520d03398f4c2bffb83"
+ },
+ {
+  "file": "synthetic/xz/floats-p9.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 101392,
+  "sha256": "6b7758e366dd16130e05e4b260cc2d55c41ada64341a061125245539b765be46"
+ },
+ {
+  "file": "synthetic/xz/lc0lp2.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 17152,
+  "sha256": "cd487b72523345fd094694e001245133b36ba61d7f5839571c2ba076a1ac3473"
+ },
+ {
+  "file": "synthetic/xz/nocheck.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 10972,
+  "sha256": "05b87fe38820ff529006be3e260c933450a6689624391afa2a1ca6fc4db63316"
+ },
+ {
+  "file": "synthetic/xz/random.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 70060,
+  "sha256": "85061ca864f3d929b1c825ef105a35e4539378ac55f252ed85b7c07bd10e527e"
+ },
+ {
+  "file": "synthetic/xz/repeat.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 188,
+  "sha256": "c12c87985567317244278ffa508eea9f5b5c615829d621960e8a3a2f3e3b8d45"
+ },
+ {
+  "file": "synthetic/xz/text-p0.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 44488,
+  "sha256": "85c04d3a64e31a8975b972083bcc190a2f9dcb68b10862340dc167b6ca7940ff"
+ },
+ {
+  "file": "synthetic/xz/text-p6.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 58956,
+  "sha256": "7ba289ec9d680f34c7b9b7e228df302594ce8a648858730d3a0706cced93701b"
+ },
+ {
+  "file": "synthetic/xz/tiny.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 60,
+  "sha256": "90f88e3b97b09c88359e2289393a60fbd0c08ceed66b1db7c8924cc3a225b144"
+ },
+ {
+  "file": "synthetic/xz/zeros.xz",
+  "format": "xz",
+  "title": "xz stream written by liblzma (decoder test)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_xz.py",
+  "bytes": 172,
+  "sha256": "16f9b26ed68b4271311429dd35521be4de6e5e1a5ce84c98f96a5abea7c7fe23"
+ },
+ {
+  "file": "synthetic/blend-units/units-mm.blend",
+  "format": "blend",
+  "title": "Blender scene at unit scale 0.001 (millimetres): a 20 mm cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 194242,
+  "sha256": "0f563fdb49f8cf8a1ad30e3543e7c7f10681b871ddff5fb3b52e9638071a9c44"
+ },
+ {
+  "file": "synthetic/blend-units/units-m.blend",
+  "format": "blend",
+  "title": "Blender scene at unit scale 1 (metres): a 2 m cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 86538,
+  "sha256": "3211ca0e48f8d89048f02f2e86dd0295e1987c3ceaac3ac8a0ebe27f98e698d2"
+ },
+ {
+  "file": "synthetic/blend-units/units-cm.blend",
+  "format": "blend",
+  "title": "Blender scene at unit scale 0.01 (centimetres): a 30 cm cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 86615,
+  "sha256": "ec8b7f1aeb12839f8db9177b00f3980149981e8c0a50ae5cbd3a9093e994d36c"
+ },
+ {
+  "file": "synthetic/blend-units/units-inch.blend",
+  "format": "blend",
+  "title": "Blender scene, imperial inches, unit scale 0.0254: a 10 inch cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 86553,
+  "sha256": "b5129a8637c7babe0fa7c8c833aada3ebf6861e7da401f98f07be4716df11aca"
+ },
+ {
+  "file": "synthetic/blend-units/units-km.blend",
+  "format": "blend",
+  "title": "Blender scene at unit scale 1000 (kilometres): a 0.5 km cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 86563,
+  "sha256": "a038bafbb3e1052a405288145ebbd8edcae5286053f8224a1b9f0d4d7ca1f7c6"
+ },
+ {
+  "file": "synthetic/blend-units/units-odd.blend",
+  "format": "blend",
+  "title": "Blender scene at unit scale 0.0125 (no named unit): an 8 unit cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 86571,
+  "sha256": "bf595d1f4d240d1afaa1ddccbde8cdf3d5908b1881c1feeb65cdcbafde9abe5c"
+ },
+ {
+  "file": "synthetic/blend-units/units-none.blend",
+  "format": "blend",
+  "title": "Blender scene with unit system None (scale 0.001 is ignored): a 2 unit cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 86594,
+  "sha256": "203c2f847f2bf8ea225240c8916b625733524db360eb0c752d29a80eb0234d7d"
+ },
+ {
+  "file": "synthetic/blend-units/shapes.blend",
+  "format": "blend",
+  "title": "Blender shapes of known volume (cube, cylinder, sphere, torus, Suzanne), a mirrored cube, a sheared child, collection instances, UVs and a texture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 141315,
+  "sha256": "68483fe25a0c0bed91e93c6ca0ec99879fd92e2f33e94f7791d0bebc52f83ae3"
+ },
+ {
+  "file": "synthetic/blend-units/shapes-mm.blend",
+  "format": "blend",
+  "title": "The same Blender shapes at unit scale 0.001, gzip-compressed",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend_units.py",
+  "bytes": 142824,
+  "sha256": "a6f664b623c3dea016af725a76297c12ed6df939f85f680029f47d1bf08bd2be"
  }
 ]

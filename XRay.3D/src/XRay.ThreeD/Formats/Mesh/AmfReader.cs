@@ -57,8 +57,9 @@ internal static class AmfReader
         meta.Units = ((string?)root.Attribute("unit")) switch
         {
             "inch" => LengthUnit.Inch,
+            "feet" or "foot" => LengthUnit.Foot,
             "meter" => LengthUnit.Meter,
-            "micron" => LengthUnit.Micrometer,
+            "micrometer" or "micron" => LengthUnit.Micrometer,
             _ => LengthUnit.Millimeter,
         };
         if ((string?)root.Attribute("version") is { } version)

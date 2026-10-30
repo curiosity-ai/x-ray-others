@@ -1,0 +1,1671 @@
+{
+ "Cad.Solidworks.Parts__End_Cap_English.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 27208,
+  "display_list_sha256": "7b9bbe60e1a0470650a3dfaf3e56f17a28b0910d975ca145c57ec9713f061c10",
+  "faces": 13,
+  "keywords_name": "Part24",
+  "max": [
+   0.009999999776482582,
+   0.009999999776482582,
+   0.001500000013038516
+  ],
+  "min": [
+   -0.009999999776482582,
+   -0.009999999776482582,
+   -0.001500000013038516
+  ],
+  "streams": 36,
+  "vertices": 528
+ },
+ "Cad.Solidworks.Parts__End_Cap_V-Slot.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 27208,
+  "display_list_sha256": "5165155998b0724f66a02b5860b0ac23b1fc450e659d0b586ad2375ac361f763",
+  "faces": 13,
+  "keywords_name": "End Cap English",
+  "max": [
+   0.009999999776482582,
+   0.009999999776482582,
+   0.001500000013038516
+  ],
+  "min": [
+   -0.009999999776482582,
+   -0.009999999776482582,
+   -0.001500000013038516
+  ],
+  "streams": 36,
+  "vertices": 528
+ },
+ "Cad.Solidworks.Parts__Inside_Hidden_Corner_Bracket.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 399203,
+  "display_list_sha256": "c91ba3c186684580f43b5c60f3db551a52a9ecccbbc9420ca4659cc34d088830",
+  "faces": 157,
+  "keywords_name": "V-Slot 20mm x 20mm Sketch",
+  "max": [
+   0.005249999929219484,
+   0.031700000166893005,
+   8.673617379884035e-19
+  ],
+  "min": [
+   -0.005249999929219484,
+   0.00570000009611249,
+   -0.02500000037252903
+  ],
+  "streams": 36,
+  "vertices": 9012
+ },
+ "Cad.Solidworks.Parts__V-Slot_Actuator_End_Mount_no_Bolts.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 415961,
+  "display_list_sha256": "7a0a5f26472e874b9f68b69c7cba8552db375982394a8238938ba2e72e2dbb94",
+  "faces": 78,
+  "keywords_name": "V-Slot Actuator End Mount",
+  "max": [
+   0.08699999749660492,
+   0.054999999701976776,
+   0.004600000102072954
+  ],
+  "min": [
+   -6.938893903907228e-18,
+   -6.938893903907228e-18,
+   -0.02459999918937683
+  ],
+  "streams": 37,
+  "vertices": 11450
+ },
+ "Cad.Solidworks.Parts__end_cap.SLDPRT": {
+  "configurations": [
+   "D\u00e9faut"
+  ],
+  "display_list_bytes": 26643,
+  "display_list_sha256": "f27a83eb0be08fcc410c0d6731ef7826d8ba80348fac60f702e0d4e0ed2dda9d",
+  "faces": 13,
+  "keywords_name": "end_cap",
+  "max": [
+   0.009999999776482582,
+   0.009999999776482582,
+   0.001500000013038516
+  ],
+  "min": [
+   -0.009999999776482582,
+   -0.009999999776482582,
+   -0.001500000013038516
+  ],
+  "streams": 37,
+  "vertices": 530
+ },
+ "MRSD__1091-1013-ND.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 13977,
+  "display_list_sha256": "c16bf975366a0628946efbe2e7a8b5619ae261b76778079b783629e97782b764",
+  "faces": 16,
+  "keywords_name": "Part1",
+  "max": [
+   0.015200000256299973,
+   0.030500000342726707,
+   0.007000000216066837
+  ],
+  "min": [
+   -0.015200000256299973,
+   0.0,
+   -0.007000000216066837
+  ],
+  "streams": 35,
+  "vertices": 126
+ },
+ "MRSD__1257K650.SLDPRT": {
+  "configurations": [
+   "1257K65"
+  ],
+  "display_list_bytes": 18666,
+  "display_list_sha256": "7bc145c5e34cddbf8fc5a7f3cb1b2609b7bb1063977dace3947f304b3a47aa41",
+  "faces": 5,
+  "keywords_name": "1257K650",
+  "max": [
+   0.00317499996162951,
+   0.00317499996162951,
+   0.07620000094175339
+  ],
+  "min": [
+   -0.00317499996162951,
+   -0.00317499996162951,
+   -0.07620000094175339
+  ],
+  "streams": 42,
+  "vertices": 218
+ },
+ "MRSD__1570K420.SLDPRT": {
+  "configurations": [
+   "1570K42"
+  ],
+  "display_list_bytes": 28296,
+  "display_list_sha256": "27ace4293aa65f14e550a03d20b0a61899cbe81a3f9995d972530453b9bfaf99",
+  "faces": 8,
+  "keywords_name": "1570K420",
+  "max": [
+   0.006328838877379894,
+   0.006148361135274172,
+   0.15240000188350677
+  ],
+  "min": [
+   -0.006328838877379894,
+   -0.006298768799751997,
+   -0.15240000188350677
+  ],
+  "streams": 42,
+  "vertices": 480
+ },
+ "MRSD__3547S-1AA-502A-ND.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 82644,
+  "display_list_sha256": "c738d28baf5f3c6b73cc920390c8ad79f57e98cc36ff78cd222fbf0fffb86b87",
+  "faces": 22,
+  "keywords_name": "3547S-1AA-502A-ND",
+  "max": [
+   0.011235153302550316,
+   0.039065200835466385,
+   0.011209174990653992
+  ],
+  "min": [
+   -0.011235153302550316,
+   -1.0842021724855044e-19,
+   -0.01269999984651804
+  ],
+  "streams": 35,
+  "vertices": 1960
+ },
+ "MRSD__5986K66.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 79253,
+  "display_list_sha256": "78ef4f60c02928376f05541119a94abc47c55fb036ff3583422accb08c568f53",
+  "faces": 22,
+  "keywords_name": "5986K66",
+  "max": [
+   0.00634999992325902,
+   0.00634999992325902,
+   0.019050000235438347
+  ],
+  "min": [
+   -0.00634999992325902,
+   -0.00634999992325902,
+   0.0
+  ],
+  "streams": 35,
+  "vertices": 1960
+ },
+ "MRSD__5986K68.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 90271,
+  "display_list_sha256": "dc5cb78f9944f04f9d92a661c5c18c63f431adfc2fec98915894a2a7cdf6532a",
+  "faces": 22,
+  "keywords_name": "5986K68",
+  "max": [
+   0.011112499982118607,
+   0.011105730198323727,
+   0.03175000101327896
+  ],
+  "min": [
+   -0.011112499982118607,
+   -0.011105730198323727,
+   -6.993104012531504e-18
+  ],
+  "streams": 35,
+  "vertices": 2288
+ },
+ "MRSD__5986K767.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 123497,
+  "display_list_sha256": "00b1964e9a17afed822d31b6623c28de951e1bcb04042edbc15d2d88b9160c02",
+  "faces": 28,
+  "keywords_name": "5986K767",
+  "max": [
+   0.011112499982118607,
+   0.011112499982118607,
+   0.03175000101327896
+  ],
+  "min": [
+   -0.011112499982118607,
+   -0.008816138841211796,
+   0.0
+  ],
+  "streams": 35,
+  "vertices": 3106
+ },
+ "MRSD__6-32-BallJoint.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 137893,
+  "display_list_sha256": "9cfdb28e9774c0f7dbe3096cc3911029697ab897aae2fb4c520430412bcb918b",
+  "faces": 18,
+  "keywords_name": "Part1",
+  "max": [
+   0.0053321970626711845,
+   0.0057067894376814365,
+   0.02258272096514702
+  ],
+  "min": [
+   -0.0053321970626711845,
+   -0.0012617892352864146,
+   -0.0053151738829910755
+  ],
+  "streams": 35,
+  "vertices": 3450
+ },
+ "MRSD__6383K213.SLDPRT": {
+  "configurations": [
+   "6383K213"
+  ],
+  "display_list_bytes": 4156542,
+  "display_list_sha256": "c7618739b64094157be168775ea35e5e37a54ac6e0a29da641108bd87135ba9f",
+  "faces": 29,
+  "keywords_name": "6383K213",
+  "max": [
+   0.010239411145448685,
+   0.010246527381241322,
+   0.00317499996162951
+  ],
+  "min": [
+   -0.010248900391161442,
+   -0.010246527381241322,
+   -0.004762500058859587
+  ],
+  "streams": 27,
+  "vertices": 122072
+ },
+ "MRSD__6383K234.SLDPRT": {
+  "configurations": [
+   "6383K234"
+  ],
+  "display_list_bytes": 5383470,
+  "display_list_sha256": "3f7ccff1b0872068af2f7b04419734b83688abd52d70eb80cd876cfa429b1d49",
+  "faces": 33,
+  "keywords_name": "6383K234",
+  "max": [
+   0.0158603023737669,
+   0.015871325507760048,
+   0.004762500058859587
+  ],
+  "min": [
+   -0.01587500050663948,
+   -0.015871325507760048,
+   -0.00634999992325902
+  ],
+  "streams": 31,
+  "vertices": 158160
+ },
+ "MRSD__6455K130.SLDPRT": {
+  "configurations": [
+   "6455K13"
+  ],
+  "display_list_bytes": 699042,
+  "display_list_sha256": "c03b3a7ba127d91120d156447f9fe16f9e817e00571a42ef35c0f34e47affe00",
+  "faces": 26,
+  "keywords_name": "6455K130",
+  "max": [
+   0.009525000117719173,
+   0.009472820907831192,
+   0.003571874927729368
+  ],
+  "min": [
+   -0.009525000117719173,
+   -0.009472820907831192,
+   -0.003571874927729368
+  ],
+  "streams": 36,
+  "vertices": 20074
+ },
+ "MRSD__6455K230.SLDPRT": {
+  "configurations": [
+   "6455K23"
+  ],
+  "display_list_bytes": 805926,
+  "display_list_sha256": "fa34154e3cd5fe7bf0cfebcb460ee63c0745b088f300a79a1903e5b2627b04df",
+  "faces": 28,
+  "keywords_name": "6455K230",
+  "max": [
+   0.014287499710917473,
+   0.014209231361746788,
+   0.00317499996162951
+  ],
+  "min": [
+   -0.014287499710917473,
+   -0.014209231361746788,
+   -0.00317499996162951
+  ],
+  "streams": 36,
+  "vertices": 23182
+ },
+ "MRSD__7854K12.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 845861,
+  "display_list_sha256": "47ebd174fe3f05782134a2e96e565a92cd4fe39ac9eb0a6e5bc19a74a702a820",
+  "faces": 1472,
+  "keywords_name": "7854K12",
+  "max": [
+   0.30480000376701355,
+   0.00317499996162951,
+   0.001587499980814755
+  ],
+  "min": [
+   -0.30480000376701355,
+   0.0,
+   -0.001587499980814755
+  ],
+  "streams": 35,
+  "vertices": 10860
+ },
+ "MRSD__93286A007.SLDPRT": {
+  "configurations": [
+   "93286A007"
+  ],
+  "display_list_bytes": 26315,
+  "display_list_sha256": "6a67a5b16f51142c1c849be6da9098c1fee887861e4a1a3c17e1a53250ffd877",
+  "faces": 4,
+  "keywords_name": "93286A007",
+  "max": [
+   0.004762500058859587,
+   0.004761509131640196,
+   0.0
+  ],
+  "min": [
+   -0.0047585368156433105,
+   -0.004761509131640196,
+   -0.0005080000264570117
+  ],
+  "streams": 38,
+  "vertices": 620
+ },
+ "MRSD__93505A440.SLDPRT": {
+  "configurations": [
+   "93505A440"
+  ],
+  "display_list_bytes": 914397,
+  "display_list_sha256": "16ccc0f00eb930be7a41c7b8a636f99998556d5cd6c7aaef1254c0580c35db20",
+  "faces": 34,
+  "keywords_name": "93505A440",
+  "max": [
+   0.00634999992325902,
+   0.0036661741323769093,
+   0.00317499996162951
+  ],
+  "min": [
+   -0.00634999992325902,
+   -0.0036661741323769093,
+   -0.00317499996162951
+  ],
+  "streams": 38,
+  "vertices": 22754
+ },
+ "MRSD__93505A444.SLDPRT": {
+  "configurations": [
+   "93505A444"
+  ],
+  "display_list_bytes": 996155,
+  "display_list_sha256": "924f5aed574b671cca70eeed13f162e9b2299400d42d62407baa73b47503ffea",
+  "faces": 35,
+  "keywords_name": "93505A444",
+  "max": [
+   0.01269999984651804,
+   0.0036661741323769093,
+   0.00317499996162951
+  ],
+  "min": [
+   -0.01269999984651804,
+   -0.0036661741323769093,
+   -0.00317499996162951
+  ],
+  "streams": 38,
+  "vertices": 29120
+ },
+ "MRSD__94639A203.SLDPRT": {
+  "configurations": [
+   "94639A203"
+  ],
+  "display_list_bytes": 21119,
+  "display_list_sha256": "c30aceb8ada8d6ea2b3dea3e69551be6a43f7f25cf88dbcc897ec3ca91ede29a",
+  "faces": 4,
+  "keywords_name": "94639A203",
+  "max": [
+   0.00317499996162951,
+   0.003170343581587076,
+   0.00634999992325902
+  ],
+  "min": [
+   -0.00317499996162951,
+   -0.003170343581587076,
+   -0.00634999992325902
+  ],
+  "streams": 38,
+  "vertices": 468
+ },
+ "MRSD__94639A569.SLDPRT": {
+  "configurations": [
+   "94639A569"
+  ],
+  "display_list_bytes": 25727,
+  "display_list_sha256": "50a149eafebc5e50dea86450bb43e55c08b93b53fef5e94fadfa75c6d337ded6",
+  "faces": 4,
+  "keywords_name": "94639A569",
+  "max": [
+   0.00634999992325902,
+   0.00634427834302187,
+   0.00317499996162951
+  ],
+  "min": [
+   -0.00634999992325902,
+   -0.00634427834302187,
+   -0.00317499996162951
+  ],
+  "streams": 38,
+  "vertices": 600
+ },
+ "MRSD__94639A714.SLDPRT": {
+  "configurations": [
+   "94639A714"
+  ],
+  "display_list_bytes": 20451,
+  "display_list_sha256": "009d80db598082f2ad8a5257ff6a6353415ea1c1a5bac2704402d190fc0a0e9a",
+  "faces": 4,
+  "keywords_name": "94639A714",
+  "max": [
+   0.0023812500294297934,
+   0.0023802041541785,
+   0.00634999992325902
+  ],
+  "min": [
+   -0.0023812500294297934,
+   -0.0023802041541785,
+   -0.00634999992325902
+  ],
+  "streams": 38,
+  "vertices": 444
+ },
+ "MRSD__94812A112.SLDPRT": {
+  "configurations": [
+   "94812A112"
+  ],
+  "display_list_bytes": 319725,
+  "display_list_sha256": "f98cd06aa0f245ccc87112195dafe6bd728cf56105a91edc1bf13599d8cc44f6",
+  "faces": 26,
+  "keywords_name": "94812A112",
+  "max": [
+   0.00317499996162951,
+   0.0036661741323769093,
+   3.2964995641919326e-19
+  ],
+  "min": [
+   -0.00317499996162951,
+   -0.0036661741323769093,
+   -0.0027781249955296516
+  ],
+  "streams": 38,
+  "vertices": 9116
+ },
+ "MRSD__95868A115.SLDPRT": {
+  "configurations": [
+   "95868A115"
+  ],
+  "display_list_bytes": 1998103,
+  "display_list_sha256": "dbb260f5aa68167c4112aa30660653d621cb3f332851c614fa8839a97d1b7a0b",
+  "faces": 24,
+  "keywords_name": "95868A115",
+  "max": [
+   0.002324099885299802,
+   0.0023141857236623764,
+   0.0
+  ],
+  "min": [
+   -0.002324099885299802,
+   -0.0023141857236623764,
+   -0.028244800865650177
+  ],
+  "streams": 36,
+  "vertices": 58906
+ },
+ "MRSD__95868A119.SLDPRT": {
+  "configurations": [
+   "95868A119"
+  ],
+  "display_list_bytes": 2291343,
+  "display_list_sha256": "07d55895a709ee16509ae31fc2302337504e1ecde8b18e8de4d50af94ea1413b",
+  "faces": 24,
+  "keywords_name": "95868A119",
+  "max": [
+   0.002324099885299802,
+   0.002320691477507353,
+   0.0
+  ],
+  "min": [
+   -0.002324099885299802,
+   -0.002320691477507353,
+   -0.04094479978084564
+  ],
+  "streams": 36,
+  "vertices": 67610
+ },
+ "MRSD__97431A340.SLDPRT": {
+  "configurations": [
+   "97431A340",
+   "97431A340_grv",
+   "97431A340_shft"
+  ],
+  "display_list_bytes": 37283,
+  "display_list_sha256": "8695809dd7cc64634607f86d1b841061ab1db170301d96715e230f54d9f261ab",
+  "faces": 20,
+  "keywords_name": "97431A340",
+  "max": [
+   0.0005333999870344996,
+   0.010158362798392773,
+   0.008331503719091415
+  ],
+  "min": [
+   -0.0005333999870344996,
+   -0.010158362798392773,
+   -0.010151947848498821
+  ],
+  "streams": 48,
+  "vertices": 782
+ },
+ "MRSD__98511A322.SLDPRT": {
+  "configurations": [
+   "98511A322"
+  ],
+  "display_list_bytes": 651449,
+  "display_list_sha256": "74b8e4c4bee85700baa3a59c233ce1d21f22f4e0bca1da0865074bb0a08c4561",
+  "faces": 24,
+  "keywords_name": "98511A322",
+  "max": [
+   0.0028701999690383673,
+   0.0028701999690383673,
+   0.0
+  ],
+  "min": [
+   -0.0028701999690383673,
+   -0.0028701999690383673,
+   -0.0162052009254694
+  ],
+  "streams": 36,
+  "vertices": 18940
+ },
+ "MRSD__99223A067.SLDPRT": {
+  "configurations": [
+   "99223A067"
+  ],
+  "display_list_bytes": 447369,
+  "display_list_sha256": "990b374f8030ea8cc2e28a731f76ffb555d16e3277e89c1502ae12f4623375a1",
+  "faces": 26,
+  "keywords_name": "99223A067",
+  "max": [
+   0.009525000117719173,
+   0.010998522862792015,
+   3.469446951953614e-18
+  ],
+  "min": [
+   -0.009525000117719173,
+   -0.010998522862792015,
+   -0.011112499982118607
+  ],
+  "streams": 38,
+  "vertices": 12902
+ },
+ "MRSD__9968K24.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 18455,
+  "display_list_sha256": "96b69f23f441fcdd6cdf30a35cc92b81d8995dee9cede7b32a0b9cd7b3d9d32a",
+  "faces": 6,
+  "keywords_name": "9968K24",
+  "max": [
+   0.01269999984651804,
+   0.0007937499904073775,
+   0.008980256505310535
+  ],
+  "min": [
+   -0.01269999984651804,
+   0.0,
+   -0.01269999984651804
+  ],
+  "streams": 35,
+  "vertices": 356
+ },
+ "MRSD__ArduinoMega.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 1897590,
+  "display_list_sha256": "a527afccec99e2bf6cfdaad33cd619598e1f981df0b613e93239d57b66b18856",
+  "faces": 1786,
+  "keywords_name": "ArduinoMega",
+  "max": [
+   0.05714999884366989,
+   0.026708099991083145,
+   0.0021589999087154865
+  ],
+  "min": [
+   -0.05079999938607216,
+   -0.026708099991083145,
+   -0.01079500000923872
+  ],
+  "streams": 36,
+  "vertices": 30070
+ },
+ "MRSD__BrassBushing.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 125443,
+  "display_list_sha256": "7edacbc633fc2be4f9d129b16bc4db88a721b2bb6b6d6c0391aa04d2f4f42745",
+  "faces": 7,
+  "keywords_name": "Part3",
+  "max": [
+   0.002537122927606106,
+   0.006095999851822853,
+   0.0025400000158697367
+  ],
+  "min": [
+   -0.002537122927606106,
+   -5.421010862427522e-20,
+   -0.0025400000158697367
+  ],
+  "streams": 35,
+  "vertices": 3498
+ },
+ "MRSD__Grommet.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 37561,
+  "display_list_sha256": "c6b164da9982c7d96743915c686ea8c23457125595d14ebd591de60756842220",
+  "faces": 22,
+  "keywords_name": "Part2",
+  "max": [
+   0.0044450000859797,
+   0.004191000014543533,
+   0.00317499996162951
+  ],
+  "min": [
+   -0.0044450000859797,
+   -0.0016509999986737967,
+   -0.00317499996162951
+  ],
+  "streams": 35,
+  "vertices": 770
+ },
+ "MRSD__Hitec_HS-5496.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 3042861,
+  "display_list_sha256": "728bc1cccf1b7c4ed56a8abcac88d786149d6545274aea0ea6be20600c3bef9b",
+  "faces": 1019,
+  "keywords_name": "Hitec HS-5496",
+  "max": [
+   0.038100000470876694,
+   0.047297630459070206,
+   -2.507759120362607e-07
+  ],
+  "min": [
+   -0.00317499996162951,
+   -0.006935926154255867,
+   -0.020319748669862747
+  ],
+  "streams": 37,
+  "vertices": 62184
+ },
+ "MRSD__P10867S-ND.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 18031,
+  "display_list_sha256": "14c0cd02f7bf7bec335cf721b865700c11f8d35299bdd087603bd8614c8e247d",
+  "faces": 20,
+  "keywords_name": "P10867S-ND",
+  "max": [
+   0.004000000189989805,
+   0.007300000172108412,
+   0.0017999999690800905
+  ],
+  "min": [
+   -0.004000000189989805,
+   0.0,
+   -0.0017999999690800905
+  ],
+  "streams": 35,
+  "vertices": 208
+ },
+ "MRSD__PRT-11855.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 83724,
+  "display_list_sha256": "02ed224e16e46b975fb24a296ae28a3000a6d5d6f7b4689ff215b6fa2a04aadf",
+  "faces": 35,
+  "keywords_name": "SparkFunBattery",
+  "max": [
+   0.04332491755485535,
+   0.01092199981212616,
+   0.012908238917589188
+  ],
+  "min": [
+   -0.03287508338689804,
+   0.0,
+   -0.023159760981798172
+  ],
+  "streams": 34,
+  "vertices": 1676
+ },
+ "MRSD__RSA48-HMG-36.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 133833,
+  "display_list_sha256": "5dc41005d65408278e62b02680bdda8a9d00d2cab73bc9e3e5a74191fb35efda",
+  "faces": 221,
+  "keywords_name": "ServoGear",
+  "max": [
+   0.01004179660230875,
+   0.00634999992325902,
+   0.01004179660230875
+  ],
+  "min": [
+   -0.01004179660230875,
+   0.0,
+   -0.01004179660230875
+  ],
+  "streams": 35,
+  "vertices": 1714
+ },
+ "MRSD__SPBD48-24-96.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 386017,
+  "display_list_sha256": "9eaed5b793b635c9d2bc2b8971c479d9493397ec640e65ebf3ab9eedba1011d5",
+  "faces": 589,
+  "keywords_name": "PotGear",
+  "max": [
+   0.025929167866706848,
+   0.009525000117719173,
+   0.025929167866706848
+  ],
+  "min": [
+   -0.025929167866706848,
+   -1.734723475976807e-18,
+   -0.025929167866706848
+  ],
+  "streams": 36,
+  "vertices": 5674
+ },
+ "MRSD__Servo_Mount_A.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 137909,
+  "display_list_sha256": "828c2dea725fb19402f163f87c49b443a3032d6eebd3347e711c40bfde9d79f2",
+  "faces": 46,
+  "keywords_name": "Servo Mount A",
+  "max": [
+   0.030657799914479256,
+   0.00317499996162951,
+   0.01663699932396412
+  ],
+  "min": [
+   -0.030657799914479256,
+   0.0,
+   -0.01663699932396412
+  ],
+  "streams": 35,
+  "vertices": 3454
+ },
+ "MRSD__Std_Hub_Horn.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 106473,
+  "display_list_sha256": "e2beaff13e6c5f1f49b884006d78cf0f1b86b0f736d3e67386e2baf595548e20",
+  "faces": 32,
+  "keywords_name": "Std Hub Horn",
+  "max": [
+   0.012694423086941242,
+   0.00634999992325902,
+   0.01269999984651804
+  ],
+  "min": [
+   -0.012694423086941242,
+   0.0,
+   -0.01269999984651804
+  ],
+  "streams": 35,
+  "vertices": 2662
+ },
+ "MRSD__VGear.SLDPRT": {
+  "configurations": [
+   "Default",
+   ".5in",
+   ".75in",
+   "1in",
+   "1.25in",
+   "1.5in",
+   "1.75in",
+   "2in",
+   "2.25in"
+  ],
+  "display_list_bytes": 459990,
+  "display_list_sha256": "7a9e4c6ca1a0f1c11e6a0712a932f40bc91a08128d183ffddba9550115a2f6c7",
+  "faces": 435,
+  "keywords_name": "ParamGear",
+  "max": [
+   0.03000805154442787,
+   0.00634999992325902,
+   0.03000805154442787
+  ],
+  "min": [
+   -0.03000805154442787,
+   -2.8240136364101252e-18,
+   -0.03000805154442787
+  ],
+  "streams": 59,
+  "vertices": 7450
+ },
+ "MRSD__VGearServo.SLDPRT": {
+  "configurations": [
+   "Default",
+   ".5in",
+   ".75in",
+   "1in",
+   "1.25in",
+   "1.5in",
+   "1.75in",
+   "2in"
+  ],
+  "display_list_bytes": 326630,
+  "display_list_sha256": "3f15211cfdb496642d37e84a7667019fcb17f68218e847f5f6ba264a2fb0460f",
+  "faces": 172,
+  "keywords_name": "ParamGearServo",
+  "max": [
+   0.011188498698174953,
+   0.00634999992325902,
+   0.011188498698174953
+  ],
+  "min": [
+   -0.011188498698174953,
+   -3.0357660829594124e-18,
+   -0.011188498698174953
+  ],
+  "streams": 46,
+  "vertices": 6606
+ },
+ "crazyflie__01-squareextended-cf2-simple.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 57513,
+  "display_list_sha256": "b8ac95b1ad05593371faa7ae77a8276960b32b671d5eeda445cc0ed6054702b4",
+  "faces": 58,
+  "keywords_name": "01-squareextended-cf2-simple",
+  "max": [
+   0.04144880175590515,
+   0.0016499999910593033,
+   0.04144880175590515
+  ],
+  "min": [
+   -0.04144880175590515,
+   -8.673617379884035e-19,
+   -0.04144880175590515
+  ],
+  "streams": 35,
+  "vertices": 1002
+ },
+ "crazyflie__02-squareextended-cf2-simple-reinforced.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 119591,
+  "display_list_sha256": "027ed687885b70af4c6ff1dd3bba24b56400d624b805c8bfea40920051fbb73c",
+  "faces": 94,
+  "keywords_name": "02-squareextended-cf2-simple-reinforced",
+  "max": [
+   0.07502380013465881,
+   0.0016499999910593033,
+   0.06502380222082138
+  ],
+  "min": [
+   -0.07502380013465881,
+   -8.673617379884035e-19,
+   -0.060023799538612366
+  ],
+  "streams": 35,
+  "vertices": 2492
+ },
+ "crazyflie__02-squareextended-cf2-simple.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 122627,
+  "display_list_sha256": "ee8524ad2568a710ed9b9586a8cf918aa738d4bf30f63fd3e3e6d5de4db9d8e6",
+  "faces": 94,
+  "keywords_name": "02-squareextended-cf2-simple",
+  "max": [
+   0.07499360293149948,
+   0.0016499999910593033,
+   0.06499360501766205
+  ],
+  "min": [
+   -0.07499360293149948,
+   -8.673617379884035e-19,
+   -0.05999360606074333
+  ],
+  "streams": 35,
+  "vertices": 2584
+ },
+ "crazyflie__Assembly-CrazyFlie-WSquExt.SLDASM": {
+  "component_files": [
+   "framepart.sldprt",
+   "Motormounts.sldprt",
+   "Longstrut.sldprt",
+   "Mediumstrut.sldprt",
+   "Motors.sldprt",
+   "Props.sldprt",
+   "Battery.sldprt",
+   "Viconmarker.SLDPRT",
+   "squareextended.SLDPRT"
+  ],
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 669057,
+  "display_list_sha256": "453562100b263ec61d66c44e8185ad90b58dcfcc4a54b24a0e4909595576720f",
+  "faces": 210,
+  "keywords_name": "Assembly-CrazyFlie-WSquExt",
+  "max": [
+   0.05902000144124031,
+   0.015599999576807022,
+   0.05346500128507614
+  ],
+  "min": [
+   -0.05902000144124031,
+   -0.0033632167614996433,
+   -0.05346500128507614
+  ],
+  "streams": 35,
+  "vertices": 13008
+ },
+ "crazyflie__Assembly-CrazyFlie.SLDASM": {
+  "component_files": [
+   "squareextended-hypot-smallball.SLDPRT",
+   "framepart.sldprt",
+   "Motormounts.sldprt",
+   "Longstrut.sldprt",
+   "Mediumstrut.sldprt",
+   "Motors.sldprt",
+   "Props.sldprt",
+   "Battery.sldprt",
+   "Viconmarker.SLDPRT"
+  ],
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 634531,
+  "display_list_sha256": "a598f5021c19e909c1a56357f00fafdf88bb717a95513eec9489c6627f9b823d",
+  "faces": 208,
+  "keywords_name": "Assembly-CrazyFlie",
+  "max": [
+   0.0591449998319149,
+   0.015599999576807022,
+   0.05346500128507614
+  ],
+  "min": [
+   -0.0591449998319149,
+   -0.0033632167614996433,
+   -0.05346500128507614
+  ],
+  "streams": 35,
+  "vertices": 12504
+ },
+ "crazyflie__Battery.sldprt": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 7735,
+  "display_list_sha256": "8de0840dd72d9d32cfa2acc5d303bbe40ee44cd76463f57c106830936ab4421a",
+  "faces": 6,
+  "keywords_name": "Battery",
+  "max": [
+   0.014707821421325207,
+   0.0066200001165270805,
+   0.014707821421325207
+  ],
+  "min": [
+   -0.014707821421325207,
+   -3.469446951953614e-18,
+   -0.014707821421325207
+  ],
+  "streams": 35,
+  "vertices": 24
+ },
+ "crazyflie__CrazyFlie2-Assembly.SLDASM": {
+  "component_files": [
+   "02-squareextended-cf2-simple.SLDPRT",
+   "Viconmarker.SLDPRT",
+   "Mediumstrut.sldprt",
+   "MotorMountsSlanted.SLDPRT",
+   "pcb.SLDPRT",
+   "Longerstrut.SLDPRT",
+   "Longstrut.sldprt",
+   "Motors2.SLDPRT",
+   "Part4^CrazyFlie2-Assembly.sldprt",
+   "Part1^CrazyFlie2-Assembly.sldprt",
+   "Part2^CrazyFlie2-Assembly.sldprt",
+   "Part3^CrazyFlie2-Assembly.sldprt",
+   "Part5^CrazyFlie2-Assembly.sldprt",
+   "Viconmarker - small.SLDPRT"
+  ],
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 923714,
+  "display_list_sha256": "e35fce7f1f240d6a4cd5ca4292d19c37cabc1da4cdc9140bdf72a1150832eb4c",
+  "faces": 365,
+  "keywords_name": "CrazyFlie2-Assembly",
+  "max": [
+   0.07499360293149948,
+   0.035759467631578445,
+   0.06499360501766205
+  ],
+  "min": [
+   -0.07499360293149948,
+   -0.035759467631578445,
+   -0.05999360606074333
+  ],
+  "streams": 41,
+  "vertices": 20618
+ },
+ "crazyflie__CrazyFlieWFrame-squext.SLDASM": {
+  "component_files": [
+   "Crazyflie.SLDPRT"
+  ],
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 106773,
+  "display_list_sha256": "208a83a1b8af532d5cbeb2e235e6a3eafc0aa34055f10495ffa59028ffcd5366",
+  "faces": 59,
+  "keywords_name": "CrazyFlieWFrame",
+  "max": [
+   0.06599999964237213,
+   0.015350000001490116,
+   0.06599999964237213
+  ],
+  "min": [
+   -0.06599999964237213,
+   -0.004000000189989805,
+   -0.06599999964237213
+  ],
+  "streams": 35,
+  "vertices": 2324
+ },
+ "crazyflie__CrazyFlieWFrame.SLDASM": {
+  "component_files": [
+   "squareextended-hypot-smallball.SLDPRT",
+   "Crazyflie.SLDPRT"
+  ],
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 305926,
+  "display_list_sha256": "289f5d9b92010a928b8e47c4486d16ce49b242b29259bf6060ee370cceb7484e",
+  "faces": 131,
+  "keywords_name": "Assem1",
+  "max": [
+   0.06599999964237213,
+   0.015350000001490116,
+   0.06599999964237213
+  ],
+  "min": [
+   -0.06599999964237213,
+   -0.004000000189989805,
+   -0.06599999964237213
+  ],
+  "streams": 35,
+  "vertices": 4956
+ },
+ "crazyflie__Crazyflie.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 104707,
+  "display_list_sha256": "8e25c68462a8c4ebe32aaf89a338723aece8c96b65e25cb34c089de62654ddb2",
+  "faces": 59,
+  "keywords_name": "Crazyflie",
+  "max": [
+   0.06599999964237213,
+   0.015350000001490116,
+   0.06599999964237213
+  ],
+  "min": [
+   -0.06599999964237213,
+   -0.004000000189989805,
+   -0.06599999964237213
+  ],
+  "streams": 35,
+  "vertices": 2330
+ },
+ "crazyflie__Longerstrut.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 10885,
+  "display_list_sha256": "e86f5e7815daa7bbc3083efcfd88625c7097dc50adaf178234b47641d2cecae9",
+  "faces": 3,
+  "keywords_name": "Longerstrut",
+  "max": [
+   0.0019217431545257568,
+   0.02085999958217144,
+   -0.0435199998319149
+  ],
+  "min": [
+   -0.0019217431545257568,
+   0.0,
+   -0.047370001673698425
+  ],
+  "streams": 36,
+  "vertices": 150
+ },
+ "crazyflie__Longstrut.sldprt": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 11759,
+  "display_list_sha256": "81ea8483cfb23d517d9740e36fcfda5b95354bb9b410641456b4c2435f559407",
+  "faces": 3,
+  "keywords_name": "Longstrut",
+  "max": [
+   0.0019249999895691872,
+   0.014750000089406967,
+   -0.0435199998319149
+  ],
+  "min": [
+   -0.0019249999895691872,
+   0.0,
+   -0.047370001673698425
+  ],
+  "streams": 35,
+  "vertices": 172
+ },
+ "crazyflie__Mediumstrut.sldprt": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 13441,
+  "display_list_sha256": "9f2dccf83c8be9b9d0624f5b6cfe6bf737f1b25b5eafee7da09e4c81e90bbba5",
+  "faces": 3,
+  "keywords_name": "Mediumstrut",
+  "max": [
+   0.001923438860103488,
+   0.00860000029206276,
+   0.047370001673698425
+  ],
+  "min": [
+   -0.001923438860103488,
+   0.0,
+   0.0435199998319149
+  ],
+  "streams": 35,
+  "vertices": 222
+ },
+ "crazyflie__MotorMountsSlanted.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 100741,
+  "display_list_sha256": "66e1d4ef20c85364f996847391d94015d097b50b8041ce0461ce8ee02a5dda7a",
+  "faces": 102,
+  "keywords_name": "MotorMountsSlanted",
+  "max": [
+   0.03979912027716637,
+   0.017340000718832016,
+   0.03979912027716637
+  ],
+  "min": [
+   -0.03979912027716637,
+   -8.673617379884035e-19,
+   -0.03979912027716637
+  ],
+  "streams": 35,
+  "vertices": 1836
+ },
+ "crazyflie__Motormounts.sldprt": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 79495,
+  "display_list_sha256": "2320f5c61c09e48764fa68e93e460b429b7e8a8dcd93b2f2919819b510aebf7b",
+  "faces": 54,
+  "keywords_name": "Motormounts",
+  "max": [
+   0.03423599898815155,
+   0.009890000335872173,
+   0.03424485772848129
+  ],
+  "min": [
+   -0.03424485772848129,
+   0.0,
+   -0.03424485772848129
+  ],
+  "streams": 35,
+  "vertices": 1662
+ },
+ "crazyflie__Motors.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 37025,
+  "display_list_sha256": "f0d7fd252ed70fa6dd179785bd7f1da0aeb4e7281ffd9d2b09e673353e2daa2a",
+  "faces": 12,
+  "keywords_name": "Part1",
+  "max": [
+   0.03630194813013077,
+   0.016599999740719795,
+   0.03630474582314491
+  ],
+  "min": [
+   -0.03630194813013077,
+   0.0,
+   -0.03630474582314491
+  ],
+  "streams": 35,
+  "vertices": 830
+ },
+ "crazyflie__Motors.sldprt": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 39697,
+  "display_list_sha256": "5c937571162b232110d6e715d90ce1387ad97f3b228ad91b98ecb6bdc4c3361c",
+  "faces": 14,
+  "keywords_name": "Motors",
+  "max": [
+   0.03340233117341995,
+   0.015599999576807022,
+   0.03340499848127365
+  ],
+  "min": [
+   -0.03340233117341995,
+   0.0,
+   -0.03340499848127365
+  ],
+  "streams": 35,
+  "vertices": 894
+ },
+ "crazyflie__Motors2.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 37223,
+  "display_list_sha256": "54256c448c1edac138ee81904e0558a1e4d59ae6aba6c848c3030c9472f0e148",
+  "faces": 12,
+  "keywords_name": "Motors2",
+  "max": [
+   0.03576226532459259,
+   0.035759467631578445,
+   0.016599999740719795
+  ],
+  "min": [
+   -0.03576226532459259,
+   -0.035759467631578445,
+   0.0
+  ],
+  "streams": 34,
+  "vertices": 836
+ },
+ "crazyflie__PCBandMounts.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 31915,
+  "display_list_sha256": "e3ee0deb3b7c401d16e008ac86325e7f035ef4468d8e6906152b872c667db822",
+  "faces": 22,
+  "keywords_name": "PCBandMounts",
+  "max": [
+   0.11370671540498734,
+   0.0025400000158697367,
+   0.048200592398643494
+  ],
+  "min": [
+   -0.048200592398643494,
+   0.0,
+   -0.11370671540498734
+  ],
+  "streams": 35,
+  "vertices": 588
+ },
+ "crazyflie__Props.sldprt": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 49095,
+  "display_list_sha256": "6815d9e0d5152385d36dd8a42ba1620ad93dd1942e2c97b9768032c2dc829519",
+  "faces": 12,
+  "keywords_name": "Props",
+  "max": [
+   0.053454890847206116,
+   0.0024300001095980406,
+   0.05346500128507614
+  ],
+  "min": [
+   -0.053454890847206116,
+   0.0,
+   -0.05346500128507614
+  ],
+  "streams": 34,
+  "vertices": 1188
+ },
+ "crazyflie__Viconmarker.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 210555,
+  "display_list_sha256": "74876bbde600c61beb2f4d11012552e5fd372cc5727b98bc6ccfbd3b181c7f0c",
+  "faces": 2,
+  "keywords_name": "Viconmarker",
+  "max": [
+   0.0033666065428406,
+   0.00215600011870265,
+   0.003370000049471855
+  ],
+  "min": [
+   -0.0033666065428406,
+   -0.0033632167614996433,
+   -0.003370000049471855
+  ],
+  "streams": 35,
+  "vertices": 4922
+ },
+ "crazyflie__Viconmarker_-_small.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 208483,
+  "display_list_sha256": "c90c44ba13812e163aa91672ffa68dc20d7338f317800ba4d9c4beadc2bb4b4b",
+  "faces": 2,
+  "keywords_name": "Viconmarker - small",
+  "max": [
+   0.0016808059299364686,
+   0.0010160000529140234,
+   0.001682500122115016
+  ],
+  "min": [
+   -0.0016808059299364686,
+   -0.0016791134839877486,
+   -0.001682500122115016
+  ],
+  "streams": 35,
+  "vertices": 4870
+ },
+ "crazyflie__framepart.sldprt": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 45329,
+  "display_list_sha256": "a764c63850b84f31fe1d1dd0418176e25047b316220038818cbad0bade9b9c3b",
+  "faces": 42,
+  "keywords_name": "framepart",
+  "max": [
+   0.02848263457417488,
+   0.0015999999595806003,
+   0.02848263457417488
+  ],
+  "min": [
+   -0.02848263457417488,
+   -8.673617379884035e-19,
+   -0.02848263457417488
+  ],
+  "streams": 35,
+  "vertices": 794
+ },
+ "crazyflie__pcb.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 52771,
+  "display_list_sha256": "5471dbb0e7eb032fde6614ec98c9cbe1612b53f095231a852932e6aaae3b91ba",
+  "faces": 40,
+  "keywords_name": "pcb",
+  "max": [
+   0.029397964477539062,
+   0.029397964477539062,
+   0.0016499999910593033
+  ],
+  "min": [
+   -0.029397964477539062,
+   -0.029397964477539062,
+   -8.673617379884035e-19
+  ],
+  "streams": 35,
+  "vertices": 1036
+ },
+ "crazyflie__ring-v2.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 490026,
+  "display_list_sha256": "08dd7adc9c9873d02fceb28f56b80352a9009b88f06696ee6d71b2df77ffc494",
+  "faces": 66,
+  "keywords_name": "ring",
+  "max": [
+   0.05213428661227226,
+   0.001587499980814755,
+   0.05213428661227226
+  ],
+  "min": [
+   -0.05213428661227226,
+   -1.734723475976807e-18,
+   -0.05213428661227226
+  ],
+  "streams": 36,
+  "vertices": 7036
+ },
+ "crazyflie__ring-v3.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 489762,
+  "display_list_sha256": "ad3be992ef6f7c82b09f9a8167e58a2a6fa5c61eb2990e5d13fd2f8e78b31777",
+  "faces": 66,
+  "keywords_name": "ring",
+  "max": [
+   0.05213428661227226,
+   0.001587499980814755,
+   0.05213428661227226
+  ],
+  "min": [
+   -0.05213428661227226,
+   -1.734723475976807e-18,
+   -0.05213428661227226
+  ],
+  "streams": 36,
+  "vertices": 7036
+ },
+ "crazyflie__ring.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 490026,
+  "display_list_sha256": "079a9ed00b6fb5c6ed969b24de9b6161638fe2529e4f00172ca54ab2dcdead77",
+  "faces": 66,
+  "keywords_name": "ring",
+  "max": [
+   0.05213428661227226,
+   0.001587499980814755,
+   0.05213428661227226
+  ],
+  "min": [
+   -0.05213428661227226,
+   -1.734723475976807e-18,
+   -0.05213428661227226
+  ],
+  "streams": 36,
+  "vertices": 7036
+ },
+ "crazyflie__square-hypot-v1.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 138289,
+  "display_list_sha256": "764c74c1aae6c2aa34ca99ebaae31fcdfee69121b97876b889ea9df761ac9769",
+  "faces": 74,
+  "keywords_name": "square",
+  "max": [
+   0.035782139748334885,
+   0.001587499980814755,
+   0.035782139748334885
+  ],
+  "min": [
+   -0.035782139748334885,
+   0.0,
+   -0.035782139748334885
+  ],
+  "streams": 36,
+  "vertices": 3222
+ },
+ "crazyflie__square.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 241657,
+  "display_list_sha256": "3d4d3995ac10f30946e6f370c66b58179ed4c465dd983a807ee936f69585b5be",
+  "faces": 74,
+  "keywords_name": "square",
+  "max": [
+   0.035782139748334885,
+   0.001587499980814755,
+   0.035782139748334885
+  ],
+  "min": [
+   -0.035782139748334885,
+   0.0,
+   -0.035782139748334885
+  ],
+  "streams": 36,
+  "vertices": 3222
+ },
+ "crazyflie__squareextended-hypot-smallball.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 201685,
+  "display_list_sha256": "75ec1ad7e4aee361eed06d61610e6cf14b3855b578d18cd51209c693ae6c22f2",
+  "faces": 72,
+  "keywords_name": "squareextended-hypot-smallball",
+  "max": [
+   0.0591449998319149,
+   0.001587499980814755,
+   0.04901999980211258
+  ],
+  "min": [
+   -0.0591449998319149,
+   -8.673617379884035e-19,
+   -0.04901999980211258
+  ],
+  "streams": 37,
+  "vertices": 2626
+ },
+ "crazyflie__squareextended-liter.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 230637,
+  "display_list_sha256": "388182e40f261081fdfd296e9f54b2ab3da993f789f81e6d499d44eb78ff044b",
+  "faces": 92,
+  "keywords_name": "squareextended-liter",
+  "max": [
+   0.05514482781291008,
+   0.001587499980814755,
+   0.048233602195978165
+  ],
+  "min": [
+   -0.05514482781291008,
+   0.0,
+   -0.04974929615855217
+  ],
+  "streams": 37,
+  "vertices": 2970
+ },
+ "crazyflie__squareextended-smallball.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 128851,
+  "display_list_sha256": "500eed167da900e4bbe1364ca9f5677d017270b7d890603b70bf7b349c511561",
+  "faces": 72,
+  "keywords_name": "squareextended-smallball",
+  "max": [
+   0.05902000144124031,
+   0.001587499980814755,
+   0.04901999980211258
+  ],
+  "min": [
+   -0.05902000144124031,
+   0.0,
+   -0.04901999980211258
+  ],
+  "streams": 37,
+  "vertices": 2960
+ },
+ "crazyflie__squareextended.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 135325,
+  "display_list_sha256": "15d8ca4985660c0804a33a3c1746d6d4e9c2a2f8d277a5e343a6e6092e37eecd",
+  "faces": 74,
+  "keywords_name": "squareextended",
+  "max": [
+   0.05902000144124031,
+   0.001587499980814755,
+   0.04901999980211258
+  ],
+  "min": [
+   -0.05902000144124031,
+   0.0,
+   -0.04901999980211258
+  ],
+  "streams": 37,
+  "vertices": 3130
+ },
+ "crazyflie__squarelite.SLDPRT": {
+  "configurations": [
+   "Default"
+  ],
+  "display_list_bytes": 16117,
+  "display_list_sha256": "fbb9d8419e84597bec500cab3ab9a9e2b21340715dcf070e5f4da90bedb1eec5",
+  "faces": 0,
+  "keywords_name": "Part1",
+  "streams": 35,
+  "vertices": 0
+ }
+}

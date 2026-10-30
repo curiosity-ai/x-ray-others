@@ -1,0 +1,53 @@
+{
+ "parametric-table.gsm": {
+  "materials": 2,
+  "max": [
+   1.4,
+   0.8,
+   0.75
+  ],
+  "min": [
+   0,
+   0,
+   0
+  ],
+  "parameters": {
+   "A": 1.4,
+   "AC_show2DHotspotsIn3D": 0.0,
+   "B": 0.8,
+   "ZZYZX": 0.75,
+   "ac_bottomlevel": 0.0,
+   "ac_toplevel": 0.0,
+   "apronHeight": 0.08,
+   "cornerRadius": 0.06,
+   "legInset": 0.05,
+   "legRadius": 0.022,
+   "topThickness": 0.03
+  },
+  "volume": 0.04398090207802728
+ },
+ "table-lamp.gsm": {
+  "area": 0.23941076517842344,
+  "materials": 4,
+  "max": [
+   0.3,
+   0.3,
+   0.445
+  ],
+  "min": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "parameters": {
+   "A": 0.3,
+   "AC_show2DHotspotsIn3D": 0.0,
+   "B": 0.3,
+   "ZZYZX": 0.445,
+   "ac_bottomlevel": 0.0,
+   "ac_toplevel": 0.0
+  },
+  "triangles": 1032,
+  "volume": 0.011812340432333344
+ }
+}

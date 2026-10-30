@@ -3,6 +3,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.PointCloud;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>Text point clouds: .xyz (x y z [r g b | nx ny nz]) and .pts (a count line, then x y z intensity r g b). Delimiters are space, tab, comma or semicolon.</summary>
 internal static class XyzReader
 {
@@ -13,8 +15,10 @@ internal static class XyzReader
         var colors = new List<float>();
         var colorCount = 0;
         var first = true;
+        var tick16 = 0L;
         foreach (var raw in text.AsSpan().EnumerateLines())
         {
+            Cancel.Every(options.Cancellation, tick16++);
             var line = raw.Trim();
             if (line.Length == 0 || line[0] is '#' or '/')
             {

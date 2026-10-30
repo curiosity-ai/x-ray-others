@@ -37,15 +37,19 @@ internal sealed class Triangulator
     /// Returns triangle corner indices (counter-clockwise in the given coordinates) for the region enclosed by <paramref name="loops"/>
     /// (closed polylines of indices into <paramref name="points"/>). Points not on a loop are interior sample points.
     /// </summary>
-    public static int[] Triangulate(IReadOnlyList<(double X, double Y)> points, IReadOnlyList<int[]> loops)
+    public static int[] Triangulate(IReadOnlyList<(double X, double Y)> points, IReadOnlyList<int[]> loops) => TriangulateCancellable(points, loops, default);
+
+    public static int[] TriangulateCancellable(IReadOnlyList<(double X, double Y)> points, IReadOnlyList<int[]> loops, CancellationToken cancel)
     {
         if (points.Count < 3)
         {
             return [];
         }
 
-        return new Triangulator(points).Run(loops);
+        return new Triangulator(points) { _cancel = cancel }.Run(loops);
     }
+
+    private CancellationToken _cancel;
 
     private Triangulator(IReadOnlyList<(double X, double Y)> points)
     {
@@ -104,8 +108,10 @@ internal sealed class Triangulator
             (order[i], order[k]) = (order[k], order[i]);
         }
 
+        var tick = 0L;
         foreach (var i in order)
         {
+            Cancel.Every(_cancel, tick++, 255);
             Insert(i);
         }
 
@@ -358,7 +364,8 @@ internal sealed class Triangulator
             foreach (var t in fan)
             {
                 Rotate(t, a, out var u, out var v);
-                foreach (var w in new[] { u, v })
+                Span<int> ends = [u, v];
+                foreach (var w in ends)
                 {
                     if (Math.Abs(Orient(a, w, b)) < 1e-14 && Between(a, w, b))
                     {
@@ -434,6 +441,7 @@ internal sealed class Triangulator
         var attempts = 0;
         while (queue.Count > 0 && attempts++ < 100_000)
         {
+            Cancel.Every(_cancel, attempts, 255);
             var (u, v) = queue.First!.Value;
             queue.RemoveFirst();
             var t1 = Across(u, v);

@@ -1,0 +1,84 @@
+{
+ "synthetic/iges-brep-quadrics.igs": {
+  "area": 852.126,
+  "min": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "max": [
+   20.0,
+   10.0,
+   9.0
+  ],
+  "volume": 1191.361
+ },
+ "synthetic/iges-trimmed-faces.igs": {
+  "area": 852.126,
+  "min": [
+   0.0,
+   0.0,
+   -0.0
+  ],
+  "max": [
+   20.0,
+   10.0,
+   9.0
+  ]
+ },
+ "synthetic/iges-nurbs-brep.igs": {
+  "area": 853.109,
+  "min": [
+   -0.0,
+   -0.0,
+   -0.0
+  ],
+  "max": [
+   20.0,
+   10.0,
+   9.0
+  ],
+  "volume": 1191.835
+ },
+ "synthetic/iges-nurbs-faces.igs": {
+  "area": 852.533,
+  "min": [
+   -0.0,
+   -0.0,
+   -0.0
+  ],
+  "max": [
+   20.0,
+   10.0,
+   9.0
+  ]
+ },
+ "iges/jetracer-cam-mount.iges": {
+  "area": 8053.399,
+  "min": [
+   -22.5,
+   31.0,
+   47.267
+  ],
+  "max": [
+   22.511,
+   99.211,
+   70.0
+  ],
+  "volume": 13902.693
+ },
+ "iges/slewing-ring.iges": {
+  "area": 19654.547,
+  "min": [
+   -333.989,
+   -33.25,
+   588.8
+  ],
+  "max": [
+   -205.989,
+   -23.25,
+   722.8
+  ],
+  "volume": 46405.394
+ }
+}

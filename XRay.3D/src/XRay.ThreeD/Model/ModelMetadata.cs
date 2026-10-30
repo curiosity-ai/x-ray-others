@@ -40,6 +40,9 @@ public sealed class ModelMetadata
     /// <summary>Drawing sheet names, for formats that have sheets.</summary>
     public List<string> Sheets { get; } = new();
 
+    /// <summary>Drawing sheets with their paper size in meters, when the file states it (parallel to <see cref="Sheets"/> where both are known).</summary>
+    public List<DrawingSheet> DrawingSheets { get; } = new();
+
     /// <summary>Configuration / variant names.</summary>
     public List<string> Configurations { get; } = new();
 
@@ -91,14 +94,42 @@ public sealed record ModelFeature(string Name, string Type);
 /// </summary>
 public sealed record ModelStatistics(int Nodes, int Meshes, long Vertices, long Triangles, int Materials, long UniqueVertices = 0, long UniqueTriangles = 0)
 {
-    /// <summary>Surface area of everything drawn (instances counted per use), in the model's units squared. Zero when not computed.</summary>
+    /// <summary>Surface area of everything drawn (instances counted per use, under their full transform: a non-uniform scale is exact), in the model's units squared. Zero when not computed.</summary>
     public double SurfaceArea { get; init; }
 
     /// <summary>
-    /// Volume enclosed by the triangles (signed sum over the surface), in the model's units cubed. Meaningful for closed, consistently
-    /// oriented solids such as B-reps; zero when not computed.
+    /// Volume enclosed by the triangles of the closed, outward-facing meshes (instances counted per use), in the model's units cubed; open meshes
+    /// and inside-out ones add nothing (see <see cref="VolumeIsComplete"/>); a mirrored instance (negative determinant) is drawn with
+    /// its winding read the other way, as glTF specifies, and counts as positive too. Zero when not computed.
     /// </summary>
     public double Volume { get; init; }
+
+    /// <summary>The signed sum over every mesh's triangles, open ones included (what <see cref="Volume"/> was before it counted closed meshes only). For an open surface it depends on where the origin is; use it to compare with another tool's triangle sums, not as a volume.</summary>
+    public double SignedVolume { get; init; }
+
+    /// <summary>Unique triangle meshes that are closed and outward-facing: the ones <see cref="Volume"/> counts.</summary>
+    public int ClosedMeshes { get; init; }
+
+    /// <summary>
+    /// Unique triangle meshes that do not enclose space (a sheet, a surface with holes, adjacent triangles wound against each other, separate unwelded faces).
+    /// Their area is counted, their volume is not: the volume of an open mesh is not a quantity of the model. See <see cref="MeshTopology"/> and <see cref="MeshData.AnalyzeTopology()"/>.
+    /// </summary>
+    public int OpenMeshes { get; init; }
+
+    /// <summary>Unique closed triangle meshes whose triangles face inward; left out of <see cref="Volume"/>.</summary>
+    public int InsideOutMeshes { get; init; }
+
+    /// <summary>Edges used by one triangle only, over the unique meshes (welded by position).</summary>
+    public int OpenEdges { get; init; }
+
+    /// <summary>Edges used by more than two triangles, over the unique meshes.</summary>
+    public int NonManifoldEdges { get; init; }
+
+    /// <summary>Edges whose triangles are wound against each other, over the unique meshes.</summary>
+    public int InconsistentEdges { get; init; }
+
+    /// <summary>True when every triangle mesh encloses space, so <see cref="Volume"/> is the volume of the whole model; false when some mesh is open or inside out (<see cref="OpenMeshes"/>) or there is no triangle mesh.</summary>
+    public bool VolumeIsComplete => ClosedMeshes > 0 && OpenMeshes == 0 && InsideOutMeshes == 0;
 }
 
 public enum LengthUnit
@@ -144,3 +175,6 @@ public static class LengthUnitExtensions
         _ => 1,
     };
 }
+
+/// <summary>A drawing sheet: its name and paper size in meters (width is the horizontal side as the sheet is shown).</summary>
+public sealed record DrawingSheet(string Name, double WidthMeters, double HeightMeters);
