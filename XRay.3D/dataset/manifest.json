@@ -1978,5 +1978,32 @@
   "source": "tools/fixtures/make_e57_fixtures.py",
   "bytes": 54272,
   "sha256": "08027678ddd04d84ef86cbaeb16ca4a0552d1d8396e4709bdb6e85aac2c2b1b4"
+ },
+ {
+  "file": "synthetic/header.x_t",
+  "format": "parasolid",
+  "title": "Parasolid transmit header (placeholder node stream)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_parasolid_fixtures.py",
+  "bytes": 570,
+  "sha256": "feae8e5e1b0a67f6dad3f00ceb2996cc6232c4a248cd961cd5d82342422ccb37"
+ },
+ {
+  "file": "synthetic/header.x_b",
+  "format": "parasolid",
+  "title": "Parasolid transmit header (placeholder node stream)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_parasolid_fixtures.py",
+  "bytes": 114,
+  "sha256": "177bca29e82521d464c49405bd3914137e8b95f58244b286f0cc27a967c5e9f9"
+ },
+ {
+  "file": "synthetic/bare.x_t",
+  "format": "parasolid",
+  "title": "Parasolid transmit header (placeholder node stream)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_parasolid_fixtures.py",
+  "bytes": 111,
+  "sha256": "5d0653b6f1eff22609f9f5a0d013744e3250f89aecdad345fac4a180a8a6acf5"
  }
 ]

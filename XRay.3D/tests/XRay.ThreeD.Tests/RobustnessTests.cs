@@ -75,6 +75,8 @@ public class RobustnessTests
         "scad/chess-rook.scad",
         "scad/wall-bracket.scad",
         "3dm/terrain-contours.3dm",
+        "synthetic/header.x_t",
+        "synthetic/header.x_b",
         "dwf/usfs-rtr2-tent-platform.dwf",
         "dwf/usfs-rwfc1-fish-cleaning-station.dwf",
         "synthetic/drawing.dwfx",

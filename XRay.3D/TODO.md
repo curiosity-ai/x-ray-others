@@ -47,6 +47,8 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 
 - [x] DWF 6 and DWFx 2D graphics (text W2D, XPS pages) and metadata. Open: binary W2D (the opcode stream), W3D, DWF 7+ (DWFx streams with fonts and images), bitmaps, layers and named objects in the metadata
 
+- [~] Parasolid transmit (`.x_t`, `.x_b`): header metadata. **Blocked**: node layouts depend on the schema of each modeller version (hundreds of field definitions per schema, published only as proprietary tables); without a public description or the embedded-schema variant, guessing them would be unverifiable. Open: embedded-schema files, a verified table for one schema (a fixture from a real export per schema is the way to check one)
+
 ## Next: conversion quality
 
 - [x] Textures and UVs: OBJ+MTL `map_Kd` (companions, ZIP packages), glTF and 3MF textures, `TEXCOORD_0` and images/samplers in the GLB, `KHR_texture_transform`. Open: other maps (normal, emissive, metallic-roughness), UV sets above 0, UVs for FBX/COLLADA/X3D/USD/3DS/PLY readers
