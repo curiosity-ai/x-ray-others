@@ -46,7 +46,7 @@ A command line tool lives in `tools/XRay.ThreeD.Cli`: `xray3d info <file> [--jso
 | Sweet Home 3D | `.sh3d` (Home.xml) | name, version, levels, walls, rooms, the furniture list with catalogue ids, sizes, prices | furniture from its embedded OBJ model fitted to width, depth and height (shared meshes), a box when the model is missing; walls as boxes, rooms as floors; levels as layered nodes |
 | FBX | `.fbx` (binary, ASCII) | scene, node and material names | meshes, node transforms, materials |
 | COLLADA | `.dae` | asset, units, up axis, node names | geometry, scene graph, effect colours |
-| X3D / VRML | `.x3d` `.wrl` | titles, meta, DEF names | shapes, transforms, colours |
+| X3D / VRML | `.x3d` `.x3dv` `.wrl` | titles, meta, DEF names | shapes, transforms, colours |
 | USD | `.usda`, `.usdc`, `.usdz` | stage metadata, prim names, units | meshes, xforms (matrix, translate, Euler, scale, orient), display colours, materials and geom subsets, primitives, same-file references. The binary crate (versions 0.4 and later: LZ4, compressed integer and float arrays) is read from the public format description and checked against pxr; a USDZ's root layer may be text or crate. Open: references to other layers (also inside a USDZ), payloads, variants, time samples, textures |
 | Blitz3D | `.b3d` (`BB3D`) | version, brush names | node tree, meshes, per-triangle brushes (colour, shininess, first texture via companions), normals, vertex colours, first UV set; mirrored from the left-handed source on Z; bones and animation skipped. The Bazis furniture container (also `.b3d`, `BZ85`) gives its title only |
 | 3DS, AMF, OFF | `.3ds` `.amf` `.off` | names, units, materials | triangles, colours |

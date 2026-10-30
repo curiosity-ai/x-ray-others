@@ -76,3 +76,4 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 ## Dataset formats added in the second pass
 
 - [x] B3D: the Blitz3D chunk format (TEXS, BRUS, NODE, MESH, VRTS, TRIS) with brushes, normals, vertex colours, UV set 0 and the node tree, checked against an independent chunk walk (node, vertex, triangle and brush counts of both Blitz3D samples). Open: bones and weights, animation keys, UV sets above 0, the rotation sign convention of the quaternion (assumed standard, then mirrored). The two Bazis samples are a different, proprietary container (`BZ85`, zlib streams): identified, title read, geometry not decoded
+- [x] X3D classic encoding (`.x3dv`): the VRML parser with PROFILE, COMPONENT, META, IMPORT/EXPORT statements; same scene as the XML and VRML fixtures gives the same model. Open: `UNIT` statements are skipped (units stay metres), PROTO bodies

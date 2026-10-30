@@ -104,6 +104,7 @@ public class SceneFormatTests
     [Theory]
     [InlineData("synthetic/scene.x3d", "x3d")]
     [InlineData("synthetic/scene.wrl", "vrml")]
+    [InlineData("synthetic/scene.x3dv", "x3dv")]
     public void X3d_and_vrml_build_the_same_scene(string file, string format)
     {
         var model = Load(file);

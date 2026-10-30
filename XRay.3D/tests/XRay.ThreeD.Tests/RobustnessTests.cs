@@ -32,6 +32,7 @@ public class RobustnessTests
         "synthetic/scene.dae",
         "synthetic/scene.x3d",
         "synthetic/scene.wrl",
+        "synthetic/scene.x3dv",
         "synthetic/scene-7400.fbx",
         "synthetic/scene-7700.fbx",
         "synthetic/scene-ascii.fbx",

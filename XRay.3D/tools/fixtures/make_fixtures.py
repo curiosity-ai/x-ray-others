@@ -390,6 +390,9 @@ Shape { geometry IndexedLineSet { coord Coordinate { point [ %s ] } coordIndex [
 ''' % (', '.join('%g %g %g' % v for v in V), ', '.join(' '.join(str(i) for i in q) + ' -1' for q in CUBE_QUADS), ', '.join('%g %g %g' % v for v in V))
 write('scene.wrl', vrml)
 
+x3dv = vrml.replace('#VRML V2.0 utf8\n# fixture vrml\n', '#X3D V3.3 utf8\nPROFILE Interchange\nCOMPONENT Geometry3D:2\nMETA "title" "fixture x3dv"\n')
+write('scene.x3dv', x3dv)
+
 # ---- FBX: the same scene as binary 7.4 (32 bit headers, deflated arrays), binary 7.7 (64 bit headers) and ASCII 7.4
 import zlib
 

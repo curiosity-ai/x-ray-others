@@ -38,6 +38,8 @@ public static class ModelFormats
 
     public static FormatInfo X3d { get; } = new("x3d", "X3D (XML)", "scene", [".x3d"], FormatSupport.Full);
 
+    public static FormatInfo X3dv { get; } = new("x3dv", "X3D classic encoding", "scene", [".x3dv"], FormatSupport.Full);
+
     public static FormatInfo Vrml { get; } = new("vrml", "VRML97", "scene", [".wrl", ".vrml"], FormatSupport.Full);
 
     public static FormatInfo Fbx { get; } = new("fbx", "Autodesk FBX", "scene", [".fbx"], FormatSupport.Full);
@@ -70,7 +72,6 @@ public static class ModelFormats
         new("jt", "JT", "cad", [".jt"], FormatSupport.Identified),
         new("ifcxml", "IFC XML", "bim", [".ifcxml"], FormatSupport.Identified),
         new("rhino", "Rhino 3DM", "cad", [".3dm"], FormatSupport.Identified),
-        new("x3dv", "X3D classic encoding", "scene", [".x3dv"], FormatSupport.Identified),
         new("sketchup", "SketchUp", "cad", [".skp"], FormatSupport.Identified),
         new("revit", "Revit", "bim", [".rvt", ".rfa", ".rft"], FormatSupport.Metadata),
         new("inventor", "Autodesk Inventor", "cad", [".ipt", ".iam", ".idw"], FormatSupport.Metadata),
@@ -91,7 +92,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -195,6 +196,11 @@ public static class ModelFormats
         if (StartsWith(head, "#VRML V2.0") || StartsWith(head, "#VRML V1.0"))
         {
             return Vrml;
+        }
+
+        if (StartsWith(head, "#X3D"))
+        {
+            return X3dv;
         }
 
         if (head.Length > 0 && head[0] == '<' && Contains(head, "<X3D", ""))

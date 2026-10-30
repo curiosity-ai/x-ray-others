@@ -205,11 +205,41 @@ internal static class X3dReader
         return Build(top, ModelFormats.Vrml, options);
     }
 
+    /// <summary>X3D classic VRML encoding (<c>.x3dv</c>, header <c>#X3D V3.x utf8</c>): the VRML97 grammar plus PROFILE, COMPONENT, UNIT, META, IMPORT and EXPORT statements.</summary>
+    public static Model3D ReadClassic(ReadOnlyMemory<byte> data, LoadOptions options)
+    {
+        var text = Encoding.UTF8.GetString(data.Span);
+        if (!text.StartsWith("#X3D", StringComparison.Ordinal))
+        {
+            throw new ModelFormatException("The file does not start with an X3D classic encoding header.");
+        }
+
+        var parser = new VrmlParser(text);
+        var top = new WNode { Type = "Group" };
+        var children = new List<WNode>();
+        parser.ParseTopLevel(children);
+        top.Fields["children"] = children;
+        var model = Build(top, ModelFormats.X3dv, options);
+        var header = text.AsSpan(0, Math.Min(text.Length, 40)).ToString();
+        model.Metadata.FormatVersion = header.Split(' ', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(1)?.TrimStart('V');
+        foreach (var (key, value) in parser.Meta)
+        {
+            if (key == "title" && model.Metadata.Title is null)
+            {
+                model.Metadata.Title = value;
+            }
+        }
+
+        return model;
+    }
+
     private sealed class VrmlParser
     {
         private readonly List<string> _tokens = new();
         private int _p;
         private readonly Dictionary<string, WNode> _defs = new(StringComparer.Ordinal);
+
+        public List<(string Key, string Value)> Meta { get; } = new();
 
         public VrmlParser(string text)
         {
@@ -315,6 +345,37 @@ internal static class X3dReader
             if (token == "PROTO" || token == "EXTERNPROTO")
             {
                 SkipProto();
+                return null;
+            }
+
+            if (token is "PROFILE" or "COMPONENT")
+            {
+                _p++;
+                return null;
+            }
+
+            if (token is "META")
+            {
+                var key = Next();
+                var value = Next();
+                Meta.Add((key.TrimStart('"'), value.TrimStart('"')));
+                return null;
+            }
+
+            if (token is "UNIT")
+            {
+                _p += 2;
+                return null;
+            }
+
+            if (token is "IMPORT" or "EXPORT")
+            {
+                _p += 2;
+                if (Peek() == "AS")
+                {
+                    _p += 2;
+                }
+
                 return null;
             }
 
