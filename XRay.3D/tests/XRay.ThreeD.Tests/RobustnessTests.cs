@@ -62,6 +62,8 @@ public class RobustnessTests
         "synthetic/inventor-hashed.iam",
         "synthetic/revit-2021.rvt",
         "synthetic/legacy-cube.sldprt",
+        "synthetic/gdl-solids.gsm",
+        "pln/table-lamp.gsm",
         "sh3d/sweet-home-cottage.sh3d",
         "synthetic/package-obj-mtl.zip",
         "synthetic/package-obj-textured.zip",

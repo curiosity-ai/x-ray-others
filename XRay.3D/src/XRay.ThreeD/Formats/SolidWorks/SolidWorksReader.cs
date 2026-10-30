@@ -491,7 +491,7 @@ internal static class SolidWorksReader
             {
                 foreach (var (id, value) in set.Values.OrderBy(v => v.Key))
                 {
-                    if (!set.Names.TryGetValue(id, out var name) || value is not string or int or double or uint or short)
+                    if (!set.Names.TryGetValue(id, out var name) || value is not (string or int or double or uint or short))
                     {
                         continue;
                     }
