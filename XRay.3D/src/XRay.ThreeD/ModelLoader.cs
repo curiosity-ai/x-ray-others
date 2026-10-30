@@ -357,6 +357,7 @@ public static class ModelLoader
         "x3d" => X3dReader.ReadXml(data, options),
         "x3dv" => X3dReader.ReadClassic(data, options),
         "vrml" => X3dReader.ReadVrml(data, options),
+        "unity" => Formats.Game.UnityPackageReader.Read(data, options),
         "b3d" => B3dReader.Read(data, options),
         "off" => OffReader.Read(data, options),
         "amf" => AmfReader.Read(data, options),

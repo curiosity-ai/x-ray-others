@@ -71,6 +71,7 @@ public class RobustnessTests
         "b3d/blitz3d-arcade-cabinet.b3d",
         "b3d/blitz3d-swaying-tentacle.b3d",
         "b3d/bazis-wall-cabinet.b3d",
+        "unitypackage/opengameart-key-collection.unitypackage",
     ];
 
     public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });
