@@ -24,6 +24,7 @@
     <None Include="Corpus/step-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/iges-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/rhino-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/sat-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/rhino-local-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/step-ap242-golden.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

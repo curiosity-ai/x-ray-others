@@ -358,6 +358,7 @@ public static class ModelLoader
         "sh3d" => Formats.Bim.Sh3dReader.Read(data, options),
         "openscad" => Formats.OpenScad.ScadReader.Read(data, options),
         "rhino" => Formats.Rhino.RhinoReader.Read(data, options),
+        "sat" => Formats.Acis.SabReader.Sniff(data.Span) ? Formats.Acis.SabReader.Read(data, options) : Formats.Acis.SatReader.Read(data, options),
         "blender" => Formats.Blender.BlendReader.Read(data, options),
         "x3d" => X3dReader.ReadXml(data, options),
         "x3dv" => X3dReader.ReadClassic(data, options),

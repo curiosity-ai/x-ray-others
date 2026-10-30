@@ -1879,5 +1879,68 @@
   "source": "tools/fixtures/make_3dm_fixtures.py",
   "bytes": 9160,
   "sha256": "3282fc1b194df3ed8c0d8338829147e668a1dd9a79948f477449f7b2264c7944"
+ },
+ {
+  "file": "synthetic/box-700.sat",
+  "format": "sat",
+  "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sat_fixtures.py",
+  "bytes": 4175,
+  "sha256": "c5bf261d739b4a31f834eaf8e01cc6bfa839ca7dba9b956c97685417d0485eed"
+ },
+ {
+  "file": "synthetic/box-700.sab",
+  "format": "sat",
+  "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sat_fixtures.py",
+  "bytes": 5536,
+  "sha256": "2017efdc7fcc2a40a5bdc3dfba6efb83a3469b45892f7b69cacc52a97cc48d2d"
+ },
+ {
+  "file": "synthetic/hexprism-700.sat",
+  "format": "sat",
+  "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sat_fixtures.py",
+  "bytes": 6496,
+  "sha256": "f752aa756e15a7ce297665857436c0e92f1f6fa808ef6dbb5a0977af96115c07"
+ },
+ {
+  "file": "synthetic/cylinder-400.sat",
+  "format": "sat",
+  "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sat_fixtures.py",
+  "bytes": 1144,
+  "sha256": "890576b357d951ff504d57f8453031a8a7c16b375c27eb4b749ed3275e9c5e61"
+ },
+ {
+  "file": "synthetic/sphere-400.sat",
+  "format": "sat",
+  "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sat_fixtures.py",
+  "bytes": 293,
+  "sha256": "007b07886c3a0efe787dc67ef0e963f5682a7d7817a6eaa1a6c376178f016a43"
+ },
+ {
+  "file": "synthetic/torus-400.sat",
+  "format": "sat",
+  "title": "ACIS fixture (ezdxf exporter or hand-written layout)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sat_fixtures.py",
+  "bytes": 294,
+  "sha256": "425e591f9a77a5abacfda80a41072641f89de3743cf7857ffb32dfe9529dd163"
+ },
+ {
+  "file": "sat/nist-arm-blank.sat",
+  "format": "sat",
+  "title": "NIST arm blank, ACIS 1.5 save (105)",
+  "license": "Public domain (US government work, NIST)",
+  "source": "NIST engineering design models (via the public cq-acis test corpus)",
+  "bytes": 4709,
+  "sha256": "d3477a71195fc5650975314551bf621def89fdbd1752602d9bc6e12a279a0d2d"
  }
 ]

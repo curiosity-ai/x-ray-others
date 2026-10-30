@@ -76,12 +76,13 @@ public static class ModelFormats
 
     public static FormatInfo Rhino { get; } = new("rhino", "Rhino 3DM", "cad", [".3dm"], FormatSupport.Full);
 
+    public static FormatInfo Acis { get; } = new("sat", "ACIS SAT", "cad", [".sat", ".sab"], FormatSupport.Full);
+
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
 
     /// <summary>Formats that are recognised but not yet read. See TODO.md for the order they are planned in.</summary>
     private static readonly FormatInfo[] Identified =
     [
-        new("sat", "ACIS SAT", "cad", [".sat", ".sab"], FormatSupport.Identified),
         new("parasolid", "Parasolid", "cad", [".x_t", ".x_b", ".xmt_txt", ".xmt_bin"], FormatSupport.Identified),
         new("jt", "JT", "cad", [".jt"], FormatSupport.Identified),
         new("ifcxml", "IFC XML", "bim", [".ifcxml"], FormatSupport.Identified),
@@ -101,7 +102,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Blender, Psu, Rlf, Unreal, Rhino];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Blender, Psu, Rlf, Unreal, Rhino, Acis];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -130,6 +131,16 @@ public static class ModelFormats
         if (head.Length >= 4 && head[0] == 'g' && head[1] == 'l' && head[2] == 'T' && head[3] == 'F')
         {
             return Gltf;
+        }
+
+        if (Formats.Acis.SabReader.Sniff(head))
+        {
+            return Acis;
+        }
+
+        if (Formats.Acis.SatReader.Sniff(head) && (byExtension?.Id == "sat" || byExtension is null))
+        {
+            return Acis;
         }
 
         if (StartsWith(head, "AutoCAD Binary DXF") || LooksLikeDxf(head))
