@@ -89,7 +89,7 @@ try
                 Console.WriteLine($"{output}: {model.Metadata.Statistics?.Triangles:N0} triangles, {model.Meshes.Count} meshes, {model.Nodes().Count()} nodes");
                 if (model.Metadata.Statistics is { SurfaceArea: > 0 } stats)
                 {
-                    Console.WriteLine($"area {stats.SurfaceArea:F3}, volume {stats.Volume:F3}");
+                    Console.WriteLine($"area {Figure(stats.SurfaceArea)}, volume {Figure(stats.Volume)}");
                 }
                 foreach (var w in model.Warnings)
                 {
@@ -143,7 +143,7 @@ static void Print(ModelMetadata m)
     Console.WriteLine($"Geometry:     {(m.HasGeometry ? "yes" : "no")}  {m.Statistics}");
     if (m.Statistics is { SurfaceArea: > 0 } stats)
     {
-        Console.WriteLine($"Area/volume:  {stats.SurfaceArea:F3} / {stats.Volume:F3}");
+        Console.WriteLine($"Area/volume:  {Figure(stats.SurfaceArea)} / {Figure(stats.Volume)}");
     }
 
     if (m.Bounds is { } box)
@@ -179,6 +179,19 @@ static void PrintList(string title, List<string> items)
     {
         Console.WriteLine("  " + i);
     }
+}
+
+// Six significant digits in fixed notation (scripts parse it): a part of a few square centimetres in meters is 0.005 with three decimals, which is
+// not enough to compare against.
+static string Figure(double v)
+{
+    if (v == 0 || !double.IsFinite(v))
+    {
+        return "0.000";
+    }
+
+    var decimals = Math.Clamp(5 - (int)Math.Floor(Math.Log10(Math.Abs(v))), 3, 15);
+    return v.ToString("F" + decimals, System.Globalization.CultureInfo.InvariantCulture);
 }
 
 // Companion files of a loose model (an OBJ's MTL and textures): looked up under the model's own folder, never outside it.
