@@ -452,15 +452,9 @@ internal static class FbxReader
             }
         }
 
-        meta.Units = unitScale switch
-        {
-            1.0 => LengthUnit.Centimeter,
-            100.0 => LengthUnit.Meter,
-            0.1 => LengthUnit.Millimeter,
-            2.54 => LengthUnit.Inch,
-            30.48 => LengthUnit.Foot,
-            _ => LengthUnit.Centimeter,
-        };
+        // UnitScaleFactor is the size of one unit in centimetres (the default, 1, is centimetres; 100 is metres, 2.54 inches).
+        meta.Units = LengthUnit.Centimeter;
+        var fbxMetersPerUnit = unitScale > 0 && double.IsFinite(unitScale) ? unitScale * 0.01 : 0.01;
 
         var objects = root.Child("Objects");
         if (objects is null)
@@ -605,6 +599,7 @@ internal static class FbxReader
         meta.PartNames.AddRange(model.Nodes().Where(n => n.Mesh is not null && !string.IsNullOrEmpty(n.Name)).Select(n => n.Name!));
         meta.MaterialNames.AddRange(model.Materials.Select(m => m.Name!).Where(n => !string.IsNullOrEmpty(n)));
         meta.HasGeometry = true;
+        UnitScaling.Apply(model, fbxMetersPerUnit);
         meta.Statistics = model.ComputeStatistics();
         meta.Bounds = model.ComputeBounds();
         return model;

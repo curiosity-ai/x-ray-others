@@ -64,6 +64,9 @@ internal static class BlendReader
 
         public Model3D Model { get; } = new();
 
+        /// <summary>The size of one Blender unit in metres (the scene's unit scale).</summary>
+        private double _metersPerUnit = 1;
+
         private void Tick() => Cancel.Every(_o.Cancellation, _tick++);
 
         private void Skip(string what)
@@ -173,6 +176,7 @@ internal static class BlendReader
             }
 
             md.HasGeometry = Model.Meshes.Count > 0;
+            UnitScaling.Apply(Model, _metersPerUnit);
             md.Statistics = Model.ComputeStatistics();
             md.Bounds = Model.ComputeBounds();
         }
@@ -185,27 +189,15 @@ internal static class BlendReader
                 return;
             }
 
+            // One Blender unit is scale_length metres (the length unit shown in the interface, millimetres or inches, only changes how numbers are
+            // displayed). With the unit system set to None the scale is not used and a unit is a metre.
             var scale = unit.Float("scale_length", 0, 1f);
-            if (!(scale > 0) || !float.IsFinite(scale))
+            if (!(scale > 0) || !float.IsFinite(scale) || unit.Int("system", 1) == 0)
             {
                 return;
             }
 
-            (double Scale, LengthUnit Unit)[] known =
-            [
-                (1, LengthUnit.Meter), (0.001, LengthUnit.Millimeter), (0.01, LengthUnit.Centimeter), (1000, LengthUnit.Kilometer),
-                (0.0254, LengthUnit.Inch), (0.3048, LengthUnit.Foot), (0.9144, LengthUnit.Yard), (0.1, LengthUnit.Decimeter),
-            ];
-            foreach (var (s, u) in known)
-            {
-                if (Math.Abs(scale - s) <= 1e-4 * s)
-                {
-                    Model.Metadata.Units = u;
-                    return;
-                }
-            }
-
-            Model.Metadata.Notes.Add("The scene's unit scale is " + scale.ToString("R", CultureInfo.InvariantCulture) + "; coordinates are reported in Blender units (metres at scale 1).");
+            _metersPerUnit = scale;
         }
 
         private void ReadExclusions(Rec scene)

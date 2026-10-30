@@ -36,8 +36,10 @@ public sealed class LoadOptions
     public Func<string, byte[]?>? ResolveCompanion { get; set; }
 
     /// <summary>
-    /// The unit of the coordinates for formats that do not state one (STL, OBJ, PLY, OFF, 3DS, XYZ, PTS); ignored for formats that do.
-    /// Null leaves the unit unknown, as before.
+    /// The unit of the coordinates for a file that does not state one: always for STL, OBJ, PLY, OFF, 3DS, XYZ, PTS and OpenSCAD (whose files never
+    /// do), and for any other format only when the file itself gave none (an ACIS save before version 2, a DWG or DXF with $INSUNITS 0 and no
+    /// $MEASUREMENT, an IGES file with no unit flag, a Blitz3D or PSU model). A unit the file states is never overridden.
+    /// Null leaves the unit unknown, as before; an unknown unit is written to the GLB as metres (nothing is scaled) and carries no <c>sourceUnits</c>.
     /// </summary>
     public LengthUnit? AssumedUnits { get; set; }
 
@@ -158,6 +160,7 @@ public static class ModelLoader
     /// <summary>The caller's unit and up-axis hints, for the formats whose files do not carry them.</summary>
     private static Model3D ApplyHints(FormatInfo format, Model3D model, LoadOptions options)
     {
+        // A hint fills in what the file does not say, whatever the format; a unit or axis the file states is never overridden.
         if (UnstatedUnits.Contains(format.Id))
         {
             if (options.AssumedUnits is { } units)
@@ -166,6 +169,18 @@ public static class ModelLoader
             }
 
             if (options.AssumedUpAxis is { } up)
+            {
+                model.Metadata.UpAxis = up;
+            }
+        }
+        else
+        {
+            if (model.Metadata.Units is null && options.AssumedUnits is { } units)
+            {
+                model.Metadata.Units = units;
+            }
+
+            if (model.Metadata.UpAxis is null && options.AssumedUpAxis is { } up)
             {
                 model.Metadata.UpAxis = up;
             }

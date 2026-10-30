@@ -100,7 +100,17 @@ internal static class X3dReader
         }
 
         top.Fields["children"] = children;
-        var model = Build(top, ModelFormats.X3d, options);
+        // <unit category="length" name="mm" conversionFactor="0.001"/> in the head: metres per unit.
+        double? lengthFactor = null;
+        foreach (var unitElement in root.Descendants().Where(e => e.Name.LocalName == "unit" && (string?)e.Attribute("category") == "length"))
+        {
+            if (double.TryParse((string?)unitElement.Attribute("conversionFactor"), NumberStyles.Float, CultureInfo.InvariantCulture, out var factor) && factor > 0)
+            {
+                lengthFactor = factor;
+            }
+        }
+
+        var model = Build(top, ModelFormats.X3d, options, lengthFactor);
         model.Metadata.FormatVersion = (string?)root.Attribute("version");
         foreach (var meta in root.Descendants().Where(e => e.Name.LocalName == "meta"))
         {
@@ -219,7 +229,7 @@ internal static class X3dReader
         var children = new List<WNode>();
         parser.ParseTopLevel(children);
         top.Fields["children"] = children;
-        var model = Build(top, ModelFormats.X3dv, options);
+        var model = Build(top, ModelFormats.X3dv, options, parser.LengthFactor);
         var header = text.AsSpan(0, Math.Min(text.Length, 40)).ToString();
         model.Metadata.FormatVersion = header.Split(' ', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(1)?.TrimStart('V');
         foreach (var (key, value) in parser.Meta)
@@ -240,6 +250,9 @@ internal static class X3dReader
         private readonly Dictionary<string, WNode> _defs = new(StringComparer.Ordinal);
 
         public List<(string Key, string Value)> Meta { get; } = new();
+
+        /// <summary>Metres per length unit stated by a UNIT statement; null when none.</summary>
+        public double? LengthFactor { get; private set; }
 
         public VrmlParser(string text)
         {
@@ -364,7 +377,14 @@ internal static class X3dReader
 
             if (token is "UNIT")
             {
-                _p += 2;
+                // UNIT category name conversionFactor: only the length factor (metres per unit) matters here.
+                var category = Next();
+                _ = Next();
+                if (category == "length" && double.TryParse(Next(), NumberStyles.Float, CultureInfo.InvariantCulture, out var factor) && factor > 0)
+                {
+                    LengthFactor = factor;
+                }
+
                 return null;
             }
 
@@ -536,7 +556,7 @@ internal static class X3dReader
 
     // ---- building --------------------------------------------------------------------------------------------------
 
-    private static Model3D Build(WNode top, FormatInfo format, LoadOptions options)
+    private static Model3D Build(WNode top, FormatInfo format, LoadOptions options, double? metersPerUnit = null)
     {
         var model = new Model3D();
         model.Metadata.Format = format;
@@ -555,6 +575,11 @@ internal static class X3dReader
         if (model.Meshes.Count == 0)
         {
             throw new ModelFormatException("The file holds no geometry this reader understands.");
+        }
+
+        if (metersPerUnit is { } factor)
+        {
+            UnitScaling.Apply(model, factor);
         }
 
         model.Metadata.PartNames.AddRange(model.Nodes().Where(n => n.Mesh is not null && !string.IsNullOrEmpty(n.Name)).Select(n => n.Name!));

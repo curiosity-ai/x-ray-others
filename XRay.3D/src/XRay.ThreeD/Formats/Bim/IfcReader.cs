@@ -119,6 +119,7 @@ internal static class IfcReader
                 }
 
                 meta.HasGeometry = _model.Meshes.Count > 0;
+                UnitScaling.Apply(_model, double.IsNaN(_metersPerUnit) ? meta.Units?.ToMeters() ?? 1 : _metersPerUnit);
                 meta.Statistics = _model.ComputeStatistics();
                 meta.Bounds = _model.ComputeBounds();
             }
@@ -184,6 +185,9 @@ internal static class IfcReader
             }
         }
 
+        /// <summary>The size of one length unit in metres, from the project's unit assignment.</summary>
+        private double _metersPerUnit = double.NaN;
+
         private void ReadUnits(ModelMetadata meta, StepEntity project)
         {
             var context = _f.Get(project.Arg(8));
@@ -198,6 +202,19 @@ internal static class IfcReader
                     }
 
                     meta.Units = LengthOf(unit);
+                    if (unit.Type == "IFCCONVERSIONBASEDUNIT" && ConversionFactor(unit) is { } factor)
+                    {
+                        // The factor, not the unit's name, is what the file means (an inch is 25.4 millimetres, but a project may define its own).
+                        _metersPerUnit = factor;
+                    }
+                    else if (unit.Type == "IFCSIUNIT")
+                    {
+                        _metersPerUnit = unit.Arg(2).Str.ToUpperInvariant() switch
+                        {
+                            "MILLI" => 1e-3, "CENTI" => 1e-2, "DECI" => 1e-1, "KILO" => 1e3, "HECTO" => 1e2, "DECA" => 10, "MICRO" => 1e-6, "NANO" => 1e-9, _ => 1,
+                        };
+                    }
+
                     break;
                 }
             }
@@ -207,6 +224,19 @@ internal static class IfcReader
                 meta.Units = LengthUnit.Meter;
                 meta.Notes.Add("The file states no length unit; meters are assumed.");
             }
+        }
+
+        /// <summary>The size in metres of an IfcConversionBasedUnit, from its IfcMeasureWithUnit (a value in a named unit: 25.4 in millimetres for an inch), or null.</summary>
+        private double? ConversionFactor(StepEntity unit)
+        {
+            var measure = _f.Get(unit.Arg(3));
+            if (measure is null || measure.Type != "IFCMEASUREWITHUNIT")
+            {
+                return null;
+            }
+
+            var value = measure.Arg(0).Num;
+            return _f.Get(measure.Arg(1)) is { } baseEntity && LengthOf(baseEntity) is { } baseUnit && value > 0 && double.IsFinite(value) ? value * baseUnit.ToMeters() : null;
         }
 
         private LengthUnit? LengthOf(StepEntity unit)

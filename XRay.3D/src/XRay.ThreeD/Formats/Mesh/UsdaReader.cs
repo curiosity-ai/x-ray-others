@@ -935,7 +935,7 @@ internal static class UsdaReader
             meta.Units = LengthUnit.Meter;
             var up = _stage.Metadata.TryGetValue("upAxis", out var u) ? u as string : null;
             meta.UpAxis = up == "Z" ? UpAxis.Z : UpAxis.Y;
-            var metersPerUnit = _stage.Metadata.TryGetValue("metersPerUnit", out var m) && m is double mpu && mpu > 0 ? mpu : 1.0;
+            var metersPerUnit = _stage.Metadata.TryGetValue("metersPerUnit", out var m) && m is double mpu && mpu > 0 ? mpu : 0.01; // the schema's fallback is centimetres
             meta.Units = metersPerUnit switch
             {
                 1.0 => LengthUnit.Meter,

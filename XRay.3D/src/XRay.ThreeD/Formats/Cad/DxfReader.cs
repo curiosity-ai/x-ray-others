@@ -510,9 +510,13 @@ internal static class DxfReader
                 meta.Application = AutoCadName(version);
             }
 
-            if (Var("$INSUNITS", 70) is { } units && int.TryParse(units.AsSpan().Trim(), out var code))
+            var insertUnits = Var("$INSUNITS", 70) is { } units && int.TryParse(units.AsSpan().Trim(), out var code) ? code : 0;
+            meta.Units = UnitOf(insertUnits);
+            if (insertUnits == 0 && Var("$MEASUREMENT", 70) is { } measurement && int.TryParse(measurement.AsSpan().Trim(), out var system))
             {
-                meta.Units = UnitOf(code);
+                // A drawing that states no insertion unit still says whether it is an imperial (0) or a metric (1) one: inches, or millimetres (the metric template's unit).
+                meta.Units = system == 0 ? LengthUnit.Inch : LengthUnit.Millimeter;
+                meta.Notes.Add("The drawing states no insertion unit ($INSUNITS is 0); " + (system == 0 ? "inches" : "millimetres") + " are assumed from $MEASUREMENT.");
             }
 
             meta.Created = JulianDate(Var("$TDCREATE", 40));
