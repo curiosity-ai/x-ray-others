@@ -20,6 +20,19 @@ public enum GlbCompression
     Meshopt,
 }
 
+/// <summary>What the writer does for meshes that carry no normals.</summary>
+public enum GlbNormals
+{
+    /// <summary>Write none; the viewer computes its own (flat, usually).</summary>
+    Keep,
+
+    /// <summary>Area-weighted vertex normals over the welded vertices.</summary>
+    Smooth,
+
+    /// <summary>One normal per triangle; vertices are unwelded.</summary>
+    Flat,
+}
+
 public enum EdgeMode
 {
     None,
@@ -64,6 +77,17 @@ public sealed class GlbWriteOptions
 
     /// <summary>Embed the file's preview image as a texture-less extra (base64) in <c>asset.extras</c>. Off by default: it can be large.</summary>
     public bool IncludePreview { get; set; }
+
+    /// <summary>Normals for triangle meshes that have none (CAD meshes with source faces are left alone). Default: none are written.</summary>
+    public GlbNormals Normals { get; set; } = GlbNormals.Keep;
+
+    /// <summary>
+    /// A mesh whose vertices lie far from the origin compared with its size (a building at survey coordinates) loses float32 precision in
+    /// a viewer. Such a mesh is written around its own bounds centre, the centre goes into the nodes that use it, and into
+    /// <c>mesh.extras.origin</c> (source units). On by default; not combined with <see cref="GlbInstancing.Gpu"/> (whose instance
+    /// transforms are written from the nodes).
+    /// </summary>
+    public bool RecentreFarModels { get; set; } = true;
 
     /// <summary>Checked between meshes, per node and every few thousand vertices; a cancelled write throws <see cref="OperationCanceledException"/>.</summary>
     public CancellationToken Cancellation { get; set; }
@@ -166,6 +190,7 @@ public static class GlbWriter
         public bool AnyCompressed;
         public bool AnyQuantized;
         public readonly Dictionary<MeshData, Matrix4x4> Dequantise = new(ReferenceEqualityComparer.Instance);
+        public readonly Dictionary<MeshData, Vector3> Origin = new(ReferenceEqualityComparer.Instance);
     }
 
     private sealed record SyntheticNode(int Translation, int Rotation, int Scale, List<SceneNode> Sources);
@@ -432,19 +457,34 @@ public static class GlbWriter
                     w.WriteString("name", name);
                 }
 
-                if (options.IncludeMetadata && model.Meshes[i].Faces.Length > 0)
+                var hasOrigin = accessors.Origin.TryGetValue(model.Meshes[i], out var meshOrigin);
+                if (options.IncludeMetadata && (model.Meshes[i].Faces.Length > 0 || hasOrigin))
                 {
-                    // Source faces as (first index, index count) pairs over the mesh's triangle primitives, in order.
                     w.WriteStartObject("extras");
-                    w.WriteNumber("faceCount", model.Meshes[i].Faces.Length);
-                    w.WriteStartArray("faceRanges");
-                    foreach (var face in model.Meshes[i].Faces)
+                    if (hasOrigin)
                     {
-                        w.WriteNumberValue(face.FirstIndex);
-                        w.WriteNumberValue(face.IndexCount);
+                        // The vertices are stored around this point (source units); the nodes that use the mesh carry it as a translation.
+                        w.WriteStartArray("origin");
+                        w.WriteNumberValue(meshOrigin.X);
+                        w.WriteNumberValue(meshOrigin.Y);
+                        w.WriteNumberValue(meshOrigin.Z);
+                        w.WriteEndArray();
                     }
 
-                    w.WriteEndArray();
+                    if (model.Meshes[i].Faces.Length > 0)
+                    {
+                        // Source faces as (first index, index count) pairs over the mesh's triangle primitives, in order.
+                        w.WriteNumber("faceCount", model.Meshes[i].Faces.Length);
+                        w.WriteStartArray("faceRanges");
+                        foreach (var face in model.Meshes[i].Faces)
+                        {
+                            w.WriteNumberValue(face.FirstIndex);
+                            w.WriteNumberValue(face.IndexCount);
+                        }
+
+                        w.WriteEndArray();
+                    }
+
                     w.WriteEndObject();
                 }
 
@@ -833,6 +873,12 @@ public static class GlbWriter
         }
 
         var transform = node.Transform;
+        if (node.Mesh is not null && accessors.Origin.TryGetValue(node.Mesh, out var origin))
+        {
+            // The mesh is stored around its own centre; the centre goes back in through the node.
+            transform = Matrix4x4.CreateTranslation(origin) * transform;
+        }
+
         if (node.Mesh is not null && accessors.Dequantise.TryGetValue(node.Mesh, out var dequantise))
         {
             // Quantised positions are integers in [0, 65535]; the dequantisation is applied first, then the node's own transform.
@@ -1000,9 +1046,32 @@ public static class GlbWriter
         w.WriteEndArray();
     }
 
-    private static List<(int Position, int Normal, int Color, int TexCoord, int Indices, int Material, bool IsEdges)> AddMesh(MeshData mesh, Accessors accessors, MemoryStream bin, int materialCount, GlbWriteOptions options)
+    private static List<(int Position, int Normal, int Color, int TexCoord, int Indices, int Material, bool IsEdges)> AddMesh(MeshData source, Accessors accessors, MemoryStream bin, int materialCount, GlbWriteOptions options)
     {
+        var mesh = MeshNormals.Apply(source, options.Normals, options.Cancellation);
         var primitives = new List<(int, int, int, int, int, int, bool)>();
+        if (options.RecentreFarModels && !(options.Instancing == GlbInstancing.Gpu && options.Compression == GlbCompression.None) && mesh.VertexCount > 0)
+        {
+            var box = mesh.ComputeBounds();
+            var size = Math.Max(Math.Max(box.Size.X, box.Size.Y), box.Size.Z);
+            var centre = box.Center;
+            var far = Math.Max(Math.Abs(centre.X), Math.Max(Math.Abs(centre.Y), Math.Abs(centre.Z)));
+            if (float.IsFinite(far) && size > 0 && far > 1000f * size)
+            {
+                // Positions in float64 minus the centre, back to float32: the shift is exact enough and the residual is small.
+                var shifted = new float[mesh.Positions.Length];
+                for (var i = 0; i + 2 < shifted.Length; i += 3)
+                {
+                    shifted[i] = (float)((double)mesh.Positions[i] - centre.X);
+                    shifted[i + 1] = (float)((double)mesh.Positions[i + 1] - centre.Y);
+                    shifted[i + 2] = (float)((double)mesh.Positions[i + 2] - centre.Z);
+                }
+
+                mesh = ShiftedCopy(mesh, shifted);
+                accessors.Origin[source] = centre;
+            }
+        }
+
         if (mesh.VertexCount == 0)
         {
             return primitives;
@@ -1053,7 +1122,7 @@ public static class GlbWriter
                 }
             }
 
-            accessors.Dequantise[mesh] = Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(box.Min);
+            accessors.Dequantise[source] = Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(box.Min);
             accessors.AnyQuantized = true;
             position = AddAttribute(accessors, bin, packed, vertexCount, 8, compress, 5123, false, "VEC3", qmin, qmax, null);
 
@@ -1147,6 +1216,28 @@ public static class GlbWriter
         }
 
         return primitives;
+    }
+
+    private static MeshData ShiftedCopy(MeshData mesh, float[] positions)
+    {
+        var copy = new MeshData
+        {
+            Name = mesh.Name,
+            Positions = positions,
+            Normals = mesh.Normals,
+            Colors = mesh.Colors,
+            TexCoords = mesh.TexCoords,
+            Indices = mesh.Indices,
+            Faces = mesh.Faces,
+            EdgeIndices = mesh.EdgeIndices,
+            EdgeMaterial = mesh.EdgeMaterial,
+        };
+        foreach (var g in mesh.Groups)
+        {
+            copy.Groups.Add(g);
+        }
+
+        return copy;
     }
 
     private static uint[] EdgesFor(MeshData mesh, GlbWriteOptions options)

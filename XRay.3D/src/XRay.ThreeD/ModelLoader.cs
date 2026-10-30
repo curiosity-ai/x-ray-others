@@ -29,6 +29,15 @@ public sealed class LoadOptions
     /// </summary>
     public Func<string, byte[]?>? ResolveCompanion { get; set; }
 
+    /// <summary>
+    /// The unit of the coordinates for formats that do not state one (STL, OBJ, PLY, OFF, 3DS, XYZ, PTS); ignored for formats that do.
+    /// Null leaves the unit unknown, as before.
+    /// </summary>
+    public LengthUnit? AssumedUnits { get; set; }
+
+    /// <summary>The up axis for formats that do not state one (STL, OBJ, PLY, OFF, 3DS, XYZ, PTS); ignored for formats that do.</summary>
+    public UpAxis? AssumedUpAxis { get; set; }
+
     /// <summary>How many archives deep this load is; nested packages stop at three.</summary>
     internal int ArchiveDepth { get; set; }
 
@@ -55,13 +64,34 @@ public static class ModelLoader
             "step" => Formats.Step.StepReader.ReadMetadata(d, o),
             "ifc" => Formats.Bim.IfcReader.ReadMetadata(d, o),
             "iges" => Formats.Cad.IgesReader.ReadMetadata(d, o),
-            _ => Dispatch(format, d, o).Metadata,
+            _ => ApplyHints(format, Dispatch(format, d, o), o).Metadata,
         });
     }
 
     public static Model3D Load(ReadOnlyMemory<byte> data, string? fileName = null, LoadOptions? options = null)
     {
-        return Guard(data, fileName, options, (format, d, o) => Sanitize(Dispatch(format, d, o)));
+        return Guard(data, fileName, options, (format, d, o) => Sanitize(ApplyHints(format, Dispatch(format, d, o), o)));
+    }
+
+    private static readonly HashSet<string> UnstatedUnits = new(StringComparer.Ordinal) { "stl", "obj", "ply", "off", "3ds", "xyz", "pts" };
+
+    /// <summary>The caller's unit and up-axis hints, for the formats whose files do not carry them.</summary>
+    private static Model3D ApplyHints(FormatInfo format, Model3D model, LoadOptions options)
+    {
+        if (UnstatedUnits.Contains(format.Id))
+        {
+            if (options.AssumedUnits is { } units)
+            {
+                model.Metadata.Units = units;
+            }
+
+            if (options.AssumedUpAxis is { } up)
+            {
+                model.Metadata.UpAxis = up;
+            }
+        }
+
+        return model;
     }
 
     /// <summary>
@@ -217,6 +247,12 @@ public static class ModelLoader
     public static byte[] ConvertToGlb(ReadOnlyMemory<byte> data, string? fileName = null, GlbWriteOptions? glb = null, LoadOptions? options = null)
     {
         var model = Load(data, fileName, options);
+        if (glb is null && IsGlb(data.Span))
+        {
+            // A GLB read without trouble is already what this would write: hand it back untouched (the load above validated it).
+            return data.ToArray();
+        }
+
         glb = glb?.Clone() ?? new GlbWriteOptions();
         if (!glb.Cancellation.CanBeCanceled && options is not null)
         {
@@ -225,6 +261,8 @@ public static class ModelLoader
 
         return GlbWriter.ToArray(model, glb);
     }
+
+    private static bool IsGlb(ReadOnlySpan<byte> data) => data.Length >= 12 && data[0] == (byte)'g' && data[1] == (byte)'l' && data[2] == (byte)'T' && data[3] == (byte)'F';
 
     private static Model3D Dispatch(FormatInfo format, ReadOnlyMemory<byte> data, LoadOptions options) => format.Id switch
     {
