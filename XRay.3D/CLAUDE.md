@@ -52,6 +52,10 @@ python3 -I XRay.3D/tools/fixtures/make_fixtures.py XRay.3D/dataset/synthetic
   `Cancel.Every(token, i)` (`Internal/Cancel.cs`; every 1024 iterations by default, never every item in a hot loop), and every
   stage start checks the token. Cancellation surfaces as `OperationCanceledException`, never `ModelFormatException`;
   `CancellationTests` covers every fixture and a few heavy inputs (stop within seconds).
+- **Allocations.** Hot paths (parsers, tessellation, codecs, writers) rent scratch buffers from `ArrayPool<T>.Shared` (return in
+  `finally`, never hand a rented array to a caller or keep it past the call, never rely on its length), use `stackalloc` or
+  `Span<T>` for small clamped temporaries (about 256 bytes, never sized from file data), slice spans instead of `Substring` and
+  `ToArray`, avoid LINQ and closures in loops, and pre-size collections from validated counts.
 - **Conventions.** Transforms are System.Numerics row-vector (`world = local * parent`). `MeshData` holds one welded or
   per-face vertex array and an index array in triangles; `Groups` split indices by material. Units and up axis are
   recorded in metadata, never baked into vertices (the GLB writer adds a root node).

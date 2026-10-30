@@ -843,7 +843,8 @@ public static class GlbWriter
         {
             var m = transform;
             w.WriteStartArray("matrix");
-            foreach (var v in new[] { m.M11, m.M12, m.M13, m.M14, m.M21, m.M22, m.M23, m.M24, m.M31, m.M32, m.M33, m.M34, m.M41, m.M42, m.M43, m.M44 })
+            Span<float> values = [m.M11, m.M12, m.M13, m.M14, m.M21, m.M22, m.M23, m.M24, m.M31, m.M32, m.M33, m.M34, m.M41, m.M42, m.M43, m.M44];
+            foreach (var v in values)
             {
                 w.WriteNumberValue(v);
             }
@@ -1295,7 +1296,7 @@ public static class GlbWriter
         return AddCompressedView(accessors, bin, encoded, raw.Length, count, stride, mode, filter, target, parentStride);
     }
 
-    private static int AddPlainView(Accessors accessors, MemoryStream bin, byte[] raw, int target, int stride)
+    private static int AddPlainView(Accessors accessors, MemoryStream bin, ReadOnlySpan<byte> raw, int target, int stride)
     {
         Align(bin);
         accessors.Views.Add(new View { Offset = (int)bin.Length, Length = raw.Length, Target = target, Stride = stride });
@@ -1332,7 +1333,7 @@ public static class GlbWriter
 
     private static int AddAccessor(Accessors accessors, MemoryStream bin, ReadOnlySpan<byte> bytes, int componentType, int count, string type, int target, float[]? min, float[]? max)
     {
-        var view = AddPlainView(accessors, bin, bytes.ToArray(), target, 0);
+        var view = AddPlainView(accessors, bin, bytes, target, 0);
         accessors.List.Add(new Accessor { View = view, ComponentType = componentType, Count = count, Type = type, Min = min, Max = max });
         return accessors.List.Count - 1;
     }

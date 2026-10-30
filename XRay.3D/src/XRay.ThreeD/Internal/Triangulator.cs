@@ -364,7 +364,8 @@ internal sealed class Triangulator
             foreach (var t in fan)
             {
                 Rotate(t, a, out var u, out var v);
-                foreach (var w in new[] { u, v })
+                Span<int> ends = [u, v];
+                foreach (var w in ends)
                 {
                     if (Math.Abs(Orient(a, w, b)) < 1e-14 && Between(a, w, b))
                     {

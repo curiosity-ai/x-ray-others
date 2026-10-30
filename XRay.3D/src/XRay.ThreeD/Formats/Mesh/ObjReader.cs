@@ -411,9 +411,15 @@ internal static class ObjReader
         }
     }
 
+    [ThreadStatic]
+    private static List<uint>? _corners;
+
+    private static List<uint> Corners => _corners ??= new List<uint>(8);
+
     private static int AddFace(ReadOnlySpan<char> text, Group group, int material, List<float> positions, List<float> normals, List<float> texCoords)
     {
-        var corners = new List<uint>(4);
+        var corners = Corners;
+        corners.Clear();
         foreach (var range in text.Split(' '))
         {
             var token = text[range].Trim();
