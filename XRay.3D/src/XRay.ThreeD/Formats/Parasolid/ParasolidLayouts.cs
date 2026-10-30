@@ -33,6 +33,11 @@ internal sealed class XtLayout
     public required IReadOnlyDictionary<int, XtNodeDef> Types { get; init; }
 
     public bool Embedded { get; init; }
+
+    /// <summary>How many owner flags an attribute definition lists (a binary file does not mark the end of the run): 13 in Parasolid 10, 14 in the 12 to 33 range, 16 in schema 35102.</summary>
+    public int OwnerFlags { get; init; } = 14;
+
+    public XtLayout WithOwnerFlags(int flags) => new() { Name = Name, Types = Types, Embedded = Embedded, OwnerFlags = flags };
 }
 
 /// <summary>
@@ -87,8 +92,8 @@ internal static class XtLayouts
 
     private static readonly Dictionary<int, XtLayout> Cache = [];
 
-    /// <summary>The layouts to try for a schema key, most likely first; empty (with the reason) when the key is not understood.</summary>
-    public static List<XtLayout> Candidates(XtKey? key, out string reason)
+    /// <summary>The layouts to try for a schema key, most likely first; empty (with the reason) when the key is not understood. A binary file does not mark the end of an attribute definition's owner flags, so each layout is also tried with the other counts seen.</summary>
+    public static List<XtLayout> Candidates(XtKey? key, bool binary, out string reason)
     {
         reason = "";
         var result = new List<XtLayout>();
@@ -102,18 +107,15 @@ internal static class XtLayouts
         {
             // The file declares its own differences to its base: 13006 (Parasolid 13) is the base of every file seen; Parasolid 10 had no embedding.
             result.Add(new XtLayout { Name = "embedded on " + k.Base.ToString(CultureInfo.InvariantCulture), Types = XtSchema.Base(legacy: k.Base < 11000), Embedded = true });
-            return result;
         }
-
-        var schema = k.Schema;
-        if (schema < 11000)
+        else if (k.Schema < 11000)
         {
             result.Add(Plain(0, legacy: true));
         }
-        else if (schema <= 13006)
+        else if (k.Schema <= 13006)
         {
             result.Add(Plain(0, legacy: false));
-            if (schema < 12000)
+            if (k.Schema < 12000)
             {
                 // Parasolid 11 is between the two documented layouts: both are tried.
                 result.Add(Plain(0, legacy: true));
@@ -124,11 +126,29 @@ internal static class XtLayouts
             // The nearest revision at or below the file's, then the older ones in case the file's revision lies between two.
             for (var g = Generations.Length - 1; g >= 0; g--)
             {
-                if (Generations[g].From <= schema)
+                if (Generations[g].From <= k.Schema)
                 {
                     result.Add(Plain(g + 1, legacy: false));
                 }
             }
+        }
+
+        if (binary)
+        {
+            var all = new List<XtLayout>();
+            foreach (var layout in result)
+            {
+                all.Add(layout);
+                foreach (var flags in new[] { 14, 16, 15, 13, 17, 18 })
+                {
+                    if (flags != layout.OwnerFlags)
+                    {
+                        all.Add(layout.WithOwnerFlags(flags));
+                    }
+                }
+            }
+
+            return all;
         }
 
         return result;
@@ -166,7 +186,7 @@ internal static class XtLayouts
                 }
             }
 
-            var layout = new XtLayout { Name = legacy ? "Parasolid 10" : generation == 0 ? "13006" : "revision " + Generations[generation - 1].From.ToString(CultureInfo.InvariantCulture), Types = types };
+            var layout = new XtLayout { Name = legacy ? "Parasolid 10" : generation == 0 ? "13006" : "revision " + Generations[generation - 1].From.ToString(CultureInfo.InvariantCulture), Types = types, OwnerFlags = legacy ? 13 : generation > 0 && Generations[generation - 1].From >= 35102 ? 16 : 14 };
             Cache[id] = layout;
             return layout;
         }

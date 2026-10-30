@@ -169,7 +169,7 @@ Format Reference (Siemens, April 2008). [parasolid-kit](https://github.com/monoz
 contributors) was read to cross-check the field lists against real exports (it confirms, for instance, that the ellipse lists its sense before its centre,
 that an intersection curve lists its two surfaces before its chart, and that B-surface control grids run with v fastest).
 
-Taken from parasolid-kit and ported (data and format knowledge, no code): the layout of the embedded schema section of a transmit file (the stream header
+Taken from parasolid-kit and ported (data and format knowledge, no code): the binary encoding (header framing, big-endian widths, the positive-integer pointer encoding, null sentinels) and the layout of the embedded schema section of a transmit file (the stream header
 with the schema key and the highest node type, and per node type at first use: 255 for an unchanged base layout, or a field count followed by the copy, delete, insert,
 append and end operations, or a complete declaration for a type the base lacks; the field encoding: name, pointer class, element count, type code and
 transmission flag) and the per-revision edit sequences of the plain schemas 15003 to 33103 (the BODY, REGION, INTERSECTION, LIMIT, LIST and POINTER block edits in

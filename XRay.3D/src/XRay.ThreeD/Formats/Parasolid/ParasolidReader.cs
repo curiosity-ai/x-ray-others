@@ -21,18 +21,49 @@ internal static class ParasolidReader
             || (head.Length > 8 && head[0] == (byte)'P' && head[1] == (byte)'S' && head[2] == 0 && head[3] == 0 && text.Contains("TRANSMIT FILE", StringComparison.Ordinal));
     }
 
+    /// <summary>Where the stream starts after an optional text preamble (ending in **END_OF_HEADER), and whether it is binary (PS) rather than text (T).</summary>
+    internal static (int Start, bool Binary) Payload(ReadOnlySpan<byte> span)
+    {
+        var start = 0;
+        if (span.Length > 2 && span[0] == (byte)'*' && span[1] == (byte)'*')
+        {
+            var marker = span[..Math.Min(span.Length, 64 * 1024)].IndexOf("**END_OF_HEADER"u8);
+            if (marker >= 0)
+            {
+                start = marker + "**END_OF_HEADER".Length;
+                while (start < span.Length && span[start] == (byte)'*')
+                {
+                    start++;
+                }
+
+                if (start < span.Length && span[start] == (byte)'\r')
+                {
+                    start++;
+                }
+
+                if (start < span.Length && span[start] == (byte)'\n')
+                {
+                    start++;
+                }
+            }
+        }
+
+        var binary = span.Length > start + 4 && span[start] == (byte)'P' && span[start + 1] == (byte)'S' && span[start + 2] == 0;
+        return (start, binary);
+    }
+
     public static ModelMetadata ReadMetadata(ReadOnlyMemory<byte> data, CancellationToken cancel)
     {
         var meta = new ModelMetadata { Format = ModelFormats.Parasolid, DocumentKind = "model", UpAxis = UpAxis.Z };
         var span = data.Span;
-        var binary = span.Length > 4 && span[0] == (byte)'P' && span[1] == (byte)'S' && span[2] == 0;
+        var binary = Payload(span).Binary;
         meta.Properties.Add(new ModelProperty("Encoding", binary ? "binary (x_b)" : "text (x_t)"));
 
         // The first kilobytes hold every header form.
         var text = Encoding.Latin1.GetString(span[..Math.Min(span.Length, 16 * 1024)]);
         cancel.ThrowIfCancellationRequested();
         var endHeader = text.IndexOf("**END_OF_HEADER", StringComparison.Ordinal);
-        if (!binary && endHeader > 0)
+        if (endHeader > 0)
         {
             string? created = null;
             foreach (var raw in text[..endHeader].Split('\n'))
@@ -110,7 +141,7 @@ internal static class ParasolidReader
         if (schema > 0)
         {
             var end = schema;
-            while (end < text.Length && (char.IsLetterOrDigit(text[end]) || text[end] == '_'))
+            while (end < text.Length && (char.IsAsciiLetterOrDigit(text[end]) || text[end] == '_'))
             {
                 end++;
             }
@@ -129,7 +160,18 @@ internal static class ParasolidReader
             }
         }
 
-        meta.Notes.Add(DescribeSupport(text, binary));
+        string? streamKey;
+        if (binary)
+        {
+            var (payload, _) = Payload(span);
+            streamKey = BinaryHeader(span[..Math.Min(span.Length, payload + 4096)].ToArray(), payload).Key;
+        }
+        else
+        {
+            streamKey = StreamHeader(XtStream.Unwrap(text)).Key;
+        }
+
+        meta.Notes.Add(DescribeSupport(streamKey));
         return meta;
     }
 
@@ -205,32 +247,76 @@ internal static class ParasolidReader
         return (key, Math.Max(userFields, 0), maxType, p);
     }
 
-    private static string DescribeSupport(string text, bool binary)
+    /// <summary>The header of a binary stream: PS and two zero flag bytes, the modeller version (16 bit length), the schema key (32 bit length), for an embedded schema the highest node type (16 bit) and the user field size (32 bit).</summary>
+    private static (string? Key, int UserFields, int MaxType, int Start) BinaryHeader(byte[] data, int start)
     {
-        if (binary)
+        try
         {
-            return "Binary transmit files (x_b) are not decoded; geometry is not read.";
-        }
+            var p = start + 4;
+            int U16() => System.Buffers.Binary.BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(p, 2));
+            int I32() => System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(data.AsSpan(p, 4));
+            var versionLength = U16();
+            p += 2 + versionLength;
+            var keyLength = I32();
+            p += 4;
+            if (keyLength is < 8 or > 64 || p + keyLength > data.Length)
+            {
+                return (null, 0, 0, 0);
+            }
 
-        var candidates = XtLayouts.Candidates(XtKey.Parse(StreamHeader(XtStream.Unwrap(text)).Key), out var reason);
+            var key = Encoding.Latin1.GetString(data, p, keyLength);
+            p += keyLength;
+            var maxType = 0;
+            if (XtKey.Parse(key) is { Embedded: true })
+            {
+                maxType = U16();
+                p += 2;
+            }
+
+            var userFields = I32();
+            p += 4;
+            return userFields is < 0 or > 16 ? (null, 0, 0, 0) : (key, userFields, maxType, p);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return (null, 0, 0, 0);
+        }
+    }
+
+    private static string DescribeSupport(string? key)
+    {
+        var candidates = XtLayouts.Candidates(XtKey.Parse(key), false, out var reason);
         return candidates.Count == 0
             ? $"The node stream is not decoded: {reason}."
             : "Bodies, faces, edges and the analytic and B-spline geometry of the node stream are decoded by Load.";
     }
 
-    /// <summary>Reads the node stream of a text file with the layouts of its schema; of several candidate layouts the one that leaves no pointer dangling wins.</summary>
+    /// <summary>Reads the node stream with the layouts of its schema (text or binary); of several candidate layouts the one that leaves no pointer dangling wins.</summary>
     internal static Dictionary<int, XtNode> ReadNodes(ReadOnlyMemory<byte> data, string? version, long maxNodes, CancellationToken cancel, out string? key)
     {
-        var text = XtStream.Unwrap(Encoding.Latin1.GetString(data.Span));
-        var (schemaKey, userFields, maxType, start) = StreamHeader(text);
-        key = schemaKey;
-        var candidates = XtLayouts.Candidates(XtKey.Parse(schemaKey), out var reason);
+        var (payload, binary) = Payload(data.Span);
+        string? body = null;
+        byte[]? bytes = null;
+        (string? Key, int UserFields, int MaxType, int Start) header;
+        if (binary)
+        {
+            bytes = data.ToArray();
+            header = BinaryHeader(bytes, payload);
+        }
+        else
+        {
+            var text = XtStream.Unwrap(Encoding.Latin1.GetString(data.Span));
+            header = StreamHeader(text);
+            body = text[Math.Min(header.Start, text.Length)..];
+        }
+
+        key = header.Key;
+        var candidates = XtLayouts.Candidates(XtKey.Parse(header.Key), binary, out var reason);
         if (candidates.Count == 0)
         {
             throw new UnsupportedModelFormatException(ModelFormats.Parasolid, $"Parasolid transmit file ({version ?? "unknown version"}): {reason}; only the header is read (use ReadMetadata).");
         }
 
-        var body = text[Math.Min(start, text.Length)..];
         Dictionary<int, XtNode>? nodes = null;
         var bestDangling = int.MaxValue;
         ModelFormatException? failure = null;
@@ -238,7 +324,8 @@ internal static class ParasolidReader
         {
             try
             {
-                var parsedNodes = XtStream.Parse(body, 0, userFields, candidate, maxType, maxNodes, cancel, out var dangling);
+                XtStream reader = binary ? new XtBinaryStream(bytes!, header.Start, cancel) : new XtTextStream(body!, 0, cancel);
+                var parsedNodes = XtStream.Parse(reader, header.UserFields, candidate, header.MaxType, maxNodes, cancel, out var dangling);
                 if (dangling < bestDangling)
                 {
                     nodes = parsedNodes;
@@ -258,7 +345,7 @@ internal static class ParasolidReader
 
         if (nodes is null)
         {
-            throw failure is UnsupportedModelFormatException ? failure : new ModelFormatException("The Parasolid node stream could not be read with the layouts of schema " + schemaKey + ": " + failure?.Message);
+            throw failure is UnsupportedModelFormatException ? failure : new ModelFormatException("The Parasolid node stream could not be read with the layouts of schema " + header.Key + ": " + failure?.Message);
         }
 
         if (nodes.Count == 0)
@@ -272,12 +359,6 @@ internal static class ParasolidReader
     public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options)
     {
         var meta = ReadMetadata(data, options.Cancellation);
-        var span = data.Span;
-        if (span.Length > 4 && span[0] == (byte)'P' && span[1] == (byte)'S' && span[2] == 0)
-        {
-            throw new UnsupportedModelFormatException(ModelFormats.Parasolid, $"Parasolid binary transmit file ({meta.FormatVersion ?? "unknown version"}): the node stream is not decoded, only the header is read (use ReadMetadata).");
-        }
-
         var nodes = ReadNodes(data, meta.FormatVersion, Math.Max(1_000_000, options.MaxTriangles), options.Cancellation, out var key);
 
         var model = new Model3D();

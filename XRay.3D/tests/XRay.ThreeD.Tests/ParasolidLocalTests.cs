@@ -105,4 +105,26 @@ public class ParasolidLocalTests
         Assert.Equal(0, box.Min.Z, 9);
         Assert.Equal(0, box.Max.Z, 9);
     }
+
+    [Theory]
+    [InlineData("LONGBAR.x_t")]
+    [InlineData("Ansys_logo_2D.x_t")]
+    [InlineData("gingerbread.x_t")]
+    public void The_binary_encoding_of_a_real_files_nodes_gives_the_same_model_as_the_text(string name)
+    {
+        if (Sample(name) is not { } text)
+        {
+            return;
+        }
+
+        var binary = ParasolidBinaryWriter.FromText(text);
+        Assert.Equal("binary (x_b)", ModelLoader.ReadMetadata(binary, "x.x_b").GetProperty("Encoding"));
+        var a = ModelLoader.Load(text, name);
+        var b = ModelLoader.Load(binary, "x.x_b");
+        Assert.Equal(a.Metadata.Statistics!.Triangles, b.Metadata.Statistics!.Triangles);
+        Assert.Equal(a.Metadata.Statistics.Volume, b.Metadata.Statistics.Volume, 12);
+        Assert.Equal(a.Metadata.Bounds!.Value.Min, b.Metadata.Bounds!.Value.Min);
+        Assert.Equal(a.Metadata.Bounds!.Value.Max, b.Metadata.Bounds!.Value.Max);
+        Assert.Equal(a.Metadata.GetProperty("Faces"), b.Metadata.GetProperty("Faces"));
+    }
 }

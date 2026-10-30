@@ -113,4 +113,51 @@ public class ParasolidTests
             Assert.ThrowsAny<ModelFormatException>(() => ModelLoader.Load(System.Text.Encoding.Latin1.GetBytes(candidate), "disc-embedded.x_t"));
         }
     }
+
+    [Theory]
+    [InlineData("synthetic/disc.x_t")]
+    [InlineData("synthetic/disc-embedded.x_t")]
+    public void The_binary_encoding_gives_the_same_model_as_the_text_and_survives_truncation_and_mutation(string relative)
+    {
+        var text = File.ReadAllBytes(DatasetPaths.File(relative));
+        var preamble = "**ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz**************************\n**PART1;\nAPPL=binary test;\n**PART2;\nSCH=SCH_3501210_35102;\n**END_OF_HEADER*****************************************************************\n";
+        foreach (var binary in new[] { ParasolidBinaryWriter.FromText(text), ParasolidBinaryWriter.FromText(text, preamble) })
+        {
+            Assert.Equal("parasolid", ModelLoader.Detect(binary, "disc.x_b").Id);
+            var a = ModelLoader.Load(text, "disc.x_t");
+            var b = ModelLoader.Load(binary, "disc.x_b");
+            Assert.Equal(a.Metadata.Statistics!.Triangles, b.Metadata.Statistics!.Triangles);
+            Assert.Equal(a.Metadata.Statistics.SurfaceArea, b.Metadata.Statistics.SurfaceArea, 9);
+            Assert.Equal(a.Materials.Single().BaseColor, b.Materials.Single().BaseColor);
+
+            for (var cut = 0; cut < binary.Length; cut += 5)
+            {
+                try
+                {
+                    _ = ModelLoader.Load(binary.AsMemory(0, cut), "disc.x_b");
+                }
+                catch (ModelFormatException)
+                {
+                }
+            }
+
+            var random = new Random(7);
+            for (var i = 0; i < 400; i++)
+            {
+                var copy = (byte[])binary.Clone();
+                for (var k = random.Next(1, 4); k > 0; k--)
+                {
+                    copy[random.Next(copy.Length)] = (byte)random.Next(256);
+                }
+
+                try
+                {
+                    _ = ModelLoader.Load(copy, "disc.x_b");
+                }
+                catch (ModelFormatException)
+                {
+                }
+            }
+        }
+    }
 }

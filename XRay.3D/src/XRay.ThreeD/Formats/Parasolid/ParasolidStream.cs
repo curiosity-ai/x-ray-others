@@ -4,23 +4,18 @@ using XRay.ThreeD.Internal;
 namespace XRay.ThreeD.Formats.Parasolid;
 
 /// <summary>
-/// The node stream of a text transmit file: whitespace separated numbers for integers, pointers and doubles (an unset double or vector is one '?'),
-/// single characters for characters and logicals (T and F, no separator), then for each node its type, the length of a variable length node, its index
-/// and its fields. The text is wrapped at a fixed column inside tokens, so all line breaks are removed before reading. The stream ends with node
-/// type 1 and index 0.
+/// The node stream of a transmit file, text or binary: for each node its type, the length of a variable length node, its index and its fields; the stream
+/// ends with node type 1 and index 0. The primitives of the two encodings are in <see cref="XtTextStream"/> and <see cref="XtBinaryStream"/>; reading the
+/// nodes and the schema section that an embedded-schema file carries is the same for both.
 /// </summary>
-internal sealed class XtStream
+internal abstract class XtStream
 {
-    private readonly string _text;
-    private readonly CancellationToken _cancel;
-    private int _p;
+    protected XtStream(CancellationToken cancel) => Cancel = cancel;
 
-    private XtStream(string text, int start, CancellationToken cancel)
-    {
-        _text = text;
-        _p = start;
-        _cancel = cancel;
-    }
+    protected CancellationToken Cancel { get; }
+
+    /// <summary>The number of characters or bytes left.</summary>
+    public abstract int Remaining { get; }
 
     /// <summary>The text with its line breaks removed (the writer wraps lines inside tokens).</summary>
     public static string Unwrap(string text)
@@ -48,20 +43,19 @@ internal sealed class XtStream
     /// schema the base layouts that the file's per-type edits (first use of a type: a count, then copy/delete/insert/append operations, or a full
     /// declaration for a type the base does not have) are applied to.
     /// </summary>
-    public static Dictionary<int, XtNode> Parse(string text, int start, int userFieldSize, XtLayout layout, int maxType, long maxNodes, CancellationToken cancel, out int dangling)
+    public static Dictionary<int, XtNode> Parse(XtStream reader, int userFieldSize, XtLayout layout, int maxType, long maxNodes, CancellationToken cancel, out int dangling)
     {
-        var reader = new XtStream(text, start, cancel);
         var nodes = new Dictionary<int, XtNode>();
         var effective = layout.Embedded ? new Dictionary<int, XtNodeDef>() : null;
         var tick = 0L;
         while (true)
         {
-            Cancel.Every(cancel, tick++);
-            var type = reader.Int();
+            XRay.ThreeD.Internal.Cancel.Every(cancel, tick++);
+            var type = reader.NodeType();
             if (type == 1)
             {
                 // The terminator: type 1, index 0.
-                _ = reader.Int();
+                _ = reader.NodeIndex();
                 dangling = CountDangling(nodes);
                 return nodes;
             }
@@ -94,14 +88,14 @@ internal sealed class XtStream
             var count = 0;
             if (variable is not null)
             {
-                count = reader.Int();
-                if (count < 0 || count > text.Length - reader._p)
+                count = reader.VarLength();
+                if (count < 0 || count > reader.Remaining)
                 {
                     throw new ModelFormatException("A Parasolid node has an impossible length.");
                 }
             }
 
-            var index = reader.Int();
+            var index = reader.NodeIndex();
             if (index <= 0 || nodes.Count >= maxNodes)
             {
                 throw new ModelFormatException("A Parasolid node has an impossible index or the file has too many nodes.");
@@ -124,14 +118,8 @@ internal sealed class XtStream
                 }
                 else if (field.Count < 0)
                 {
-                    // A run of T and F: the allowed owners of an attribute definition (13 for Parasolid 10, 14 later).
-                    reader.SkipSpace();
-                    var run = 0;
-                    while (reader._p < reader._text.Length && reader._text[reader._p] is 'T' or 'F' && run < 64)
-                    {
-                        reader._p++;
-                        run++;
-                    }
+                    // A run of logicals: the allowed owners of an attribute definition (13 for Parasolid 10, 14 later, 16 in schema 35102).
+                    reader.SkipRun(layout.OwnerFlags);
                 }
                 else
                 {
@@ -144,7 +132,7 @@ internal sealed class XtStream
 
             for (var u = 0; u < userFieldSize && def.Visible; u++)
             {
-                _ = reader.Int();
+                _ = reader.UserWord();
             }
 
             nodes[index] = node;
@@ -200,7 +188,7 @@ internal sealed class XtStream
     /// </summary>
     private XtNodeDef ReadEmbeddedSchema(int type, XtNodeDef? baseDef)
     {
-        var marker = Int();
+        var marker = Marker();
         if (marker < 0 || marker > 255)
         {
             throw new ModelFormatException("A Parasolid embedded schema has an impossible field count.");
@@ -214,11 +202,11 @@ internal sealed class XtStream
         var fields = new List<XtField>(Math.Min(marker, 64));
         if (baseDef is null)
         {
-            var name = Str();
-            _ = Str();
+            var name = SchemaString();
+            _ = SchemaString();
             for (var i = 0; i < marker; i++)
             {
-                _cancel.ThrowIfCancellationRequested();
+                Cancel.ThrowIfCancellationRequested();
                 fields.Add(ReadSchemaField());
             }
 
@@ -230,13 +218,13 @@ internal sealed class XtStream
         var appending = false;
         for (var guard = 0; ; guard++)
         {
-            Cancel.Every(_cancel, guard);
+            XRay.ThreeD.Internal.Cancel.Every(Cancel, guard);
             if (guard > 4096)
             {
                 throw new ModelFormatException("A Parasolid embedded schema has too many edits.");
             }
 
-            var op = RawChar();
+            var op = Op();
             switch (op)
             {
                 case 'C' when !appending && next < baseDef.Fields.Length:
@@ -284,9 +272,9 @@ internal sealed class XtStream
 
     private XtField ReadSchemaField()
     {
-        var name = Str();
-        var pointerClass = Int();
-        var elements = Int();
+        var name = SchemaString();
+        var pointerClass = SchemaClass();
+        var elements = SchemaElements();
         if (name.Length == 0 || pointerClass < 0 || elements < 0 || elements > 1 << 20)
         {
             throw new ModelFormatException("A Parasolid embedded schema has an invalid field.");
@@ -295,7 +283,7 @@ internal sealed class XtStream
         var letter = 'p';
         if (pointerClass == 0)
         {
-            var code = Str();
+            var code = SchemaString();
             if (code.Length != 1 || "ucl nwdtfivbh".IndexOf(code[0], StringComparison.Ordinal) < 0 || code[0] == ' ')
             {
                 throw new ModelFormatException("A Parasolid embedded schema has an unsupported field type.");
@@ -307,11 +295,96 @@ internal sealed class XtStream
         var transmitted = true;
         if (elements == 1)
         {
-            transmitted = RawChar() == 'T';
+            transmitted = SchemaTransmitted();
         }
 
         // 0 stands for a scalar, 1 for a variable length field, more for a fixed array.
         return new XtField { Name = name, Type = letter, Count = elements == 0 ? 1 : elements == 1 ? 0 : elements, Slot = -1, Transmitted = transmitted };
+    }
+
+
+    // ---- the primitives of an encoding ---------------------------------------------------------------------------
+
+    protected abstract int NodeType();
+
+    protected abstract int NodeIndex();
+
+    protected abstract int VarLength();
+
+    protected abstract int UserWord();
+
+    /// <summary>A run of logicals of unknown length in the text; <paramref name="count"/> of them in binary.</summary>
+    protected abstract void SkipRun(int count);
+
+    /// <summary>Whether the next value is a logical, which an attribute definition without a field names pointer has where the pointer should be (text only).</summary>
+    protected abstract bool NextIsLogical();
+
+    protected abstract void ReadScalar(XtField field, long[] ints, double[] doubles, int slot);
+
+    protected abstract object ReadVariable(XtField field, int count);
+
+    /// <summary>The field count (0 to 255) at the start of an embedded schema section.</summary>
+    protected abstract int Marker();
+
+    /// <summary>The next edit operation: C, D, I, A or Z.</summary>
+    protected abstract char Op();
+
+    protected abstract string SchemaString();
+
+    protected abstract int SchemaClass();
+
+    protected abstract int SchemaElements();
+
+    protected abstract bool SchemaTransmitted();
+}
+
+/// <summary>
+/// The text encoding: whitespace separated numbers for integers, pointers and doubles (an unset double or vector is one '?'), single characters for
+/// characters and logicals (T and F, no separator). The text is wrapped at a fixed column inside tokens, so all line breaks are removed before reading.
+/// </summary>
+internal sealed class XtTextStream : XtStream
+{
+    private readonly string _text;
+    private int _p;
+
+    public XtTextStream(string text, int start, CancellationToken cancel)
+        : base(cancel)
+    {
+        _text = text;
+        _p = start;
+    }
+
+    public override int Remaining => _text.Length - _p;
+
+    protected override int NodeType() => Int();
+
+    protected override int NodeIndex() => Int();
+
+    protected override int VarLength() => Int();
+
+    protected override int UserWord() => Int();
+
+    protected override int Marker() => Int();
+
+    protected override int SchemaClass() => Int();
+
+    protected override int SchemaElements() => Int();
+
+    protected override bool SchemaTransmitted() => RawChar() == 'T';
+
+    protected override char Op() => RawChar();
+
+    protected override string SchemaString() => Str();
+
+    protected override void SkipRun(int count)
+    {
+        SkipSpace();
+        var run = 0;
+        while (_p < _text.Length && _text[_p] is 'T' or 'F' && run < 64)
+        {
+            _p++;
+            run++;
+        }
     }
 
     /// <summary>A string: its length, one separating space, then that many characters (escapes counted as the characters they stand for).</summary>
@@ -400,7 +473,7 @@ internal sealed class XtStream
         return new string(chars);
     }
 
-    private bool NextIsLogical()
+    protected override bool NextIsLogical()
     {
         SkipSpace();
         return _p < _text.Length && _text[_p] is 'T' or 'F';
@@ -461,7 +534,7 @@ internal sealed class XtStream
         return _text[_p++];
     }
 
-    private void ReadScalar(XtField field, long[] ints, double[] doubles, int slot)
+    protected override void ReadScalar(XtField field, long[] ints, double[] doubles, int slot)
     {
         switch (field.Type)
         {
@@ -510,7 +583,7 @@ internal sealed class XtStream
         return Int();
     }
 
-    private object ReadVariable(XtField field, int count)
+    protected override object ReadVariable(XtField field, int count)
     {
         if (field.Type == 'c')
         {
@@ -523,7 +596,7 @@ internal sealed class XtStream
             var values = new double[(long)count * width];
             for (var i = 0; i < values.Length; i += width)
             {
-                Cancel.Every(_cancel, i);
+                XRay.ThreeD.Internal.Cancel.Every(Cancel, i);
                 if (width > 1)
                 {
                     SkipSpace();
@@ -547,8 +620,178 @@ internal sealed class XtStream
         var longs = new long[count];
         for (var i = 0; i < count; i++)
         {
-            Cancel.Every(_cancel, i);
+            XRay.ThreeD.Internal.Cancel.Every(Cancel, i);
             longs[i] = field.Type is 'l' ? Char() : IntOrNull();
+        }
+
+        return longs;
+    }
+}
+
+/// <summary>
+/// The binary (neutral) encoding: big-endian numbers. A node type is a 16 bit integer, a variable length and a user word 32 bit integers, a node index and a
+/// pointer a "positive integer" (one positive short holding the value plus one, or, from 32767 on, a negative remainder short and a positive quotient short),
+/// an integer or short an integer with a reserved null value, a double an IEEE binary64 with a reserved null value, a character or logical or byte one byte.
+/// </summary>
+internal sealed class XtBinaryStream : XtStream
+{
+    private static readonly byte[] DoubleNull = [0xc2, 0xbc, 0x92, 0x8f, 0x99, 0x6e, 0x00, 0x00];
+
+    private readonly byte[] _data;
+    private int _p;
+
+    public XtBinaryStream(byte[] data, int start, CancellationToken cancel)
+        : base(cancel)
+    {
+        _data = data;
+        _p = start;
+    }
+
+    public override int Remaining => _data.Length - _p;
+
+    private ReadOnlySpan<byte> Take(int n)
+    {
+        if (n < 0 || n > _data.Length - _p)
+        {
+            throw new ModelFormatException("The Parasolid node stream ends unexpectedly.");
+        }
+
+        var span = _data.AsSpan(_p, n);
+        _p += n;
+        return span;
+    }
+
+    private int U8() => Take(1)[0];
+
+    private int I16() => System.Buffers.Binary.BinaryPrimitives.ReadInt16BigEndian(Take(2));
+
+    private int U16() => System.Buffers.Binary.BinaryPrimitives.ReadUInt16BigEndian(Take(2));
+
+    private int I32() => System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(Take(4));
+
+    private int Positive()
+    {
+        var remainder = I16();
+        if (remainder > 0)
+        {
+            return remainder - 1;
+        }
+
+        if (remainder is 0 or short.MinValue)
+        {
+            throw new ModelFormatException("A Parasolid positive integer is malformed.");
+        }
+
+        var quotient = I16();
+        if (quotient <= 0)
+        {
+            throw new ModelFormatException("A Parasolid positive integer is malformed.");
+        }
+
+        return (int)Math.Min(int.MaxValue, (long)quotient * 32767 + -remainder - 1);
+    }
+
+    private int NullableShort()
+    {
+        var v = I16();
+        return v == unchecked((short)0x8004) ? 0 : v;
+    }
+
+    private int NullableInt()
+    {
+        var span = Take(4);
+        return span[0] == 0xff && span[1] == 0xff && span[2] == 0x80 && span[3] == 0x04 ? 0 : System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(span);
+    }
+
+    private double Double()
+    {
+        var span = Take(8);
+        return span.SequenceEqual(DoubleNull) ? double.NaN : System.Buffers.Binary.BinaryPrimitives.ReadDoubleBigEndian(span);
+    }
+
+    protected override int NodeType() => I16();
+
+    protected override int NodeIndex() => Positive();
+
+    protected override int VarLength() => I32();
+
+    protected override int UserWord() => NullableInt();
+
+    protected override int Marker() => U8();
+
+    protected override char Op() => (char)U8();
+
+    protected override string SchemaString()
+    {
+        var length = U8();
+        return System.Text.Encoding.Latin1.GetString(Take(length));
+    }
+
+    protected override int SchemaClass() => U16();
+
+    protected override int SchemaElements() => Positive();
+
+    protected override bool SchemaTransmitted() => U8() != 0;
+
+    protected override void SkipRun(int count) => _ = Take(count);
+
+    protected override bool NextIsLogical() => false;
+
+    private long Scalar(char type) => type switch
+    {
+        'c' or 'u' => U8(),
+        'l' => U8() != 0 ? 'T' : 'F',
+        'n' => NullableShort(),
+        'w' => U16(),
+        'p' => Positive(),
+        _ => NullableInt(),
+    };
+
+    protected override void ReadScalar(XtField field, long[] ints, double[] doubles, int slot)
+    {
+        if (field.IsDouble)
+        {
+            for (var k = 0; k < field.Width; k++)
+            {
+                doubles[slot + k] = Double();
+            }
+        }
+        else
+        {
+            ints[slot] = Scalar(field.Type);
+        }
+    }
+
+    protected override object ReadVariable(XtField field, int count)
+    {
+        if (field.Type == 'c')
+        {
+            return System.Text.Encoding.Latin1.GetString(Take(count));
+        }
+
+        if (field.IsDouble)
+        {
+            var width = field.Width;
+            if ((long)count * width * 8 > Remaining)
+            {
+                throw new ModelFormatException("The Parasolid node stream ends unexpectedly.");
+            }
+
+            var values = new double[(long)count * width];
+            for (var i = 0; i < values.Length; i++)
+            {
+                XRay.ThreeD.Internal.Cancel.Every(Cancel, i);
+                values[i] = Double();
+            }
+
+            return values;
+        }
+
+        var longs = new long[count];
+        for (var i = 0; i < count; i++)
+        {
+            XRay.ThreeD.Internal.Cancel.Every(Cancel, i);
+            longs[i] = Scalar(field.Type);
         }
 
         return longs;
