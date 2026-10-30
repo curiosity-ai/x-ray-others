@@ -102,6 +102,8 @@ public class RobustnessTests
         "synthetic/laz14-f10.laz",
         "synthetic/laz14-f8.laz",
         "synthetic/e57-two-scans.e57",
+        "synthetic/usd-layers.usdz",
+        "synthetic/usd-layers/crate-root.usdc",
         "synthetic/iges-spline-surface.igs",
         "synthetic/iges-ruled.igs",
         "synthetic/iges-bounded-plane.igs",

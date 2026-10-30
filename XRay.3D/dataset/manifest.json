@@ -2059,5 +2059,77 @@
   "source": "tools/fixtures/make_gsm.py",
   "bytes": 1884,
   "sha256": "d45ca9f13950953aa05ce05233be6bdf4c2e5fd949137b760adcb9bbaa2deacc"
+ },
+ {
+  "file": "synthetic/usd-layers/crate-root.usdc",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 1020,
+  "sha256": "c1022426a8ef90c885e81bd7f05b2efc6a0f28ede6a25f823e1d65f7f10f3b53"
+ },
+ {
+  "file": "synthetic/usd-layers/geom/ball.usda",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 221,
+  "sha256": "7efba4f1a1e969c8eb4ab2686d84b380861feeca7ddb740255a45fb6ecf88f69"
+ },
+ {
+  "file": "synthetic/usd-layers/geom/box.usda",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 361,
+  "sha256": "aa24f7267766da3f20564c78aa7f71f6603fd4977201f60b4e977bad88989be7"
+ },
+ {
+  "file": "synthetic/usd-layers/geom/variants.usda",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 461,
+  "sha256": "1ba1baafa557a43d1f418e212408666b7bb869969ed7118be4d2e16c7309d735"
+ },
+ {
+  "file": "synthetic/usd-layers/root.usda",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 2237,
+  "sha256": "9529c1ac89117ad111d26ffa79f6fab0ed90aa0139d63a702da0ad3f33b0cfbf"
+ },
+ {
+  "file": "synthetic/usd-layers/sub.usda",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 245,
+  "sha256": "77c958c4e93d3f000a77245dad8c99be8c7d2bf2e0762e2fc6a5cdde05a83f6d"
+ },
+ {
+  "file": "synthetic/usd-layers.usdz",
+  "format": "usd",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 4248,
+  "sha256": "6989afd9c3245bd3a75baacbc0a23d066103a9bd6aaf8622e32a4ff9c28afad5"
+ },
+ {
+  "file": "synthetic/usd-layers/textures/checker.png",
+  "format": "png",
+  "title": "Multi-layer USD scene (sublayer, reference, payload, variant, time samples, texture) written with pxr",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_layers.py",
+  "bytes": 81,
+  "sha256": "df563d9c80877e3961934352bc71e6f59b0e5f41e5b2829dbdf4bb321d26daec"
  }
 ]

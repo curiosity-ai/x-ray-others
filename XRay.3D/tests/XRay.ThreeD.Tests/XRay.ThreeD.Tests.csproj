@@ -35,6 +35,7 @@
   <ItemGroup>
     <None Include="Corpus/las14-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/iges-splines-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/usd-layers-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/e57-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/e57-local-golden.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

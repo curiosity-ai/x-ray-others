@@ -570,7 +570,7 @@ internal static class UsdcReader
                     case SpecPseudoRoot:
                         foreach (var (name, rep) in Fields(i))
                         {
-                            if (name is "upAxis" or "metersPerUnit" or "defaultPrim" or "doc" && ValueOf(rep) is { } v)
+                            if (name is "upAxis" or "metersPerUnit" or "defaultPrim" or "doc" or "subLayers" && ValueOf(rep) is { } v)
                             {
                                 stage.Metadata[name] = v is double[] { Length: 1 } one ? one[0] : v;
                             }
@@ -1065,7 +1065,7 @@ internal static class UsdcReader
                         pos += 8;
                         if (keep)
                         {
-                            result.Add(asset.Length > 0 ? asset : prim);
+                            result.Add(asset.Length > 0 ? (prim.Length > 0 ? asset + "\u0001" + prim : asset) : prim);
                         }
 
                         if (customCount != 0)

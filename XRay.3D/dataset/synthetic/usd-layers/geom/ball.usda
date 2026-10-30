@@ -1,0 +1,14 @@
+#usda 1.0
+(
+    defaultPrim = "Ball"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Cube "Ball"
+{
+    double size = 1.5
+    double3 xformOp:translate = (0, 4, 0)
+    uniform token[] xformOpOrder = ["xformOp:translate"]
+}
+

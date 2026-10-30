@@ -1,0 +1,87 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    subLayers = [
+        @./sub.usda@
+    ]
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    def "RefBox" (
+        prepend references = @./geom/box.usda@
+    )
+    {
+        custom double3 xformOp:translate = (10, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    def "PayloadBall" (
+        prepend payload = @./geom/ball.usda@
+    )
+    {
+    }
+
+    def Xform "Variants" (
+        prepend references = @./geom/variants.usda@
+        variants = {
+            string shape = "tall"
+        }
+    )
+    {
+        double3 xformOp:translate = (0, 0, 8)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    def Mesh "Anim"
+    {
+        int[] faceVertexCounts = [3]
+        int[] faceVertexIndices = [0, 1, 2]
+        point3f[] points.timeSamples = {
+            5: [(0, 0, 0), (1, 0, 0), (0, 1, 0)],
+            10: [(0, 0, 0), (4, 0, 0), (0, 4, 0)],
+        }
+        double3 xformOp:translate = (0, 0, -6)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    def Mesh "Quad" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+    )
+    {
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 2, 3]
+        rel material:binding = </World/Looks/Checker>
+        point3f[] points = [(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)]
+        texCoord2f[] primvars:st = [(0, 0), (1, 0), (1, 1), (0, 1)] (
+            interpolation = "faceVarying"
+        )
+        double3 xformOp:translate = (0, -5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    def "Looks"
+    {
+        def Material "Checker"
+        {
+            token outputs:surface.connect = </World/Looks/Checker/PBR.outputs:surface>
+
+            def Shader "PBR"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor.connect = </World/Looks/Checker/Tex.outputs:rgb>
+                token outputs:surface
+            }
+
+            def Shader "Tex"
+            {
+                uniform token info:id = "UsdUVTexture"
+                asset inputs:file = @./textures/checker.png@
+                float3 outputs:rgb
+            }
+        }
+    }
+}
+
