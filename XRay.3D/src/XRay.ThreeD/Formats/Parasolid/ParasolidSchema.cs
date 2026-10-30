@@ -38,7 +38,7 @@ internal sealed class XtNodeDef
 
     public XtField? Variable => Fields.Length > 0 && Fields[^1].Count == 0 ? Fields[^1] : null;
 
-    /// <summary>Whether the node is visible at the modeller's interface, which is when a transmit file with user fields appends them.</summary>
+    /// <summary>Whether the node carries the user fields the file declares (real files append them to every node type, the data arrays and attribute names included).</summary>
     public bool Visible { get; init; }
 
     private Dictionary<string, XtField>? _byName;
@@ -126,8 +126,6 @@ internal static class XtSchema
 184 HELIX_SU_FORM axis_pt:v axis_dir:v hand:c turns:i pitch:f gap:f tol:f
 """;
 
-    private static readonly int[] VisibleTypes = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 29, 30, 31, 32, 38, 50, 51, 52, 53, 54, 56, 60, 67, 68, 70, 80, 81, 90, 100, 120, 124, 130, 133, 134, 137];
-
     private static readonly Dictionary<int, XtNodeDef> Current = Build(legacy: false);
 
     private static readonly Dictionary<int, XtNodeDef> Legacy = Build(legacy: true);
@@ -163,7 +161,7 @@ internal static class XtSchema
             list[i] = new XtField { Name = f.Name, Type = f.Type, Count = f.Count, Slot = slot, Transmitted = f.Transmitted };
         }
 
-        return new XtNodeDef { Type = type, Name = name, Fields = list, IntCount = ints, DoubleCount = doubles, Visible = visible ?? Array.IndexOf(VisibleTypes, type) >= 0 };
+        return new XtNodeDef { Type = type, Name = name, Fields = list, IntCount = ints, DoubleCount = doubles, Visible = visible ?? true };
     }
 
     /// <summary>Parses "name:t", "name:t*" (variable length), "name:t[n]" (fixed array) and "name:t[*]" (a run of logicals) into a field.</summary>

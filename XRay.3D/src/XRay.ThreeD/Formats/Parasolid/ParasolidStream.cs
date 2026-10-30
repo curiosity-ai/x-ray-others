@@ -211,7 +211,7 @@ internal abstract class XtStream
             }
 
             ValidateVariable(fields);
-            return XtSchema.Create(type, name, fields, visible: false);
+            return XtSchema.Create(type, name, fields);
         }
 
         var next = 0;

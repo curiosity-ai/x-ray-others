@@ -25,6 +25,7 @@ internal sealed class XtBuilder
     private readonly Dictionary<int, MeshData?> _bodyMeshes = new();
     private readonly Dictionary<string, int> _skipped = new(StringComparer.Ordinal);
     private long _faceTick;
+    private int _surfaceDepth;
 
     public XtBuilder(Dictionary<int, XtNode> nodes, LoadOptions options, Model3D model)
     {
@@ -376,7 +377,9 @@ internal sealed class XtBuilder
 
         // The face's normal is the surface's (a '+' face) or its opposite. It points out of the region of the shell behind the face; a face that
         // borders a solid only on its front is drawn the other way round, so that solids face outwards.
-        var faceNormalIsClass = (face.Char("sense") == '+') == normalIsClass;
+        // The surface has a sense of its own ('-' reverses its normal), and the face another one relative to the surface.
+        var surfaceSense = surfaceNode is null || !surfaceNode.Has("sense") || surfaceNode.Char("sense") != '-';
+        var faceNormalIsClass = ((face.Char("sense") == '+') == surfaceSense) == normalIsClass;
         var sameSense = SolidOnlyInFront(face) ? !faceNormalIsClass : faceNormalIsClass;
 
         if (loops.Count == 0)
@@ -544,50 +547,16 @@ internal sealed class XtBuilder
         }
 
         var sense = !curve.Has("sense") || curve.Char("sense") != '-';
-        switch (curve.Def.Type)
+        if (curve.Def.Type == 38)
         {
-            case 31:
+            if (Get(curve.Ptr("chart"), 40) is { Variable: double[] { Length: >= 6 } chart })
             {
-                var (cx, cy, cz) = curve.Vec("centre");
-                var (nx, ny, nz) = curve.Vec("normal");
-                var (xx, xy, xz) = curve.Vec("x_axis");
-                var radius = curve.Dbl("radius");
-                var c = new EllipseCurve { F = Frame.From(new V3(cx, cy, cz), new V3(nx, ny, nz), new V3(xx, xy, xz)), A = radius, B = radius };
-                return Sweep(c, start, end, sense);
+                return ChartPoints(chart, start, end);
             }
-
-            case 32:
-            {
-                var (cx, cy, cz) = curve.Vec("centre");
-                var (nx, ny, nz) = curve.Vec("normal");
-                var (xx, xy, xz) = curve.Vec("x_axis");
-                var c = new EllipseCurve { F = Frame.From(new V3(cx, cy, cz), new V3(nx, ny, nz), new V3(xx, xy, xz)), A = curve.Dbl("major_radius"), B = curve.Dbl("minor_radius") };
-                return Sweep(c, start, end, sense);
-            }
-
-            case 134:
-                if (MakeSplineCurve(curve) is { } spline)
-                {
-                    return Sweep(spline, start, end, sense);
-                }
-
-                break;
-            case 137:
-                // A curve in the parameter space of a surface; nothing is known of the edge but its end points where the surface is not understood.
-                if (Get(curve.Ptr("surface")) is { } host && MakeSurface(host, out _) is { } hostSurface && host.Def.Type != 52
-                    && Get(curve.Ptr("b_curve"), 134) is { } uvNode && MakeSplineCurve(uvNode, 2) is { } uv)
-                {
-                    return Sweep(new SurfaceParamCurve { Surface = hostSurface, Uv = uv }, start, end, sense);
-                }
-
-                break;
-            case 38:
-                if (Get(curve.Ptr("chart"), 40) is { Variable: double[] { Length: >= 6 } chart })
-                {
-                    return ChartPoints(chart, start, end);
-                }
-
-                break;
+        }
+        else if (curve.Def.Type != 30 && MakeCurve(curve, 0) is { } made)
+        {
+            return Sweep(made, start, end, sense);
         }
 
         return [start, end];
@@ -689,7 +658,8 @@ internal sealed class XtBuilder
                 return new CylinderSurface { F = Frame.From(Vec(s, "pvec"), Vec(s, "axis"), Vec(s, "x_axis")), R = s.Dbl("radius") };
             case 52:
             {
-                // R(u, v) = P - vA + (X cos u + Y sin u)(r + v tan a), Y = A x X: the same point set as a cone along -A with the frame turned the other way.
+                // R(u, v) = P + vA + (X cos u + Y sin u)(r + v tan a), Y = A x X: the radius grows along the axis for a positive half angle, and the node's normal
+                // is the one pointing away from the axis (checked on real solids against their closed form volumes).
                 var radius = s.Dbl("radius");
                 var sin = s.Dbl("sin_half_angle");
                 var cos = s.Dbl("cos_half_angle");
@@ -698,8 +668,8 @@ internal sealed class XtBuilder
                     return null;
                 }
 
-                normalIsClass = false;
-                var frame = Frame.From(Vec(s, "pvec"), -Vec(s, "axis"), Vec(s, "x_axis"));
+                normalIsClass = true;
+                var frame = Frame.From(Vec(s, "pvec"), Vec(s, "axis"), Vec(s, "x_axis"));
                 return Math.Abs(sin) < 1e-12 ? new CylinderSurface { F = frame, R = radius } : new ConeSurface { F = frame, R = radius, Angle = Math.Atan2(sin, Math.Abs(cos)) };
             }
 
@@ -707,6 +677,46 @@ internal sealed class XtBuilder
                 return new SphereSurface { F = Frame.From(Vec(s, "centre"), Vec(s, "axis"), Vec(s, "x_axis")), R = s.Dbl("radius") };
             case 54:
                 return new TorusSurface { F = Frame.From(Vec(s, "centre"), Vec(s, "axis"), Vec(s, "x_axis")), Major = s.Dbl("major_radius"), Minor = s.Dbl("minor_radius") };
+            case 60:
+            {
+                // The base surface moved along its normal by the offset (the node's own normal, so the sign of a base cone or reversed base is honoured).
+                if (++_surfaceDepth > 8)
+                {
+                    _surfaceDepth--;
+                    return null;
+                }
+
+                var baseNode = Get(s.Ptr("surface"));
+                var baseIsClass = true;
+                var baseSurface = baseNode is null ? null : MakeSurface(baseNode, out baseIsClass);
+                _surfaceDepth--;
+                var offset = s.Dbl("offset");
+                if (baseNode is null || baseSurface is null || !double.IsFinite(offset))
+                {
+                    return null;
+                }
+
+                var baseSensePlus = !baseNode.Has("sense") || baseNode.Char("sense") != '-';
+                normalIsClass = baseIsClass == baseSensePlus;
+                return new OffsetSurfaceOf { Base = baseSurface, Distance = normalIsClass ? offset : -offset };
+            }
+
+            case 67:
+            {
+                var direction = Vec(s, "sweep");
+                return Get(s.Ptr("section")) is { } section && direction.Length > 1e-300 && MakeCurve(section, 0) is { } profile
+                    ? new ExtrusionSurface { Profile = profile, Direction = direction.Normalized() }
+                    : null;
+            }
+
+            case 68:
+            {
+                var axis = Vec(s, "axis");
+                return Get(s.Ptr("profile")) is { } profileNode && axis.Length > 1e-300 && MakeCurve(profileNode, 0) is { } spun
+                    ? new RevolutionSurface { Profile = spun, AxisOrigin = Vec(s, "base"), AxisDirection = axis.Normalized() }
+                    : null;
+            }
+
             case 124:
                 return Get(s.Ptr("nurbs"), 126) is { } nurbs ? MakeSplineSurface(nurbs) : null;
             default:
@@ -733,6 +743,48 @@ internal sealed class XtBuilder
         }
 
         return BSpline.Expand(k, m.Select(x => (int)Math.Clamp(x, 0, 1 << 20)).ToList());
+    }
+
+    /// <summary>The curve of a LINE, CIRCLE, ELLIPSE, B_CURVE, SP_CURVE or TRIMMED_CURVE node (the basis curve of a trimmed one); null for the others.</summary>
+    private Curve? MakeCurve(XtNode curve, int depth)
+    {
+        if (depth > 8)
+        {
+            return null;
+        }
+
+        switch (curve.Def.Type)
+        {
+            case 30:
+            {
+                var d = Vec(curve, "direction");
+                return d.Length > 1e-300 ? new LineCurve { P = Vec(curve, "pvec"), D = d.Normalized() } : null;
+            }
+
+            case 31:
+            {
+                var radius = curve.Dbl("radius");
+                return new EllipseCurve { F = Frame.From(Vec(curve, "centre"), Vec(curve, "normal"), Vec(curve, "x_axis")), A = radius, B = radius };
+            }
+
+            case 32:
+                return new EllipseCurve { F = Frame.From(Vec(curve, "centre"), Vec(curve, "normal"), Vec(curve, "x_axis")), A = curve.Dbl("major_radius"), B = curve.Dbl("minor_radius") };
+            case 134:
+                return MakeSplineCurve(curve);
+            case 137:
+                // A curve in the parameter space of a surface; nothing is known of the edge but its end points where the surface is not understood.
+                if (Get(curve.Ptr("surface")) is { } host && host.Def.Type != 52 && MakeSurface(host, out _) is { } hostSurface
+                    && Get(curve.Ptr("b_curve"), 134) is { } uvNode && MakeSplineCurve(uvNode, 2) is { } uv)
+                {
+                    return new SurfaceParamCurve { Surface = hostSurface, Uv = uv };
+                }
+
+                return null;
+            case 133:
+                return Get(curve.Ptr("basis_curve")) is { } basis ? MakeCurve(basis, depth + 1) : null;
+            default:
+                return null;
+        }
     }
 
     /// <summary>The B-spline of a B_CURVE node.</summary>

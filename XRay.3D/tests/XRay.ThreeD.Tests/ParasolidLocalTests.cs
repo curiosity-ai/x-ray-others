@@ -13,6 +13,11 @@ public class ParasolidLocalTests
     {
         var root = Environment.GetEnvironmentVariable("XRAY_3D_LOCAL_SAMPLES") ?? "/tmp/claude-0/samples";
         var path = Path.Combine(root, "parasolid", name);
+        if (!File.Exists(path))
+        {
+            path = Path.Combine(root, "parasolid", "dl", name);
+        }
+
         return File.Exists(path) ? File.ReadAllBytes(path) : null;
     }
 
@@ -126,5 +131,23 @@ public class ParasolidLocalTests
         Assert.Equal(a.Metadata.Bounds!.Value.Min, b.Metadata.Bounds!.Value.Min);
         Assert.Equal(a.Metadata.Bounds!.Value.Max, b.Metadata.Bounds!.Value.Max);
         Assert.Equal(a.Metadata.GetProperty("Faces"), b.Metadata.GetProperty("Faces"));
+    }
+
+    [Theory]
+    [InlineData("cylinder.x_t", 3, 5.531e-6, 0.02)]       // a cylinder of radius 10 mm and height 17.607 mm: pi r^2 h (schema 35102 on 13006)
+    [InlineData("Hywind.x_t", 5, 8429.0, 0.005)]          // two cylinders (r 4.7 over 108 and r 3.25 over 10) and the cone between them (r 4.7 to 3.25 over 12), schema 25001 on 13006
+    [InlineData("switch.x_t", 5, 4.93e-6, 0.03)]          // a cylinder (r 9 mm, 17 mm) and a conical collar (r 8.6 to 11 mm over 2 mm), schema 28101 on 13006
+    [InlineData("sphere.x_t", 2, 4.69e-10, 0.08)]         // a sphere of radius 0.5 mm cut by the plane z = -0.3 mm (26105 on 13006, one user field word per node)
+    public void Real_solids_with_cones_spheres_and_cylinders_have_their_closed_form_volume(string name, int faces, double volume, double tolerance)
+    {
+        if (Sample(name) is not { } bytes)
+        {
+            return;
+        }
+
+        var model = ModelLoader.Load(bytes, name);
+        Assert.Equal(faces, int.Parse(model.Metadata.GetProperty("Faces")!, System.Globalization.CultureInfo.InvariantCulture));
+        Assert.Empty(model.Warnings);
+        Assert.InRange(model.Metadata.Statistics!.Volume, volume * (1 - tolerance), volume * (1 + tolerance));
     }
 }

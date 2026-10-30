@@ -176,13 +176,13 @@ internal static class XtLayouts
                 if (Generations[generation - 1].From >= 26105)
                 {
                     // The block of a file of several parts: its fixed fields are not named by the sources, the parts are the variable list at its end.
-                    types[176] = XtSchema.Create(176, "PART_BLOCK", [XtSchema.ParseField("count:d"), XtSchema.ParseField("a:d"), XtSchema.ParseField("b:d"), XtSchema.ParseField("c:d"), XtSchema.ParseField("d:d"), XtSchema.ParseField("parts:p*")], visible: false);
+                    types[176] = XtSchema.Create(176, "PART_BLOCK", [XtSchema.ParseField("count:d"), XtSchema.ParseField("a:d"), XtSchema.ParseField("b:d"), XtSchema.ParseField("c:d"), XtSchema.ParseField("d:d"), XtSchema.ParseField("parts:p*")]);
                 }
 
                 if (Generations[generation - 1].From >= 30000)
                 {
                     // Intersection data (surface parameters of an intersection curve), declared in full by the files of these revisions.
-                    types[204] = XtSchema.Create(204, "INTERSECTION_DATA", [XtSchema.ParseField("uv_kind:u"), XtSchema.ParseField("values:f*")], visible: false);
+                    types[204] = XtSchema.Create(204, "INTERSECTION_DATA", [XtSchema.ParseField("uv_kind:u"), XtSchema.ParseField("values:f*")]);
                 }
             }
 
