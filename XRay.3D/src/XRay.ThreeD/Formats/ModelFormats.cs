@@ -66,6 +66,10 @@ public static class ModelFormats
 
     public static FormatInfo OpenScad { get; } = new("openscad", "OpenSCAD", "cad", [".scad"], FormatSupport.Full);
 
+    public static FormatInfo Psu { get; } = new("psu", "PlayStation 2 save", "scene", [".psu"], FormatSupport.Full);
+
+    public static FormatInfo Rlf { get; } = new("rlf", "Relief height map", "mesh", [".rlf"], FormatSupport.Metadata);
+
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
 
     /// <summary>Formats that are recognised but not yet read. See TODO.md for the order they are planned in.</summary>
@@ -94,7 +98,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Psu, Rlf];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -173,6 +177,16 @@ public static class ModelFormats
         if (Formats.Mesh.B3dReader.IsBlitz(head) || Formats.Mesh.B3dReader.IsBazis(head))
         {
             return B3d;
+        }
+
+        if (Formats.Saves.PsuReader.Sniff(head))
+        {
+            return Psu;
+        }
+
+        if (Formats.Relief.RlfReader.Sniff(head))
+        {
+            return Rlf;
         }
 
         if (StartsWith(head, "3D Geometry File Format"))
