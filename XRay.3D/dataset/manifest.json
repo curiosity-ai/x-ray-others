@@ -2050,5 +2050,14 @@
   "source": "tools/fixtures/make_iges_splines.py",
   "bytes": 648,
   "sha256": "d94e48396920aa5c97bc4cf5bea40d962929e59d3d116bcb095ed571442c07d4"
+ },
+ {
+  "file": "synthetic/gdl-solids.gsm",
+  "format": "gsm",
+  "title": "Synthetic Archicad library part with GDL scripts",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_gsm.py",
+  "bytes": 1884,
+  "sha256": "d45ca9f13950953aa05ce05233be6bdf4c2e5fd949137b760adcb9bbaa2deacc"
  }
 ]
