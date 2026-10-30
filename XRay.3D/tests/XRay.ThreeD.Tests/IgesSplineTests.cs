@@ -23,7 +23,7 @@ public class IgesSplineTests
         var expectedArea = expected.GetProperty("area").GetDouble();
         Assert.True(Math.Abs(area / expectedArea - 1) < areaTolerance, $"{file}: area {area:F3} vs {expectedArea:F3}");
         AssertBounds(model, expected, 0.02f);
-        Assert.Empty(model.Warnings.Where(w => w.Contains("not drawn", StringComparison.Ordinal) || w.Contains("skipped", StringComparison.Ordinal)));
+        Assert.DoesNotContain(model.Warnings, w => w.Contains("not drawn", StringComparison.Ordinal) || w.Contains("skipped", StringComparison.Ordinal));
     }
 
     [Fact]

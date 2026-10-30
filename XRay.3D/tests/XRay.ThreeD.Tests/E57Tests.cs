@@ -69,7 +69,7 @@ public class E57Tests
         var meta = ModelLoader.ReadMetadata(File.ReadAllBytes(DatasetPaths.File("synthetic/e57-two-scans.e57")), "x.e57");
         Assert.Equal("2400", meta.Properties.First(p => p is { Name: "points", Group: "cloud" }).Value);
         Assert.Equal("2", meta.GetProperty("scans"));
-        Assert.Empty(meta.Notes.Where(n => n.Contains("CRC", StringComparison.Ordinal)));
+        Assert.DoesNotContain(meta.Notes, n => n.Contains("CRC", StringComparison.Ordinal));
     }
 
     [Fact]

@@ -90,6 +90,8 @@ public static class ModelFormats
 
     public static FormatInfo Fusion { get; } = new("fusion", "Fusion 360", "cad", [".f3d", ".f3z"], FormatSupport.Metadata);
 
+    public static FormatInfo ThreeDxml { get; } = new("3dxml", "3DXML", "cad", [".3dxml"], FormatSupport.Full);
+
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
 
     /// <summary>Formats that are recognised but not yet read. See TODO.md for the order they are planned in.</summary>
@@ -108,7 +110,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Psu, Rlf, Unreal, E57, Blender, Archicad, SketchUp, Fusion, Acis, Dwf, Parasolid];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Psu, Rlf, Unreal, E57, Blender, Archicad, SketchUp, Fusion, Acis, Dwf, Parasolid, ThreeDxml];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -239,6 +241,11 @@ public static class ModelFormats
             return SketchUp;
         }
 
+        if (Formats.Dassault.ThreeDxmlReader.SniffXml(head))
+        {
+            return ThreeDxml;
+        }
+
         // Identified by their first bytes only (no reader): JT ("Version 9.5 JT" in an 80-byte header), the CATIA V5 container and the Creo / Pro/ENGINEER UGC header.
         if (head.Length >= 20 && StartsWith(head, "Version ") && Encoding.ASCII.GetString(head[..Math.Min(head.Length, 24)]).Contains(" JT", StringComparison.Ordinal))
         {
@@ -367,6 +374,11 @@ public static class ModelFormats
         {
             using var zip = new System.IO.Compression.ZipArchive(new MemoryStream(data.ToArray(), writable: false), System.IO.Compression.ZipArchiveMode.Read);
             var names = zip.Entries.Select(e => e.FullName).ToList();
+            if (Formats.Dassault.ThreeDxmlReader.IsPackage(names))
+            {
+                return ThreeDxml;
+            }
+
             if (names.Any(n => n.EndsWith(".model", StringComparison.OrdinalIgnoreCase) && n.StartsWith("3D/", StringComparison.OrdinalIgnoreCase)))
             {
                 return ThreeMf;

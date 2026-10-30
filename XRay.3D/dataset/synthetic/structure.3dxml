@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Model_3dxml xmlns="http://www.3ds.com/xsd/3DXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<Header>
+		<SchemaVersion>4.3</SchemaVersion>
+		<Title>Rig</Title>
+		<Author>fixture</Author>
+		<Generator>make_3dxml.py</Generator>
+		<Created>2026-01-01</Created>
+	</Header>
+	<ProductStructure root="1">
+		<Reference3D xsi:type="Reference3DType" id="1" name="Rig"><PLM_ExternalID>RIG-001</PLM_ExternalID><V_description>Test rig</V_description></Reference3D>
+		<Reference3D xsi:type="Reference3DType" id="2" name="Bracket"><PLM_ExternalID>BRK-001</PLM_ExternalID></Reference3D>
+		<Reference3D xsi:type="Reference3DType" id="3" name="Arm"/>
+		<ReferenceRep xsi:type="ReferenceRepType" id="4" name="Bracket_Rep" format="TESSELLATED" version="1.2" associatedFile="urn:3DXML:Bracket.3DRep"><V_usage>3DShape</V_usage></ReferenceRep>
+		<InstanceRep xsi:type="InstanceRepType" id="5" name="Bracket_InstanceRep"><IsAggregatedBy>2</IsAggregatedBy><IsInstanceOf>4</IsInstanceOf></InstanceRep>
+		<Instance3D xsi:type="Instance3DType" id="6" name="Bracket.1"><IsAggregatedBy>1</IsAggregatedBy><IsInstanceOf>2</IsInstanceOf><RelativeMatrix>1 0 0 0 1 0 0 0 1 10 0 0</RelativeMatrix></Instance3D>
+		<Instance3D xsi:type="Instance3DType" id="7" name="Bracket.2"><IsAggregatedBy>1</IsAggregatedBy><IsInstanceOf>2</IsInstanceOf><RelativeMatrix>0 1 0 -1 0 0 0 0 1 0 20 0</RelativeMatrix></Instance3D>
+		<Instance3D xsi:type="Instance3DType" id="8" name="Arm.1"><IsAggregatedBy>1</IsAggregatedBy><IsInstanceOf>3</IsInstanceOf><RelativeMatrix>1 0 0 0 1 0 0 0 1 0 0 30</RelativeMatrix></Instance3D>
+		<Instance3D xsi:type="Instance3DType" id="9" name="Bracket.3"><IsAggregatedBy>3</IsAggregatedBy><IsInstanceOf>2</IsInstanceOf><RelativeMatrix>1 0 0 0 1 0 0 0 1 5 5 5</RelativeMatrix></Instance3D>
+	</ProductStructure>
+</Model_3dxml>

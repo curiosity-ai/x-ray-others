@@ -118,6 +118,8 @@ public class RobustnessTests
         "uasset/DoorCloser.uasset",
         "synthetic/laz14c-f7.laz",
         "synthetic/laz-pointwise-f3.laz",
+        "synthetic/assembly.3dxml",
+        "synthetic/structure.3dxml",
     ];
 
     public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });

@@ -371,6 +371,7 @@ public static class ModelLoader
         "blender" => Formats.Blender.BlendReader.Read(data, options),
         "archicad" => Formats.Archicad.GsmReader.Read(data, options),
         "sketchup" => Formats.SketchUp.SketchUpReader.Read(data, options),
+        "3dxml" => Formats.Dassault.ThreeDxmlReader.Read(data, options),
         "fusion" => Formats.Fusion.FusionReader.Read(data, options),
         "x3d" => X3dReader.ReadXml(data, options),
         "x3dv" => X3dReader.ReadClassic(data, options),

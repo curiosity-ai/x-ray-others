@@ -37,7 +37,7 @@ public class MeshEdgesTests
     {
         var mesh = Strip(1_000_000);
         var watch = Stopwatch.StartNew();
-        var edges = MeshEdges.Extract(mesh);
+        var edges = MeshEdges.Extract(mesh, cancellation: TestContext.Current.CancellationToken);
         watch.Stop();
         Assert.NotEmpty(edges);
         Assert.Equal(0, edges.Length % 2);

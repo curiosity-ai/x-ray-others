@@ -2320,5 +2320,23 @@
   "source": "tools/fixtures/make_f3z.py",
   "bytes": 2356,
   "sha256": "2f463394449485c97df3915c9466e5a706f04c0aac52c7ade239725b9a0867f6"
+ },
+ {
+  "file": "synthetic/assembly.3dxml",
+  "format": "3dxml",
+  "title": "Synthetic 3DXML assembly (ZIP package with a part representation)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_3dxml.py",
+  "bytes": 1544,
+  "sha256": "ec878badd23ec9ae43ee0e776a47c577dada54811526b5f37fed919790bd5a16"
+ },
+ {
+  "file": "synthetic/structure.3dxml",
+  "format": "3dxml",
+  "title": "Synthetic 3DXML assembly (product structure alone)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_3dxml.py",
+  "bytes": 1900,
+  "sha256": "8b2b334185dca219128fcf661d038d9bbf9e4c7579a7c9a5d51adef9dede5416"
  }
 ]
