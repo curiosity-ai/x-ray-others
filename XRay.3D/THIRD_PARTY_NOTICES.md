@@ -56,3 +56,23 @@ context handling follow that source; the range decoder, the symbol and bit model
 `LazDecoder.cs`, written from the public LASzip description). The Apache License 2.0 text is at
 <https://www.apache.org/licenses/LICENSE-2.0>; the port is checked byte for byte against the C++ LASzip (through laspy's `laszip` back end) and
 against lazrs on the fixtures written by `tools/fixtures/make_las14_fixtures.py`.
+
+## Fusion design files (public clean-room description)
+
+`src/XRay.ThreeD/Formats/Fusion/FusionReader.cs` reads the container layer of Fusion 360 `.f3d` and `.f3z` files from the public format description of
+the [cadmpeg](https://github.com/cadmpeg/cadmpeg) project (`docs/formats/f3d.md`, sections 1.1 to 1.5; released under CC-BY-4.0, attributed to the cadmpeg
+project; its code is Apache License 2.0 and none of it was copied or ported). Only the ZIP layout, the `Manifest.dat` grammar, `Properties.dat`, the
+configuration tables and the `.f3z` archive description were used; the B-rep, design-record and display-buffer parts of that description are not
+implemented. The real fixture `dataset/fusion/1WireRGBWController.f3d` comes from cadmpeg's corpus, donated under CC0-1.0 by its author.
+
+## Zstandard decoder
+
+`src/XRay.ThreeD/Internal/ZstdDecoder.cs` was written from RFC 8878 (Zstandard Compression and the application/zstd Media Type) and is checked against
+files written by the python `zstandard` package (used only by `tools/fixtures/make_zstd.py`); no Zstandard source code was copied or ported.
+
+## Blender, SketchUp, Archicad, Revit and Inventor files
+
+The Blender reader works from the SDNA structure catalogue that every `.blend` file carries and is checked against Blender's own Python module (`bpy`,
+GPL-3.0, used only by `tools/oracle/make_blend_golden.py` and `tools/fixtures/make_blend.py`; no Blender code is included). The SketchUp,
+Archicad (GDL) and Revit/Inventor readers were written from observation of public sample files and from public descriptions of their containers; the
+community `openskp` readers of SketchUp geometry (MIT and LGPL) were consulted for what exists and were not ported.

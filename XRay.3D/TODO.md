@@ -97,3 +97,13 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 ## SketchUp
 
 - [x] SketchUp `.skp` (3 to 26): the header (UTF-16 name and version string), the release year, the container kind, the thumbnail PNG (from `meta/model_thumbnail.png` of the 2021+ ZIP package, which sits behind the prefix and whose offsets count from the package start, or the first PNG in the serialised stream of 2013 to 2020 files), and for 2021+ the materials (name, colour, opacity, texture), tags, styles and the model data size. Checked on 55 real public files (SketchUp 3, 8, 14 to 26; local samples, goldens from Python zipfile) and committed synthetic files in both layouts. **Geometry is not decoded**: `model.dat` (2021+) and the 2013 to 2020 object stream are proprietary; the community `openskp` readers (MIT npm package, LGPL Python port) decode them (an MFC `CArchive` class stream for 2013 to 2020, a record stream in `model.dat` for 2021+), but they are large and were not ported here: that would need their licence notices and a verified port, and no public format specification was found
+
+## Fusion
+
+- [x] Fusion 360 `.f3d` and `.f3z` (container only): ZIP with Zstandard entries (`Internal/ZipPackage`, method 93 through `ZstdDecoder`), `Manifest.dat` (document type, display name, description, GUIDs, asset folders, lineage), the per-asset manifest (type, revision, capabilities), `Properties.dat` (part or assembly), configuration tables, the B-rep stream inventory, previews when present, and the `.f3z` archive (root member, design description, member names). Checked on a real CC0 file (values read with an independent decoder) and synthetic packages in the same grammar. **Geometry is not decoded**: the B-rep is ASM binary streams (`.smb`, `.smbh`) that need a B-rep kernel layer, and the display buffers (`OGS.BlobFolder`) are only sketched in the public description; the design records (`BulkStream.dat`: features, components, appearances) are a large proprietary record format
+
+## Not read: JT, Creo, NX, CATIA, Solid Edge (this pass)
+
+No redistributable or publicly fetchable real sample of a JT, Creo (`.prt`/`.asm`), NX (`.prt`), CATIA (`.CATPart`) or Solid Edge (`.par`/`.asm`) file was found, and no public
+format specification other than ISO 14306 (JT, which is not freely available) and the cadmpeg descriptions of Creo, NX and CATIA containers, which were not implemented for lack of
+samples to check a reader against. The formats stay **identified by extension only**; nothing about their layouts is guessed here.

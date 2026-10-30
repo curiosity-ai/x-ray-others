@@ -72,6 +72,7 @@ public static class ModelLoader
             "iges" => Formats.Cad.IgesReader.ReadMetadata(d, o),
             "dwg" => Formats.Cad.DwgReader.ReadMetadata(d, o),
             "sketchup" => Formats.SketchUp.SketchUpReader.ReadMetadata(d, o),
+            "fusion" => Formats.Fusion.FusionReader.ReadMetadata(d, o),
             "parasolid" => Formats.Parasolid.ParasolidReader.ReadMetadata(d, o.Cancellation),
             "rlf" => Formats.Relief.RlfReader.Read(d, o).Metadata,
             "e57" => Formats.PointCloud.E57Reader.ReadMetadata(d, o),
@@ -91,6 +92,7 @@ public static class ModelLoader
         {
             "dwg" => Formats.Cad.DwgReader.ReadPreview(d, o),
             "sketchup" => Formats.SketchUp.SketchUpReader.ReadPreview(d, o),
+            "fusion" => Formats.Fusion.FusionReader.ReadPreview(d, o),
             "e57" => Formats.PointCloud.E57Reader.ReadPreview(d, o),
             "revit" or "inventor" => Formats.Cad.CompoundDocumentReader.ReadPreview(format, d, o),
             _ => format.Support == FormatSupport.Full ? Dispatch(format, d, o).Preview : null,
@@ -369,6 +371,7 @@ public static class ModelLoader
         "blender" => Formats.Blender.BlendReader.Read(data, options),
         "archicad" => Formats.Archicad.GsmReader.Read(data, options),
         "sketchup" => Formats.SketchUp.SketchUpReader.Read(data, options),
+        "fusion" => Formats.Fusion.FusionReader.Read(data, options),
         "x3d" => X3dReader.ReadXml(data, options),
         "x3dv" => X3dReader.ReadClassic(data, options),
         "vrml" => X3dReader.ReadVrml(data, options),

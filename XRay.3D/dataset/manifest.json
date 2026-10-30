@@ -2293,5 +2293,32 @@
   "source": "tools/fixtures/make_las14_fixtures.py",
   "bytes": 2042,
   "sha256": "56d426944a65f7f282f39cba747e6d4dca44189687235e615606e74ceffca723"
+ },
+ {
+  "file": "fusion/1WireRGBWController.f3d",
+  "format": "fusion",
+  "title": "1-Wire RGBW controller (Fusion 360 design, Zstandard entries)",
+  "license": "CC0-1.0",
+  "source": "cadmpeg corpus (github.com/cadmpeg/cadmpeg, corpus/), donated under CC0-1.0 by its author Alastair D'Silva, made with Autodesk Fusion 360",
+  "bytes": 1280360,
+  "sha256": "89d9366b8fdc313e73f3eccb3851f61b78b70c2af315536a5750f25b903ed4a2"
+ },
+ {
+  "file": "synthetic/part-docstruct.f3d",
+  "format": "fusion",
+  "title": "Synthetic Fusion packages",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_f3z.py",
+  "bytes": 1633,
+  "sha256": "78d9eb14d821d8c2f64d22a91149cc4292f566babbffa2c75752af2426cd01e3"
+ },
+ {
+  "file": "synthetic/design-description.f3z",
+  "format": "fusion",
+  "title": "Synthetic Fusion packages",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_f3z.py",
+  "bytes": 2356,
+  "sha256": "2f463394449485c97df3915c9466e5a706f04c0aac52c7ade239725b9a0867f6"
  }
 ]
