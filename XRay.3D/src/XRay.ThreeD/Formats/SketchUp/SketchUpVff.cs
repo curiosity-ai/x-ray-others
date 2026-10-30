@@ -239,6 +239,9 @@ internal static class SketchUpVff
         public double Nx, Ny, Nz = 1;
         public long Material = -1;
         public bool Hidden;
+
+        /// <summary>The 3x3 matrix of the front-side texture mapping (row-major), or null for the default planar projection.</summary>
+        public double[]? UvFront;
     }
 
     internal sealed class Instance
@@ -261,7 +264,8 @@ internal static class SketchUpVff
         public readonly List<Instance> Instances = new();
     }
 
-    internal sealed record SkpMaterial(string Name, Vector4 Color, bool Textured);
+    /// <summary>A material; a textured one carries the image bytes and the size in inches that one repeat of the image covers.</summary>
+    internal sealed record SkpMaterial(string Name, Vector4 Color, bool Textured, byte[]? TextureData = null, string? TextureName = null, double TexW = 0, double TexH = 0);
 
     public static Model3D Read(System.IO.Compression.ZipArchive zip, ModelMetadata meta, LoadOptions options)
     {
@@ -400,7 +404,24 @@ internal static class SketchUpVff
                 alpha = Math.Clamp(1 - t, 0f, 1f);
             }
 
-            var m = new SkpMaterial((string)material.Attribute("name")!, new Vector4(Channel("colorRed"), Channel("colorGreen"), Channel("colorBlue"), alpha), (string?)material.Attribute("hasTexture") == "1");
+            byte[]? textureData = null;
+            string? textureName = null;
+            double texW = 0, texH = 0;
+            if ((string?)material.Attribute("hasTexture") == "1" && material.Elements().FirstOrDefault(e => e.Name.LocalName == "texture") is { } texture)
+            {
+                textureName = (string?)texture.Attribute("textureFilename");
+                double.TryParse((string?)texture.Attribute("xScale"), NumberStyles.Float, CultureInfo.InvariantCulture, out texW);
+                double.TryParse((string?)texture.Attribute("yScale"), NumberStyles.Float, CultureInfo.InvariantCulture, out texH);
+                var folderPath = name[..(name.LastIndexOf('/') + 1)];
+                if (textureName is { Length: > 0 } && textureName.IndexOfAny(['/', '\\']) < 0 && ZipEntries.Find(zip, folderPath + textureName) is { } image && image.Length < (1 << 25))
+                {
+                    textureData = ZipEntries.Read(image, 1 << 25, token);
+                }
+            }
+
+            var textured = textureData is not null;
+            var color = textured ? new Vector4(1, 1, 1, alpha) : new Vector4(Channel("colorRed"), Channel("colorGreen"), Channel("colorBlue"), alpha);
+            var m = new SkpMaterial((string)material.Attribute("name")!, color, (string?)material.Attribute("hasTexture") == "1", textureData, textureName, texW, texH);
             result[m.Name] = m;
             var folder = name.Split('/');
             if (folder.Length >= 3)
@@ -631,6 +652,11 @@ internal static class SketchUpVff
                 face.Material = a.VarInt(d107);
             }
 
+            if (a.Direct(d007, 0xDC05) is >= 0 and var dc05)
+            {
+                face.UvFront = ReadUvFront(a.Payload(dc05));
+            }
+
             var d307 = a.Direct(d007, 0xD307);
             if (d307 >= 0 && a.Payload(d307).Length > 0)
             {
@@ -655,6 +681,60 @@ internal static class SketchUpVff
             (float)(m[1] * s), (float)(m[4] * s), (float)(m[7] * s), 0,
             (float)(m[2] * s), (float)(m[5] * s), (float)(m[8] * s), 0,
             (float)m[9], (float)m[10], (float)m[11], 1);
+    }
+
+    private static ReadOnlySpan<byte> FindFlat(ReadOnlySpan<byte> p, ushort tag)
+    {
+        var pos = 0;
+        while (pos + 6 <= p.Length)
+        {
+            var t = (ushort)((p[pos] << 8) | p[pos + 1]);
+            var size = BinaryPrimitives.ReadUInt32LittleEndian(p[(pos + 2)..]);
+            if (size > (uint)(p.Length - pos - 6))
+            {
+                break;
+            }
+
+            if (t == tag)
+            {
+                return p.Slice(pos + 6, (int)size);
+            }
+
+            pos += 6 + (int)size;
+        }
+
+        return default;
+    }
+
+    /// <summary>The front texture matrix of a face: nested records DD05, B136, B236, 1027, 1127, 1327 and 1527 (nine doubles).</summary>
+    private static double[]? ReadUvFront(ReadOnlySpan<byte> dc05)
+    {
+        var p = dc05;
+        foreach (var tag in new ushort[] { 0xDD05, 0xB136, 0xB236, 0x1027, 0x1127, 0x1327, 0x1527 })
+        {
+            p = FindFlat(p, tag);
+            if (p.IsEmpty)
+            {
+                return null;
+            }
+        }
+
+        if (p.Length != 72)
+        {
+            return null;
+        }
+
+        var m = new double[9];
+        for (var i = 0; i < 9; i++)
+        {
+            m[i] = BitConverter.ToDouble(p.Slice(i * 8, 8));
+            if (!double.IsFinite(m[i]))
+            {
+                return null;
+            }
+        }
+
+        return m;
     }
 
     private static void ReadInstance(Arena a, int n, Definition def)
@@ -788,6 +868,9 @@ internal static class SketchUpVff
             return node;
         }
 
+        private SkpMaterial? MaterialOf(long id) =>
+            id >= 0 && _materialNames.TryGetValue(id, out var name) && _materials.TryGetValue(name, out var m) ? m : null;
+
         private int MaterialIndex(long id)
         {
             if (id < 0 || !_materialNames.TryGetValue(id, out var name) || !_materials.TryGetValue(name, out var m))
@@ -798,7 +881,16 @@ internal static class SketchUpVff
             if (!_modelMaterials.TryGetValue(m.Name, out var index))
             {
                 index = _model.Materials.Count;
-                _model.Materials.Add(new ModelMaterial { Name = m.Name, BaseColor = m.Color, Roughness = 0.8f });
+                var material = new ModelMaterial { Name = m.Name, BaseColor = m.Color, Roughness = 0.8f };
+                if (m.TextureData is { Length: > 0 } data && TextureImages.Create(m.TextureName ?? m.Name, data, out _, _token) is { } texture)
+                {
+                    texture.WrapU = TextureWrap.Repeat;
+                    texture.WrapV = TextureWrap.Repeat;
+                    _model.Textures.Add(texture);
+                    material.BaseColorTexture = new ModelTextureRef(_model.Textures.Count - 1);
+                }
+
+                _model.Materials.Add(material);
                 _modelMaterials[m.Name] = index;
             }
 
@@ -821,6 +913,8 @@ internal static class SketchUpVff
             var faceOrder = new List<Face>(def.Faces.Count);
             var positions = new List<float>();
             var normals = new List<float>();
+            var uvs = new List<float>();
+            var anyUv = false;
             var indicesByMaterial = new SortedDictionary<int, List<uint>>();
             var faceRanges = new List<(int Material, int Start, int Count)>();
             var tickLocal = 0L;
@@ -844,7 +938,10 @@ internal static class SketchUpVff
                 }
 
                 var before = target.Count;
-                AddFace(def, face, positions, normals, target);
+                var painted = MaterialOf(face.Material) ?? (inherited >= 0 ? MaterialOf(inherited) : null);
+                var textured = painted is { TextureData: not null } ? painted : null;
+                anyUv |= textured is not null;
+                AddFace(def, face, positions, normals, uvs, textured, target);
                 if (target.Count > before)
                 {
                     faceRanges.Add((material, before, target.Count - before));
@@ -854,7 +951,7 @@ internal static class SketchUpVff
             MeshData? mesh = null;
             if (indicesByMaterial.Values.Any(l => l.Count > 0))
             {
-                mesh = new MeshData { Name = def.Name.Length > 0 ? def.Name : "Model", Positions = positions.ToArray(), Normals = normals.ToArray() };
+                mesh = new MeshData { Name = def.Name.Length > 0 ? def.Name : "Model", Positions = positions.ToArray(), Normals = normals.ToArray(), TexCoords = anyUv ? uvs.ToArray() : [] };
                 var all = new List<uint>();
                 var offsets = new Dictionary<int, int>();
                 foreach (var (material, list) in indicesByMaterial)
@@ -878,7 +975,72 @@ internal static class SketchUpVff
             return mesh;
         }
 
-        private void AddFace(Definition def, Face face, List<float> positions, List<float> normals, List<uint> indices)
+        /// <summary>
+        /// The texture coordinate of a point on a face: the point projected on the face's plane in a basis fixed by the stored normal, passed through
+        /// the inverse of the face's 3x3 mapping matrix when it has one, divided by the size in inches one repeat of the image covers; v is flipped
+        /// because the image origin of glTF is its top left corner.
+        /// </summary>
+        private static (float U, float V) TextureCoordinate(Vector3 p, Face face, Vector3 fallbackNormal, SkpMaterial material)
+        {
+            var n = new Vector3((float)face.Nx, (float)face.Ny, (float)face.Nz);
+            if (n.LengthSquared() < 1e-12f)
+            {
+                n = fallbackNormal;
+            }
+
+            n = Vector3.Normalize(n);
+            var cx = -n.Y;
+            var cy = n.X;
+            var len = MathF.Sqrt(cx * cx + cy * cy);
+            Vector3 xr, yr;
+            if (len < 1e-9f)
+            {
+                xr = Vector3.UnitX;
+                yr = new Vector3(0, n.Z >= 0 ? 1 : -1, 0);
+            }
+            else
+            {
+                xr = new Vector3(cx / len, cy / len, 0);
+                yr = Vector3.Cross(n, xr);
+            }
+
+            double px = Vector3.Dot(p, xr), py = Vector3.Dot(p, yr);
+            double u = px, v = py;
+            if (face.UvFront is { } m && Invert3(m) is { } inv)
+            {
+                u = px * inv[0] + py * inv[3] + inv[6];
+                v = px * inv[1] + py * inv[4] + inv[7];
+                var q = px * inv[2] + py * inv[5] + inv[8];
+                if (Math.Abs(q) < 1e-12)
+                {
+                    q = 1;
+                }
+
+                u /= q;
+                v /= q;
+            }
+
+            var tileW = material.TexW > 1e-9 ? material.TexW : 1;
+            var tileH = material.TexH > 1e-9 ? material.TexH : 1;
+            var tu = u / tileW;
+            var tv = 1 - v / tileH;
+            return (double.IsFinite(tu) ? (float)tu : 0f, double.IsFinite(tv) ? (float)tv : 0f);
+        }
+
+        private static double[]? Invert3(double[] m)
+        {
+            double a = m[0], b = m[1], c = m[2], d = m[3], e = m[4], f = m[5], g = m[6], h = m[7], i = m[8];
+            var det = a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
+            if (Math.Abs(det) < 1e-14)
+            {
+                return null;
+            }
+
+            var k = 1 / det;
+            return [(e * i - f * h) * k, (c * h - b * i) * k, (b * f - c * e) * k, (f * g - d * i) * k, (a * i - c * g) * k, (c * d - a * f) * k, (d * h - e * g) * k, (b * g - a * h) * k, (a * e - b * d) * k];
+        }
+
+        private void AddFace(Definition def, Face face, List<float> positions, List<float> normals, List<float> uvs, SkpMaterial? textured, List<uint> indices)
         {
             // Walk each loop's coedges: the start vertex of a coedge is the edge's first vertex when it runs forward, the second otherwise.
             var loopPoints = new List<Vector3[]>(face.Loops.Count);
@@ -973,6 +1135,17 @@ internal static class SketchUpVff
                     normals.Add(outward.X);
                     normals.Add(outward.Y);
                     normals.Add(outward.Z);
+                    if (textured is not null)
+                    {
+                        var (tu, tv) = TextureCoordinate(l[i], face, outward, textured);
+                        uvs.Add(tu);
+                        uvs.Add(tv);
+                    }
+                    else
+                    {
+                        uvs.Add(0);
+                        uvs.Add(0);
+                    }
                 }
 
                 rings.Add(ring);

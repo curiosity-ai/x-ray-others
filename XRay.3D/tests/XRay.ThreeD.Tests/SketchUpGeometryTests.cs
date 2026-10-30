@@ -159,4 +159,31 @@ public class SketchUpGeometryTests
             }
         }
     }
+
+    /// <summary>Textured materials and texture coordinates in both generations (local samples): the image is carried, every mesh with a textured group has one UV pair per vertex, all finite, spanning a few repeats at most.</summary>
+    [Theory]
+    [InlineData("allan__Workshop_table.skp")]
+    [InlineData("allan__Sofa.skp")]
+    [InlineData("corynth__coffee_tables.skp")]
+    public void TexturesAndUvsOfRealFiles(string file)
+    {
+        var root = Environment.GetEnvironmentVariable("XRAY_3D_LOCAL_SAMPLES") ?? "/tmp/claude-0/samples";
+        var path = Path.Combine(root, "sketchup", file);
+        Assert.SkipWhen(!File.Exists(path), "local sample not present: " + file);
+        var model = ModelLoader.Load(File.ReadAllBytes(path), file);
+        Assert.NotEmpty(model.Textures);
+        Assert.All(model.Textures, t => Assert.Equal("image/jpeg", t.MediaType));
+        var textured = model.Materials.Count(m => m.BaseColorTexture is not null);
+        Assert.True(textured > 0);
+        var checkedMeshes = 0;
+        foreach (var mesh in model.Meshes.Where(m => m.TexCoords.Length > 0))
+        {
+            Assert.Equal(mesh.VertexCount * 2, mesh.TexCoords.Length);
+            Assert.All(mesh.TexCoords, c => Assert.True(float.IsFinite(c) && Math.Abs(c) < 200, "uv " + c));
+            checkedMeshes++;
+        }
+
+        Assert.True(checkedMeshes > 0);
+        Assert.NotEmpty(ModelLoader.ConvertToGlb(File.ReadAllBytes(path), file));
+    }
 }

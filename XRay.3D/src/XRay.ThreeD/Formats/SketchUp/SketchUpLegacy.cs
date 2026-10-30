@@ -2023,7 +2023,14 @@ internal static class SketchUpLegacy
         foreach (var (slot, m) in walked.Materials)
         {
             var alpha = m.UseOpacity ? (float)Math.Clamp(m.Opacity, 0, 1) : 1f;
-            materials[m.Name] = new SkpMaterial(m.Name, new Vector4(m.Rgba[0] / 255f, m.Rgba[1] / 255f, m.Rgba[2] / 255f, alpha), m.Textured);
+            byte[]? image = null;
+            if (m.Textured)
+            {
+                image = m.TexData ?? (m.TexDib >= 0 && ar.Slots.TryGetValue(m.TexDib, out var dibSlot) && dibSlot.Value is DibObj dib ? dib.Data : null);
+            }
+
+            var color = image is { Length: > 0 } ? new Vector4(1, 1, 1, alpha) : new Vector4(m.Rgba[0] / 255f, m.Rgba[1] / 255f, m.Rgba[2] / 255f, alpha);
+            materials[m.Name] = new SkpMaterial(m.Name, color, m.Textured, image is { Length: > 0 } ? image : null, m.TexFile, m.TexW, m.TexH);
             materialNames[slot] = m.Name;
         }
 
@@ -2084,7 +2091,7 @@ internal static class SketchUpLegacy
                     break;
                 case FaceObj f:
                 {
-                    var face = new Face { Nx = f.Nx, Ny = f.Ny, Nz = f.Nz, Material = f.Db.Mat > 0 ? f.Db.Mat : -1, Hidden = f.Db.Hidden != 0 };
+                    var face = new Face { Nx = f.Nx, Ny = f.Ny, Nz = f.Nz, Material = f.Db.Mat > 0 ? f.Db.Mat : -1, Hidden = f.Db.Hidden != 0, UvFront = f.Ftc is { Front.Length: 9 } ftc ? ftc.Front : null };
                     foreach (var loop in f.Loops)
                     {
                         var list = new List<(long, bool)>(loop.Uses.Count);
