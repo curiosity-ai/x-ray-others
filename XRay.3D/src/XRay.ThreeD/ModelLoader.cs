@@ -65,6 +65,7 @@ public static class ModelLoader
             "ifc" => Formats.Bim.IfcReader.ReadMetadata(d, o),
             "iges" => Formats.Cad.IgesReader.ReadMetadata(d, o),
             "dwg" => Formats.Cad.DwgReader.ReadMetadata(d, o),
+            "revit" or "inventor" => Formats.Cad.CompoundDocumentReader.ReadMetadata(format, d, o),
             _ => ApplyHints(format, Dispatch(format, d, o), o).Metadata,
         });
     }
@@ -78,6 +79,7 @@ public static class ModelLoader
         return Guard(data, fileName, options, (format, d, o) => format.Id switch
         {
             "dwg" => Formats.Cad.DwgReader.ReadPreview(d, o),
+            "revit" or "inventor" => Formats.Cad.CompoundDocumentReader.ReadPreview(format, d, o),
             _ => format.Support == FormatSupport.Full ? Dispatch(format, d, o).Preview : null,
         });
     }
@@ -292,6 +294,7 @@ public static class ModelLoader
         "fbx" => FbxReader.Read(data, options),
         "usd" => UsdaReader.Read(data, options),
         "dwg" => Formats.Cad.DwgReader.Read(data, options),
+        "revit" or "inventor" => Formats.Cad.CompoundDocumentReader.Read(format, data, options),
         "step" => Formats.Step.StepReader.Read(data, options),
         "ifc" => Formats.Bim.IfcReader.Read(data, options),
         "archive" => Formats.Packages.ArchiveReader.Read(data, options),

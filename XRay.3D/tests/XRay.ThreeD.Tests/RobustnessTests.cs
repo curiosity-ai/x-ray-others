@@ -19,6 +19,8 @@ public class RobustnessTests
         "synthetic/entities.dxf",
         "dxf/flange-drawing.dxf",
         "synthetic/cloud-f3.las",
+        "synthetic/part.ipt",
+        "synthetic/model.rvt",
         "dwg/flange-drawing.dwg",
         "dwg/studio-floor-plan.dwg",
         "synthetic/laz-f0.laz",

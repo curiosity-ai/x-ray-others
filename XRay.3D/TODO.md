@@ -37,11 +37,11 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 - [ ] OpenSCAD (needs a CSG kernel; metadata only first)
 - [x] Sweet Home 3D (`Home.xml`, 5.3+): levels, walls, rooms, furniture with fitted OBJ models. Open: the Java-serialised `Home` of older files, curved walls, doors cut into walls, textures
 - [ ] Rhino 3DM: layers, materials, block instances, stored render meshes; warn rather than mesh B-reps
-- [ ] SketchUp, Revit, Inventor, JT, Parasolid, ACIS: metadata and thumbnails first, as the reference viewer shows geometry only
+- [~] Inventor and Revit: document properties and thumbnails from the OLE compound file (`Internal/CompoundFile`, reusable for pre-2015 SolidWorks: see the blocked item above, which still lacks a fixture). Fixtures are synthetic (olefile-validated); a real Revit/Inventor file would confirm the `BasicFileInfo` and thumbnail stream layouts. **Skipped / not available**: SketchUp (no documented container: `.skp` is a proprietary binary stream, not a zip or CFB, and there is no fixture), JT, Parasolid, ACIS, CATIA, NX (proprietary geometry, no documented metadata container checked); geometry of every one of these
 - [x] Point clouds: LAS, PCD, XYZ/PTS, LAZ point types 0 to 3 (chunked LASzip, v2 items: POINT10, GPSTIME11, RGB12, extra bytes), PLY gaussian splats. Open: LAZ point types 6 to 10 (the layered 1.4 coding: POINT14/RGB14/RGBNIR14/BYTE14 v3; not attempted, since the model and context layout cannot be verified without the public source at hand, only byte-identity against lazrs would prove it), unchunked LAZ, splat rotations and spherical-harmonic bands above DC
 - [x] Archives: ZIP packages (primary model by extension priority, companions, OBJ+MTL colours). Open: RAR/7z/tar, MTL textures, loading every model of a package as one scene
 - [x] G-code toolpath preview (lines by extrusion/travel or cut/rapid). Open: per-layer nodes, feature-type colours, tool numbers, canned cycles
-- [ ] Archicad (metadata and thumbnail only; the reference reader is itself partial)
+- [ ] Archicad (metadata and thumbnail only). Not attempted: the dataset's `.pln` files are planogram text and its `.gsm` files carry a `WW-` header with no documented layout, so there is nothing to verify a reader against
 
 ## Next: conversion quality
 
