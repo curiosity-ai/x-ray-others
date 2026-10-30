@@ -13,8 +13,7 @@ namespace XRay.ThreeD.Formats.Bim;
 /// child elements named after the attribute (the entity is the element itself, typed by <c>xsi:type</c>, or one level down under the name of its class for
 /// selects), references are <c>href</c> to an <c>id</c>, and inverse attributes nest the relating entity under the element they mirror
 /// (<c>IsDecomposedBy</c> holding an <c>IfcRelAggregates</c>), whose forward attribute is then implied. Attribute order, kinds, inverses, defined types
-/// and selects come from tables of the EXPRESS schema (IFC2X3, IFC4, IFC4X3), embedded as compressed resources made by
-/// <c>tools/fixtures/make_ifc_schema_tables.py</c>.
+/// and selects come from tables of the EXPRESS schema (IFC2X3, IFC4, IFC4X3), embedded as compressed resources.
 /// </summary>
 internal static class IfcXml
 {
