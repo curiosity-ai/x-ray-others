@@ -239,6 +239,22 @@ public static class ModelFormats
             return SketchUp;
         }
 
+        // Identified by their first bytes only (no reader): JT ("Version 9.5 JT" in an 80-byte header), the CATIA V5 container and the Creo / Pro/ENGINEER UGC header.
+        if (head.Length >= 20 && StartsWith(head, "Version ") && Encoding.ASCII.GetString(head[..Math.Min(head.Length, 24)]).Contains(" JT", StringComparison.Ordinal))
+        {
+            return Find("jt");
+        }
+
+        if (StartsWith(head, "V5_CFV"))
+        {
+            return Find("catia");
+        }
+
+        if (StartsWith(head, "#UGC:") && Contains(head, "#-END_OF_UGC_HEADER", "") || StartsWith(head, "#UGC:") && Contains(head, "P_OBJECT", ""))
+        {
+            return Find("creo");
+        }
+
         if (head.Length > 0x34 && head[0] == (byte)'W' && head[1] == (byte)'W' && Formats.Archicad.GsmReader.Sniff(data.Span))
         {
             return Archicad;
