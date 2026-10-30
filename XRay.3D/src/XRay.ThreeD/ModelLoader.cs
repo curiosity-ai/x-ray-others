@@ -64,7 +64,21 @@ public static class ModelLoader
             "step" => Formats.Step.StepReader.ReadMetadata(d, o),
             "ifc" => Formats.Bim.IfcReader.ReadMetadata(d, o),
             "iges" => Formats.Cad.IgesReader.ReadMetadata(d, o),
+            "dwg" => Formats.Cad.DwgReader.ReadMetadata(d, o),
             _ => ApplyHints(format, Dispatch(format, d, o), o).Metadata,
+        });
+    }
+
+    /// <summary>
+    /// The preview image saved in the file, without loading its geometry, for formats whose geometry is not decoded (DWG) as well as those that
+    /// are; null when the file has none.
+    /// </summary>
+    public static PreviewImage? ReadPreview(ReadOnlyMemory<byte> data, string? fileName = null, LoadOptions? options = null)
+    {
+        return Guard(data, fileName, options, (format, d, o) => format.Id switch
+        {
+            "dwg" => Formats.Cad.DwgReader.ReadPreview(d, o),
+            _ => format.Support == FormatSupport.Full ? Dispatch(format, d, o).Preview : null,
         });
     }
 
@@ -277,6 +291,7 @@ public static class ModelLoader
         "collada" => ColladaReader.Read(data, options),
         "fbx" => FbxReader.Read(data, options),
         "usd" => UsdaReader.Read(data, options),
+        "dwg" => Formats.Cad.DwgReader.Read(data, options),
         "step" => Formats.Step.StepReader.Read(data, options),
         "ifc" => Formats.Bim.IfcReader.Read(data, options),
         "archive" => Formats.Packages.ArchiveReader.Read(data, options),

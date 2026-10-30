@@ -45,7 +45,7 @@ public class FormatTests
     {
         var ex = Assert.Throws<UnsupportedModelFormatException>(() => ModelLoader.Load(DatasetPaths.File("dwg/" + Path.GetFileName(DatasetPaths.Files("dwg").First()))));
         Assert.Equal("dwg", ex.Format.Id);
-        Assert.Equal(FormatSupport.Identified, ex.Format.Support);
+        Assert.Equal(FormatSupport.Metadata, ex.Format.Support);
     }
 
     [Fact]

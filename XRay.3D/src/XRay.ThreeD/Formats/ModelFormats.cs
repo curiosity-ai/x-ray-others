@@ -18,6 +18,8 @@ public static class ModelFormats
 
     public static FormatInfo Las { get; } = new("las", "LAS point cloud", "pointcloud", [".las"], FormatSupport.Full);
 
+    public static FormatInfo Dwg { get; } = new("dwg", "AutoCAD DWG", "cad", [".dwg"], FormatSupport.Metadata);
+
     public static FormatInfo Laz { get; } = new("laz", "LAZ (compressed LAS)", "pointcloud", [".laz"], FormatSupport.Full);
 
     public static FormatInfo Pcd { get; } = new("pcd", "Point Cloud Library PCD", "pointcloud", [".pcd"], FormatSupport.Full);
@@ -64,7 +66,6 @@ public static class ModelFormats
         new("sat", "ACIS SAT", "cad", [".sat", ".sab"], FormatSupport.Identified),
         new("parasolid", "Parasolid", "cad", [".x_t", ".x_b", ".xmt_txt", ".xmt_bin"], FormatSupport.Identified),
         new("jt", "JT", "cad", [".jt"], FormatSupport.Identified),
-        new("dwg", "AutoCAD DWG", "cad", [".dwg"], FormatSupport.Identified),
         new("ifcxml", "IFC XML", "bim", [".ifcxml"], FormatSupport.Identified),
         new("rhino", "Rhino 3DM", "cad", [".3dm"], FormatSupport.Identified),
         new("x3dv", "X3D classic encoding", "scene", [".x3dv"], FormatSupport.Identified),
@@ -172,7 +173,7 @@ public static class ModelFormats
 
         if (StartsWith(head, "AC10"))
         {
-            return Find("dwg");
+            return Dwg;
         }
 
         if (StartsWith(head, "ISO-10303-21"))
