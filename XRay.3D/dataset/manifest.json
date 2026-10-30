@@ -2005,5 +2005,14 @@
   "source": "tools/fixtures/make_parasolid_fixtures.py",
   "bytes": 111,
   "sha256": "5d0653b6f1eff22609f9f5a0d013744e3250f89aecdad345fac4a180a8a6acf5"
+ },
+ {
+  "file": "synthetic/legacy-cube.sldprt",
+  "format": "sldprt",
+  "title": "Synthetic SolidWorks 2014-style part (OLE compound, __ZLB streams)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_sw_legacy.py",
+  "bytes": 6144,
+  "sha256": "d041b7d2b6e4a600c9f4eaf6ea76f83fb171b7335efa3460c5029367949d12f8"
  }
 ]
