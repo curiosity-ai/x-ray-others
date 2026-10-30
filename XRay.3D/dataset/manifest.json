@@ -2131,5 +2131,23 @@
   "source": "tools/fixtures/make_usd_layers.py",
   "bytes": 81,
   "sha256": "df563d9c80877e3961934352bc71e6f59b0e5f41e5b2829dbdf4bb321d26daec"
+ },
+ {
+  "file": "synthetic/model-2021.skp",
+  "format": "skp",
+  "title": "Synthetic SketchUp-shaped files",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_skp.py",
+  "bytes": 5246,
+  "sha256": "fb4afd436b1ee0da7e1092d96528a93142f7dcf3383a4ea2f36d6268345226ce"
+ },
+ {
+  "file": "synthetic/model-2016.skp",
+  "format": "skp",
+  "title": "Synthetic SketchUp-shaped files",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_skp.py",
+  "bytes": 2942,
+  "sha256": "7f6c331b4d37c8fafaa73057b1ba8aaf6b2852dc82c670c552deaca84bab420a"
  }
 ]
