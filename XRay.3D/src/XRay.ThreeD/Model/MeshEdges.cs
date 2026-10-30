@@ -1,3 +1,4 @@
+using XRay.ThreeD.Internal;
 using System.Numerics;
 
 namespace XRay.ThreeD;
@@ -17,7 +18,7 @@ public static class MeshEdges
             return [];
         }
 
-        var canonical = Canonicalise(mesh, out var representative);
+        var canonical = Canonicalise(mesh, cancellation, out var representative);
         var triangleCount = mesh.Indices.Length / 3;
         var faceOfTriangle = FaceTable(mesh, triangleCount);
         var cosLimit = MathF.Cos(creaseAngleDegrees * MathF.PI / 180f);
@@ -25,11 +26,12 @@ public static class MeshEdges
         var normals = new Vector3[triangleCount];
         for (var t = 0; t < triangleCount; t++)
         {
+            Cancel.Every(cancellation, t, 0x3FFF);
             normals[t] = TriangleNormal(mesh.Positions, mesh.Indices[3 * t], mesh.Indices[3 * t + 1], mesh.Indices[3 * t + 2]);
         }
 
         // key: lower canonical id in the high half. Value: first triangle, second triangle, triangle count.
-        var edges = new Dictionary<ulong, (int First, int Second, int Count)>(triangleCount * 2);
+        var edges = new Dictionary<ulong, (int First, int Second, int Count)>(triangleCount * 2, EdgeKeyComparer.Instance);
         for (var t = 0; t < triangleCount; t++)
         {
             if ((t & 0x3FFF) == 0)
@@ -79,7 +81,25 @@ public static class MeshEdges
         return result.ToArray();
     }
 
-    private static int[] Canonicalise(MeshData mesh, out List<uint> representative)
+    /// <summary>
+    /// The default <c>ulong</c> hash is <c>low ^ high</c>, which for an edge key (lower id, higher id) is almost constant along a
+    /// triangle strip (ids <c>a</c> and <c>a + 1</c> always give 1): a million-triangle strip put every edge in a handful of buckets
+    /// and the extraction took minutes. A multiplicative mix of the whole key spreads them.
+    /// </summary>
+    private sealed class EdgeKeyComparer : IEqualityComparer<ulong>
+    {
+        public static readonly EdgeKeyComparer Instance = new();
+
+        public bool Equals(ulong x, ulong y) => x == y;
+
+        public int GetHashCode(ulong key)
+        {
+            var h = key * 0x9E3779B97F4A7C15UL;
+            return (int)(h >> 32) ^ (int)h;
+        }
+    }
+
+    private static int[] Canonicalise(MeshData mesh, CancellationToken cancellation, out List<uint> representative)
     {
         var box = mesh.ComputeBounds();
         var extent = MathF.Max(box.Size.X, MathF.Max(box.Size.Y, box.Size.Z));
@@ -89,6 +109,7 @@ public static class MeshEdges
         representative = new List<uint>();
         for (var v = 0; v < mesh.VertexCount; v++)
         {
+            Cancel.Every(cancellation, v, 0x3FFF);
             var key = (
                 (long)Math.Round(mesh.Positions[3 * v] / tolerance),
                 (long)Math.Round(mesh.Positions[3 * v + 1] / tolerance),
