@@ -1699,5 +1699,158 @@
   "source": "tools/fixtures/make_iges_surfaces.py",
   "bytes": 47547,
   "sha256": "c666de119138ea2d3730dc971c72df0ab5073aad698dcc63b3c7d05f886dbca4"
+ },
+ {
+  "file": "synthetic/blend/scene-zstd.blend",
+  "format": "blend",
+  "title": "Synthetic Blender 5.2 scene (collections, parenting, rotation modes, instances, materials)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend.py",
+  "bytes": 94972,
+  "sha256": "8a0d4417975c0b6168d35ee5f9663d8c6eb045432dc3b47488f06f946e034548"
+ },
+ {
+  "file": "synthetic/blend/scene-gzip.blend",
+  "format": "blend",
+  "title": "Synthetic Blender 5.2 scene (collections, parenting, rotation modes, instances, materials)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend.py",
+  "bytes": 95654,
+  "sha256": "1b708ab87cabff5ac193380edaccf57dfc72ac30cfda2da5e6f57a5bf5c667fb"
+ },
+ {
+  "file": "synthetic/blend/scene-raw.blend",
+  "format": "blend",
+  "title": "Synthetic Blender 5.2 scene (collections, parenting, rotation modes, instances, materials)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_blend.py",
+  "bytes": 304824,
+  "sha256": "612ba9893283c35444703f8e3e8716ce52b5fc8084c4ced0fd83229c145ef217"
+ },
+ {
+  "file": "synthetic/zstd/tiny.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 19,
+  "sha256": "75ee7cbe13c28cca00fb7bd355b826df49d5fc99ee6a44397e6ae9ccda9ffe12"
+ },
+ {
+  "file": "synthetic/zstd/checksum.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 12121,
+  "sha256": "cecd4efd2fef9a692147cb7b14fd77420376473fbacd0eca8b5e1f5094848606"
+ },
+ {
+  "file": "synthetic/zstd/floats-l19.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 67013,
+  "sha256": "ec795ad568e818f4efdda4f63a1aee57b5ef5bb15d4c3dbb884b05e6367e195e"
+ },
+ {
+  "file": "synthetic/zstd/floats-l3.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 71357,
+  "sha256": "8e1b131445d89a5256ea0e7a0d901b0a66020769b0585c314742a63ac1af7ddd"
+ },
+ {
+  "file": "synthetic/zstd/multi-frame.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 20915,
+  "sha256": "97ef391abc71454d44c9b07bb5dfc16f1d73101958ef68257f36161c1b463060"
+ },
+ {
+  "file": "synthetic/zstd/nosize.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 67813,
+  "sha256": "0469c6f1bd35e9dd074e99191c0ce8c9cd255476f63a59eb58527fa24123451c"
+ },
+ {
+  "file": "synthetic/zstd/runs.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 3759,
+  "sha256": "dabdb8d4c704304c8820f6959e824508b84be368a2ab43427c2c86e8f8256975"
+ },
+ {
+  "file": "synthetic/zstd/small-window.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 151147,
+  "sha256": "7a13564210e6018d13f6824c3d05ef809704b03b448b880471cc2ee548824b10"
+ },
+ {
+  "file": "synthetic/zstd/text-fast.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 123268,
+  "sha256": "628444fab3ad46a7fd922830a575e22ca563d92fe19be03ecb7e2df3278d6c45"
+ },
+ {
+  "file": "synthetic/zstd/text-l1.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 92879,
+  "sha256": "b8e1f9c75bad35c860e3617b338ac8f1a00ddbcf6554e609ab41aba2a303cf07"
+ },
+ {
+  "file": "synthetic/zstd/text-l19.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 82373,
+  "sha256": "b4c9da1356cbfdd786032b15d05ce2d5d1acaeb1bd3fc7f32e4ff73148d4d890"
+ },
+ {
+  "file": "synthetic/zstd/text-l3.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 91351,
+  "sha256": "7b03ae5d3093958b926c170ce50fb57c6aba36f3fc2fb7dbaa8d486f44e4237b"
+ },
+ {
+  "file": "synthetic/zstd/text-l9.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 89947,
+  "sha256": "8f383f8ed7c4f32e3b53c4f247df3e3270a842f29352d34cebde500841ed3087"
+ },
+ {
+  "file": "synthetic/zstd/zeros.zst",
+  "format": "zstd",
+  "title": "Zstandard test file written by the python zstandard package",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_zstd.py",
+  "bytes": 30,
+  "sha256": "6ddbf9bcdc6b51be2f72cda91542ddb3d5448e0b1092ba36eaa8d16988cb843a"
  }
 ]

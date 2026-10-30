@@ -18,6 +18,8 @@
     <None Include="Corpus/usd-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/laz-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/cfb-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/zstd-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/blend-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/usdc-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/step-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/iges-golden.json" CopyToOutputDirectory="PreserveNewest" />

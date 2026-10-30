@@ -57,6 +57,8 @@ public class RobustnessTests
         "synthetic/iges-nurbs-faces.igs",
         "synthetic/assembly.FCStd",
         "synthetic/home.sh3d",
+        "synthetic/blend/scene-raw.blend",
+        "synthetic/blend/scene-zstd.blend",
         "sh3d/sweet-home-cottage.sh3d",
         "synthetic/package-obj-mtl.zip",
         "synthetic/package-obj-textured.zip",
