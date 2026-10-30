@@ -129,7 +129,7 @@ internal static class JtReader
         return list;
     }
 
-    private static bool HasCompressionHeader(int kind) => kind is 1 or 2 or 3 or 4 or 17 or 18 or 20 or 24;
+    private static bool HasCompressionHeader(int kind) => kind is 1 or 2 or 3 or 4 or 17 or 18 or 20 or 23 or 24 or 30;
 
     private static byte[] Inflate(ReadOnlySpan<byte> packed, CancellationToken token)
     {
@@ -304,6 +304,7 @@ internal static class JtReader
         public Guid16 Type;
         public string Kind = "";
         public string Name = "";
+        public string FileName = "";
         public readonly List<int> Attributes = new();
         public readonly List<int> Children = new();
         public int Target = -1;
@@ -405,7 +406,7 @@ internal static class JtReader
             }
 
             var flags = c.I32();
-            c.ReadMbString();
+            n.FileName = c.ReadMbString();
             SkipBounds(c);
             c.F32();
             c.Skip(24);
@@ -1110,7 +1111,9 @@ internal static class JtReader
         return meta;
     }
 
-    public static Model3D Read(ReadOnlyMemory<byte> memory, LoadOptions options)
+    public static Model3D Read(ReadOnlyMemory<byte> memory, LoadOptions options) => Read(memory, options, 0);
+
+    private static Model3D Read(ReadOnlyMemory<byte> memory, LoadOptions options, int depth)
     {
         var token = options.Cancellation;
         var data = memory.ToArray();
@@ -1148,7 +1151,7 @@ internal static class JtReader
             meta.Notes.Add(string.Create(CultureInfo.InvariantCulture, $"{scene.Skipped} scene graph objects of kinds this reader does not know were skipped."));
         }
 
-        var builder = new Builder(model, scene, options);
+        var builder = new Builder(model, scene, options, depth);
         if (scene.Root >= 0)
         {
             var root = builder.Build(scene.Root, 0, null);
@@ -1208,8 +1211,12 @@ internal static class JtReader
         private long _triangles;
         private long _tick;
 
-        public Builder(Model3D model, Scene scene, LoadOptions options)
+        private readonly int _depth;
+        private readonly Dictionary<string, Model3D?> _companions = new(StringComparer.OrdinalIgnoreCase);
+
+        public Builder(Model3D model, Scene scene, LoadOptions options, int depth)
         {
+            _depth = depth;
             _model = model;
             _scene = scene;
             _options = options;
@@ -1288,11 +1295,73 @@ internal static class JtReader
                     sn.Children.Add(target);
                 }
 
+                if (node.Kind == "Partition" && node.FileName.Length > 0)
+                {
+                    AddPartition(sn, node.FileName);
+                }
+
                 return sn;
             }
             finally
             {
                 _active.Remove(id);
+            }
+        }
+
+        /// <summary>
+        /// A partition node names the JT file it was saved as. When it has no content of its own, that file holds its subtree: the name is recorded in the metadata; when the caller supplies
+        /// <see cref="LoadOptions.ResolveCompanion"/> the file is read (once, however many partitions name it; nested to three levels) and its scene
+        /// is placed under the node.
+        /// </summary>
+        private void AddPartition(SceneNode sn, string fileName)
+        {
+            sn.Properties["file"] = fileName;
+            if (sn.Children.Count > 0 || sn.Mesh is not null)
+            {
+                return; // the partition carries its own content: the name is the file it was saved as, not a reference
+            }
+
+            var meta = _model.Metadata;
+            if (!meta.ComponentFiles.Contains(fileName, StringComparer.OrdinalIgnoreCase) && meta.ComponentFiles.Count < 512)
+            {
+                meta.ComponentFiles.Add(fileName);
+            }
+
+            if (_options.ResolveCompanion is null || _depth >= 3 || _companions.Count >= 256)
+            {
+                return;
+            }
+
+            if (!_companions.TryGetValue(fileName, out var component))
+            {
+                component = null;
+                if (_options.ResolveCompanion(fileName) is { Length: > 0 } bytes)
+                {
+                    try
+                    {
+                        component = Read(bytes, _options, _depth + 1);
+                        ModelMerge.AdoptResources(_model, component);
+                    }
+                    catch (ModelFormatException ex) when (ex is not UnsupportedModelFormatException)
+                    {
+                        _model.Metadata.Notes.Add("The partition file " + fileName + " could not be read: " + ex.Message);
+                        component = null;
+                    }
+                }
+                else
+                {
+                    _model.Metadata.Notes.Add("The partition file " + fileName + " was not supplied.");
+                }
+
+                _companions[fileName] = component;
+            }
+
+            if (component is not null)
+            {
+                foreach (var root in component.Roots)
+                {
+                    sn.Children.Add(ModelMerge.CloneTree(root));
+                }
             }
         }
 

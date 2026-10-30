@@ -508,6 +508,7 @@ internal sealed class JtPackage
         Huffman,
         Arithmetic,
         Chopper,
+        Dictionary,
     }
 
     private Kind _kind;
@@ -529,6 +530,7 @@ internal sealed class JtPackage
         Kind.Empty => 0,
         Kind.Null => _words.Length,
         Kind.Chopper => _msb!.OutValCount,
+        Kind.Dictionary => _lsb!.OutValCount,
         _ => _outCount,
     };
 
@@ -666,6 +668,19 @@ internal sealed class JtPackage
             return new JtPackage { _kind = Kind.Chopper, _msb = msb, _lsb = lsb, _shift = (byte)(span - chop), _bias = bias };
         }
 
+        if (codec == 5)
+        {
+            // JT 10.5 dictionary codec: a package of the distinct values, then a package of valueCount indices into it.
+            var table = Load2(c, token, depth + 1);
+            var indices = Load2(c, token, depth + 1);
+            if (indices.OutValCount != valueCount)
+            {
+                throw c.Fail("JT dictionary data sizes do not match");
+            }
+
+            return new JtPackage { _kind = Kind.Dictionary, _msb = table, _lsb = indices };
+        }
+
         if (codec is not (0 or 1 or 3))
         {
             throw c.Fail("Unknown JT mark 2 codec " + codec);
@@ -731,6 +746,49 @@ internal sealed class JtPackage
                 for (var i = 0; i < values.Length; i++)
                 {
                     values[i] = unchecked(((hi[i] << (_shift & 31)) | lo[i]) + _bias);
+                }
+
+                break;
+            }
+
+            case Kind.Dictionary:
+            {
+                var table = _msb!.Decode(bigEndian, UnpackKind.Null, token);
+                var index = _lsb!.Decode(bigEndian, UnpackKind.Null, token);
+                values = new int[index.Length];
+
+                // An index of -1 introduces the next table value; any other index names a value by its place in a
+                // move-to-front list of the values seen so far.
+                var recent = new List<int>();
+                var next = 0;
+                for (var i = 0; i < values.Length; i++)
+                {
+                    Cancel.Every(token, i);
+                    var k = index[i];
+                    int v;
+                    if (k == -1)
+                    {
+                        if (next >= table.Length)
+                        {
+                            throw new ModelFormatException("A JT dictionary has too few values.");
+                        }
+
+                        v = table[next++];
+                        recent.Insert(0, v);
+                    }
+                    else
+                    {
+                        if ((uint)k >= (uint)recent.Count)
+                        {
+                            throw new ModelFormatException("A JT dictionary index is out of range.");
+                        }
+
+                        v = recent[k];
+                        recent.RemoveAt(k);
+                        recent.Insert(0, v);
+                    }
+
+                    values[i] = v;
                 }
 
                 break;

@@ -1,6 +1,9 @@
 """Regenerates tests/XRay.ThreeD.Tests/Corpus/skp-legacy-geometry-golden.json: triangle count, vertex count and bounds of the real
 SketchUp 2013 to 2020 files, from an independent reader (the Python openskp package, run only as a reader; its code is LGPL and is not used
-in the library). The scene aggregation below is written for this check: a face with holes has vertices + 2 * holes - 2 triangles.
+in the library).
+Licence situation: no openskp code is copied, vendored or ported here. The package is imported from an external directory the operator
+supplies (OPENSKP_PY, never inside this repository), exactly as a command line reader would be called; only its output (dictionaries of
+vertices, edges and loops) is consumed, and the output of this script is facts (counts and bounds) about files. The scene aggregation below is written for this check: a face with holes has vertices + 2 * holes - 2 triangles.
 Usage: OPENSKP_PY=<dir that contains the openskp package> python3 -I make_skp_legacy_golden.py <samples dir> <out.json>"""
 import sys,json,glob,os
 sys.path.insert(0,os.environ['OPENSKP_PY'])

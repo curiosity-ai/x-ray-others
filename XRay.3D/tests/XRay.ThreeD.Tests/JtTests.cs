@@ -62,21 +62,35 @@ public class JtTests
         Assert.Equal("jt", ModelLoader.Detect(data, file).Id);
         var model = ModelLoader.Load(data, file);
         Assert.NotNull(model.Metadata.FormatVersion);
-        // The NIST assembly refers to part files that are not part of the sample set.
-        if (file != "nist-mtc-assembly.jt")
-        {
-            Assert.True(model.Metadata.HasGeometry, "no geometry in " + file);
-            Assert.True(model.ComputeStatistics().Triangles > 0);
-        }
+        Assert.True(model.Metadata.HasGeometry, "no geometry in " + file);
+        Assert.True(model.ComputeStatistics().Triangles > 0);
 
         Assert.NotEmpty(ModelLoader.ConvertToGlb(data, file));
+    }
+
+    /// <summary>
+    /// JT 10.5 stores most integer streams of the NIST assembly with codec 5 (a table of distinct values and a move-to-front index stream, -1 meaning
+    /// "next table value") and wraps several segment kinds (23, 30) in the same xz envelope as the others. The counts are what the reader finds
+    /// (the index stream length equals the triangle count of the first shape, 4010); one of fifteen shapes still fails to decode (see TODO.md).
+    /// </summary>
+    [Fact]
+    public void Jt105AssemblyShowsPartGeometry()
+    {
+        var path = Path.Combine(Samples, "nist-mtc-assembly.jt");
+        Assert.SkipWhen(!File.Exists(path), "local sample not present");
+        var model = ModelLoader.Load(File.ReadAllBytes(path), "nist-mtc-assembly.jt");
+        Assert.Equal(7, model.Meshes.Count);
+        Assert.Contains(model.Meshes, m => m.TriangleCount == 4010);
+        Assert.Contains(model.Meshes, m => m.TriangleCount == 9912);
+        Assert.Contains(model.Meshes, m => m.TriangleCount == 10936);
+        Assert.True(model.ComputeStatistics().Triangles > 200_000);
     }
 
     [Fact]
     public void TruncationAndMutationOnlyThrowModelFormatException()
     {
         var rng = new Random(11);
-        foreach (var file in new[] { "example_block_jt9.5.jt", "example_block_jt8.1.jt", "example_block_jt10.3.jt" })
+        foreach (var file in new[] { "example_block_jt9.5.jt", "example_block_jt8.1.jt", "example_block_jt10.3.jt", "nist-mtc-cover.jt" })
         {
             var path = Path.Combine(Samples, file);
             Assert.SkipWhen(!File.Exists(path), "local sample not present: " + file);
