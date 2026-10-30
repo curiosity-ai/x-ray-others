@@ -43,7 +43,13 @@ internal static class SketchUpReader
             }
         }
 
-        throw new UnsupportedModelFormatException(ModelFormats.SketchUp, "SketchUp geometry before 2021 (the serialised object stream) is not decoded (" + meta.Application + "); the version and thumbnail are available through ReadMetadata and ReadPreview.");
+        var legacy = SketchUpLegacy.Read(data, meta, options);
+        if (Thumbnail(data, options.Cancellation, out _) is { } thumb)
+        {
+            legacy.Preview = new PreviewImage("image/png", thumb);
+        }
+
+        return legacy;
     }
 
     public static PreviewImage? ReadPreview(ReadOnlyMemory<byte> data, LoadOptions options)

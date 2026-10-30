@@ -2347,5 +2347,14 @@
   "source": "tools/fixtures/make_skp_geometry.py",
   "bytes": 1789,
   "sha256": "8704ef8c01b42c209eccfc22a5bc0b191e83ee39e2b5d97d7195447b9bb6f8db"
+ },
+ {
+  "file": "synthetic/geometry-2017.skp",
+  "format": "skp",
+  "title": "Synthetic SketchUp 2017 file with geometry in the MFC object-stream layout (plate with a hole placed twice)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_skp_legacy_geometry.py",
+  "bytes": 1883,
+  "sha256": "cb901d3f32ea4bdcd19d88bcc46887d177914301465bdf3c0e01b49ef97eb5c4"
  }
 ]

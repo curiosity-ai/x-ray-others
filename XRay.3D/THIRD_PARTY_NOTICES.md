@@ -51,7 +51,7 @@ against lazrs on the fixtures written by `tools/fixtures/make_las14_fixtures.py`
 
 ## openskp (SketchUp 2021+ record layout)
 
-`src/XRay.ThreeD/Formats/SketchUp/SketchUpVff.cs` reads the `model.dat` of SketchUp 2021 and later. The record layout (the tag values of definitions,
+`src/XRay.ThreeD/Formats/SketchUp/SketchUpVff.cs` reads the `model.dat` of SketchUp 2021 and later, and `SketchUpLegacy.cs` the MFC object stream of 2013 to 2020 (class layouts, slot-base probes and the burned-slot correction of the package's `legacy` reader, re-implemented in C#). The record layout (the tag values of definitions,
 vertices, edges, faces, loops, coedges, instances, layers and materials, the container set, the 13-double instance matrix) was taken from the
 reading code of [openskp](https://github.com/iamahsanmehmood/openskp) (npm package `openskp` 1.4.0, MIT licence), re-implemented in C# with this
 repository's own tree, triangulation and scene code, and checked against independent counts on 24 real files (`SketchUpGeometryTests`). The licence:

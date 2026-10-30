@@ -120,6 +120,7 @@ public class RobustnessTests
         "synthetic/laz-pointwise-f3.laz",
         "synthetic/assembly.3dxml",
         "synthetic/geometry-2021.skp",
+        "synthetic/geometry-2017.skp",
         "synthetic/structure.3dxml",
     ];
 

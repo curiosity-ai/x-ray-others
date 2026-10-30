@@ -233,7 +233,7 @@ internal static class SketchUpVff
         }
     }
 
-    private sealed class Face
+    internal sealed class Face
     {
         public readonly List<(long Edge, bool Forward)[]> Loops = new();
         public double Nx, Ny, Nz = 1;
@@ -241,7 +241,7 @@ internal static class SketchUpVff
         public bool Hidden;
     }
 
-    private sealed class Instance
+    internal sealed class Instance
     {
         public long Definition = -1;
         public string Name = "";
@@ -251,7 +251,7 @@ internal static class SketchUpVff
         public bool Hidden;
     }
 
-    private sealed class Definition
+    internal sealed class Definition
     {
         public string Name = "";
         public bool IsGroup;
@@ -261,7 +261,7 @@ internal static class SketchUpVff
         public readonly List<Instance> Instances = new();
     }
 
-    private sealed record SkpMaterial(string Name, Vector4 Color, bool Textured);
+    internal sealed record SkpMaterial(string Name, Vector4 Color, bool Textured);
 
     public static Model3D Read(System.IO.Compression.ZipArchive zip, ModelMetadata meta, LoadOptions options)
     {
@@ -333,6 +333,13 @@ internal static class SketchUpVff
             throw new UnsupportedModelFormatException(ModelFormats.SketchUp, "model.dat has no model record (F601); its layout is not the one this reader knows.");
         }
 
+        return Assemble(model, definitions, root, materials, materialNames, layers, options,
+            "Geometry decoded from model.dat (vertices, edges, faces with holes, groups and components with transforms, material colours, tags). Textures, UV mapping, edge display, section planes, text and dimensions are not read. Lengths are inches.");
+    }
+
+    /// <summary>Builds the scene from decoded definitions; shared by the model.dat reader and the 2013 to 2020 object-stream reader.</summary>
+    internal static Model3D Assemble(Model3D model, Dictionary<long, Definition> definitions, Definition root, Dictionary<string, SkpMaterial> materials, Dictionary<long, string> materialNames, Dictionary<long, (string Name, bool Hidden)> layers, LoadOptions options, string note)
+    {
         var layerIndex = new Dictionary<long, int>();
         foreach (var (id, layer) in layers.OrderBy(l => l.Key))
         {
@@ -342,17 +349,14 @@ internal static class SketchUpVff
         }
 
         var builder = new SceneBuilder(model, definitions, materials, materialNames, layerIndex, options);
-        if (hasRoot)
-        {
-            var node = builder.Build(root, null, 0);
-            node.Name = model.Metadata.Title ?? "Model";
-            model.Roots.Add(node);
-        }
+        var node = builder.Build(root, null, 0);
+        node.Name = model.Metadata.Title ?? "Model";
+        model.Roots.Add(node);
 
         model.Metadata.HasGeometry = model.Meshes.Count > 0;
         model.Metadata.MaterialNames.Clear();
         model.Metadata.MaterialNames.AddRange(model.Materials.Select(m => m.Name ?? ""));
-        model.Metadata.Notes.Add("Geometry decoded from model.dat (vertices, edges, faces with holes, groups and components with transforms, material colours, tags). Textures, UV mapping, edge display, section planes, text and dimensions are not read. Lengths are inches.");
+        model.Metadata.Notes.Add(note);
         model.Metadata.Statistics = model.ComputeStatistics();
         model.Metadata.Bounds = model.ComputeBounds();
         return model;
@@ -637,6 +641,22 @@ internal static class SketchUpVff
         def.Faces[id.Value] = face;
     }
 
+    /// <summary>The 13-double instance matrix (3x3 by rows of a column-vector transform, translation, uniform scale) as a row-vector matrix.</summary>
+    internal static Matrix4x4 MatrixFrom13(double[] m)
+    {
+        if (m.Length < 13)
+        {
+            return Matrix4x4.Identity;
+        }
+
+        var s = m[12] == 0 || !double.IsFinite(m[12]) ? 1.0 : m[12];
+        return new Matrix4x4(
+            (float)(m[0] * s), (float)(m[3] * s), (float)(m[6] * s), 0,
+            (float)(m[1] * s), (float)(m[4] * s), (float)(m[7] * s), 0,
+            (float)(m[2] * s), (float)(m[5] * s), (float)(m[8] * s), 0,
+            (float)m[9], (float)m[10], (float)m[11], 1);
+    }
+
     private static void ReadInstance(Arena a, int n, Definition def)
     {
         var inst = new Instance();
@@ -663,13 +683,7 @@ internal static class SketchUpVff
                 m[i] = BitConverter.ToDouble(p.Slice(i * 8, 8));
             }
 
-            var s = m[12] == 0 || !double.IsFinite(m[12]) ? 1.0 : m[12];
-            // The record stores a column-vector matrix by rows (x' = m0 x + m1 y + m2 z + t); System.Numerics is row-vector, so transpose.
-            inst.Transform = new Matrix4x4(
-                (float)(m[0] * s), (float)(m[3] * s), (float)(m[6] * s), 0,
-                (float)(m[1] * s), (float)(m[4] * s), (float)(m[7] * s), 0,
-                (float)(m[2] * s), (float)(m[5] * s), (float)(m[8] * s), 0,
-                (float)m[9], (float)m[10], (float)m[11], 1);
+            inst.Transform = MatrixFrom13(m.ToArray());
         }
 
         var d007 = a.Direct(n, 0xD007);
@@ -694,7 +708,7 @@ internal static class SketchUpVff
         def.Instances.Add(inst);
     }
 
-    private sealed class SceneBuilder
+    internal sealed class SceneBuilder
     {
         private readonly Model3D _model;
         private readonly Dictionary<long, Definition> _definitions;

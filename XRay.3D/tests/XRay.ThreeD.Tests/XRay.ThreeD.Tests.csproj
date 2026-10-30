@@ -22,6 +22,8 @@
     <None Include="Corpus/blend-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/cfb-real-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/skp-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/skp-geometry-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/skp-legacy-geometry-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/gsm-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/sw-legacy-golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Corpus/usdc-golden.json" CopyToOutputDirectory="PreserveNewest" />
