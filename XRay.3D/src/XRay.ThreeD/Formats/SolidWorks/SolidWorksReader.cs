@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using XRay.ThreeD.Internal;
 
 namespace XRay.ThreeD.Formats.SolidWorks;
 
@@ -17,28 +18,27 @@ internal static class SolidWorksReader
     private const string DisplayLists = "Contents/DisplayLists";
 
     public static bool Sniff(ReadOnlyMemory<byte> data, CancellationToken cancellation) =>
-        SwContainer.TryOpen(data, cancellation) is { } c && (c.Contains("docProps/app.xml") || c.Contains(DisplayLists) || c.Contains("Header2"));
+        SwContainer.TryOpen(data, cancellation, verify: false) is { } c && (c.Read("docProps/app.xml") is not null || c.Contains(DisplayLists) || c.Read("Header2") is not null);
 
     public static ModelMetadata ReadMetadata(ReadOnlyMemory<byte> data, CancellationToken cancellation)
     {
-        var container = Open(data, cancellation);
-        var metadata = ReadMetadata(container, out var stream, cancellation);
-        if (stream is not null)
-        {
-            var decoded = SwDisplayLists.Decode(stream, metadata.DocumentKind == "assembly", cancellation);
-            metadata.HasGeometry = decoded.Instances.Count > 0;
-            metadata.Statistics = Count(decoded);
-        }
-
+        // Only the entry headers are read and the small property streams inflated; the display lists (most of the file) are never touched,
+        // so the geometry is reported as present when the stream is, without counts (load the model for those).
+        var container = Open(data, cancellation, verify: false);
+        var metadata = ReadMetadata(container, readDisplayLists: false, out _, cancellation);
+        metadata.HasGeometry = container.Contains(DisplayLists) && metadata.DocumentKind != "drawing";
         FinishNotes(metadata);
         return metadata;
     }
 
-    public static Model3D Read(ReadOnlyMemory<byte> data, CancellationToken cancellation)
+    public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options) => Read(data, options, 0);
+
+    private static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options, int depth)
     {
+        var cancellation = options.Cancellation;
         var container = Open(data, cancellation);
         var model = new Model3D();
-        var metadata = ReadMetadata(container, out var stream, cancellation);
+        var metadata = ReadMetadata(container, readDisplayLists: true, out var stream, cancellation);
         CopyInto(model.Metadata, metadata);
         if (container.Read("PreviewPNG") is { Length: > 8 } png && png[0] == 0x89 && png[1] == (byte)'P')
         {
@@ -46,23 +46,40 @@ internal static class SolidWorksReader
             model.Metadata.HasPreview = true;
         }
 
+        else if (container.Read("Preview") is { Length: > 44 } dib && DibImage.DecodeRgb(dib, out var pw, out var ph, cancellation) is { } pixels)
+        {
+            var trimmed = DibImage.Trim(pixels, ref pw, ref ph);
+            model.Preview = new PreviewImage("image/png", DibImage.EncodePng(trimmed, pw, ph));
+            model.Metadata.HasPreview = true;
+        }
+
         if (stream is not null)
         {
             var decoded = SwDisplayLists.Decode(stream, metadata.DocumentKind == "assembly", cancellation);
             BuildScene(model, stream, decoded, metadata);
+            if (decoded.Unplaced.Count > 0 && options.ResolveCompanion is not null)
+            {
+                MergeExternalComponents(model, decoded.Unplaced, metadata, options, depth);
+            }
+
             model.Metadata.HasGeometry = model.Meshes.Count > 0;
             model.Metadata.Statistics = model.ComputeStatistics();
             model.Metadata.Bounds = model.ComputeBounds();
         }
 
         model.Is2D = model.Metadata.DocumentKind == "drawing";
+        if (model.Is2D)
+        {
+            BuildDrawing(model, container, stream, cancellation);
+        }
+
         FinishNotes(model.Metadata);
         model.Warnings.AddRange(model.Metadata.Notes);
         return model;
     }
 
-    private static SwContainer Open(ReadOnlyMemory<byte> data, CancellationToken cancellation) =>
-        SwContainer.TryOpen(data, cancellation)
+    private static SwContainer Open(ReadOnlyMemory<byte> data, CancellationToken cancellation, bool verify = true) =>
+        SwContainer.TryOpen(data, cancellation, verify)
         ?? throw new UnsupportedModelFormatException(
             ModelFormats.SolidWorks,
             "Not a SolidWorks 2015+ document. Older SolidWorks files (compound-file envelope) are not supported yet.");
@@ -71,7 +88,9 @@ internal static class SolidWorksReader
     {
         if (metadata.DocumentKind == "drawing")
         {
-            metadata.Notes.Add("A drawing holds sheets, not 3D geometry.");
+            metadata.Notes.Add(metadata.DrawingSheets.Count > 0 || metadata.HasPreview
+                ? "A drawing holds sheets, not 3D geometry; each sheet is drawn as the raster image the file stores, its vector views and dimensions are not decoded."
+                : "A drawing holds sheets, not 3D geometry.");
         }
         else if (!metadata.HasGeometry)
         {
@@ -180,6 +199,187 @@ internal static class SolidWorksReader
         model.Roots.Add(root);
     }
 
+    // ---- drawings ----------------------------------------------------------------------------------------------------
+
+    /// <summary>
+    /// A drawing's content is the raster of each sheet SolidWorks saved (<c>Images/Sheet_n</c>), placed in the plane at the paper size the file
+    /// states (the sheet record holds the two sides as doubles before the sheet format's name; a sheet is taken as landscape when its image is),
+    /// side by side with a gap. The first sheet uses the higher resolution <c>Preview</c> bitmap, with its letterbox bars trimmed, when it shows
+    /// the same page. Each sheet is a layer.
+    /// </summary>
+    private static void BuildDrawing(Model3D model, SwContainer container, byte[]? displayLists, CancellationToken cancellation)
+    {
+        var meta = model.Metadata;
+        var sizes = SheetSizes(container.Read("Contents/Definition")) is { Count: > 0 } fromDefinition ? fromDefinition : SheetSizes(displayLists);
+        var x = 0.0;
+        for (var index = 0; index < 64; index++)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (container.Read($"Images/Sheet_{index}") is not { Length: > 24 } png || png[0] != 0x89 || png[1] != (byte)'P')
+            {
+                break;
+            }
+
+            var pixelWidth = (png[16] << 24) | (png[17] << 16) | (png[18] << 8) | png[19];
+            var pixelHeight = (png[20] << 24) | (png[21] << 16) | (png[22] << 8) | png[23];
+            if (pixelWidth <= 0 || pixelHeight <= 0)
+            {
+                break;
+            }
+
+            var name = index < meta.Sheets.Count ? meta.Sheets[index] : $"Sheet{index + 1}";
+            var (sideA, sideB) = sizes.Count == 0 ? (0.0, 0.0) : sizes[Math.Min(index, sizes.Count - 1)];
+            double width, height;
+            if (sideA > 0)
+            {
+                (width, height) = pixelWidth >= pixelHeight ? (Math.Max(sideA, sideB), Math.Min(sideA, sideB)) : (Math.Min(sideA, sideB), Math.Max(sideA, sideB));
+                meta.DrawingSheets.Add(new DrawingSheet(name, width, height));
+                meta.Properties.Add(new ModelProperty($"sheet size: {name}", string.Create(CultureInfo.InvariantCulture, $"{width * 1000:0.#} x {height * 1000:0.#} mm"), "drawing"));
+            }
+            else
+            {
+                // No size stated: the image's shape on an A3-ish page.
+                (width, height) = pixelWidth >= pixelHeight ? (0.42, 0.42 * pixelHeight / pixelWidth) : (0.42 * pixelWidth / pixelHeight, 0.42);
+            }
+
+            var data = png;
+            if (index == 0 && container.Read("Preview") is { Length: > 44 } dib && DibImage.DecodeRgb(dib, out var w, out var h, cancellation) is { } rgb)
+            {
+                var trimmed = DibImage.Trim(rgb, ref w, ref h);
+                if (Math.Abs((double)w / h / ((double)pixelWidth / pixelHeight) - 1) < 0.1 && w > pixelWidth)
+                {
+                    data = DibImage.EncodePng(trimmed, w, h);
+                }
+            }
+
+            var layer = model.Layers.Count;
+            model.Layers.Add(new ModelLayer(name));
+            if (!meta.LayerNames.Contains(name))
+            {
+                meta.LayerNames.Add(name);
+            }
+
+            model.Images.Add(new ModelImage { Name = name, Data = data, Position = new Vector3((float)x, 0, 0), Width = (float)width, Height = (float)height, Layer = layer });
+            x += width * 1.05;
+        }
+
+        if (model.Images.Count == 0 && model.Preview is { } preview)
+        {
+            model.Images.Add(new ModelImage { Name = "preview", MediaType = preview.MediaType, Data = preview.Data, Width = 0.42f, Height = 0.297f });
+        }
+    }
+
+    /// <summary>The two sides of every sheet record: two doubles in a plausible paper range, directly before a serialised string.</summary>
+    private static List<(double A, double B)> SheetSizes(byte[]? stream)
+    {
+        var result = new List<(double, double)>();
+        if (stream is null)
+        {
+            return result;
+        }
+
+        var span = stream.AsSpan();
+        for (var o = 0; o + 19 < span.Length; o++)
+        {
+            if (span[o + 16] != 0xFF || span[o + 17] != 0xFE || span[o + 18] != 0xFF)
+            {
+                continue;
+            }
+
+            var a = BitConverter.ToDouble(span.Slice(o, 8));
+            var b = BitConverter.ToDouble(span.Slice(o + 8, 8));
+            if (double.IsFinite(a) && double.IsFinite(b) && a is > 0.05 and < 5 && b is > 0.05 and < 5 && Math.Min(a, b) / Math.Max(a, b) is > 0.45 and < 1.0)
+            {
+                result.Add((a, b));
+                if (result.Count >= 64)
+                {
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    // ---- external components -----------------------------------------------------------------------------------------
+
+    /// <summary>
+    /// Instances the display lists place but hold no geometry for take their geometry from the component file, found through
+    /// <see cref="LoadOptions.ResolveCompanion"/> by the file name the assembly lists. Each distinct file is loaded once (assemblies nest, to three
+    /// levels) and shared by every instance under that instance's placement.
+    /// </summary>
+    private static void MergeExternalComponents(Model3D model, List<SwDisplayLists.Instance> unplaced, ModelMetadata metadata, LoadOptions options, int depth)
+    {
+        var loaded = new Dictionary<string, Model3D?>(StringComparer.OrdinalIgnoreCase);
+        var root = model.Roots.FirstOrDefault();
+        var missing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var tick = 0;
+        foreach (var instance in unplaced)
+        {
+            Internal.Cancel.Every(options.Cancellation, tick++, 63);
+            var part = PartName(instance.Name);
+            var file = part is null ? null : metadata.ComponentFiles.FirstOrDefault(f => string.Equals(Path.GetFileNameWithoutExtension(f), part, StringComparison.OrdinalIgnoreCase));
+            if (file is null)
+            {
+                continue;
+            }
+
+            if (!loaded.TryGetValue(file, out var component))
+            {
+                component = null;
+                if (depth < 3 && options.ResolveCompanion!(file) is { Length: > 0 } bytes)
+                {
+                    component = Read(bytes, options, depth + 1);
+                    ModelMerge.AdoptResources(model, component);
+                }
+                else if (depth < 3)
+                {
+                    missing.Add(file);
+                }
+
+                loaded[file] = component;
+            }
+
+            if (component is null || component.Roots.Count == 0)
+            {
+                continue;
+            }
+
+            if (root is null)
+            {
+                root = new SceneNode(metadata.Title ?? "Assembly");
+                root.Properties["kind"] = "assembly";
+                model.Roots.Add(root);
+            }
+
+            var node = new SceneNode(instance.Name is null ? null : InstanceLabel(instance.Name)) { Transform = instance.Transform };
+            if (instance.Name is not null)
+            {
+                node.Properties["instancePath"] = instance.Name;
+                node.Properties["file"] = file;
+            }
+
+            foreach (var componentRoot in component.Roots)
+            {
+                node.Children.Add(ModelMerge.CloneTree(componentRoot));
+            }
+
+            root.Children.Add(node);
+        }
+
+        foreach (var file in missing.Take(20))
+        {
+            model.Warnings.Add($"Component file {file} was not supplied; its instances are not drawn.");
+        }
+
+        if (model.Meshes.Count > 0)
+        {
+            model.Metadata.PartNames.Clear();
+            model.Metadata.PartNames.AddRange(metadata.PartNames);
+            model.Metadata.MaterialNames.AddRange(model.Materials.Select(m => m.Name!).Where(n => !string.IsNullOrEmpty(n) && !model.Metadata.MaterialNames.Contains(n)));
+        }
+    }
+
     private static readonly string[] MetalWords = ["metal", "steel", "aluminum", "aluminium", "chrome", "brass", "copper", "iron", "titanium", "nickel", "zinc"];
 
     /// <summary>
@@ -228,7 +428,7 @@ internal static class SolidWorksReader
         return dash > 0 && int.TryParse(label.AsSpan(dash + 1), NumberStyles.None, CultureInfo.InvariantCulture, out _) ? label[..dash] : label;
     }
 
-    private static ModelMetadata ReadMetadata(SwContainer c, out byte[]? displayLists, CancellationToken cancellation)
+    private static ModelMetadata ReadMetadata(SwContainer c, bool readDisplayLists, out byte[]? displayLists, CancellationToken cancellation)
     {
         var metadata = new ModelMetadata
         {
@@ -236,7 +436,7 @@ internal static class SolidWorksReader
             Units = LengthUnit.Meter,
             UpAxis = UpAxis.Y,
         };
-        displayLists = c.Read(DisplayLists);
+        displayLists = readDisplayLists ? c.Read(DisplayLists) : null;
 
         ReadCoreProperties(c, metadata);
         ReadApp(c, metadata);
@@ -273,6 +473,7 @@ internal static class SolidWorksReader
         target.PartNames.AddRange(source.PartNames);
         target.LayerNames.AddRange(source.LayerNames);
         target.Sheets.AddRange(source.Sheets);
+        target.DrawingSheets.AddRange(source.DrawingSheets);
         target.Configurations.AddRange(source.Configurations);
         target.Features.AddRange(source.Features);
         target.MaterialNames.AddRange(source.MaterialNames);

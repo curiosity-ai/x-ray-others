@@ -182,6 +182,12 @@ public static class SvgWriter
                 Include(text.Position);
             }
 
+            foreach (var image in _model.Images)
+            {
+                Include(image.Position);
+                Include(image.Position + new Vector3(image.Width, image.Height, 0));
+            }
+
             if (minX > maxX)
             {
                 return (0, 1, 0, 1, 1, 1);
@@ -272,7 +278,8 @@ public static class SvgWriter
             var fills = _model.Fills.Where(f => f.Layer == layer).ToList();
             var texts = _model.Texts.Where(t => t.Layer == layer).ToList();
             var nodes = _placed.Where(p => p.Node.Layer == layer).ToList();
-            if (fills.Count == 0 && texts.Count == 0 && nodes.Count == 0)
+            var images = _model.Images.Where(i => i.Layer == layer).ToList();
+            if (fills.Count == 0 && texts.Count == 0 && nodes.Count == 0 && images.Count == 0)
             {
                 return;
             }
@@ -286,6 +293,24 @@ public static class SvgWriter
                 {
                     _w.WriteAttributeString("display", "none");
                 }
+            }
+
+            foreach (var image in images)
+            {
+                // Y is flipped like everything else: the rectangle's top edge is at -(y + height).
+                _w.WriteStartElement("image", Ns);
+                _w.WriteAttributeString("x", N(image.Position.X));
+                _w.WriteAttributeString("y", N(-(image.Position.Y + image.Height)));
+                _w.WriteAttributeString("width", N(image.Width));
+                _w.WriteAttributeString("height", N(image.Height));
+                _w.WriteAttributeString("preserveAspectRatio", "none");
+                _w.WriteAttributeString("href", "data:" + image.MediaType + ";base64," + Convert.ToBase64String(image.Data));
+                if (!string.IsNullOrEmpty(image.Name))
+                {
+                    _w.WriteAttributeString("data-name", Clean(image.Name));
+                }
+
+                _w.WriteEndElement();
             }
 
             foreach (var fill in fills)

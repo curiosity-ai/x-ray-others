@@ -266,7 +266,7 @@ public static class ModelLoader
 
     private static Model3D Dispatch(FormatInfo format, ReadOnlyMemory<byte> data, LoadOptions options) => format.Id switch
     {
-        "solidworks" => SolidWorksReader.Read(data, options.Cancellation),
+        "solidworks" => SolidWorksReader.Read(data, options),
         "stl" => StlReader.Read(data, options),
         "obj" => ObjReader.Read(data, options),
         "ply" => PlyReader.Read(data, options),

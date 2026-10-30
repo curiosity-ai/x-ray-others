@@ -19,11 +19,11 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 ## Next: finish SolidWorks
 
 - [x] Per-face colours and materials (colour is stateful: a face takes the latest appearance record before it; matches the reference reader on every face)
-- [ ] 2024+ saves: the `FaceTessellations/` store when `DisplayLists` is absent
-- [ ] Compound-file envelope (SolidWorks 2014 and before; `__ZLB` zlib streams): a small CFB reader. Needs a fixture
-- [ ] Drawings: extract `Images/Sheet_*` (and `Preview` DIB to PNG with the letterbox trim)
-- [ ] Assemblies with external components: accept the part files as companions and merge them under the instance transforms
-- [ ] A metadata-only path that does not inflate `DisplayLists` (range-read the entry table first)
+- [ ] 2024+ saves: the `FaceTessellations/` store when `DisplayLists` is absent. **Blocked**: no 2024+ file is in the dataset or obtainable under a redistributable licence, and the stream's layout is not documented in `docs/` (the reference reader's wasm is not in this repository); guessing a binary layout without a fixture would be unverifiable
+- [ ] Compound-file envelope (SolidWorks 2014 and before; `__ZLB` zlib streams): a small CFB reader. **Blocked**: needs a pre-2015 fixture, and none is in the dataset or obtainable under a redistributable licence
+- [x] Drawings: `Images/Sheet_*` and the `Preview` DIB (8/24/32 bit, RLE8) to PNG with the letterbox trimmed; sheets are `ModelImage`s at the paper size read from the sheet record, `Metadata.DrawingSheets`, SVG output with the sheet embedded as a data URI. Open: the drawing's vector views and dimensions
+- [x] Assemblies with external components: `LoadOptions.ResolveCompanion` supplies the part files (by the name the assembly lists), merged once per file and shared by every instance under its transform; nested assemblies to three levels. Open: transforms for assemblies whose display lists carry no instance records at all (they live in a stream not yet decoded), suppressed components
+- [x] A metadata-only path that does not inflate `DisplayLists`: `SwContainer.TryOpen(verify: false)` reads headers and rejects decoys by overrun, streams are CRC-checked when read; `ReadMetadata` reports geometry presence without counts
 
 ## Next: more formats, in order of value / effort (see `docs/research/formats.md` for the viewer's approach)
 
@@ -64,7 +64,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 
 - [x] `Model3D.Is2D`, text and filled-area primitives, DXF TEXT/MTEXT/ATTRIB/SOLID/solid HATCH, `SvgWriter` and `ModelLoader.ConvertToSvg` (layers, strokes, text, fills, `<use>` for shared meshes, metadata), checked against ezdxf for text and fills
 - [ ] DXF blocks as shared meshes (they are expanded per insert, so DXF output has no `<use>` yet), line weights, line types, hatch patterns and gradients, text styles and fonts, dimension geometry as text, paper-space layouts
-- [ ] SolidWorks drawing sheets as vector content (flagged `Is2D`, no geometry extracted yet)
+- [ ] SolidWorks drawing sheets as vector content (views, dimensions; the sheets are rasters for now)
 
 ## Housekeeping
 

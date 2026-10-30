@@ -32,10 +32,13 @@ public sealed class Model3D
     /// <summary>Filled areas (solid hatches, SOLID entities) of a drawing, in world space.</summary>
     public List<ModelFill> Fills { get; } = new();
 
+    /// <summary>Raster images placed in the drawing's plane (the sheets of a drawing saved without vector content), drawn behind everything else.</summary>
+    public List<ModelImage> Images { get; } = new();
+
     /// <summary>Sets <see cref="Is2D"/> when there is something to draw and none of it leaves the XY plane; returns the result.</summary>
     public bool DetectIs2D()
     {
-        var any = Texts.Count > 0 || Fills.Count > 0 || Meshes.Any(m => m.VertexCount > 0);
+        var any = Texts.Count > 0 || Fills.Count > 0 || Images.Count > 0 || Meshes.Any(m => m.VertexCount > 0);
         var box = ComputeBounds();
         var flat = box is not { } b || b.Size.Z <= 1e-6f * Math.Max(Math.Max(b.Size.X, b.Size.Y), 1e-9f);
         foreach (var fill in Fills)
@@ -374,6 +377,25 @@ public sealed class ModelFill
     public int Layer { get; set; } = -1;
 
     public int Rgb { get; set; } = -1;
+}
+
+/// <summary>A raster image in a drawing: PNG, JPEG or WebP bytes filling the rectangle from <see cref="Position"/> (its lower left corner) by <see cref="Width"/> and <see cref="Height"/>, in model units.</summary>
+public sealed class ModelImage
+{
+    public string? Name { get; set; }
+
+    public string MediaType { get; set; } = "image/png";
+
+    public byte[] Data { get; set; } = [];
+
+    public Vector3 Position { get; set; }
+
+    public float Width { get; set; } = 1;
+
+    public float Height { get; set; } = 1;
+
+    /// <summary>Index into <see cref="Model3D.Layers"/>, or -1.</summary>
+    public int Layer { get; set; } = -1;
 }
 
 public sealed record PreviewImage(string MediaType, byte[] Data);

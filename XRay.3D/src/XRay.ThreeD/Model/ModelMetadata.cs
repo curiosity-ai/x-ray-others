@@ -40,6 +40,9 @@ public sealed class ModelMetadata
     /// <summary>Drawing sheet names, for formats that have sheets.</summary>
     public List<string> Sheets { get; } = new();
 
+    /// <summary>Drawing sheets with their paper size in meters, when the file states it (parallel to <see cref="Sheets"/> where both are known).</summary>
+    public List<DrawingSheet> DrawingSheets { get; } = new();
+
     /// <summary>Configuration / variant names.</summary>
     public List<string> Configurations { get; } = new();
 
@@ -144,3 +147,6 @@ public static class LengthUnitExtensions
         _ => 1,
     };
 }
+
+/// <summary>A drawing sheet: its name and paper size in meters (width is the horizontal side as the sheet is shown).</summary>
+public sealed record DrawingSheet(string Name, double WidthMeters, double HeightMeters);

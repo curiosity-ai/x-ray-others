@@ -88,4 +88,18 @@ The sample assembly decodes to 1131 stored faces / 110,035 vertices in 8 meshes,
   material coefficients), but the face-to-material link is not understood yet. Meshes are written without colours.
 * **2024+ saves** keep the mesh in a `FaceTessellations/` store instead of `DisplayLists`.
 * **The compound-file envelope** (SolidWorks 2014 and before).
-* Drawings: only metadata and sheet names. The sheet image (`Images/Sheet_0`) is not extracted yet.
+* Drawings: the vector content is not decoded.
+
+## Drawings
+
+`Images/Sheet_n` is a PNG of sheet n; `Preview` is `u32 length` + a DIB (BITMAPINFOHEADER, palette, 8-bit RLE8 pixels) of the active sheet at higher
+resolution, centred on white bars that the reader trims. A sheet record (in `Contents/Definition` and in `Contents/DisplayLists`) holds the paper
+size as two f64 in meters (22 by 17 inches reads `0.4318, 0.5588`) directly before the serialised string of the sheet format's name; which is the
+width is taken from the sheet image's orientation. The reader places the sheets side by side in the drawing plane as raster images, one layer each.
+
+## Metadata only, and external components
+
+`SwContainer.TryOpen(verify: false)` lists entries from their headers alone. A decoy claims more data than it has, so it swallows the next entry's
+header; a real entry's bytes never contain one (checked equal to the CRC-verified listing on every dataset file). A stream's CRC is checked when it is read.
+An assembly saved with external components still has the instance records (name and placement) in `DisplayLists` but no faces after them; those become
+`Unplaced` instances, and each is filled from the component file the assembly names, supplied through `LoadOptions.ResolveCompanion`.

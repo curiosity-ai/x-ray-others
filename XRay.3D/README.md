@@ -30,7 +30,7 @@ A command line tool lives in `tools/XRay.ThreeD.Cli`: `xray3d info <file> [--jso
 
 | Format | Extensions | Metadata | Geometry |
 |---|---|---|---|
-| SolidWorks 2015+ | `.sldprt` `.sldasm` `.slddrw` | document and custom properties, configurations, features, part names, component files, preview | the display mesh SolidWorks saved, assemblies as instances placed by their transforms |
+| SolidWorks 2015+ | `.sldprt` `.sldasm` `.slddrw` | document and custom properties, configurations, features, part names, component files, preview | the display mesh SolidWorks saved, assemblies as instances placed by their transforms (external component files through `LoadOptions.ResolveCompanion`), drawings as their sheet images at paper size (SVG output); `ReadMetadata` does not inflate the display lists |
 | STL | `.stl` (binary, ASCII) | solid name | welded triangles |
 | Wavefront OBJ | `.obj` | objects, material names, `mtllib` | objects as nodes, material groups, normals, texture coordinates; with companions the MTL's `map_Kd` image (options `-s`, `-o`, `-clamp`; BMP and TGA converted to PNG) |
 | PLY | `.ply` (ASCII, binary LE/BE) | comments | triangles, vertex colours, normals; no faces = point cloud |
