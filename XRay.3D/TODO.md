@@ -72,3 +72,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 - [ ] Verify the licences of anything that gets ported from a third party (the research notes flag laz-perf as unverified; the LAZ decoder is not a port of it, it was written from the public LASzip description and verified against lazrs output)
 - [x] Benchmarks (large assemblies): `BenchmarkTests`, skipped unless `XRAY_3D_BENCH` is set (`docs/benchmarks.md`). Allocation pass on the Part 21 tokenizer, STEP tessellator, DXF reader, meshopt codecs and SolidWorks display-list ordering, with per-loop cancellation in the meshopt encoder and decoder. Open: STEP surface tessellation still allocates about 130 bytes per input byte; the SolidWorks display-list decode already works on spans and was left as is
 - [ ] Fuzz target in the style of `XRay.Psd/fuzz`
+
+## Dataset formats added in the second pass
+
+- [x] B3D: the Blitz3D chunk format (TEXS, BRUS, NODE, MESH, VRTS, TRIS) with brushes, normals, vertex colours, UV set 0 and the node tree, checked against an independent chunk walk (node, vertex, triangle and brush counts of both Blitz3D samples). Open: bones and weights, animation keys, UV sets above 0, the rotation sign convention of the quaternion (assumed standard, then mirrored). The two Bazis samples are a different, proprietary container (`BZ85`, zlib streams): identified, title read, geometry not decoded

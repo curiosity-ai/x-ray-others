@@ -56,6 +56,8 @@ public static class ModelFormats
 
     public static FormatInfo Sh3d { get; } = new("sh3d", "Sweet Home 3D", "bim", [".sh3d"], FormatSupport.Full);
 
+    public static FormatInfo B3d { get; } = new("b3d", "Blitz3D model (and the Bazis container)", "scene", [".b3d"], FormatSupport.Full);
+
     public static FormatInfo Dxf { get; } = new("dxf", "AutoCAD DXF", "cad", [".dxf"], FormatSupport.Full);
 
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
@@ -82,7 +84,6 @@ public static class ModelFormats
         new("archicad", "Archicad", "bim", [".pln", ".pla", ".gsm"], FormatSupport.Identified),
         new("e57", "ASTM E57", "pointcloud", [".e57"], FormatSupport.Identified),
         new("dwf", "Autodesk DWF", "cad", [".dwf", ".dwfx"], FormatSupport.Identified),
-        new("b3d", "Blitz3D / Bazis", "scene", [".b3d"], FormatSupport.Identified),
         new("unity", "Unity package", "scene", [".unitypackage"], FormatSupport.Identified),
         new("unreal", "Unreal asset", "scene", [".uasset", ".umap"], FormatSupport.Identified),
     ];
@@ -90,7 +91,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -164,6 +165,11 @@ public static class ModelFormats
         if (StartsWith(head, "Kaydara FBX Binary") || (head.Length > 0 && head[0] == ';' && Contains(head, "FBX", "")))
         {
             return Fbx;
+        }
+
+        if (Formats.Mesh.B3dReader.IsBlitz(head) || Formats.Mesh.B3dReader.IsBazis(head))
+        {
+            return B3d;
         }
 
         if (StartsWith(head, "3D Geometry File Format"))

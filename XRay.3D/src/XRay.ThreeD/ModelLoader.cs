@@ -356,6 +356,7 @@ public static class ModelLoader
         "sh3d" => Formats.Bim.Sh3dReader.Read(data, options),
         "x3d" => X3dReader.ReadXml(data, options),
         "vrml" => X3dReader.ReadVrml(data, options),
+        "b3d" => B3dReader.Read(data, options),
         "off" => OffReader.Read(data, options),
         "amf" => AmfReader.Read(data, options),
         "las" or "laz" => Formats.PointCloud.LasReader.Read(data, options),

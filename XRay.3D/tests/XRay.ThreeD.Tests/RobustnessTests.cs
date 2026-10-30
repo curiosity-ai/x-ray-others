@@ -67,6 +67,9 @@ public class RobustnessTests
         "synthetic/print.gcode",
         "synthetic/profile.nc",
         "fcstd/butt-hinge.FCStd",
+        "b3d/blitz3d-arcade-cabinet.b3d",
+        "b3d/blitz3d-swaying-tentacle.b3d",
+        "b3d/bazis-wall-cabinet.b3d",
     ];
 
     public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });
