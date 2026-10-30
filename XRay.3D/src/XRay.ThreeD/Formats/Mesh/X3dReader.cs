@@ -1159,7 +1159,7 @@ internal static class X3dReader
                 {
                     var a = (uint)(r * (Segments + 1) + s);
                     var b = a + Segments + 1;
-                    i.AddRange([a, a + 1, b, a + 1, b + 1, b]);
+                    i.AddRange([a, b, a + 1, a + 1, b, b + 1]);
                 }
             }
 

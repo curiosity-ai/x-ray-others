@@ -2653,5 +2653,293 @@
   "source": "tools/fixtures/make_blend_units.py",
   "bytes": 142824,
   "sha256": "a6f664b623c3dea016af725a76297c12ed6df939f85f680029f47d1bf08bd2be"
+ },
+ {
+  "file": "synthetic/cloud-ascii.pcd",
+  "format": "pcd",
+  "title": "Hand-made fixture: ASCII PCD point cloud with colour (100 points)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 4458,
+  "sha256": "c4f47537d68533d381cbfa4e249406f8fd1dc5eed55bef1ede2897490bfff1d8"
+ },
+ {
+  "file": "synthetic/cloud-binary.pcd",
+  "format": "pcd",
+  "title": "Hand-made fixture: Binary PCD point cloud with colour (100 points)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 1778,
+  "sha256": "29cb4736ac61fd89180a00bea3905c7d2f961701dfe28dc2461f17a22cc57a9e"
+ },
+ {
+  "file": "synthetic/cloud-compressed.pcd",
+  "format": "pcd",
+  "title": "Hand-made fixture: binary_compressed PCD point cloud with colour (LZF, 100 points)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 1831,
+  "sha256": "369e4c6b8ad24170cb5db8263cee05669baf905188721b075d1df3e02892ea4a"
+ },
+ {
+  "file": "synthetic/cloud-f0.las",
+  "format": "las",
+  "title": "Hand-made fixture: LAS 1.2 point cloud, point format 0, written with laspy",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 4297,
+  "sha256": "53014e3852d69813ab3f6669158ac0ca758aba6ad7f35ce17063c7c2795495f7"
+ },
+ {
+  "file": "synthetic/cloud-f3.las",
+  "format": "las",
+  "title": "Hand-made fixture: LAS 1.2 point cloud, point format 3 (colour, GPS time), written with laspy",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 7097,
+  "sha256": "bb6bec14f931abe1caeed2ccc80868ada52fc7c3cc868af84f8e3c97a7aa2f61"
+ },
+ {
+  "file": "synthetic/cloud.pts",
+  "format": "pts",
+  "title": "Hand-made fixture: PTS point cloud with intensity and colour (100 points)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 3664,
+  "sha256": "4ea98ccd4d6e58b1ac401a31e54bd950c550fd4a3c6d11fffacf47c90093ffec"
+ },
+ {
+  "file": "synthetic/cloud.xyz",
+  "format": "xyz",
+  "title": "Hand-made fixture: XYZ point cloud with colour (100 points)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 3274,
+  "sha256": "364d32a65a7e1fd0b2348e7c9166eb2e84efff60879390fe323a2e6f883b44b8"
+ },
+ {
+  "file": "synthetic/cube-colored.off",
+  "format": "off",
+  "title": "Hand-made fixture: OFF unit cube with vertex colours",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 258,
+  "sha256": "89405dd623d5bd3a6cd890263c14c4c9340c769bfc6ebea8b16bc819859cd76a"
+ },
+ {
+  "file": "synthetic/cube-facecolors.off",
+  "format": "off",
+  "title": "Hand-made fixture: OFF unit cube with face colours",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 319,
+  "sha256": "84a714f862ea138e2cacdc705548139c42084d30aee479964c22911dc13e1577"
+ },
+ {
+  "file": "synthetic/cube-zipped.amf",
+  "format": "amf",
+  "title": "Hand-made fixture: Zip-compressed AMF unit cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 577,
+  "sha256": "907773a7831576ec5c1ae19d72d00f108e7e4c2b9e279c69f783f24d3ab73765"
+ },
+ {
+  "file": "synthetic/cube.amf",
+  "format": "amf",
+  "title": "Hand-made fixture: AMF unit cube (XML)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 1970,
+  "sha256": "396917961c496904578c07d4515df413ade7dcc02835137b254ebada570297ca"
+ },
+ {
+  "file": "synthetic/cube.off",
+  "format": "off",
+  "title": "Hand-made fixture: OFF unit cube",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 119,
+  "sha256": "bc65695bd8dd3dc7d51d9badadcdd6fcb79f0f2e06a561665c639a503bd6e701"
+ },
+ {
+  "file": "synthetic/entities.dxf",
+  "format": "dxf",
+  "title": "Hand-made fixture: DXF with layers, a block with an array insert, bulge arc, circle, arc, 3D face, polyface, MESH, spline and text",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 1623,
+  "sha256": "4d132b1a4da5d37a9b79a42e21b29c333eaee0a9f83d3df135b90c13c6b2a361"
+ },
+ {
+  "file": "synthetic/scene-7400.fbx",
+  "format": "fbx",
+  "title": "Hand-made fixture: Binary FBX 7.4 scene (32-bit headers, deflated arrays)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 3135,
+  "sha256": "9ca841fccb74837fff798af23c4895570120bca7a88d44a6e048a95babf1b45d"
+ },
+ {
+  "file": "synthetic/scene-7700.fbx",
+  "format": "fbx",
+  "title": "Hand-made fixture: Binary FBX 7.7 scene (64-bit headers)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 4107,
+  "sha256": "b74a655211e280181c1375b06d3a2b58408e761da10ea4582c09528e7b587900"
+ },
+ {
+  "file": "synthetic/scene-ascii.fbx",
+  "format": "fbx",
+  "title": "Hand-made fixture: ASCII FBX 7.4 scene",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 2264,
+  "sha256": "df70cda51ee9dc1f00254d397066cc34b76df36446a088d02d9ab4941196bcca"
+ },
+ {
+  "file": "synthetic/scene.3ds",
+  "format": "3ds",
+  "title": "Hand-made fixture: 3D Studio scene (a cube and a pyramid)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 541,
+  "sha256": "8c033b080b25d1acb2ff5000a3e809b9a5ef3f743ab04bf41d84fdc65b0e895e"
+ },
+ {
+  "file": "synthetic/scene.dae",
+  "format": "dae",
+  "title": "Hand-made fixture: COLLADA scene (a cube and a pyramid)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 3226,
+  "sha256": "0e27b0e9c78c4f4ab946570d529ad2ab9faeb7dd400e5f3476d22fd2fb72a28a"
+ },
+ {
+  "file": "synthetic/scene.wrl",
+  "format": "wrl",
+  "title": "Hand-made fixture: VRML 2.0 scene (DEF/USE, transforms, Box, line set)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 764,
+  "sha256": "cf37b3bbeea1a17b7a2ac984a30b9eac5d90269bd4e6f9f3b8bf61292070a99b"
+ },
+ {
+  "file": "synthetic/scene.x3d",
+  "format": "x3d",
+  "title": "Hand-made fixture: X3D XML-encoding scene (a cube and a pyramid)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 987,
+  "sha256": "86e2dfd434d0ac6e50e50e2c368489bc97aeeb1f2833f8e1f94efc3e1b958232"
+ },
+ {
+  "file": "synthetic/scene.x3dv",
+  "format": "x3d",
+  "title": "Hand-made fixture: X3D classic (VRML) encoding scene (a cube and a pyramid)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_fixtures.py; regenerate with python3 -I tools/fixtures/make_fixtures.py dataset/synthetic",
+  "bytes": 819,
+  "sha256": "c8a6603b07ea4efe467ea807cc341070cbb754cce06c65ace351c611d3d6fdcc"
+ },
+ {
+  "file": "synthetic/model.rvt",
+  "format": "cfb",
+  "title": "Hand-made fixture: Revit-shaped OLE compound file: BasicFileInfo and a preview stream, checked with olefile",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_cfb_fixtures.py; regenerate with python3 tools/fixtures/make_cfb_fixtures.py dataset/synthetic <golden.json>",
+  "bytes": 8704,
+  "sha256": "22a60f9698ded222f801dcec10af2c407c799c265b634f43bbe6f3aa84751e32"
+ },
+ {
+  "file": "synthetic/part.ipt",
+  "format": "cfb",
+  "title": "Hand-made fixture: Inventor-shaped OLE compound file: summary information with a thumbnail, checked with olefile",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_cfb_fixtures.py; regenerate with python3 tools/fixtures/make_cfb_fixtures.py dataset/synthetic <golden.json>",
+  "bytes": 12800,
+  "sha256": "1b3a62876f2a74a336847ac2a721312b294eed0194ee85e853432d18795d16b6"
+ },
+ {
+  "file": "synthetic/scene.usda",
+  "format": "usd",
+  "title": "Hand-made fixture: USD ASCII scene written with Pixar USD (usd-core)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_fixtures.py; regenerate with python3 tools/fixtures/make_usd_fixtures.py dataset/synthetic <golden.json>",
+  "bytes": 2794,
+  "sha256": "4d46fe71403874464b48005d332625f14a47a3abf07d0b8bc6ceb46019a896f4"
+ },
+ {
+  "file": "synthetic/scene.usdc",
+  "format": "usd",
+  "title": "Hand-made fixture: USD crate scene written with Pixar USD (usd-core)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_fixtures.py; regenerate with python3 tools/fixtures/make_usd_fixtures.py dataset/synthetic <golden.json>",
+  "bytes": 2766,
+  "sha256": "713dca03fbf9503f5cfa94bfabbf665690cd9079c855428d79425f133d39cd4c"
+ },
+ {
+  "file": "synthetic/scene.usdz",
+  "format": "usd",
+  "title": "Hand-made fixture: USDZ package of scene.usda written with Pixar USD (usd-core)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usd_fixtures.py; regenerate with python3 tools/fixtures/make_usd_fixtures.py dataset/synthetic <golden.json>",
+  "bytes": 2960,
+  "sha256": "c0b6cda17723db4ee48bc37d061c80562b202445bcff0f69175123de64881f09"
+ },
+ {
+  "file": "synthetic/rich.usdc",
+  "format": "usd",
+  "title": "Hand-made fixture: USD crate with large meshes (compressed integer and float arrays), written with Pixar USD",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usdc_fixtures.py; regenerate with python3 tools/fixtures/make_usdc_fixtures.py dataset/synthetic <golden.json>",
+  "bytes": 9394,
+  "sha256": "8083e179b9507cedd66a2d7dd51290851a257f5fc01d3450de654317b4d84e00"
+ },
+ {
+  "file": "synthetic/rich.usdz",
+  "format": "usd",
+  "title": "Hand-made fixture: USDZ whose root layer is a crate (rich.usdc), written with Pixar USD",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_usdc_fixtures.py; regenerate with python3 tools/fixtures/make_usdc_fixtures.py dataset/synthetic <golden.json>",
+  "bytes": 9560,
+  "sha256": "a8c506e8728f8d372e1fb69468e44a764bb751e7f7db561a1513f0b15129b34b"
+ },
+ {
+  "file": "synthetic/laz-f0.laz",
+  "format": "laz",
+  "title": "Hand-made fixture: LAZ point cloud, point format 0, 1500 points in 400-point chunks, written with laspy and lazrs",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_laz_fixtures.py; regenerate with python3 tools/fixtures/make_laz_fixtures.py dataset/synthetic <golden.json>",
+  "bytes": 16900,
+  "sha256": "ab0c68b162e2c52cd5511054c6701ef4dcbb489b620d82e93dacc5dda1f52d17"
+ },
+ {
+  "file": "synthetic/laz-f1.laz",
+  "format": "laz",
+  "title": "Hand-made fixture: LAZ point cloud, point format 1, 1500 points in 400-point chunks, written with laspy and lazrs",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_laz_fixtures.py; regenerate with python3 tools/fixtures/make_laz_fixtures.py dataset/synthetic <golden.json>",
+  "bytes": 23416,
+  "sha256": "84424bdafaa0ae0520ef9a0f4bf59164a60df8973ff7bf46d2534f6d96e16d58"
+ },
+ {
+  "file": "synthetic/laz-f2.laz",
+  "format": "laz",
+  "title": "Hand-made fixture: LAZ point cloud, point format 2, 1500 points in 400-point chunks, written with laspy and lazrs",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_laz_fixtures.py; regenerate with python3 tools/fixtures/make_laz_fixtures.py dataset/synthetic <golden.json>",
+  "bytes": 22800,
+  "sha256": "10c9031b66cacedc1dea4ff6f69f60fda4ea9aa266f1302ff6f892909a31fdb5"
+ },
+ {
+  "file": "synthetic/laz-f3.laz",
+  "format": "laz",
+  "title": "Hand-made fixture: LAZ point cloud, point format 3 with extra bytes, 1500 points in 400-point chunks, written with laspy and lazrs",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_laz_fixtures.py; regenerate with python3 tools/fixtures/make_laz_fixtures.py dataset/synthetic <golden.json>",
+  "bytes": 31934,
+  "sha256": "0194c9f6f3797a39acc2d83a39c5b1a34690b62960d719b5dcc4ea75a3455407"
  }
 ]
