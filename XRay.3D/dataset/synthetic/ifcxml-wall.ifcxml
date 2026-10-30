@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ifc:ifcXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ifc="http://www.buildingsmart-tech.org/ifcXML/IFC4/Add2" xmlns="http://www.buildingsmart-tech.org/ifcXML/IFC4/Add2">
+ <IfcProject GlobalId="0xScRe4drECQ4DMSqUjd6d" Name="Wall project" Description="Hand-written ifcXML">
+  <IsDecomposedBy>
+   <IfcRelAggregates GlobalId="2YBqaV_8L15eWJ9DA1sGmT">
+    <RelatedObjects>
+     <IfcSite GlobalId="1cwlDi_hLEvPsClAelBNnz" Name="Site" CompositionType="element">
+      <IsDecomposedBy>
+       <IfcRelAggregates GlobalId="16zMrDm_P2fv4w8_JewkSy">
+        <RelatedObjects>
+         <IfcBuilding GlobalId="2FCZDorxHDT8NI01kdXi8P" Name="Building" CompositionType="element">
+          <ObjectPlacement xsi:type="IfcLocalPlacement" id="i2">
+           <RelativePlacement>
+            <IfcAxis2Placement3D>
+             <Location id="i3" Coordinates="0 0 0" />
+            </IfcAxis2Placement3D>
+           </RelativePlacement>
+          </ObjectPlacement>
+          <ContainsElements>
+           <IfcRelContainedInSpatialStructure GlobalId="2TnxZkTXT08eDuMuhUUFNy" Name="Physical model">
+            <RelatedElements>
+             <IfcWall GlobalId="3vB2YO$MX4xv5uCqZZG05x" Name="Wall A" ObjectType="Wall" PredefinedType="standard">
+              <ObjectPlacement xsi:type="IfcLocalPlacement">
+               <PlacementRelTo xsi:type="IfcLocalPlacement" xsi:nil="true" href="i2" />
+               <RelativePlacement>
+                <IfcAxis2Placement3D>
+                 <Location Coordinates="2000 500 0" />
+                 <Axis DirectionRatios="0 0 1" />
+                 <RefDirection DirectionRatios="1 0 0" />
+                </IfcAxis2Placement3D>
+               </RelativePlacement>
+              </ObjectPlacement>
+              <Representation xsi:type="IfcProductDefinitionShape">
+               <Representations>
+                <IfcShapeRepresentation RepresentationIdentifier="Body" RepresentationType="SweptSolid">
+                 <ContextOfItems xsi:type="IfcGeometricRepresentationSubContext" id="i4" ContextIdentifier="Body" ContextType="Model" CoordinateSpaceDimension="0" TargetView="model_view" />
+                 <Items>
+                  <IfcExtrudedAreaSolid Depth="2800">
+                   <SweptArea xsi:type="IfcRectangleProfileDef" ProfileType="area" ProfileName="Wall section" XDim="4000" YDim="200">
+                    <Position>
+                     <Location Coordinates="2000 100" />
+                    </Position>
+                   </SweptArea>
+                   <Position>
+                    <Location Coordinates="0 0 0" />
+                   </Position>
+                   <ExtrudedDirection DirectionRatios="0 0 1" />
+                  </IfcExtrudedAreaSolid>
+                 </Items>
+                </IfcShapeRepresentation>
+               </Representations>
+              </Representation>
+              <IsDefinedBy>
+               <IfcRelDefinesByProperties GlobalId="1d1vYzXq9Fj9XkqkvRQ8dE">
+                <RelatingPropertyDefinition>
+                 <IfcPropertySet GlobalId="3nMqHLyZHAegWs5Yyxh1ry" Name="Pset_WallCommon">
+                  <HasProperties>
+                   <IfcPropertySingleValue Name="FireRating">
+                    <NominalValue>
+                     <IfcLabel-wrapper>EI60</IfcLabel-wrapper>
+                    </NominalValue>
+                   </IfcPropertySingleValue>
+                   <IfcPropertySingleValue Name="IsExternal">
+                    <NominalValue>
+                     <IfcBoolean-wrapper>true</IfcBoolean-wrapper>
+                    </NominalValue>
+                   </IfcPropertySingleValue>
+                  </HasProperties>
+                 </IfcPropertySet>
+                </RelatingPropertyDefinition>
+               </IfcRelDefinesByProperties>
+              </IsDefinedBy>
+             </IfcWall>
+            </RelatedElements>
+           </IfcRelContainedInSpatialStructure>
+          </ContainsElements>
+         </IfcBuilding>
+        </RelatedObjects>
+       </IfcRelAggregates>
+      </IsDecomposedBy>
+     </IfcSite>
+    </RelatedObjects>
+   </IfcRelAggregates>
+  </IsDecomposedBy>
+  <RepresentationContexts>
+   <IfcGeometricRepresentationContext ContextType="Model" CoordinateSpaceDimension="3" Precision="1E-05">
+    <WorldCoordinateSystem>
+     <IfcAxis2Placement3D>
+      <Location xsi:nil="true" href="i3" />
+     </IfcAxis2Placement3D>
+    </WorldCoordinateSystem>
+    <HasSubContexts>
+     <IfcGeometricRepresentationSubContext xsi:nil="true" href="i4" />
+    </HasSubContexts>
+   </IfcGeometricRepresentationContext>
+  </RepresentationContexts>
+  <UnitsInContext>
+   <Units>
+    <IfcSIUnit UnitType="lengthunit" Prefix="milli" Name="metre" />
+   </Units>
+  </UnitsInContext>
+ </IfcProject>
+</ifc:ifcXML>
