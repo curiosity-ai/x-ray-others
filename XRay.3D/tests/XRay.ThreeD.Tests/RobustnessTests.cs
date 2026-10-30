@@ -86,13 +86,13 @@ public class RobustnessTests
         "unitypackage/opengameart-key-collection.unitypackage",
         "psu/astronaut.psu",
         "rlf/scallop-shell.rlf",
+        "uasset/Faucet.uasset",
+        "uasset/DoorCloser.uasset",
     ];
 
     public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });
 
     private static void MustFailCleanly(byte[] data, string name)
-        "uasset/Faucet.uasset",
-        "uasset/DoorCloser.uasset",
     {
         try
         {
