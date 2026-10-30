@@ -5,6 +5,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.Mesh;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>
 /// Universal Scene Description in its text form (.usda) and USDZ packages that hold one: the prim hierarchy with transform ops
 /// (translate, rotateXYZ and the other Euler orders, scale, orient, transform) in xformOpOrder, Mesh prims (points, face counts and

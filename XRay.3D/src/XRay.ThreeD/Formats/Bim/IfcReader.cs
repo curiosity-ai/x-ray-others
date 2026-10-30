@@ -27,7 +27,7 @@ internal static class IfcReader
             using var zip = ZipEntries.Open(data);
             var entry = zip.Entries.FirstOrDefault(e => e.FullName.EndsWith(".ifc", StringComparison.OrdinalIgnoreCase))
                 ?? throw new ModelFormatException("The zipped IFC has no .ifc entry.");
-            data = ZipEntries.Read(entry, options.MaxInputBytes);
+            data = ZipEntries.Read(entry, options.MaxInputBytes, options.Cancellation);
         }
 
         return StepFile.Parse(Encoding.Latin1.GetString(data.Span), options);
@@ -435,8 +435,10 @@ internal static class IfcReader
             stack.Push((project.Id, null, -1));
             var count = 0;
             var queuedOrphans = false;
+            var tick438 = 0L;
             while (true)
             {
+                Cancel.Every(_options.Cancellation, tick438++);
                 if (stack.Count == 0)
                 {
                     if (queuedOrphans || orphans.Count == 0)
@@ -604,7 +606,7 @@ internal static class IfcReader
                 bodies = reps.Where(r => !SkippedRepresentations.Contains(r.Arg(1).Str, StringComparer.OrdinalIgnoreCase)).ToList();
             }
 
-            var acc = new MeshAccumulator(Math.Max(1, _options.MaxTriangles - _triangles));
+            var acc = new MeshAccumulator(Math.Max(1, _options.MaxTriangles - _triangles)) { Cancel = _options.Cancellation };
             _geo.Runs.Clear();
             var attempted = 0;
             var failed = new List<string>();

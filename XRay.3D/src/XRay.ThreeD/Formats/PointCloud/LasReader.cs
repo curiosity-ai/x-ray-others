@@ -4,6 +4,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.PointCloud;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>
 /// ASPRS LAS 1.0 to 1.4, point formats 0 to 10: scaled and offset coordinates, RGB when the format carries it (else a height ramp),
 /// header metadata (version, software, date, bounds, point count) and the coordinate reference system from the GeoTIFF keys or
@@ -90,8 +92,10 @@ internal static class LasReader
         var colors = hasRgb ? new float[kept * 4] : null;
         var sixteenBitColours = false;
         var o = 0;
+        var tick93 = 0L;
         for (long i = 0; i < count; i += stride)
         {
+            Cancel.Every(options.Cancellation, tick93++);
             var record = s.Slice((int)(pointOffset + i * recordLength), recordLength);
             xyz[3 * o] = BinaryPrimitives.ReadInt32LittleEndian(record) * sx + ox;
             xyz[3 * o + 1] = BinaryPrimitives.ReadInt32LittleEndian(record[4..]) * sy + oy;

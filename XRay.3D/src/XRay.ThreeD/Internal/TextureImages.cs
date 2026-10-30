@@ -12,7 +12,7 @@ internal static class TextureImages
     private const long MaxPixels = 64L * 1024 * 1024;
 
     /// <summary>The texture for <paramref name="data"/>, or null (with <paramref name="problem"/> saying why) when it is not an image this library can pass on.</summary>
-    public static ModelTexture? Create(string name, byte[] data, out string? problem)
+    public static ModelTexture? Create(string name, byte[] data, out string? problem, CancellationToken cancel = default)
     {
         problem = null;
         var type = Sniff(data);
@@ -23,8 +23,8 @@ internal static class TextureImages
 
         try
         {
-            var png = data.Length >= 2 && data[0] == (byte)'B' && data[1] == (byte)'M' ? FromBmp(data)
-                : LooksLikeTga(data, name) ? FromTga(data)
+            var png = data.Length >= 2 && data[0] == (byte)'B' && data[1] == (byte)'M' ? FromBmp(data, cancel)
+                : LooksLikeTga(data, name) ? FromTga(data, cancel)
                 : null;
             if (png is not null)
             {
@@ -62,7 +62,7 @@ internal static class TextureImages
         return null;
     }
 
-    private static byte[] FromBmp(byte[] d)
+    private static byte[] FromBmp(byte[] d, CancellationToken cancel)
     {
         if (d.Length < 54)
         {
@@ -112,6 +112,7 @@ internal static class TextureImages
         var rgba = new byte[width * height * 4];
         for (var y = 0; y < height; y++)
         {
+            Cancel.Every(cancel, y, 255);
             var row = (int)(dataOffset + stride * (topDown ? y : height - 1 - y));
             for (var x = 0; x < width; x++)
             {
@@ -157,7 +158,7 @@ internal static class TextureImages
             }
         }
 
-        return EncodePng(rgba, width, (int)height);
+        return EncodePng(rgba, width, (int)height, cancel);
     }
 
     private static bool LooksLikeTga(byte[] d, string name)
@@ -176,7 +177,7 @@ internal static class TextureImages
         return name.EndsWith(".tga", StringComparison.OrdinalIgnoreCase) || d[16] is 8 or 24 or 32;
     }
 
-    private static byte[] FromTga(byte[] d)
+    private static byte[] FromTga(byte[] d, CancellationToken cancel)
     {
         var idLength = d[0];
         var mapLength = BinaryPrimitives.ReadUInt16LittleEndian(d.AsSpan(5));
@@ -209,6 +210,7 @@ internal static class TextureImages
             var written = 0;
             while (written < pixels.Length)
             {
+                cancel.ThrowIfCancellationRequested();
                 if (position >= d.Length)
                 {
                     throw new ModelFormatException("The TGA pixel data is truncated.");
@@ -253,6 +255,7 @@ internal static class TextureImages
         var rgba = new byte[(long)width * height * 4];
         for (var y = 0; y < height; y++)
         {
+            Cancel.Every(cancel, y, 255);
             var sourceRow = (topDown ? y : height - 1 - y) * width;
             for (var x = 0; x < width; x++)
             {
@@ -273,7 +276,7 @@ internal static class TextureImages
             }
         }
 
-        return EncodePng(rgba, width, height);
+        return EncodePng(rgba, width, height, cancel);
     }
 
     private static void CheckSize(long width, long height)
@@ -285,7 +288,7 @@ internal static class TextureImages
     }
 
     /// <summary>An 8-bit RGBA PNG (no filtering: the codec only has to be valid, the viewer decodes it once).</summary>
-    internal static byte[] EncodePng(byte[] rgba, int width, int height)
+    internal static byte[] EncodePng(byte[] rgba, int width, int height, CancellationToken cancel = default)
     {
         using var output = new MemoryStream();
         output.Write([0x89, (byte)'P', (byte)'N', (byte)'G', 0x0D, 0x0A, 0x1A, 0x0A]);
@@ -301,6 +304,7 @@ internal static class TextureImages
         {
             for (var y = 0; y < height; y++)
             {
+                Cancel.Every(cancel, y, 255);
                 z.WriteByte(0);
                 z.Write(rgba, y * width * 4, width * 4);
             }

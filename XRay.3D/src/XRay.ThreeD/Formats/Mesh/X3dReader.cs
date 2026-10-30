@@ -6,6 +6,8 @@ using System.Xml.Linq;
 
 namespace XRay.ThreeD.Formats.Mesh;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>
 /// X3D (XML encoding, .x3d) and VRML97 (.wrl, .vrml, .x3dv-like text): both are parsed to one node tree and built by the same code.
 /// Group, Transform (with centre and scale orientation), Switch, LOD, Shape with Material and the geometries IndexedFaceSet

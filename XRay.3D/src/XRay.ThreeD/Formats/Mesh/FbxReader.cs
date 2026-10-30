@@ -6,6 +6,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.Mesh;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>
 /// Autodesk FBX, binary (versions 6100 to 7700, 32 and 64 bit record headers, deflated arrays) and ASCII. Reads the object
 /// graph: Model nodes with local transforms (translation, pre/post rotation, rotation order, scaling), Geometry meshes (polygons,
@@ -122,8 +124,10 @@ internal static class FbxReader
 
         var node = new FbxNode { Name = Encoding.UTF8.GetString(s.Slice(position + headerSize, nameLength)) };
         var cursor = new Cursor { P = propStart };
+        var tick125 = 0L;
         for (long i = 0; i < numProps; i++)
         {
+            Cancel.Every(options.Cancellation, tick125++);
             node.Props.Add(ReadProperty(s, cursor, (int)(propStart + propsLength)));
         }
 

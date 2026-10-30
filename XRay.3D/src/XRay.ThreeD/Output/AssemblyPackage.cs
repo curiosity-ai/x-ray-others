@@ -10,6 +10,9 @@ public sealed class AssemblyPackageOptions
 {
     /// <summary>How each part's GLB is written (compression, edges...). The scene-level normalisation is done by the manifest, not the parts.</summary>
     public GlbWriteOptions Glb { get; set; } = new();
+
+    /// <summary>Checked per part and per node; a cancelled call throws <see cref="OperationCanceledException"/>.</summary>
+    public CancellationToken Cancellation { get; set; }
 }
 
 /// <summary>
@@ -54,7 +57,9 @@ public sealed class AssemblyPackage
             Compression = options.Glb.Compression,
             Edges = options.Glb.Edges,
             EdgeCreaseAngle = options.Glb.EdgeCreaseAngle,
+            Cancellation = options.Cancellation.CanBeCanceled ? options.Cancellation : options.Glb.Cancellation,
         };
+        options.Cancellation.ThrowIfCancellationRequested();
 
         using var stream = new MemoryStream();
         using (var w = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true }))
@@ -75,6 +80,7 @@ public sealed class AssemblyPackage
             w.WriteStartArray("parts");
             for (var i = 0; i < model.Meshes.Count; i++)
             {
+                options.Cancellation.ThrowIfCancellationRequested();
                 var mesh = model.Meshes[i];
                 var id = "p" + i.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 partIds[mesh] = id;
@@ -120,9 +126,11 @@ public sealed class AssemblyPackage
                 index[flat[i]] = i;
             }
 
+            var nodeTick = 0L;
             w.WriteStartArray("nodes");
             foreach (var node in flat)
             {
+                Cancel.Every(options.Cancellation, nodeTick++, 255);
                 w.WriteStartObject();
                 if (!string.IsNullOrEmpty(node.Name))
                 {

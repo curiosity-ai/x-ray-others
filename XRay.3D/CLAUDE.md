@@ -46,6 +46,12 @@ python3 -I XRay.3D/tools/fixtures/make_fixtures.py XRay.3D/dataset/synthetic
   the cancellation token, and let only `ModelFormatException` (and `OperationCanceledException`) escape. Anything a
   reader returns must be writable as glTF: `ModelLoader.Sanitize` repairs non-finite numbers and rejects bad indices.
   New readers get truncation and mutation coverage by adding their fixture to `RobustnessTests.Fixtures`.
+- **Cancellation.** `LoadOptions.Cancellation` (and `GlbWriteOptions.Cancellation`, `AssemblyPackageOptions.Cancellation`) must
+  reach every parser and writer. Any loop whose bound comes from the file (record, chunk and entity tables, per-point, per-face and
+  per-vertex loops, recursion over references, inflate and codec loops, tessellation and triangulation) calls
+  `Cancel.Every(token, i)` (`Internal/Cancel.cs`; every 1024 iterations by default, never every item in a hot loop), and every
+  stage start checks the token. Cancellation surfaces as `OperationCanceledException`, never `ModelFormatException`;
+  `CancellationTests` covers every fixture and a few heavy inputs (stop within seconds).
 - **Conventions.** Transforms are System.Numerics row-vector (`world = local * parent`). `MeshData` holds one welded or
   per-face vertex array and an index array in triangles; `Groups` split indices by material. Units and up axis are
   recorded in metadata, never baked into vertices (the GLB writer adds a root node).

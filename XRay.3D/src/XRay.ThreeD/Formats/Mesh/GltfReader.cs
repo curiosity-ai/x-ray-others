@@ -269,7 +269,7 @@ internal static class GltfReader
                     {
                         // already warned
                     }
-                    else if (TextureImages.Create(imageName ?? $"image {source}", bytes, out var problem) is { } created)
+                    else if (TextureImages.Create(imageName ?? $"image {source}", bytes, out var problem, _options.Cancellation) is { } created)
                     {
                         created.Name = Str(image, "name") ?? created.Name;
                         if (Array(_root, "samplers") is var samplers && texture.TryGetProperty("sampler", out var sampler) && sampler.TryGetInt32(out var si) && si >= 0 && si < samplers.Count)
@@ -949,6 +949,7 @@ internal static class GltfReader
                     throw new ModelFormatException("A meshopt buffer view lies outside its buffer.");
                 }
 
+                _options.Cancellation.ThrowIfCancellationRequested();
                 decoded = Internal.MeshoptDecoder.Decode(
                     Str(extension, "mode") ?? "",
                     Str(extension, "filter"),

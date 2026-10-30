@@ -1,5 +1,7 @@
 namespace XRay.ThreeD.Formats.PointCloud;
 
+using XRay.ThreeD.Internal;
+
 internal static class PointCloudCommon
 {
     /// <summary>
@@ -17,8 +19,10 @@ internal static class PointCloudCommon
         var stride = options.MaxPoints > 0 && count > options.MaxPoints ? (int)Math.Ceiling(count / (double)options.MaxPoints) : 1;
         double[] min = [double.MaxValue, double.MaxValue, double.MaxValue];
         double[] max = [double.MinValue, double.MinValue, double.MinValue];
+        var tick20 = 0L;
         for (var i = 0; i < count; i++)
         {
+            Cancel.Every(options.Cancellation, tick20++);
             for (var a = 0; a < 3; a++)
             {
                 var v = positions[3 * i + a];
@@ -46,8 +50,10 @@ internal static class PointCloudCommon
         }
 
         var o = 0;
+        var tick49 = 0L;
         for (var i = 0; i < count; i += stride)
         {
+            Cancel.Every(options.Cancellation, tick49++);
             for (var a = 0; a < 3; a++)
             {
                 var v = positions[3 * i + a];

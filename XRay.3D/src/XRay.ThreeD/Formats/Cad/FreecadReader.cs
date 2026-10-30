@@ -34,7 +34,7 @@ internal static class FreecadReader
         using var zip = ZipEntries.Open(data);
         var entry = ZipEntries.Find(zip, "Document.xml") ?? throw new ModelFormatException("The FreeCAD file has no Document.xml.");
         var limit = Math.Min(options.MaxInputBytes, 1L << 28);
-        var document = Load(ZipEntries.Read(entry, limit));
+        var document = Load(ZipEntries.Read(entry, limit, options.Cancellation));
         var root = document.Root;
         if (root is null || root.Name.LocalName != "Document")
         {
@@ -417,7 +417,7 @@ internal static class FreecadReader
     {
         try
         {
-            var bytes = ZipEntries.Read(entry, limit);
+            var bytes = ZipEntries.Read(entry, limit, options.Cancellation);
             var format = ModelFormats.Detect(bytes, entry.Name, options.Cancellation);
             if (!EmbeddedMeshFormats.Contains(format.Id))
             {

@@ -134,7 +134,7 @@ internal static class ThreeMfReader
                 {
                     model.Warnings.Add($"The texture part '{path}' is missing from the package.");
                 }
-                else if (TextureImages.Create(path, ZipEntries.Read(entry, options.MaxInputBytes), out var problem) is { } created)
+                else if (TextureImages.Create(path, ZipEntries.Read(entry, options.MaxInputBytes, options.Cancellation), out var problem, options.Cancellation) is { } created)
                 {
                     created.WrapU = Tile((string?)element.Attribute("tilestyleu"));
                     created.WrapV = Tile((string?)element.Attribute("tilestylev"));

@@ -43,6 +43,9 @@ public static class ModelLoader
 {
     public static FormatInfo Detect(ReadOnlyMemory<byte> data, string? fileName = null) => ModelFormats.Detect(data, fileName);
 
+    /// <summary>Like <see cref="Detect(ReadOnlyMemory{byte}, string?)"/>, stopping with <see cref="OperationCanceledException"/> when the options' token is cancelled (archives are opened to look inside).</summary>
+    public static FormatInfo Detect(ReadOnlyMemory<byte> data, string? fileName, LoadOptions options) => ModelFormats.Detect(data, fileName, options.Cancellation);
+
     public static ModelMetadata ReadMetadata(ReadOnlyMemory<byte> data, string? fileName = null, LoadOptions? options = null)
     {
         return Guard(data, fileName, options, (format, d, o) => format.Id switch
@@ -191,8 +194,17 @@ public static class ModelLoader
         Load(File.ReadAllBytes(path), Path.GetFileName(path), options);
 
     /// <summary>Load and write binary glTF in one step.</summary>
-    public static byte[] ConvertToGlb(ReadOnlyMemory<byte> data, string? fileName = null, GlbWriteOptions? glb = null, LoadOptions? options = null) =>
-        GlbWriter.ToArray(Load(data, fileName, options), glb);
+    public static byte[] ConvertToGlb(ReadOnlyMemory<byte> data, string? fileName = null, GlbWriteOptions? glb = null, LoadOptions? options = null)
+    {
+        var model = Load(data, fileName, options);
+        glb = glb?.Clone() ?? new GlbWriteOptions();
+        if (!glb.Cancellation.CanBeCanceled && options is not null)
+        {
+            glb.Cancellation = options.Cancellation;
+        }
+
+        return GlbWriter.ToArray(model, glb);
+    }
 
     private static Model3D Dispatch(FormatInfo format, ReadOnlyMemory<byte> data, LoadOptions options) => format.Id switch
     {
@@ -232,6 +244,7 @@ public static class ModelLoader
     private static T Guard<T>(ReadOnlyMemory<byte> data, string? fileName, LoadOptions? options, Func<FormatInfo, ReadOnlyMemory<byte>, LoadOptions, T> body)
     {
         options ??= new LoadOptions();
+        options.Cancellation.ThrowIfCancellationRequested();
         if (data.Length > options.MaxInputBytes)
         {
             throw new ModelFormatException($"The file is larger than the {options.MaxInputBytes} byte limit.");

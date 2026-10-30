@@ -12,6 +12,9 @@ internal sealed class MeshAccumulator
         _vertexLimit = Math.Min(Math.Max(triangleLimit, 1) * 3, 200_000_000);
     }
 
+    /// <summary>Checked every few thousand vertices and triangles.</summary>
+    public CancellationToken Cancel { get; init; }
+
     public List<float> Positions { get; } = new();
 
     public List<uint> Triangles { get; } = new();
@@ -31,6 +34,7 @@ internal sealed class MeshAccumulator
             throw new ModelFormatException("The model has more geometry than the configured limit.");
         }
 
+        Internal.Cancel.Every(Cancel, Positions.Count / 3, 4095);
         Positions.Add(p.X);
         Positions.Add(p.Y);
         Positions.Add(p.Z);

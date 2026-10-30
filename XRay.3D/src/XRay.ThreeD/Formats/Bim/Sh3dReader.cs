@@ -29,7 +29,7 @@ internal static class Sh3dReader
 
         var limit = Math.Min(options.MaxInputBytes, 1L << 28);
         XDocument document;
-        using (var stream = new MemoryStream(ZipEntries.Read(entry, limit), writable: false))
+        using (var stream = new MemoryStream(ZipEntries.Read(entry, limit, options.Cancellation), writable: false))
         using (var reader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore, XmlResolver = null }))
         {
             document = XDocument.Load(reader);
@@ -285,7 +285,7 @@ internal static class Sh3dReader
                 points.Reverse();
             }
 
-            var acc = new MeshAccumulator(_options.MaxTriangles - _triangles);
+            var acc = new MeshAccumulator(_options.MaxTriangles - _triangles) { Cancel = _options.Cancellation };
             acc.AddPolygon(points);
             var name = (string?)room.Attribute("name");
             var node = new SceneNode(string.IsNullOrEmpty(name) ? "Room" : name);
@@ -412,14 +412,14 @@ internal static class Sh3dReader
             (Model3D, BoundingBox)? result = null;
             try
             {
-                if (ZipEntries.Find(_zip, path) is { } entry && ZipEntries.Read(entry, _limit) is { } bytes)
+                if (ZipEntries.Find(_zip, path) is { } entry && ZipEntries.Read(entry, _limit, _options.Cancellation) is { } bytes)
                 {
                     var directory = path.Contains('/') ? path[..path.LastIndexOf('/')] : "";
                     var inner = _options.Clone();
                     inner.ResolveCompanion = name =>
                     {
                         var full = directory.Length == 0 ? name : directory + "/" + name;
-                        return ZipEntries.Find(_zip, full) is { } e ? ZipEntries.Read(e, _limit) : null;
+                        return ZipEntries.Find(_zip, full) is { } e ? ZipEntries.Read(e, _limit, _options.Cancellation) : null;
                     };
                     var source = ModelLoader.Load(bytes, entry.Name, inner);
                     if (source.ComputeBounds() is { IsEmpty: false } box)

@@ -4,6 +4,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.PointCloud;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>Point Cloud Library .pcd: ASCII, binary and binary_compressed (LZF); x y z, packed rgb/rgba, normals are ignored.</summary>
 internal static class PcdReader
 {
@@ -112,8 +114,10 @@ internal static class PcdReader
         if (dataKind == "ascii")
         {
             var text = Encoding.ASCII.GetString(span[position..]);
+            var tick115 = 0L;
             foreach (var raw in text.AsSpan().EnumerateLines())
             {
+                Cancel.Every(options.Cancellation, tick115++);
                 if (kept >= n)
                 {
                     break;
@@ -184,8 +188,10 @@ internal static class PcdReader
                 body = span.Slice(position, rowSize * n).ToArray();
             }
 
+            var tick187 = 0L;
             for (var i = 0; i < n; i++)
             {
+                Cancel.Every(options.Cancellation, tick187++);
                 var row = body.AsSpan(i * rowSize, rowSize);
                 xyz[3 * kept] = Read(row, xi);
                 xyz[3 * kept + 1] = Read(row, yi);

@@ -206,8 +206,12 @@ internal sealed class StepTessellator
     // ---- faces -----------------------------------------------------------------------------------------------------
 
     /// <summary>Tessellates an ADVANCED_FACE, FACE_SURFACE or FACE. Returns null (with a warning) when the face cannot be handled.</summary>
+    /// <summary>Cancellation of the load this tessellator works for; checked once per face and inside the triangulation.</summary>
+    public CancellationToken Cancel { get; init; }
+
     public FaceMesh? TessellateFace(StepEntity face)
     {
+        Cancel.ThrowIfCancellationRequested();
         var loops = FaceLoops(face, out _);
         if (loops.Count == 0)
         {
@@ -299,7 +303,7 @@ internal sealed class StepTessellator
             rings.Add(Enumerable.Range(start, loop.Count).ToArray());
         }
 
-        var triangles = Triangulator.Triangulate(uv, rings);
+        var triangles = Triangulator.TriangulateCancellable(uv, rings, Cancel);
         var normal = sameSense ? plane.F.Z : -plane.F.Z;
         var flip = !sameSense;
         for (var i = 0; i < positions.Count; i++)
@@ -411,7 +415,7 @@ internal sealed class StepTessellator
             positions.Add(null);
         }
 
-        var triangles = Triangulator.Triangulate(uvPoints, rings);
+        var triangles = Triangulator.TriangulateCancellable(uvPoints, rings, Cancel);
         var mesh = new FaceMesh();
         for (var i = 0; i < uvPoints.Count; i++)
         {

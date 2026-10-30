@@ -4,6 +4,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.Cad;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>
 /// ASCII DXF (R10 to 2018): layers with colours and visibility, header (version, units, dates), blocks and their inserts
 /// (nested, with scale, rotation and arrays), and the geometry entities: lines, polylines (with bulges, 3D, polyface and polygon
@@ -906,8 +908,10 @@ internal static class DxfReader
             var elevation = (float)e.Num(38);
             var closed = (e.Int(70) & 1) != 0;
             var points = new List<Vector3>();
+            var tick909 = 0L;
             for (var i = 0; i < n; i++)
             {
+                Cancel.Every(_options.Cancellation, tick909++);
                 var a = new Vector3((float)xs[i], (float)ys[i], elevation);
                 points.Add(a);
                 var next = i + 1 < n ? i + 1 : (closed ? 0 : -1);
@@ -1010,8 +1014,10 @@ internal static class DxfReader
             var points = new List<Vector3>();
             var elevation = (float)e.Point(10).Z;
             var is3d = (flags & 8) != 0;
+            var tick1013 = 0L;
             for (var i = 0; i < vertices.Count; i++)
             {
+                Cancel.Every(_options.Cancellation, tick1013++);
                 var v = vertices[i];
                 if ((v.Int(70) & 16) != 0 && !is3d)
                 {

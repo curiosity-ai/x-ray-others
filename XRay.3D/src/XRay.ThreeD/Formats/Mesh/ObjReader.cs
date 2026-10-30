@@ -45,8 +45,10 @@ internal static class ObjReader
         var libraries = new List<string>();
 
         string text = Encoding.UTF8.GetString(data.Span);
+        var lineTick = 0L;
         foreach (var raw in text.AsSpan().EnumerateLines())
         {
+            Cancel.Every(options.Cancellation, lineTick++);
             var line = raw.Trim();
             if (line.Length == 0 || line[0] == '#')
             {
@@ -160,7 +162,7 @@ internal static class ObjReader
 
         if (options.ResolveCompanion is { } resolve)
         {
-            ApplyLibraries(model, libraries, resolve, materialIndex);
+            ApplyLibraries(model, libraries, resolve, materialIndex, options.Cancellation);
         }
 
         model.Metadata.PartNames.AddRange(model.Meshes.Select(m => m.Name).Where(n => !string.IsNullOrEmpty(n))!);
@@ -172,7 +174,7 @@ internal static class ObjReader
     }
 
     /// <summary>Reads the .mtl files named by <c>mtllib</c>: newmtl, Kd (diffuse), d or Tr (opacity), Ns (shininess), Pm and Pr (PBR extension).</summary>
-    private static void ApplyLibraries(Model3D model, List<string> libraries, Func<string, byte[]?> resolve, Dictionary<string, int> materialIndex)
+    private static void ApplyLibraries(Model3D model, List<string> libraries, Func<string, byte[]?> resolve, Dictionary<string, int> materialIndex, CancellationToken cancel)
     {
         var textures = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (var entry in libraries.SelectMany(l => l.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries)).Distinct(StringComparer.Ordinal).Take(16))
@@ -210,7 +212,7 @@ internal static class ObjReader
 
                 if (keyword.Equals("map_Kd", StringComparison.OrdinalIgnoreCase))
                 {
-                    ApplyDiffuseMap(model, current, rest.ToString(), resolve, textureCache);
+                    ApplyDiffuseMap(model, current, rest.ToString(), resolve, textureCache, cancel);
                     continue;
                 }
 
@@ -259,7 +261,7 @@ internal static class ObjReader
     /// <c>-clamp on</c>; the others take their arguments and are skipped. OBJ's v axis points up and glTF's down, and the mesh's v is flipped
     /// to match, so the transform is conjugated by the flip: offset v becomes <c>1 - scale v - offset v</c>.
     /// </summary>
-    private static void ApplyDiffuseMap(Model3D model, ModelMaterial material, string text, Func<string, byte[]?> resolve, Dictionary<string, int> cache)
+    private static void ApplyDiffuseMap(Model3D model, ModelMaterial material, string text, Func<string, byte[]?> resolve, Dictionary<string, int> cache, CancellationToken cancel)
     {
         var tokens = text.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries);
         var offset = System.Numerics.Vector2.Zero;
@@ -324,7 +326,7 @@ internal static class ObjReader
             {
                 model.Warnings.Add($"The texture '{name}' was not found; the material keeps its colour.");
             }
-            else if (TextureImages.Create(name, bytes, out var problem) is { } texture)
+            else if (TextureImages.Create(name, bytes, out var problem, cancel) is { } texture)
             {
                 if (clamp)
                 {

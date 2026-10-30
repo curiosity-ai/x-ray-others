@@ -64,6 +64,11 @@ public sealed class GlbWriteOptions
 
     /// <summary>Embed the file's preview image as a texture-less extra (base64) in <c>asset.extras</c>. Off by default: it can be large.</summary>
     public bool IncludePreview { get; set; }
+
+    /// <summary>Checked between meshes, per node and every few thousand vertices; a cancelled write throws <see cref="OperationCanceledException"/>.</summary>
+    public CancellationToken Cancellation { get; set; }
+
+    internal GlbWriteOptions Clone() => (GlbWriteOptions)MemberwiseClone();
 }
 
 /// <summary>
@@ -274,6 +279,7 @@ public static class GlbWriter
 
         foreach (var mesh in model.Meshes)
         {
+            options.Cancellation.ThrowIfCancellationRequested();
             meshPrimitives.Add(AddMesh(mesh, accessors, bin, model.Materials.Count, options));
         }
 
@@ -371,9 +377,11 @@ public static class GlbWriter
         w.WriteEndObject();
         w.WriteEndArray();
 
+        var nodeTick = 0L;
         w.WriteStartArray("nodes");
         foreach (var node in flat)
         {
+            Cancel.Every(options.Cancellation, nodeTick++, 255);
             WriteNode(w, node, indexOf, model, options, accessors, plan);
         }
 
@@ -1032,6 +1040,7 @@ public static class GlbWriter
             var qmax = new float[] { 0, 0, 0 };
             for (var v = 0; v < vertexCount; v++)
             {
+                Cancel.Every(options.Cancellation, v, 4095);
                 for (var axis = 0; axis < 3; axis++)
                 {
                     var origin = axis == 0 ? box.Min.X : axis == 1 ? box.Min.Y : box.Min.Z;
@@ -1148,7 +1157,7 @@ public static class GlbWriter
 
         if (options.Edges == EdgeMode.All || (options.Edges == EdgeMode.Auto && mesh.Faces.Length > 0))
         {
-            return mesh.EdgeIndices.Length > 0 ? mesh.EdgeIndices : MeshEdges.Extract(mesh, options.EdgeCreaseAngle);
+            return mesh.EdgeIndices.Length > 0 ? mesh.EdgeIndices : MeshEdges.Extract(mesh, options.EdgeCreaseAngle, cancellation: options.Cancellation);
         }
 
         return [];

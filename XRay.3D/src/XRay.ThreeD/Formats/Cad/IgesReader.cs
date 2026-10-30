@@ -512,8 +512,10 @@ internal static class IgesReader
 
                 var n = Count(f, 1);
                 var p = 2;
+                var tick515 = 0L;
                 for (var i = 0; i < n && p + 4 < f.Count; i++)
                 {
+                    Cancel.Every(_options.Cancellation, tick515++);
                     var k = Count(f, p + 4);
                     for (var j = 0; j < k && p + 6 + 2 * j < f.Count; j++)
                     {
@@ -568,7 +570,7 @@ internal static class IgesReader
                 var key = (entry.Level, ColorOf(entry));
                 if (!sinks.TryGetValue(key, out var sink))
                 {
-                    sinks[key] = sink = new MeshAccumulator(_options.MaxTriangles);
+                    sinks[key] = sink = new MeshAccumulator(_options.MaxTriangles) { Cancel = _options.Cancellation };
                 }
 
                 uint previous = 0;

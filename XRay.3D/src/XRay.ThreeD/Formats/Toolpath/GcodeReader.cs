@@ -144,8 +144,10 @@ internal static class GcodeReader
             }
 
             // Parenthesised comments (CNC) and block checksums.
+            var tick147 = 0L;
             while (true)
             {
+                Cancel.Every(_options.Cancellation, tick147++);
                 var open = line.IndexOf('(', StringComparison.Ordinal);
                 if (open < 0)
                 {

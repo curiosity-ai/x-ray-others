@@ -103,7 +103,7 @@ internal static class StepReader
             ReadLayers();
 
             var size = ModelSize();
-            _tessellator = new StepTessellator(_f, _geo, Math.Max(size * _options.LinearDeflection, 1e-9), _options.AngularDeflection);
+            _tessellator = new StepTessellator(_f, _geo, Math.Max(size * _options.LinearDeflection, 1e-9), _options.AngularDeflection) { Cancel = _options.Cancellation };
 
             // Roots: product definitions no assembly uses as a component. Without any product structure, all solids form one part.
             var childIds = _products.Values.SelectMany(p => p.Children.Select(c => c.ChildDefinition)).ToHashSet();

@@ -3,7 +3,7 @@ namespace XRay.ThreeD.Tests;
 /// <summary>Every reader takes hostile files: damaged input may fail, but only with <see cref="ModelFormatException"/>.</summary>
 public class RobustnessTests
 {
-    private static readonly string[] Fixtures =
+    internal static readonly string[] Fixtures =
     [
         "sldprt/servo-mount.sldprt",
         "slddrw/rocket-fin-set.slddrw",

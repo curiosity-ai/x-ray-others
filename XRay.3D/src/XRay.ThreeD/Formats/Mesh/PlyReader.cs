@@ -4,6 +4,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.Mesh;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>PLY, ASCII and binary (either byte order): vertices with optional normals and colours, polygon faces (fan triangulated). A file with no faces is a point cloud.</summary>
 internal static class PlyReader
 {
@@ -52,8 +54,10 @@ internal static class PlyReader
 
         foreach (var element in elements)
         {
+            var tick55 = 0L;
             for (long row = 0; row < element.Count; row++)
             {
+                Cancel.Every(options.Cancellation, tick55++);
                 options.Cancellation.ThrowIfCancellationRequested();
                 if (element.Name == "vertex")
                 {
@@ -237,7 +241,7 @@ internal static class PlyReader
     private sealed class Cursor
     {
         private readonly byte[] _bytes;
-        private readonly string[]? _tokens;
+        private readonly bool _ascii;
         private int _position;
         private readonly bool _bigEndian;
 
@@ -246,8 +250,9 @@ internal static class PlyReader
             _bigEndian = format.StartsWith("binary_big_endian", StringComparison.Ordinal);
             if (format.StartsWith("ascii", StringComparison.Ordinal))
             {
-                _tokens = Encoding.ASCII.GetString(span[start..]).Split([' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-                _bytes = [];
+                // Tokens are parsed from the bytes as they are read; the body is never split into a string array.
+                _ascii = true;
+                _bytes = span[start..].ToArray();
             }
             else if (format.StartsWith("binary", StringComparison.Ordinal))
             {
@@ -261,14 +266,28 @@ internal static class PlyReader
 
         public double ReadScalar(string type)
         {
-            if (_tokens is not null)
+            if (_ascii)
             {
-                if (_position >= _tokens.Length)
+                var bytes = _bytes.AsSpan();
+                var p = _position;
+                while (p < bytes.Length && bytes[p] is (byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n')
+                {
+                    p++;
+                }
+
+                var end = p;
+                while (end < bytes.Length && bytes[end] is not ((byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n'))
+                {
+                    end++;
+                }
+
+                if (end == p)
                 {
                     throw new ModelFormatException("The PLY body ends early.");
                 }
 
-                return double.Parse(_tokens[_position++], NumberStyles.Float, CultureInfo.InvariantCulture);
+                _position = end;
+                return double.Parse(bytes[p..end], NumberStyles.Float, CultureInfo.InvariantCulture);
             }
 
             var size = SizeOf(type);

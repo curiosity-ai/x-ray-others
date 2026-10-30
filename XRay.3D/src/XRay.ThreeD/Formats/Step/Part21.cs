@@ -3,6 +3,8 @@ using System.Text;
 
 namespace XRay.ThreeD.Formats.Step;
 
+using XRay.ThreeD.Internal;
+
 /// <summary>A parsed STEP value: a reference (#12), number, string, enumeration (.T.), list, typed value (LENGTH_MEASURE(1.)) or null ($, *).</summary>
 internal sealed class StepArg
 {

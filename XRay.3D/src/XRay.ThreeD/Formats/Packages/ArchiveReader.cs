@@ -71,7 +71,7 @@ internal static class ArchiveReader
 
     private static Model3D Load(ZipArchiveEntry entry, List<ZipArchiveEntry> files, List<ZipArchiveEntry> models, LoadOptions options)
     {
-        var bytes = ZipEntries.Read(entry, options.MaxInputBytes);
+        var bytes = ZipEntries.Read(entry, options.MaxInputBytes, options.Cancellation);
         var inner = options.Clone();
         inner.ArchiveDepth = options.ArchiveDepth + 1;
         var directory = entry.FullName.Contains('/') ? entry.FullName[..entry.FullName.LastIndexOf('/')] : "";
@@ -85,7 +85,7 @@ internal static class ArchiveReader
             }
 
             budget -= found.Length;
-            return ZipEntries.Read(found, options.MaxInputBytes);
+            return ZipEntries.Read(found, options.MaxInputBytes, options.Cancellation);
         };
 
         var model = ModelLoader.Load(bytes, entry.Name, inner);
