@@ -47,7 +47,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 
 - [x] Textures and UVs: OBJ+MTL `map_Kd` (companions, ZIP packages), glTF and 3MF textures, `TEXCOORD_0` and images/samplers in the GLB, `KHR_texture_transform`. Open: other maps (normal, emissive, metallic-roughness), UV sets above 0, UVs for FBX/COLLADA/X3D/USD/3DS/PLY readers
 - [x] Meshopt decode for glTF input; meshopt compression and `KHR_mesh_quantization` for output (ported codecs, checked against an independent decoder)
-- [ ] Draco decode for glTF input
+- [x] Draco decode for glTF input (`KHR_draco_mesh_compression`): sequential and EdgeBreaker (standard and valence) connectivity, quantised, normal and generic attributes, all prediction schemes; checked against an independent decoder on 40 fixtures. Open: kd-tree point clouds, bitstreams older than 2.2
 - [ ] Smooth/flat normal policy for welded STL (currently left to the viewer)
 - [ ] Unit/up-axis hints from the caller for formats that do not say (STL, OBJ)
 - [ ] Far-from-origin recentring (the viewer does it; record the offset in extras)

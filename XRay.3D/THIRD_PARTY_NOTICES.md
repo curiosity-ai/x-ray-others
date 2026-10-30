@@ -30,3 +30,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Draco bitstream specification
+
+`src/XRay.ThreeD/Internal/DracoDecoder*.cs` decodes `KHR_draco_mesh_compression` data. It was written from the public
+[Draco bitstream specification](https://google.github.io/draco/spec/) (Apache License 2.0, the Draco authors); no source code of the
+Draco library was copied or ported. The decoder is checked against the output of an independent implementation (the DracoPy
+bindings of Draco, used only by `tools/fixtures/make_draco_fixtures.py` to produce the fixtures under `dataset/draco/`).

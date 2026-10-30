@@ -46,6 +46,8 @@ public class RobustnessTests
         "synthetic/package-obj-textured.zip",
         "synthetic/textured.gltf",
         "synthetic/textured.3mf",
+        "draco/sphere-draco.glb",
+        "draco/sphere-draco-tangent.glb",
         "synthetic/print.gcode",
         "synthetic/profile.nc",
         "fcstd/butt-hinge.FCStd",

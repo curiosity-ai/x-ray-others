@@ -898,5 +898,743 @@
   "source": "tools/fixtures/make_fixtures.py",
   "bytes": 1617,
   "sha256": "8009d06583313ee20ace6fe4162906e2e6d3288d4481e37678a3130bce514cad"
+ },
+ {
+  "file": "draco/big-grid-cl10-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 5761,
+  "sha256": "2c32ac5ddf51f0dc8f18f8ee9ac7e8ebaf3e64abcf2417cb5e691794624e7170"
+ },
+ {
+  "file": "draco/big-grid-cl10-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 156190,
+  "sha256": "abf20bb361b4997f58bac2a8be1d9dd7c608bf00bb71bb29d28ebe26581ce4ea"
+ },
+ {
+  "file": "draco/big-grid-cl3-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 3864,
+  "sha256": "cbc3f5a8e0ab320526fea47b209cd873b118c9ba161b5e767e8c6af99b45b981"
+ },
+ {
+  "file": "draco/big-grid-cl3-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 156310,
+  "sha256": "6f67ca552fb1f6668858fdb17ab6d1f1cc33fe5558565d35a90677c03e3d5fe3"
+ },
+ {
+  "file": "draco/big-grid-cl7-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 5734,
+  "sha256": "7b08ca31e465eb0790e747e83d5a2d185dbcbae2da6dc65d387c607d6dfab831"
+ },
+ {
+  "file": "draco/big-grid-cl7-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 156190,
+  "sha256": "abf20bb361b4997f58bac2a8be1d9dd7c608bf00bb71bb29d28ebe26581ce4ea"
+ },
+ {
+  "file": "draco/big-sphere-cl10-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 8595,
+  "sha256": "ffcc1f078e89e4b728036147f6baaaf726a0061262d4f0bd4091651663465238"
+ },
+ {
+  "file": "draco/big-sphere-cl10-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 229614,
+  "sha256": "0db41e28e4f0bcbc1c3cd01f26a666db80c15673130ed64217462a643593f6f8"
+ },
+ {
+  "file": "draco/big-sphere-cl3-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 7666,
+  "sha256": "4c1ac6b2869bb34af1a38e644f6ba79402902e34e1ff0ce184b7b9c4b0456eca"
+ },
+ {
+  "file": "draco/big-sphere-cl3-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 229669,
+  "sha256": "f08a8ca904c97fca61b1daa2b92a707ef90b495e9fbf931e245232e28618b91f"
+ },
+ {
+  "file": "draco/big-sphere-cl7-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 8642,
+  "sha256": "138e8665fd748c90ed54aedc007e15ab815e364bdac474495c4c8440fb8a192d"
+ },
+ {
+  "file": "draco/big-sphere-cl7-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 229614,
+  "sha256": "0db41e28e4f0bcbc1c3cd01f26a666db80c15673130ed64217462a643593f6f8"
+ },
+ {
+  "file": "draco/cube-colors-cl0-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 147,
+  "sha256": "33e4525e3a89d973c999efbcbbb555d03224bacc4f478d5543d1a4fb7320d5f6"
+ },
+ {
+  "file": "draco/cube-colors-cl0-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "25e224b85a0adaaaf83dac8d25740657880b7981b69a299a10d007d97c20e880"
+ },
+ {
+  "file": "draco/cube-colors-cl0-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 147,
+  "sha256": "ddb4b1a1f6518abdcd483952c08b3201ba8b555020031e20a1f858f0596ef9e8"
+ },
+ {
+  "file": "draco/cube-colors-cl0-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "25e224b85a0adaaaf83dac8d25740657880b7981b69a299a10d007d97c20e880"
+ },
+ {
+  "file": "draco/cube-colors-cl1-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 172,
+  "sha256": "e679fa4cdac0074cc0fcf0d5a5776f8bc1e3fe2cb536d2d9756b5108b72de456"
+ },
+ {
+  "file": "draco/cube-colors-cl1-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "ec52b62d4edd5590bcdab142b6245bdded35ffad41ab15c99f21ccb0c10872d0"
+ },
+ {
+  "file": "draco/cube-colors-cl10-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 200,
+  "sha256": "2745766f110997baf473b2dabc80c8a86449354dd2b8796b9884a0b66be04076"
+ },
+ {
+  "file": "draco/cube-colors-cl10-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "07c0453dfb90d74d8e84caad6306dd96cf592014ee514c19fa08c94a5d284de6"
+ },
+ {
+  "file": "draco/cube-colors-cl3-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 183,
+  "sha256": "cb80be8268e027d1295c277c77a3ab5f8019026e818a793a905ab647e925badd"
+ },
+ {
+  "file": "draco/cube-colors-cl3-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "ec52b62d4edd5590bcdab142b6245bdded35ffad41ab15c99f21ccb0c10872d0"
+ },
+ {
+  "file": "draco/cube-colors-cl5-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 201,
+  "sha256": "18746de277efcbfc1c4ba37779c3bc8801a5f4309e5bc257dc7fb73ec0ffad76"
+ },
+ {
+  "file": "draco/cube-colors-cl5-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "07c0453dfb90d74d8e84caad6306dd96cf592014ee514c19fa08c94a5d284de6"
+ },
+ {
+  "file": "draco/cube-colors-cl5-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 201,
+  "sha256": "3ec2fe4ce19df86463a4d4b47c360047f6b4ecf1341e1805bea85124dc9df839"
+ },
+ {
+  "file": "draco/cube-colors-cl5-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "07c0453dfb90d74d8e84caad6306dd96cf592014ee514c19fa08c94a5d284de6"
+ },
+ {
+  "file": "draco/cube-colors-cl7-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 201,
+  "sha256": "3e6308b7445ad3afe6e0c408548c7f53e37479b96db948300d4b8990ac33bbe9"
+ },
+ {
+  "file": "draco/cube-colors-cl7-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 907,
+  "sha256": "07c0453dfb90d74d8e84caad6306dd96cf592014ee514c19fa08c94a5d284de6"
+ },
+ {
+  "file": "draco/cube-hard-cl0-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 213,
+  "sha256": "a698c0bd3d6a0c9fd25e7f602c422c7b6bcc2fc5d9203aa39bdd549f81309c82"
+ },
+ {
+  "file": "draco/cube-hard-cl0-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "b772258a09ba52afdbbb2e2d39c54ac25f29899a2d0a571422b82956657ba235"
+ },
+ {
+  "file": "draco/cube-hard-cl0-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 204,
+  "sha256": "763b98cddae76cedde16eb97163d00da9ff901907e2d7f4f4b55e1635e15fc7e"
+ },
+ {
+  "file": "draco/cube-hard-cl0-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "b772258a09ba52afdbbb2e2d39c54ac25f29899a2d0a571422b82956657ba235"
+ },
+ {
+  "file": "draco/cube-hard-cl1-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 199,
+  "sha256": "fc1e70cbc71e5fe19402dbbc75afcde234e553d0a74ab37825507933b5b94e6c"
+ },
+ {
+  "file": "draco/cube-hard-cl1-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "17fe6f52899483e3e80d427db7516032bed4faa0e3a6ff6da5cfc7a89e2f6a28"
+ },
+ {
+  "file": "draco/cube-hard-cl10-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 187,
+  "sha256": "28ae4181667240d7660297de2a0593f5e68ce2145ed26ecee05c1959138c399d"
+ },
+ {
+  "file": "draco/cube-hard-cl10-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "edddc01529e5c2c617731848faea4b6152e1369928f5621ec39aa12483d51ae3"
+ },
+ {
+  "file": "draco/cube-hard-cl3-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 197,
+  "sha256": "5a3a6623d168a2c524ef4409a95172d1b62b166e361d8fcf30b3de45c9ed2f80"
+ },
+ {
+  "file": "draco/cube-hard-cl3-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "17fe6f52899483e3e80d427db7516032bed4faa0e3a6ff6da5cfc7a89e2f6a28"
+ },
+ {
+  "file": "draco/cube-hard-cl5-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 205,
+  "sha256": "1188e4ef7acad5434a521e6d1c8d344af268a8f3b3f4b2f5d1f12cf73b89c96d"
+ },
+ {
+  "file": "draco/cube-hard-cl5-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "edddc01529e5c2c617731848faea4b6152e1369928f5621ec39aa12483d51ae3"
+ },
+ {
+  "file": "draco/cube-hard-cl5-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 193,
+  "sha256": "9d32896775a0be329634519c8f671ac417de1238f4594e9e8aeb80d48e8429b2"
+ },
+ {
+  "file": "draco/cube-hard-cl5-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "edddc01529e5c2c617731848faea4b6152e1369928f5621ec39aa12483d51ae3"
+ },
+ {
+  "file": "draco/cube-hard-cl7-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 188,
+  "sha256": "2ed9b58a3b0afca709870bf6610dde3d052ed1f572a7f144d9f0c5753a3a7bc4"
+ },
+ {
+  "file": "draco/cube-hard-cl7-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1125,
+  "sha256": "edddc01529e5c2c617731848faea4b6152e1369928f5621ec39aa12483d51ae3"
+ },
+ {
+  "file": "draco/grid-holes-cl0-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1336,
+  "sha256": "7984d8f0ee8c6a05580eaba2a0d4360eb086cb25ab715cffebb5907fcb9989cc"
+ },
+ {
+  "file": "draco/grid-holes-cl0-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13462,
+  "sha256": "4a4711e540de99ba00f6b8137dea9daf48e2ed1d5bac022b6f8621b967a4ce9c"
+ },
+ {
+  "file": "draco/grid-holes-cl0-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1016,
+  "sha256": "a361f8948e2ad8838c99d04beb5d04678c1bd8950abbd6885c046f488a9b9399"
+ },
+ {
+  "file": "draco/grid-holes-cl0-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13482,
+  "sha256": "ba9fca72e5a6d2112a7bc01191ea218cef6c4862ba72fad8968a6f408e8afabd"
+ },
+ {
+  "file": "draco/grid-holes-cl1-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1118,
+  "sha256": "61f865cd64d1f4a8e87f05129493df606f90b110f0d800820d7f316d84f3289f"
+ },
+ {
+  "file": "draco/grid-holes-cl1-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13389,
+  "sha256": "7a80346872ac0b169f0db2202ae9a58488e2ed7dc2513654405bd9a82fff8704"
+ },
+ {
+  "file": "draco/grid-holes-cl10-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1051,
+  "sha256": "22d93860dcdc5a277604765c51feda82c81f77cd2cbccc722022717dc4b4f186"
+ },
+ {
+  "file": "draco/grid-holes-cl10-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13391,
+  "sha256": "0c8ee9288ca2f89c2e230e4f8e4f26a01ecdecf3d7f154956cf4d1f3020bdd2e"
+ },
+ {
+  "file": "draco/grid-holes-cl3-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 723,
+  "sha256": "bee2e9c079afe041590685d6b53ba2b89fd4383a4a5b664227d779acfcceb396"
+ },
+ {
+  "file": "draco/grid-holes-cl3-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13389,
+  "sha256": "7a80346872ac0b169f0db2202ae9a58488e2ed7dc2513654405bd9a82fff8704"
+ },
+ {
+  "file": "draco/grid-holes-cl5-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 731,
+  "sha256": "3babe9b52d381ef447164e73b0e5500034536b34c4e200fcdeeda8058c05ab3c"
+ },
+ {
+  "file": "draco/grid-holes-cl5-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13391,
+  "sha256": "0c8ee9288ca2f89c2e230e4f8e4f26a01ecdecf3d7f154956cf4d1f3020bdd2e"
+ },
+ {
+  "file": "draco/grid-holes-cl5-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 388,
+  "sha256": "27a952be693717cf1d45b999c67f7a3ecf89b4c0fe6e63f7cad40723e62527af"
+ },
+ {
+  "file": "draco/grid-holes-cl5-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13411,
+  "sha256": "b3d4eb796447a474939ebdcbe13a523b7b900face3d16aa50f81dbc26f6f7f14"
+ },
+ {
+  "file": "draco/grid-holes-cl7-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1037,
+  "sha256": "e83bee4491d641af4140900f3de26ec7bb89041b16240faf8c343db494c976d9"
+ },
+ {
+  "file": "draco/grid-holes-cl7-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 13391,
+  "sha256": "0c8ee9288ca2f89c2e230e4f8e4f26a01ecdecf3d7f154956cf4d1f3020bdd2e"
+ },
+ {
+  "file": "draco/sphere-draco-tangent.expected.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29935,
+  "sha256": "088cbccde9894573fbe68675c4333cce47a5031b9534cd492e37adba22f55927"
+ },
+ {
+  "file": "draco/sphere-draco-tangent.glb",
+  "format": "glb",
+  "title": "Hand-made fixture: glTF with KHR_draco_mesh_compression",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 5584,
+  "sha256": "52e7d98de47bc338c0af70e01a16026a18012ea21d260301933f2eab93b8d3ea"
+ },
+ {
+  "file": "draco/sphere-draco.expected.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29935,
+  "sha256": "088cbccde9894573fbe68675c4333cce47a5031b9534cd492e37adba22f55927"
+ },
+ {
+  "file": "draco/sphere-draco.glb",
+  "format": "glb",
+  "title": "Hand-made fixture: glTF with KHR_draco_mesh_compression",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 2728,
+  "sha256": "5288cc6715e83272eaa86545337ee867ab79b360b91240f0ef65b3e03ab53297"
+ },
+ {
+  "file": "draco/sphere-seam-cl0-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 2119,
+  "sha256": "8d9ac87eea6ae63a5424b77fd742ed72300bca272eba6d113a6fd56fd647dd13"
+ },
+ {
+  "file": "draco/sphere-seam-cl0-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 30011,
+  "sha256": "ded8d504b310c2c8df44922e59d71461daac643e447469273e3d27cc11d0e737"
+ },
+ {
+  "file": "draco/sphere-seam-cl0-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1732,
+  "sha256": "851786fc1cbe686d0223043828519f3bbdf9627bce4fa6475068592e1851f3e2"
+ },
+ {
+  "file": "draco/sphere-seam-cl0-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 30020,
+  "sha256": "b201f2d40de5b919f3f44803271761ed1700d0c126ebe7189be573ed0b926d50"
+ },
+ {
+  "file": "draco/sphere-seam-cl1-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1976,
+  "sha256": "5dbd4f184c5b2b54a6b59f3910dd115814f2b07aef0269fe13d0f99e167aafac"
+ },
+ {
+  "file": "draco/sphere-seam-cl1-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29695,
+  "sha256": "15f6ea3971a4935aaa1c68ddb9d9225576d7754f6f157aa8cf545eff01680d1c"
+ },
+ {
+  "file": "draco/sphere-seam-cl10-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1861,
+  "sha256": "024029bc20204f96f608496e34a3eb5c21a78215c80c8522c37beef277509a8f"
+ },
+ {
+  "file": "draco/sphere-seam-cl10-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29688,
+  "sha256": "d67d8341d7b859866cba24b146bdf2fc63db3996711645fac5832389eacb145f"
+ },
+ {
+  "file": "draco/sphere-seam-cl3-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1559,
+  "sha256": "bc197fb1c97ddec67069b5a8a7daf3b79a920ec68e9ad60cdfa0c781a1975e36"
+ },
+ {
+  "file": "draco/sphere-seam-cl3-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29695,
+  "sha256": "15f6ea3971a4935aaa1c68ddb9d9225576d7754f6f157aa8cf545eff01680d1c"
+ },
+ {
+  "file": "draco/sphere-seam-cl5-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1505,
+  "sha256": "9e8e1b5a5274b30ff44ef6860fef88d6362798ff2fcf2b7e18280c86b7f4e2dc"
+ },
+ {
+  "file": "draco/sphere-seam-cl5-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29688,
+  "sha256": "d67d8341d7b859866cba24b146bdf2fc63db3996711645fac5832389eacb145f"
+ },
+ {
+  "file": "draco/sphere-seam-cl5-q8.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1012,
+  "sha256": "9b2fc0822e576b78e7cd43e7352610d9ce100f205bc9449e1c6cea142981c216"
+ },
+ {
+  "file": "draco/sphere-seam-cl5-q8.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29705,
+  "sha256": "09f9d4399bb9f61c8f143bdb4a0b42383fb6fac54d2205ac254e1821105b2a13"
+ },
+ {
+  "file": "draco/sphere-seam-cl7-q14.drc",
+  "format": "drc",
+  "title": "Hand-made fixture: Draco-encoded mesh (independent encoder)",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 1859,
+  "sha256": "56971db2c5ccd7081280bf950107cb005f09608a3536b33584450687c92eddf1"
+ },
+ {
+  "file": "draco/sphere-seam-cl7-q14.json",
+  "format": "json",
+  "title": "Expected values of the matching Draco fixture, as an independent decoder produces them",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_draco_fixtures.py",
+  "bytes": 29688,
+  "sha256": "d67d8341d7b859866cba24b146bdf2fc63db3996711645fac5832389eacb145f"
+ },
+ {
+  "file": "khronos/Box-Draco.gltf",
+  "format": "gltf",
+  "title": "Box with KHR_draco_mesh_compression (glTF sample asset)",
+  "license": "CC-BY-4.0",
+  "source": "Cesium / Khronos glTF-Sample-Assets, Models/Box/glTF-Draco",
+  "bytes": 2427,
+  "sha256": "3c46acecdfa90b012ec9052d8a1dfa61358e6d56a9e333504189cc78a2de4d1b"
+ },
+ {
+  "file": "khronos/Box-Draco.bin",
+  "format": "bin",
+  "title": "Box with KHR_draco_mesh_compression, buffer (glTF sample asset)",
+  "license": "CC-BY-4.0",
+  "source": "Cesium / Khronos glTF-Sample-Assets, Models/Box/glTF-Draco",
+  "bytes": 120,
+  "sha256": "610dc6e08aba7c2720c8e4ec0578efd91cf2d88a5e638dab7811a22f0235bf2e"
  }
 ]

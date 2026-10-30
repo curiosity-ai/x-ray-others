@@ -73,7 +73,6 @@ internal static class GltfReader
         private readonly Model3D _model = new();
         private readonly Dictionary<int, byte[]?> _buffers = new();
         private readonly Dictionary<int, MeshData?> _meshCache = new();
-        private bool _geometryBlocked;
 
         public Builder(JsonElement root, byte[]? glbBin, LoadOptions options)
         {
@@ -99,10 +98,11 @@ internal static class GltfReader
 
             foreach (var required in Strings(_root, "extensionsRequired"))
             {
-                if (required == "KHR_draco_mesh_compression")
+                if (required is not ("KHR_draco_mesh_compression" or "EXT_meshopt_compression" or "KHR_mesh_quantization" or "KHR_texture_transform" or "EXT_mesh_gpu_instancing"
+                    or "KHR_materials_unlit" or "KHR_materials_emissive_strength" or "KHR_materials_ior" or "KHR_materials_specular" or "KHR_materials_clearcoat"
+                    or "KHR_materials_transmission" or "KHR_materials_volume" or "KHR_materials_sheen" or "KHR_texture_basisu" or "EXT_texture_webp"))
                 {
-                    _geometryBlocked = true;
-                    _model.Warnings.Add($"Geometry uses {required}, which this library does not decode; only the node tree is read.");
+                    _model.Warnings.Add($"The file requires {required}, which this library does not interpret; the result may look different.");
                 }
             }
 
@@ -472,7 +472,7 @@ internal static class GltfReader
 
             MeshData? mesh = null;
             var meshes = Array(_root, "meshes");
-            if (!_geometryBlocked && index >= 0 && index < meshes.Count)
+            if (index >= 0 && index < meshes.Count)
             {
                 mesh = BuildMesh(meshes[index]);
                 if (mesh is not null)
@@ -530,7 +530,8 @@ internal static class GltfReader
                     continue;
                 }
 
-                var p = ReadAccessor(positionAccessor, 3);
+                var draco = DracoGeometryFor(primitive);
+                var p = draco is not null ? DracoValues(draco, primitive, "POSITION", 3) : ReadAccessor(positionAccessor, 3);
                 if (p is null)
                 {
                     continue;
@@ -538,14 +539,20 @@ internal static class GltfReader
 
                 var vertexCount = p.Length / 3;
                 var baseVertex = (uint)(positions.Count / 3);
-                float[]? n = attributes.TryGetProperty("NORMAL", out var na) && na.TryGetInt32(out var nai) ? ReadAccessor(nai, 3) : null;
+                float[]? n = draco is not null
+                    ? DracoValues(draco, primitive, "NORMAL", 3)
+                    : attributes.TryGetProperty("NORMAL", out var na) && na.TryGetInt32(out var nai) ? ReadAccessor(nai, 3) : null;
                 if (n is null || n.Length != p.Length)
                 {
                     allNormals = false;
                 }
 
                 uint[] local;
-                if (primitive.TryGetProperty("indices", out var ia) && ia.TryGetInt32(out var iai))
+                if (draco is not null)
+                {
+                    local = draco.Indices.Length > 0 ? draco.Indices : Enumerable.Range(0, vertexCount).Select(i => (uint)i).ToArray();
+                }
+                else if (primitive.TryGetProperty("indices", out var ia) && ia.TryGetInt32(out var iai))
                 {
                     var read = ReadIndices(iai);
                     if (read is null)
@@ -566,7 +573,9 @@ internal static class GltfReader
                     continue;
                 }
 
-                float[]? uv = attributes.TryGetProperty("TEXCOORD_0", out var ta) && ta.TryGetInt32(out var tai) ? ReadAccessor(tai, 2) : null;
+                float[]? uv = draco is not null
+                    ? DracoValues(draco, primitive, "TEXCOORD_0", 2)
+                    : attributes.TryGetProperty("TEXCOORD_0", out var ta) && ta.TryGetInt32(out var tai) ? ReadAccessor(tai, 2) : null;
                 if (uv is not null && uv.Length == vertexCount * 2)
                 {
                     anyTexCoords = true;
@@ -724,6 +733,84 @@ internal static class GltfReader
             return o.ToArray();
         }
 
+        private readonly Dictionary<int, Internal.DracoGeometry?> _draco = new();
+
+        /// <summary>The decoded <c>KHR_draco_mesh_compression</c> geometry of a primitive (each buffer view is decoded once), or null for an ordinary primitive.</summary>
+        private Internal.DracoGeometry? DracoGeometryFor(JsonElement primitive)
+        {
+            if (!primitive.TryGetProperty("extensions", out var extensions) || extensions.ValueKind != JsonValueKind.Object
+                || !extensions.TryGetProperty("KHR_draco_mesh_compression", out var ext) || ext.ValueKind != JsonValueKind.Object
+                || !ext.TryGetProperty("bufferView", out var bv) || !bv.TryGetInt32(out var viewIndex))
+            {
+                return null;
+            }
+
+            if (_draco.TryGetValue(viewIndex, out var cached))
+            {
+                return cached;
+            }
+
+            Internal.DracoGeometry? geometry = null;
+            var views = Array(_root, "bufferViews");
+            if (viewIndex >= 0 && viewIndex < views.Count && views[viewIndex].TryGetProperty("buffer", out var b) && b.TryGetInt32(out var bi) && Buffer(bi) is { } data)
+            {
+                long offset = Int(views[viewIndex], "byteOffset");
+                long length = Int(views[viewIndex], "byteLength");
+                if (offset < 0 || length < 0 || offset + length > data.Length)
+                {
+                    throw new ModelFormatException("A Draco buffer view lies outside its buffer.");
+                }
+
+                geometry = Internal.DracoDecoder.Decode(data.AsSpan((int)offset, (int)length).ToArray(), _options.MaxTriangles, _options.Cancellation);
+            }
+            else
+            {
+                _model.Warnings.Add("A Draco-compressed primitive refers to data that is missing.");
+            }
+
+            _draco[viewIndex] = geometry;
+            return geometry;
+        }
+
+        /// <summary>One semantic of a Draco primitive as floats (the file's attribute id comes from the extension), scaled like the accessor says for normalised integers.</summary>
+        private float[]? DracoValues(Internal.DracoGeometry geometry, JsonElement primitive, string semantic, int components)
+        {
+            var ext = primitive.GetProperty("extensions").GetProperty("KHR_draco_mesh_compression");
+            if (!ext.TryGetProperty("attributes", out var map) || !map.TryGetProperty(semantic, out var idValue) || !idValue.TryGetInt32(out var id))
+            {
+                return null;
+            }
+
+            var attribute = geometry.Attributes.Find(a => a.UniqueId == id);
+            if (attribute is null || attribute.NumComponents != components)
+            {
+                return null;
+            }
+
+            var scale = 1f;
+            if (primitive.TryGetProperty("attributes", out var attributes) && attributes.TryGetProperty(semantic, out var accessorValue) && accessorValue.TryGetInt32(out var accessorIndex))
+            {
+                var accessors = Array(_root, "accessors");
+                if (accessorIndex >= 0 && accessorIndex < accessors.Count && accessors[accessorIndex].TryGetProperty("normalized", out var nz) && nz.ValueKind == JsonValueKind.True)
+                {
+                    scale = Int(accessors[accessorIndex], "componentType") switch { 5120 => 1 / 127f, 5121 => 1 / 255f, 5122 => 1 / 32767f, 5123 => 1 / 65535f, _ => 1f };
+                }
+            }
+
+            if (scale == 1f)
+            {
+                return attribute.Values;
+            }
+
+            var scaled = new float[attribute.Values.Length];
+            for (var i = 0; i < scaled.Length; i++)
+            {
+                scaled[i] = attribute.Values[i] * scale;
+            }
+
+            return scaled;
+        }
+
         private byte[]? Buffer(int index)
         {
             if (_buffers.TryGetValue(index, out var cached))
@@ -744,6 +831,10 @@ internal static class GltfReader
                 {
                     var comma = uri.IndexOf(',');
                     result = comma > 0 ? Convert.FromBase64String(uri[(comma + 1)..]) : null;
+                }
+                else if (_options.ResolveCompanion?.Invoke(Uri.UnescapeDataString(uri)) is { } file)
+                {
+                    result = file;
                 }
                 else
                 {
