@@ -1,0 +1,194 @@
+{
+  "01_Bloco_Carter/Body 1 - Assembly.CATProduct": {
+    "instances": 3,
+    "placed": 3,
+    "undecoded": 0,
+    "drawn": 3,
+    "triangles": 6592,
+    "bounds": [
+      -176.29,
+      -258.3,
+      -0,
+      336.31,
+      253.57,
+      255.94
+    ],
+    "warnings": 0
+  },
+  "02_Pistao_Biela/conecting road assembly - Copia (2).CATProduct": {
+    "instances": 2,
+    "placed": 1,
+    "undecoded": 0,
+    "drawn": 2,
+    "triangles": 2126,
+    "bounds": [
+      -3.81,
+      -60.06,
+      -190.5,
+      27.94,
+      60.06,
+      50.8
+    ],
+    "warnings": 0
+  },
+  "02_Pistao_Biela/conecting road assembly - Copia (3).CATProduct": {
+    "instances": 2,
+    "placed": 1,
+    "undecoded": 0,
+    "drawn": 2,
+    "triangles": 2126,
+    "bounds": [
+      -3.81,
+      -60.06,
+      -190.5,
+      27.94,
+      60.06,
+      50.8
+    ],
+    "warnings": 0
+  },
+  "02_Pistao_Biela/conecting road assembly - Copia (4).CATProduct": {
+    "instances": 2,
+    "placed": 1,
+    "undecoded": 0,
+    "drawn": 2,
+    "triangles": 2126,
+    "bounds": [
+      -3.81,
+      -60.06,
+      -190.5,
+      27.94,
+      60.06,
+      50.8
+    ],
+    "warnings": 0
+  },
+  "02_Pistao_Biela/conecting road assembly - Copia.CATProduct": {
+    "instances": 2,
+    "placed": 1,
+    "undecoded": 0,
+    "drawn": 2,
+    "triangles": 2126,
+    "bounds": [
+      -3.81,
+      -60.06,
+      -190.5,
+      27.94,
+      60.06,
+      50.8
+    ],
+    "warnings": 0
+  },
+  "02_Pistao_Biela/conecting road assembly.CATProduct": {
+    "instances": 2,
+    "placed": 1,
+    "undecoded": 0,
+    "drawn": 2,
+    "triangles": 2126,
+    "bounds": [
+      -3.81,
+      -60.06,
+      -190.5,
+      27.94,
+      60.06,
+      50.8
+    ],
+    "warnings": 0
+  },
+  "02_Pistao_Biela/piston cylinder assembly.CATProduct": {
+    "instances": 3,
+    "placed": 3,
+    "undecoded": 0,
+    "drawn": 3,
+    "triangles": 4962,
+    "bounds": [
+      -257.47,
+      -166,
+      92.22,
+      -130.47,
+      24.6,
+      372.56
+    ],
+    "warnings": 0
+  },
+  "03_Valvulas/rocker arm f.CATProduct": {
+    "instances": 7,
+    "placed": 5,
+    "undecoded": 0,
+    "drawn": 7,
+    "triangles": 552,
+    "bounds": [
+      -10,
+      -24.3,
+      -55.08,
+      10,
+      27.81,
+      21.92
+    ],
+    "warnings": 0
+  },
+  "04_Comando_Correias/Correias assembly.CATProduct": {
+    "instances": 3,
+    "placed": 3,
+    "undecoded": 0,
+    "drawn": 3,
+    "triangles": 1020,
+    "bounds": [
+      -290.73,
+      -16.79,
+      -18.95,
+      171.22,
+      16.79,
+      18.95
+    ],
+    "warnings": 0
+  },
+  "04_Comando_Correias/cam assembly.CATProduct": {
+    "instances": 3,
+    "placed": 3,
+    "undecoded": 0,
+    "drawn": 3,
+    "triangles": 2184,
+    "bounds": [
+      -61.53,
+      -46.67,
+      -141.76,
+      139.88,
+      441.71,
+      74.37
+    ],
+    "warnings": 0
+  },
+  "Assembly_Caixa_de_Marcha.CATProduct": {
+    "instances": 40,
+    "placed": 40,
+    "undecoded": 0,
+    "drawn": 38,
+    "triangles": 68088,
+    "bounds": [
+      -102.61,
+      -53,
+      -176,
+      100,
+      584.27,
+      224
+    ],
+    "warnings": 2
+  },
+  "Motor - V6 (Assembly final).CATProduct": {
+    "instances": 66,
+    "placed": 66,
+    "undecoded": 0,
+    "drawn": 56,
+    "triangles": 148252,
+    "bounds": [
+      -322.82,
+      -322.48,
+      -190.5,
+      562.34,
+      541.95,
+      475.52
+    ],
+    "warnings": 2
+  }
+}

@@ -25,12 +25,21 @@ internal static class CatiaReader
 
     public static bool Sniff(ReadOnlySpan<byte> head) => CatiaContainer.Sniff(head);
 
-    public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options)
+    public static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options) => Read(data, options, 0);
+
+    private const int MaxProductDepth = 5;
+    private const int MaxProductNodes = 1_000_000;
+
+    private static Model3D Read(ReadOnlyMemory<byte> data, LoadOptions options, int depth)
     {
         var token = options.Cancellation;
         var container = Open(data, token);
         var model = new Model3D();
         var info = ReadInfo(container, model.Metadata, options);
+        if (model.Metadata.DocumentKind == "assembly")
+        {
+            return ReadProduct(container, model, info, options, depth);
+        }
 
         long vertices = 0;
         var bodies = new List<CatiaTessellation.Body>();
@@ -82,6 +91,206 @@ internal static class CatiaReader
         return model;
     }
 
+    private static string? ProductName(ReadOnlyMemory<byte> data, LoadOptions options)
+    {
+        try
+        {
+            return ReadInfo(Open(data, options.Cancellation), new ModelMetadata(), options).ProductName;
+        }
+        catch (ModelFormatException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// A product: its instances (reference, name, placement) come from the Data stream, the geometry from the component files found through
+    /// <see cref="LoadOptions.ResolveCompanion"/>. An instance finds its file by the part number the file states (the reference's name, then the instance's), then by file name,
+    /// then as the only component; each distinct file is loaded once and shared by its instances.
+    /// </summary>
+    private static Model3D ReadProduct(CatiaContainer container, Model3D model, Info info, LoadOptions options, int depth)
+    {
+        var token = options.Cancellation;
+        var meta = model.Metadata;
+        var instances = new List<CatiaProduct.Instance>();
+        foreach (var stream in container.Named("Data", nested: false))
+        {
+            token.ThrowIfCancellationRequested();
+            if (container.Read(stream, StreamLimit) is { } bytes)
+            {
+                instances = CatiaProduct.Decode(bytes, token);
+                if (instances.Count > 0)
+                {
+                    break;
+                }
+            }
+        }
+
+        var resolve = options.ResolveCompanion;
+        var files = meta.ComponentFiles.ToList();
+        Dictionary<string, string?>? names = null;
+        var loaded = new Dictionary<string, Model3D?>(StringComparer.OrdinalIgnoreCase);
+        var root = new SceneNode(info.ProductName ?? meta.Title ?? "CATIA product");
+        root.Properties["kind"] = "assembly";
+        var nodes = 0;
+        var unresolved = new HashSet<string>(StringComparer.Ordinal);
+        var missing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var tick = 0;
+        if (instances.Count > 0 && resolve is not null && depth < MaxProductDepth)
+        {
+            // Instances of one reference share its file: the first that finds a file by name gives it to the others (a reference keeps the name it had when it was
+            // instanced, so a renamed part matches only through its later instance names).
+            names = ComponentNames(files, resolve, options);
+            var byReference = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var instance in instances)
+            {
+                if (instance.Reference is not null && !byReference.ContainsKey(instance.Reference) && PickFile(instance, files, names, strict: true) is { } found)
+                {
+                    byReference[instance.Reference] = found;
+                }
+            }
+
+            foreach (var instance in instances)
+            {
+                Cancel.Every(token, tick++, 63);
+                var label = instance.Name ?? instance.Reference ?? "instance";
+                if (instance.Undecoded)
+                {
+                    model.Warnings.Add($"The position of {label} is stored in a form that was not read; it is drawn at the origin of its product.");
+                }
+
+                var file = PickFile(instance, files, names, strict: true) ?? (instance.Reference is not null && byReference.TryGetValue(instance.Reference, out var shared) ? shared : PickFile(instance, files, names, strict: false));
+                if (file is null)
+                {
+                    unresolved.Add(label);
+                    continue;
+                }
+
+                if (!loaded.TryGetValue(file, out var component))
+                {
+                    component = null;
+                    if (resolve(file) is { Length: > 0 } bytes)
+                    {
+                        try
+                        {
+                            component = Read(bytes, options, depth + 1);
+                            ModelMerge.AdoptResources(model, component);
+                        }
+                        catch (UnsupportedModelFormatException)
+                        {
+                            component = null;
+                        }
+                    }
+                    else
+                    {
+                        missing.Add(file);
+                    }
+
+                    loaded[file] = component;
+                }
+
+                if (component is null || component.Roots.Count == 0)
+                {
+                    continue;
+                }
+
+                var node = new SceneNode(label) { Transform = instance.Placement };
+                node.Properties["file"] = file;
+                if (instance.Reference is not null)
+                {
+                    node.Properties["reference"] = instance.Reference;
+                }
+
+                foreach (var child in component.Roots)
+                {
+                    node.Children.Add(ModelMerge.CloneTree(child));
+                }
+
+                nodes += 1 + CountNodes(node);
+                root.Children.Add(node);
+                if (nodes > MaxProductNodes)
+                {
+                    model.Warnings.Add("The product has more instances than are drawn; the rest are left out.");
+                    break;
+                }
+            }
+        }
+
+        meta.PartNames.Clear();
+        foreach (var name in instances.Select(i => i.Name).Where(n => n is not null).Distinct(StringComparer.Ordinal))
+        {
+            meta.PartNames.Add(name!);
+        }
+
+        foreach (var name in unresolved.Take(20))
+        {
+            model.Warnings.Add($"No component file was found for the instance {name}; it is not drawn.");
+        }
+
+        foreach (var file in missing.Take(20))
+        {
+            model.Warnings.Add($"Component file {file} was not supplied; its instances are not drawn.");
+        }
+
+        if (model.Meshes.Count == 0)
+        {
+            meta.HasGeometry = false;
+            throw new UnsupportedModelFormatException(ModelFormats.Catia, NoGeometry(meta) + (instances.Count > 0 && resolve is null ? " Supply the component files through LoadOptions.ResolveCompanion." : ""));
+        }
+
+        model.Roots.Add(root);
+        model.Preview = info.Preview;
+        meta.HasGeometry = true;
+        meta.Statistics = model.ComputeStatistics();
+        meta.Bounds = model.ComputeBounds();
+        meta.Notes.Add("Instance placements are the ones the product stores; the geometry is the display tessellation of the component files.");
+        return model;
+    }
+
+    private static int CountNodes(SceneNode node)
+    {
+        var n = 0;
+        foreach (var child in node.Children)
+        {
+            n += 1 + CountNodes(child);
+        }
+
+        return n;
+    }
+
+    private static Dictionary<string, string?> ComponentNames(List<string> files, Func<string, byte[]?> resolve, LoadOptions options)
+    {
+        var names = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        foreach (var file in files)
+        {
+            options.Cancellation.ThrowIfCancellationRequested();
+            names[file] = resolve(file) is { Length: > 0 } bytes ? ProductName(bytes, options) : null;
+        }
+
+        return names;
+    }
+
+    private static string? PickFile(CatiaProduct.Instance instance, List<string> files, Dictionary<string, string?> names, bool strict)
+    {
+        foreach (var key in new[] { instance.Reference, instance.Name })
+        {
+            if (key is not null && files.FirstOrDefault(f => string.Equals(names.GetValueOrDefault(f), key, StringComparison.Ordinal)) is { } byName)
+            {
+                return byName;
+            }
+        }
+
+        foreach (var key in new[] { instance.Reference, instance.Name })
+        {
+            if (key is not null && files.FirstOrDefault(f => string.Equals(Path.GetFileNameWithoutExtension(f), key, StringComparison.OrdinalIgnoreCase)) is { } byStem)
+            {
+                return byStem;
+            }
+        }
+
+        return !strict && files.Count == 1 ? files[0] : null;
+    }
+
     public static ModelMetadata ReadMetadata(ReadOnlyMemory<byte> data, LoadOptions options)
     {
         var container = Open(data, options.Cancellation);
@@ -116,7 +325,7 @@ internal static class CatiaReader
 
     private static string NoGeometry(ModelMetadata meta) => meta.DocumentKind switch
     {
-        "assembly" => "A CATIA product stores its structure only; the geometry is in the referenced part files, and the instance positions are not decoded.",
+        "assembly" => "A CATIA product stores its structure only; the geometry is in the referenced component files, and no instance positions or no component file could be used.",
         "drawing" => "A CATIA drawing holds no 3D geometry; the preview image is available.",
         _ => "No display tessellation was found; the exact B-rep that such a document stores is not decoded.",
     };
