@@ -68,6 +68,8 @@ public static class ModelFormats
 
     public static FormatInfo Unreal { get; } = new("unreal", "Unreal asset", "scene", [".uasset", ".umap"], FormatSupport.Full);
 
+    public static FormatInfo E57 { get; } = new("e57", "ASTM E57", "pointcloud", [".e57"], FormatSupport.Full);
+
     public static FormatInfo Psu { get; } = new("psu", "PlayStation 2 save", "scene", [".psu"], FormatSupport.Full);
 
     public static FormatInfo Rlf { get; } = new("rlf", "Relief height map", "mesh", [".rlf"], FormatSupport.Metadata);
@@ -97,13 +99,12 @@ public static class ModelFormats
         new("solidedge", "Solid Edge", "cad", [".par", ".psm", ".asm"], FormatSupport.Identified),
         new("fusion", "Fusion 360", "cad", [".f3d", ".f3z"], FormatSupport.Identified),
         new("archicad", "Archicad", "bim", [".pln", ".pla", ".gsm"], FormatSupport.Identified),
-        new("e57", "ASTM E57", "pointcloud", [".e57"], FormatSupport.Identified),
     ];
 
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Blender, Psu, Rlf, Unreal, Rhino, Acis, Dwf];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Psu, Rlf, Unreal, E57, Blender, Acis, Dwf];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -199,8 +200,11 @@ public static class ModelFormats
             return B3d;
         }
 
-        if (Formats.Saves.PsuReader.Sniff(head))
+        if (Formats.PointCloud.E57Reader.Sniff(head))
         {
+            return E57;
+        }
+
         if (Formats.Game.UassetReader.Sniff(head))
         {
             return Unreal;

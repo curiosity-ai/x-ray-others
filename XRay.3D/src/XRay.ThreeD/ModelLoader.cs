@@ -72,6 +72,7 @@ public static class ModelLoader
             "iges" => Formats.Cad.IgesReader.ReadMetadata(d, o),
             "dwg" => Formats.Cad.DwgReader.ReadMetadata(d, o),
             "rlf" => Formats.Relief.RlfReader.Read(d, o).Metadata,
+            "e57" => Formats.PointCloud.E57Reader.ReadMetadata(d, o),
             "unreal" => Formats.Game.UassetReader.Read(d, o).Metadata,
             "revit" or "inventor" => Formats.Cad.CompoundDocumentReader.ReadMetadata(format, d, o),
             _ => ApplyHints(format, Dispatch(format, d, o), o).Metadata,
@@ -87,6 +88,7 @@ public static class ModelLoader
         return Guard(data, fileName, options, (format, d, o) => format.Id switch
         {
             "dwg" => Formats.Cad.DwgReader.ReadPreview(d, o),
+            "e57" => Formats.PointCloud.E57Reader.ReadPreview(d, o),
             "revit" or "inventor" => Formats.Cad.CompoundDocumentReader.ReadPreview(format, d, o),
             _ => format.Support == FormatSupport.Full ? Dispatch(format, d, o).Preview : null,
         });
@@ -366,6 +368,8 @@ public static class ModelLoader
         "vrml" => X3dReader.ReadVrml(data, options),
         "unity" => Formats.Game.UnityPackageReader.Read(data, options),
         "b3d" => B3dReader.Read(data, options),
+        "unreal" => Formats.Game.UassetReader.Read(data, options, requireGeometry: true),
+        "e57" => Formats.PointCloud.E57Reader.Read(data, options),
         "psu" => Formats.Saves.PsuReader.Read(data, options),
         "rlf" => throw new UnsupportedModelFormatException(format, "Relief files keep their heights in a proprietary compressed raster that is not decoded; use ReadMetadata for the dimensions."),
         "unreal" => Formats.Game.UassetReader.Read(data, options, requireGeometry: true),

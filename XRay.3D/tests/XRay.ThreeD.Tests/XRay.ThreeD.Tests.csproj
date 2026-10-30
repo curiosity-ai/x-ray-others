@@ -33,6 +33,8 @@
   <ItemGroup>
     <None Include="Corpus/las14-golden.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+    <None Include="Corpus/e57-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Corpus/e57-local-golden.json" CopyToOutputDirectory="PreserveNewest" />
   <ItemGroup>
     <ProjectReference Include="../../src/XRay.ThreeD/XRay.ThreeD.csproj" />
   </ItemGroup>

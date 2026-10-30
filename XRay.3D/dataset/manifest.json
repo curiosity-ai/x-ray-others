@@ -1969,5 +1969,14 @@
   "source": "tools/fixtures/make_dwfx_fixture.py",
   "bytes": 1964,
   "sha256": "8f702177fec9b4a19a0140200b8fe2313b4b1a5254d4120a90feb89ece1d705a"
+ },
+ {
+  "file": "synthetic/e57-two-scans.e57",
+  "format": "e57",
+  "title": "Synthetic E57 with two scans (colour, intensity, pose) written with pye57",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_e57_fixtures.py",
+  "bytes": 54272,
+  "sha256": "08027678ddd04d84ef86cbaeb16ca4a0552d1d8396e4709bdb6e85aac2c2b1b4"
  }
 ]
