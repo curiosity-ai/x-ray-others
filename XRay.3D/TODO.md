@@ -47,7 +47,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 
 - [x] DWF 6 and DWFx 2D graphics (text W2D, XPS pages) and metadata. Open: binary W2D (the opcode stream), W3D, DWF 7+ (DWFx streams with fonts and images), bitmaps, layers and named objects in the metadata
 
-- [~] Parasolid transmit (`.x_t`, `.x_b`): header metadata. **Blocked**: node layouts depend on the schema of each modeller version (hundreds of field definitions per schema, published only as proprietary tables); without a public description or the embedded-schema variant, guessing them would be unverifiable. Open: embedded-schema files, a verified table for one schema (a fixture from a real export per schema is the way to check one)
+- [~] Parasolid transmit (`.x_t`, `.x_b`): header metadata (checked on a real Parasolid 10 SolidWorks export, `ParasolidLocalTests`, local sample). **Blocked**: the node stream is schema driven (a numeric node type, then index and fields whose count and meaning come from the schema named in the header, `SCH_1000230_10004` in the real sample, embedded only as a delta for newer files); no public field table for any schema exists, the one public parser found (parasolid-kit, MIT) ships tables only for Onshape/SolidWorks/iCAD V13 to V37 keys and none for this one, and a single 17 KB real file is not enough to derive and verify hundreds of field layouts (the stream shows repeating 12-node groups per face but node types and field widths cannot be told apart without the table). Only one real .x_t file was reachable from public sources. Open: a verified table for one schema plus fixtures per schema; then planes, cylinders, cones, spheres, tori and B-splines through the existing SurfaceFaceTessellator
 
 ## Next: conversion quality
 
