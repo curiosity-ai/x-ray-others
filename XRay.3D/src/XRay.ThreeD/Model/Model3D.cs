@@ -87,9 +87,13 @@ public sealed class Model3D
             }
         }
 
-        // Area and volume per unique mesh, then scaled by each instance's transform (the determinant scales volumes, area by the
-        // area scale of the linear part; both are exact for similarity transforms and good for the rest).
-        var perMesh = new Dictionary<MeshData, (double Area, double Volume)>(ReferenceEqualityComparer.Instance);
+        // Area and volume per unique mesh (in its own frame), then carried to each instance's world transform. A similarity transform (rotation,
+        // uniform scale, translation) needs no more than the mesh's totals; anything else (a non-uniform scale, a shear: a furniture piece fitted
+        // to a box, a node scaled along one axis) changes every triangle's area by its own factor, so those instances are measured triangle by
+        // triangle (once per distinct matrix of a mesh). The volume of a closed mesh follows from the determinant alone; an open one also depends
+        // on where it sits, which the vector-area term below carries.
+        var perMesh = new Dictionary<MeshData, MeshTotals>(ReferenceEqualityComparer.Instance);
+        var exact = new Dictionary<(MeshData, Matrix4x4), (double Area, double Volume)>();
         double totalArea = 0;
         double totalVolume = 0;
         void Visit(SceneNode node, Matrix4x4 parent)
@@ -99,16 +103,13 @@ public sealed class Model3D
             {
                 if (!perMesh.TryGetValue(mesh, out var m))
                 {
-                    m = AreaAndVolume(mesh);
+                    m = Totals(mesh);
                     perMesh[mesh] = m;
                 }
 
-                var det = (double)world.GetDeterminant();
-                var linear = new Matrix4x4(world.M11, world.M12, world.M13, 0, world.M21, world.M22, world.M23, 0, world.M31, world.M32, world.M33, 0, 0, 0, 0, 1);
-                var scale = Math.Pow(Math.Abs(det), 1.0 / 3.0);
-                _ = linear;
-                totalArea += m.Area * scale * scale;
-                totalVolume += m.Volume * det;
+                var (area, volume) = Carry(mesh, m, world, exact);
+                totalArea += area;
+                totalVolume += volume;
             }
 
             foreach (var child in node.Children)
@@ -129,10 +130,12 @@ public sealed class Model3D
         };
     }
 
-    private static (double Area, double Volume) AreaAndVolume(MeshData mesh)
+    /// <summary>Area, signed volume about the origin and the sum of the triangles' vector areas of a mesh in its own frame.</summary>
+    private readonly record struct MeshTotals(double Area, double Volume, double Sx, double Sy, double Sz);
+
+    private static MeshTotals Totals(MeshData mesh)
     {
-        double area = 0;
-        double volume = 0;
+        double area = 0, volume = 0, sx = 0, sy = 0, sz = 0;
         var p = mesh.Positions;
         for (var t = 0; t + 2 < mesh.Indices.Length; t += 3)
         {
@@ -143,10 +146,76 @@ public sealed class Model3D
             double ux = bx - ax, uy = by - ay, uz = bz - az, vx = cx - ax, vy = cy - ay, vz = cz - az;
             double nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
             area += 0.5 * Math.Sqrt(nx * nx + ny * ny + nz * nz);
+            sx += 0.5 * nx;
+            sy += 0.5 * ny;
+            sz += 0.5 * nz;
             volume += (ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx)) / 6.0;
         }
 
-        return (area, volume);
+        return new MeshTotals(area, volume, sx, sy, sz);
+    }
+
+    /// <summary>
+    /// Area and volume of one drawn instance. A transform with a negative determinant mirrors the mesh; glTF (and every renderer) then reads the
+    /// triangles' winding the other way, so the solid is drawn with the winding it was meant to have and its volume counts as positive.
+    /// </summary>
+    private static (double Area, double Volume) Carry(MeshData mesh, MeshTotals m, Matrix4x4 w, Dictionary<(MeshData, Matrix4x4), (double Area, double Volume)> exact)
+    {
+        // The linear part's determinant in double: the 4x4 determinant in float loses digits to a large translation.
+        double det = (double)w.M11 * ((double)w.M22 * w.M33 - (double)w.M23 * w.M32)
+            - (double)w.M12 * ((double)w.M21 * w.M33 - (double)w.M23 * w.M31)
+            + (double)w.M13 * ((double)w.M21 * w.M32 - (double)w.M22 * w.M31);
+        if (!double.IsFinite(det) || det == 0)
+        {
+            return (0, 0);
+        }
+
+        // Row-vector convention: the first three rows are the images of the axes. Similarity: they are orthogonal and equally long.
+        double l1 = w.M11 * w.M11 + w.M12 * w.M12 + w.M13 * w.M13;
+        double l2 = w.M21 * w.M21 + w.M22 * w.M22 + w.M23 * w.M23;
+        double l3 = w.M31 * w.M31 + w.M32 * w.M32 + w.M33 * w.M33;
+        double d12 = w.M11 * w.M21 + w.M12 * w.M22 + w.M13 * w.M23;
+        double d13 = w.M11 * w.M31 + w.M12 * w.M32 + w.M13 * w.M33;
+        double d23 = w.M21 * w.M31 + w.M22 * w.M32 + w.M23 * w.M33;
+        var tol = 1e-5 * Math.Max(l1, Math.Max(l2, l3));
+        var similarity = Math.Abs(l1 - l2) <= tol && Math.Abs(l1 - l3) <= tol && Math.Abs(d12) <= tol && Math.Abs(d13) <= tol && Math.Abs(d23) <= tol;
+        var moved = w.M41 != 0 || w.M42 != 0 || w.M43 != 0;
+        var openSurface = Math.Abs(m.Sx) + Math.Abs(m.Sy) + Math.Abs(m.Sz) > 1e-9 * m.Area;
+        if (similarity && !(moved && openSurface))
+        {
+            return (m.Area * l1, Math.Abs(det) * m.Volume);
+        }
+
+        var key = (mesh, w);
+        if (!exact.TryGetValue(key, out var result))
+        {
+            double area = 0, volume = 0;
+            var p = mesh.Positions;
+            for (var t = 0; t + 2 < mesh.Indices.Length; t += 3)
+            {
+                var a = Transform(p, (int)mesh.Indices[t] * 3, w);
+                var b = Transform(p, (int)mesh.Indices[t + 1] * 3, w);
+                var c = Transform(p, (int)mesh.Indices[t + 2] * 3, w);
+                double ux = b.X - a.X, uy = b.Y - a.Y, uz = b.Z - a.Z, vx = c.X - a.X, vy = c.Y - a.Y, vz = c.Z - a.Z;
+                double nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+                area += 0.5 * Math.Sqrt(nx * nx + ny * ny + nz * nz);
+                volume += (a.X * (b.Y * c.Z - b.Z * c.Y) - a.Y * (b.X * c.Z - b.Z * c.X) + a.Z * (b.X * c.Y - b.Y * c.X)) / 6.0;
+            }
+
+            result = (area, det < 0 ? -volume : volume);
+            exact[key] = result;
+        }
+
+        return result;
+    }
+
+    private static (double X, double Y, double Z) Transform(float[] p, int i, Matrix4x4 w)
+    {
+        double x = p[i], y = p[i + 1], z = p[i + 2];
+        return (
+            x * w.M11 + y * w.M21 + z * w.M31 + w.M41,
+            x * w.M12 + y * w.M22 + z * w.M32 + w.M42,
+            x * w.M13 + y * w.M23 + z * w.M33 + w.M43);
     }
 
     /// <summary>Axis-aligned bounds of every mesh under its node's world transform, or null for an empty model.</summary>
