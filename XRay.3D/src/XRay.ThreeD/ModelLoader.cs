@@ -141,7 +141,7 @@ public static class ModelLoader
         return model;
     }
 
-    private static readonly HashSet<string> UnstatedUnits = new(StringComparer.Ordinal) { "stl", "obj", "ply", "off", "3ds", "xyz", "pts" };
+    private static readonly HashSet<string> UnstatedUnits = new(StringComparer.Ordinal) { "stl", "obj", "ply", "off", "3ds", "xyz", "pts", "openscad" };
 
     /// <summary>The caller's unit and up-axis hints, for the formats whose files do not carry them.</summary>
     private static Model3D ApplyHints(FormatInfo format, Model3D model, LoadOptions options)
@@ -354,6 +354,7 @@ public static class ModelLoader
         "freecad" => Formats.Cad.FreecadReader.Read(data, options),
         "gcode" => Formats.Toolpath.GcodeReader.Read(data, options),
         "sh3d" => Formats.Bim.Sh3dReader.Read(data, options),
+        "openscad" => Formats.OpenScad.ScadReader.Read(data, options),
         "x3d" => X3dReader.ReadXml(data, options),
         "x3dv" => X3dReader.ReadClassic(data, options),
         "vrml" => X3dReader.ReadVrml(data, options),

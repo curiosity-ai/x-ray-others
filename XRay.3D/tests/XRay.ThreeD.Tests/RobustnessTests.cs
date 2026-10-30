@@ -68,6 +68,8 @@ public class RobustnessTests
         "synthetic/print.gcode",
         "synthetic/profile.nc",
         "fcstd/butt-hinge.FCStd",
+        "scad/chess-rook.scad",
+        "scad/wall-bracket.scad",
         "b3d/blitz3d-arcade-cabinet.b3d",
         "b3d/blitz3d-swaying-tentacle.b3d",
         "b3d/bazis-wall-cabinet.b3d",
