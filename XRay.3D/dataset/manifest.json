@@ -1942,5 +1942,23 @@
   "source": "NIST engineering design models (via the public cq-acis test corpus)",
   "bytes": 4709,
   "sha256": "d3477a71195fc5650975314551bf621def89fdbd1752602d9bc6e12a279a0d2d"
+ },
+ {
+  "file": "synthetic/inventor-hashed.iam",
+  "format": "cfb",
+  "title": "Synthetic Inventor and Revit compound files in the layout of real 2019+ files",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_cfb_real_layout.py",
+  "bytes": 11776,
+  "sha256": "bba8bb36e46290113123e18746b9e31af49b240ca29d6671aa9c78e6acb0e7be"
+ },
+ {
+  "file": "synthetic/revit-2021.rvt",
+  "format": "cfb",
+  "title": "Synthetic Inventor and Revit compound files in the layout of real 2019+ files",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_cfb_real_layout.py",
+  "bytes": 11264,
+  "sha256": "46c83f19ed277d4927b1e4b57d48618d4e2b0f0a9b200f5413eaccb0c242a34e"
  }
 ]
