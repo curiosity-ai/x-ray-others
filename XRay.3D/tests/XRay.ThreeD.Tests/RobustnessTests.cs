@@ -63,6 +63,8 @@ public class RobustnessTests
         "synthetic/revit-2021.rvt",
         "synthetic/legacy-cube.sldprt",
         "synthetic/gdl-solids.gsm",
+        "synthetic/model-2021.skp",
+        "synthetic/model-2016.skp",
         "pln/table-lamp.gsm",
         "sh3d/sweet-home-cottage.sh3d",
         "synthetic/package-obj-mtl.zip",

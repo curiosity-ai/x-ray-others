@@ -86,6 +86,8 @@ public static class ModelFormats
 
     public static FormatInfo Archicad { get; } = new("archicad", "Archicad", "bim", [".pln", ".pla", ".gsm"], FormatSupport.Full);
 
+    public static FormatInfo SketchUp { get; } = new("sketchup", "SketchUp", "cad", [".skp"], FormatSupport.Metadata);
+
     public static FormatInfo ThreeMf { get; } = new("3mf", "3D Manufacturing Format", "mesh", [".3mf"], FormatSupport.Full);
 
     /// <summary>Formats that are recognised but not yet read. See TODO.md for the order they are planned in.</summary>
@@ -93,7 +95,6 @@ public static class ModelFormats
     [
         new("jt", "JT", "cad", [".jt"], FormatSupport.Identified),
         new("ifcxml", "IFC XML", "bim", [".ifcxml"], FormatSupport.Identified),
-        new("sketchup", "SketchUp", "cad", [".skp"], FormatSupport.Identified),
         new("revit", "Revit", "bim", [".rvt", ".rfa", ".rft"], FormatSupport.Metadata),
         new("inventor", "Autodesk Inventor", "cad", [".ipt", ".iam", ".idw"], FormatSupport.Metadata),
         new("catia", "CATIA", "cad", [".catpart", ".catproduct"], FormatSupport.Identified),
@@ -106,7 +107,7 @@ public static class ModelFormats
     /// <summary>A ZIP package that is not a 3D format this library knows; loading it loads the primary model inside (see <c>ArchiveReader</c>).</summary>
     public static FormatInfo Archive { get; } = new("archive", "ZIP archive", "archive", [".zip"], FormatSupport.Full);
 
-    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Psu, Rlf, Unreal, E57, Blender, Archicad, Acis, Dwf, Parasolid];
+    private static readonly FormatInfo[] Supported = [SolidWorks, Stl, Obj, Ply, Gltf, ThreeMf, Dxf, Las, Laz, Pcd, Xyz, Pts, Off, Amf, Max3ds, Collada, X3d, Vrml, Fbx, Usd, Step, Ifc, Iges, FreeCad, Gcode, Sh3d, B3d, X3dv, Unity, OpenScad, Psu, Rlf, Unreal, E57, Blender, Archicad, SketchUp, Acis, Dwf, Parasolid];
 
     public static IEnumerable<FormatInfo> All => Supported.Concat(Identified).Append(Archive);
 
@@ -230,6 +231,11 @@ public static class ModelFormats
         if (Formats.Blender.BlendFile.Sniff(head) || (byExtension?.Id == "blender" && Formats.Blender.BlendFile.IsCompressed(head)))
         {
             return Blender;
+        }
+
+        if (Formats.SketchUp.SketchUpReader.Sniff(head))
+        {
+            return SketchUp;
         }
 
         if (head.Length > 0x34 && head[0] == (byte)'W' && head[1] == (byte)'W' && Formats.Archicad.GsmReader.Sniff(data.Span))
