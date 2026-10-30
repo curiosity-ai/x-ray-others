@@ -113,3 +113,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## cadmpeg (CATIA V5 container description)
+
+`src/XRay.ThreeD/Formats/Catia/` reads the CATIA V5 container from the public format description of [cadmpeg](https://github.com/cadmpeg/cadmpeg)
+(`docs/formats/catia.md`, released under CC-BY-4.0, copyright the cadmpeg project; the `cadmpeg-codec-catia` crate is Apache-2.0). The outer and nested
+`V5_CFV2` headers, the `CATIA_V5 CB0001` stream directory and its extent lists, the `FINJPL` and `CATCGRCont` notes, the indexed-triangle packets with big-endian
+handles and the colour row layout are taken from that description and re-checked on real files; the coordinate-table encoding, the handle widths, the packet
+variants, the metadata streams and the link records were derived from the sample files. No source code of cadmpeg was copied or ported. The description is
+licensed under <https://creativecommons.org/licenses/by/4.0/>.
+
+## CATIA sample files in the dataset
+
+`dataset/catia/` holds seven CATIA V5 files that were published under the MIT licence and are redistributed unchanged: five from
+[hssnadr/HTBX_01Ressources](https://github.com/hssnadr/HTBX_01Ressources) (copyright (c) 2020 Adrien Husson) and two from
+[Dictor/HaneulMyo](https://github.com/Dictor/HaneulMyo) (copyright (c) 2019 Dictor). The MIT licence text is in the first section of this file
+(meshoptimizer) with the corresponding copyright lines above.
+
