@@ -1,0 +1,2205 @@
+{
+ "terrain-contours.3dm": {
+  "version": 70,
+  "units": "UnitSystem.Meters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "jonat",
+  "revision": 1,
+  "layers": [
+   {
+    "name": "Contours 25 m",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     120,
+     60,
+     20,
+     255
+    ],
+    "id": "74ef4042-8ba2-4bf7-a377-26346cc1103e",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Contours 5 m",
+    "index": 1,
+    "visible": true,
+    "locked": false,
+    "color": [
+     190,
+     150,
+     100,
+     255
+    ],
+    "id": "0b4d07e7-05e9-443c-9155-12528b15324f",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Terrain surface",
+    "index": 2,
+    "visible": true,
+    "locked": false,
+    "color": [
+     150,
+     175,
+     120,
+     255
+    ],
+    "id": "c86321ff-15aa-451e-b351-f62175957143",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Site boundary",
+    "index": 3,
+    "visible": true,
+    "locked": false,
+    "color": [
+     200,
+     30,
+     30,
+     255
+    ],
+    "id": "4604d664-8e5c-4ac5-a7bc-3e78dbbe6c63",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 113,
+    "box": [
+     70.8985,
+     176.727,
+     5.0,
+     158.6374,
+     243.6492,
+     5.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 9,
+    "box": [
+     122.9949,
+     203.8505,
+     5.0,
+     130.4882,
+     208.6992,
+     5.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 163,
+    "box": [
+     59.1882,
+     149.2742,
+     10.0,
+     178.1486,
+     251.8814,
+     10.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 195,
+    "box": [
+     41.5413,
+     133.9477,
+     15.0,
+     198.2378,
+     260.0413,
+     15.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 231,
+    "box": [
+     31.1012,
+     120.6677,
+     20.0,
+     208.4528,
+     268.7036,
+     20.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     197.669,
+     250.4058,
+     20.0,
+     198.6594,
+     252.8139,
+     20.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 339,
+    "box": [
+     18.7641,
+     76.8865,
+     25.0,
+     243.4381,
+     294.9986,
+     25.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 12,
+    "box": [
+     300.1836,
+     0.0,
+     25.0,
+     319.7085,
+     7.5755,
+     25.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 43,
+    "box": [
+     301.2807,
+     367.9215,
+     25.0,
+     350.9543,
+     400.0,
+     25.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 3,
+    "box": [
+     318.6722,
+     398.9244,
+     25.0,
+     323.1283,
+     400.0,
+     25.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     325.6649,
+     0.0,
+     25.0,
+     330.098,
+     4.7208,
+     25.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 183,
+    "box": [
+     0.0,
+     0.0,
+     30.0,
+     218.3404,
+     241.7098,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 332,
+    "box": [
+     0.0,
+     0.0,
+     30.0,
+     291.0561,
+     309.3355,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 35,
+    "box": [
+     24.9459,
+     19.0372,
+     30.0,
+     48.4694,
+     47.0655,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     210.4868,
+     39.9293,
+     30.0,
+     212.4199,
+     41.5738,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 38,
+    "box": [
+     219.9698,
+     380.7145,
+     30.0,
+     276.4505,
+     400.0,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 4,
+    "box": [
+     267.4503,
+     0.0,
+     30.0,
+     273.7887,
+     0.9411,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     279.745,
+     396.6696,
+     30.0,
+     280.63,
+     398.8731,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 44,
+    "box": [
+     284.611,
+     0.0,
+     30.0,
+     349.4678,
+     31.5292,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 92,
+    "box": [
+     283.4759,
+     323.1261,
+     30.0,
+     363.2176,
+     400.0,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 15,
+    "box": [
+     289.9934,
+     249.8898,
+     30.0,
+     305.1908,
+     258.6152,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 13,
+    "box": [
+     300.1644,
+     234.8003,
+     30.0,
+     307.2348,
+     246.4287,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 19,
+    "box": [
+     317.0738,
+     176.1556,
+     30.0,
+     330.9636,
+     186.8088,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 7,
+    "box": [
+     330.5397,
+     330.5646,
+     30.0,
+     331.0529,
+     334.0566,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     358.7408,
+     213.8012,
+     30.0,
+     359.3711,
+     214.7837,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     356.7165,
+     317.855,
+     30.0,
+     359.2906,
+     318.3208,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 13,
+    "box": [
+     374.598,
+     257.8479,
+     30.0,
+     382.8266,
+     265.2407,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 18,
+    "box": [
+     389.9199,
+     238.6194,
+     30.0,
+     400.0,
+     255.8026,
+     30.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     2.5316,
+     64.397,
+     35.0,
+     4.9349,
+     67.4596,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 146,
+    "box": [
+     0.0,
+     0.0,
+     35.0,
+     204.4747,
+     173.0582,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 3,
+    "box": [
+     0.0,
+     174.0078,
+     35.0,
+     0.7497,
+     178.1097,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 12,
+    "box": [
+     0.0,
+     194.7735,
+     35.0,
+     6.4431,
+     212.2432,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 208,
+    "box": [
+     0.0,
+     252.0669,
+     35.0,
+     400.0,
+     318.4572,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 95,
+    "box": [
+     4.57,
+     8.1559,
+     35.0,
+     73.5963,
+     66.0274,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 11,
+    "box": [
+     50.3726,
+     63.3173,
+     35.0,
+     56.9387,
+     70.5357,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 146,
+    "box": [
+     208.4549,
+     303.7383,
+     35.0,
+     386.9446,
+     400.0,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 13,
+    "box": [
+     212.0891,
+     113.2494,
+     35.0,
+     222.3822,
+     121.8344,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 270,
+    "box": [
+     214.5167,
+     0.0,
+     35.0,
+     400.0,
+     222.8589,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     236.0668,
+     97.1717,
+     35.0,
+     236.8155,
+     98.224,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     235.2697,
+     102.3224,
+     35.0,
+     237.4911,
+     105.6445,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     240.9045,
+     97.1157,
+     35.0,
+     243.4795,
+     100.2095,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 9,
+    "box": [
+     316.6466,
+     240.02,
+     35.0,
+     322.143,
+     245.9028,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 9,
+    "box": [
+     324.5934,
+     245.1219,
+     35.0,
+     330.8701,
+     251.5015,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 48,
+    "box": [
+     366.597,
+     196.829,
+     35.0,
+     400.0,
+     244.4901,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     370.48,
+     348.0863,
+     35.0,
+     373.415,
+     351.2663,
+     35.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 9,
+    "box": [
+     0.0,
+     37.5604,
+     40.0,
+     3.8064,
+     51.2866,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 87,
+    "box": [
+     0.0,
+     77.9963,
+     40.0,
+     71.8594,
+     147.7157,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 169,
+    "box": [
+     0.0,
+     268.7693,
+     40.0,
+     253.9003,
+     400.0,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 66,
+    "box": [
+     0.0,
+     304.0056,
+     40.0,
+     51.1707,
+     400.0,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 15,
+    "box": [
+     17.6594,
+     283.3271,
+     40.0,
+     30.6142,
+     292.3876,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 124,
+    "box": [
+     55.5948,
+     0.0,
+     40.0,
+     186.4434,
+     44.4974,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 268,
+    "box": [
+     232.3098,
+     15.6898,
+     40.0,
+     400.0,
+     211.9929,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     255.0814,
+     327.5297,
+     40.0,
+     255.2043,
+     327.5847,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 27,
+    "box": [
+     296.8337,
+     81.7972,
+     40.0,
+     313.6504,
+     103.3991,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 49,
+    "box": [
+     312.3499,
+     265.7576,
+     40.0,
+     349.0363,
+     307.2666,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 13,
+    "box": [
+     323.3332,
+     63.1896,
+     40.0,
+     328.4505,
+     76.564,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 15,
+    "box": [
+     355.4201,
+     286.0763,
+     40.0,
+     368.1719,
+     295.3266,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 14,
+    "box": [
+     393.2044,
+     52.6664,
+     40.0,
+     400.0,
+     75.725,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 14,
+    "box": [
+     394.2046,
+     276.925,
+     40.0,
+     400.0,
+     301.9805,
+     40.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 22,
+    "box": [
+     0.0,
+     97.7348,
+     45.0,
+     13.0948,
+     136.0168,
+     45.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 214,
+    "box": [
+     20.6154,
+     318.1484,
+     45.0,
+     235.5309,
+     400.0,
+     45.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 9,
+    "box": [
+     71.1883,
+     0.0,
+     45.0,
+     87.9617,
+     4.5472,
+     45.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 21,
+    "box": [
+     96.3424,
+     394.2196,
+     45.0,
+     138.4098,
+     400.0,
+     45.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 24,
+    "box": [
+     141.686,
+     0.0,
+     45.0,
+     171.0912,
+     18.9486,
+     45.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     146.8239,
+     24.7442,
+     45.0,
+     148.2199,
+     25.2857,
+     45.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 63,
+    "box": [
+     259.9376,
+     45.7565,
+     45.0,
+     294.2907,
+     91.728,
+     45.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 117,
+    "box": [
+     260.5514,
+     114.6172,
+     45.0,
+     329.5765,
+     198.0286,
+     45.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 9,
+    "box": [
+     295.1211,
+     65.459,
+     45.0,
+     300.0696,
+     70.2389,
+     45.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 13,
+    "box": [
+     328.231,
+     107.9792,
+     45.0,
+     338.0431,
+     118.2461,
+     45.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 77,
+    "box": [
+     335.7935,
+     58.6524,
+     45.0,
+     400.0,
+     135.2033,
+     45.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 17,
+    "box": [
+     377.0261,
+     38.4842,
+     45.0,
+     387.7143,
+     51.2072,
+     45.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 10,
+    "box": [
+     0.0,
+     105.9997,
+     50.0,
+     5.8361,
+     124.1155,
+     50.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 25,
+    "box": [
+     70.7355,
+     375.7326,
+     50.0,
+     89.493,
+     394.7069,
+     50.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 115,
+    "box": [
+     109.6579,
+     326.4239,
+     50.0,
+     205.8895,
+     395.7178,
+     50.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 25,
+    "box": [
+     273.7178,
+     147.4159,
+     50.0,
+     291.1663,
+     164.6814,
+     50.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 65,
+    "box": [
+     351.8072,
+     69.2963,
+     50.0,
+     400.0,
+     124.74,
+     50.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 75,
+    "box": [
+     133.2972,
+     334.9469,
+     55.0,
+     194.837,
+     383.9838,
+     55.0
+    ]
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     175.7142,
+     361.4322,
+     55.0,
+     177.5257,
+     363.1005,
+     55.0
+    ]
+   },
+   {
+    "kind": "Mesh",
+    "name": "Terrain",
+    "layer": 2,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 16384,
+    "box": [
+     0.0,
+     0.0,
+     -0.05,
+     400.0,
+     400.0,
+     59.95
+    ],
+    "vertices": 16384,
+    "triangles": 32258,
+    "normals": 16384,
+    "colors": 0
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "",
+    "layer": 3,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 5,
+    "box": [
+     0.0,
+     0.0,
+     0.0,
+     400.0,
+     400.0,
+     0.0
+    ]
+   }
+  ]
+ },
+ "rhino-bigmesh.3dm": {
+  "version": 70,
+  "units": "UnitSystem.Millimeters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 1,
+  "layers": [
+   {
+    "name": "Grid",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     40,
+     80,
+     160,
+     255
+    ],
+    "id": "6da21ab9-2663-b349-b1c7-57e6763436bc",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "Mesh",
+    "name": "grid",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 66049,
+    "box": [
+     0.0,
+     0.0,
+     -1.0,
+     128.0,
+     128.0,
+     1.0
+    ],
+    "vertices": 66049,
+    "triangles": 131072,
+    "normals": 0,
+    "colors": 66049
+   }
+  ]
+ },
+ "rhino-layers.3dm": {
+  "version": 70,
+  "units": "UnitSystem.Meters",
+  "absoluteTolerance": 0.001,
+  "createdBy": "",
+  "revision": 1,
+  "layers": [
+   {
+    "name": "Visible",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     255,
+     255,
+     0,
+     255
+    ],
+    "id": "856227a2-7989-684b-b7d9-61ee4af04a6b",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Off",
+    "index": 1,
+    "visible": false,
+    "locked": false,
+    "color": [
+     0,
+     0,
+     255,
+     255
+    ],
+    "id": "003c2bf0-5d79-2042-a714-713a7a896b73",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Child of off",
+    "index": 2,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     255,
+     255,
+     255
+    ],
+    "id": "3a164d16-5b76-9542-a98a-0354c203f4c7",
+    "parent": "003c2bf0-5d79-2042-a714-713a7a896b73"
+   },
+   {
+    "name": "Locked",
+    "index": 3,
+    "visible": true,
+    "locked": true,
+    "color": [
+     128,
+     128,
+     128,
+     255
+    ],
+    "id": "3996a6d7-205d-5244-897b-f1cc17f5eadf",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   }
+  ],
+  "materials": [],
+  "blocks": [],
+  "objects": [
+   {
+    "kind": "LineCurve",
+    "name": "on",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 2,
+    "box": [
+     0.0,
+     0.0,
+     0.0,
+     5.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "kind": "LineCurve",
+    "name": "off",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 2,
+    "box": [
+     0.0,
+     1.0,
+     0.0,
+     5.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "kind": "LineCurve",
+    "name": "inherits off",
+    "layer": 2,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 2,
+    "box": [
+     0.0,
+     2.0,
+     0.0,
+     5.0,
+     2.0,
+     0.0
+    ]
+   },
+   {
+    "kind": "LineCurve",
+    "name": "locked",
+    "layer": 3,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 2,
+    "box": [
+     0.0,
+     3.0,
+     0.0,
+     5.0,
+     3.0,
+     0.0
+    ]
+   },
+   {
+    "kind": "LineCurve",
+    "name": "hidden object",
+    "layer": 0,
+    "mode": "ObjectMode.Hidden",
+    "visible": false,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 2,
+    "box": [
+     0.0,
+     4.0,
+     0.0,
+     5.0,
+     4.0,
+     0.0
+    ]
+   }
+  ]
+ },
+ "rhino-scene.3dm": {
+  "version": 70,
+  "units": "UnitSystem.Inches",
+  "absoluteTolerance": 0.01,
+  "createdBy": "",
+  "revision": 1,
+  "layers": [
+   {
+    "name": "Top",
+    "index": 0,
+    "visible": true,
+    "locked": false,
+    "color": [
+     255,
+     0,
+     0,
+     255
+    ],
+    "id": "53e8cb2d-eb05-3f4e-8bf3-1f5547c22ddf",
+    "parent": "00000000-0000-0000-0000-000000000000"
+   },
+   {
+    "name": "Sub",
+    "index": 1,
+    "visible": true,
+    "locked": false,
+    "color": [
+     0,
+     255,
+     0,
+     255
+    ],
+    "id": "57be5242-8aee-9b46-91af-7131652847a3",
+    "parent": "53e8cb2d-eb05-3f4e-8bf3-1f5547c22ddf"
+   }
+  ],
+  "materials": [
+   {
+    "name": "Steel",
+    "diffuse": [
+     200,
+     100,
+     50,
+     255
+    ],
+    "transparency": 0.25,
+    "shine": 60.0
+   }
+  ],
+  "blocks": [
+   {
+    "id": "e580914d-7d4d-a340-b915-179f9439b37f",
+    "name": "Block1",
+    "description": "desc",
+    "members": 2
+   }
+  ],
+  "objects": [
+   {
+    "kind": "Point",
+    "name": "pt",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 1,
+    "box": [
+     1.0,
+     2.0,
+     3.0,
+     1.0,
+     2.0,
+     3.0
+    ]
+   },
+   {
+    "kind": "LineCurve",
+    "name": "line",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 2,
+    "box": [
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "kind": "NurbsCurve",
+    "name": "circle",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "NurbsCurve",
+    "name": "arc",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "PolylineCurve",
+    "name": "poly",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromObject",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 3,
+    "box": [
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "kind": "NurbsCurve",
+    "name": "nurbs",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 0,
+    "box": null
+   },
+   {
+    "kind": "PointCloud",
+    "name": "cloud",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 2,
+    "box": [
+     1.0,
+     1.0,
+     1.0,
+     2.0,
+     2.0,
+     2.0
+    ]
+   },
+   {
+    "kind": "Mesh",
+    "name": "mesh",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": 0,
+    "materialSource": "ObjectMaterialSource.MaterialFromObject",
+    "userStrings": {
+     "part-number": "A-100",
+     "note": "two strings"
+    },
+    "points": 5,
+    "box": [
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "vertices": 5,
+    "triangles": 3,
+    "normals": 5,
+    "colors": 5
+   },
+   {
+    "kind": "Mesh",
+    "name": "bm",
+    "layer": 0,
+    "mode": "ObjectMode.InstanceDefinitionObject",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 3,
+    "box": [
+     0.0,
+     0.0,
+     0.0,
+     2.0,
+     2.0,
+     0.0
+    ],
+    "vertices": 3,
+    "triangles": 1,
+    "normals": 3,
+    "colors": 0
+   },
+   {
+    "kind": "LineCurve",
+    "name": "bl",
+    "layer": 0,
+    "mode": "ObjectMode.InstanceDefinitionObject",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "points": 2,
+    "box": [
+     0.0,
+     0.0,
+     0.0,
+     3.0,
+     3.0,
+     3.0
+    ]
+   },
+   {
+    "kind": "InstanceReference",
+    "name": "ref1",
+    "layer": 0,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "block": "e580914d-7d4d-a340-b915-179f9439b37f",
+    "xform": [
+     1.0,
+     0.0,
+     0.0,
+     10.0,
+     0.0,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "kind": "InstanceReference",
+    "name": "ref2",
+    "layer": 1,
+    "mode": "ObjectMode.Normal",
+    "visible": true,
+    "colorSource": "ObjectColorSource.ColorFromLayer",
+    "materialIndex": -1,
+    "materialSource": "ObjectMaterialSource.MaterialFromLayer",
+    "userStrings": {},
+    "block": "e580914d-7d4d-a340-b915-179f9439b37f",
+    "xform": [
+     0.0,
+     -1.0,
+     0.0,
+     20.0,
+     1.0,
+     0.0,
+     0.0,
+     5.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  ]
+ }
+}

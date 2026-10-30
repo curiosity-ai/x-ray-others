@@ -1852,5 +1852,32 @@
   "source": "tools/fixtures/make_zstd.py",
   "bytes": 30,
   "sha256": "6ddbf9bcdc6b51be2f72cda91542ddb3d5448e0b1092ba36eaa8d16988cb843a"
+ },
+ {
+  "file": "synthetic/rhino-scene.3dm",
+  "format": "3dm",
+  "title": "Rhino 3DM fixture written with rhino3dm",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_3dm_fixtures.py",
+  "bytes": 13687,
+  "sha256": "8521c081baed878d2b790795811abb31f159a7cba64b1b7749dc9cd5631b3f2e"
+ },
+ {
+  "file": "synthetic/rhino-bigmesh.3dm",
+  "format": "3dm",
+  "title": "Rhino 3DM fixture written with rhino3dm",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_3dm_fixtures.py",
+  "bytes": 2027785,
+  "sha256": "a455f95ae365556761ccf263b8d371816389b095d4013d224f54ef73905dcd13"
+ },
+ {
+  "file": "synthetic/rhino-layers.3dm",
+  "format": "3dm",
+  "title": "Rhino 3DM fixture written with rhino3dm",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_3dm_fixtures.py",
+  "bytes": 9160,
+  "sha256": "3282fc1b194df3ed8c0d8338829147e668a1dd9a79948f477449f7b2264c7944"
  }
 ]
