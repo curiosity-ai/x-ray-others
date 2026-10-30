@@ -72,6 +72,7 @@ public static class ModelLoader
             "iges" => Formats.Cad.IgesReader.ReadMetadata(d, o),
             "dwg" => Formats.Cad.DwgReader.ReadMetadata(d, o),
             "rlf" => Formats.Relief.RlfReader.Read(d, o).Metadata,
+            "unreal" => Formats.Game.UassetReader.Read(d, o).Metadata,
             "revit" or "inventor" => Formats.Cad.CompoundDocumentReader.ReadMetadata(format, d, o),
             _ => ApplyHints(format, Dispatch(format, d, o), o).Metadata,
         });
@@ -363,6 +364,7 @@ public static class ModelLoader
         "b3d" => B3dReader.Read(data, options),
         "psu" => Formats.Saves.PsuReader.Read(data, options),
         "rlf" => throw new UnsupportedModelFormatException(format, "Relief files keep their heights in a proprietary compressed raster that is not decoded; use ReadMetadata for the dimensions."),
+        "unreal" => Formats.Game.UassetReader.Read(data, options, requireGeometry: true),
         "off" => OffReader.Read(data, options),
         "amf" => AmfReader.Read(data, options),
         "las" or "laz" => Formats.PointCloud.LasReader.Read(data, options),

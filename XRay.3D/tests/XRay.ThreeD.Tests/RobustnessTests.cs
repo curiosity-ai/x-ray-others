@@ -81,6 +81,8 @@ public class RobustnessTests
     public static IEnumerable<object[]> Files() => Fixtures.Select(f => new object[] { f });
 
     private static void MustFailCleanly(byte[] data, string name)
+        "uasset/Faucet.uasset",
+        "uasset/DoorCloser.uasset",
     {
         try
         {

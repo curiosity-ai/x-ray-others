@@ -11,7 +11,7 @@ format, title, licence, source and sha256.
 | `draco/` | Draco meshes (`.drc`) encoded by an independent encoder with the values it decodes to (`.json`), and glTF files using the extension; `tools/fixtures/make_draco_fixtures.py` writes them, CC0 | Draco decoder |
 | `synthetic/` | hand-made STL, OBJ, PLY (three encodings), 3MF, glTF, IFC, IGES, FreeCAD, G-code, Sweet Home 3D, textured (OBJ package, glTF, 3MF) and ZIP package fixtures (and more), CC0; `tools/fixtures/make_fixtures.py` writes them | mesh readers, robustness |
 | `step/`, `iges/`, `dxf/`, `fcstd/`, `sh3d/`, `zip/` | third-party files for the readers of these formats (`zip/`: packages, only some hold a model) | readers, detection tests |
-| `dwg/`, `dwf/`, `3dm/`, `scad/`, `pln/`, `uasset/`, `unitypackage/`, `b3d/`, `cad/` | formats that are detected but not yet read; targets for later readers | detection tests |
+| `dwg/`, `dwf/`, `3dm/`, `scad/`, `pln/`, `unitypackage/`, `b3d/`, `cad/` | formats that are detected but not yet read; targets for later readers | detection tests |
 
 Licences are CC0-1.0, public domain (US government works, Natural Earth), MIT (Adafruit, NVIDIA JetRacer, UND Advanced
 Rocketry Club and others) and CC-BY-4.0 for `Box.glb`; each file's entry names its source. Files over about 3.5 MB and
