@@ -31,6 +31,8 @@ public class RobustnessTests
         "synthetic/scene-ascii.fbx",
         "synthetic/scene.usda",
         "step/neopixel-ring.step",
+        "synthetic/tessellated.stp",
+        "synthetic/mapped.stp",
         "synthetic/scene.usdz",
         "synthetic/cloud-binary.pcd",
         "synthetic/cloud-compressed.pcd",

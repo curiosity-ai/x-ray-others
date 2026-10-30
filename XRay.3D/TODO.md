@@ -27,7 +27,7 @@ Ordered by value for the stated goals (metadata extraction, then conversion for 
 
 ## Next: more formats, in order of value / effort (see `docs/research/formats.md` for the viewer's approach)
 
-- [x] STEP (B-rep, assembly, colours, layers, units; open: AP242 tessellated entities, mapped items): assembly tree (PRODUCT, NEXT_ASSEMBLY_USAGE_OCCURRENCE), names, units, colours, layers, properties; metadata first (S-M), then a B-rep tessellator (XL: NURBS, trimmed surfaces); start with faceted and AP242 tessellated geometry
+- [x] STEP (B-rep, assembly, colours, layers on nodes, units, AP242 tessellated entities, mapped items; open: tessellated edges/curve sets, repositioned tessellated items, layers on single faces): assembly tree (PRODUCT, NEXT_ASSEMBLY_USAGE_OCCURRENCE), names, units, colours, layers, properties; metadata first (S-M), then a B-rep tessellator (XL: NURBS, trimmed surfaces); start with faceted and AP242 tessellated geometry
 - [x] DXF (ASCII): layers, units (`$INSUNITS` per the AutoCAD table; the reference viewer maps 4, 5 and 6 all to mm), blocks and arrays, lines/polylines/arcs/splines/hatch outlines, 3D faces, polyface and MESH; checked against ezdxf. Open: binary DXF, hatch fills, text as geometry, ACIS solids
 - [x] IGES: metadata and curve geometry (110, 100, 106, 126, 124). Open: tessellating 128/144 trimmed surfaces and 186 B-reps, 112 splines, 102 composites
 - [ ] DWG: wrap or port a pure-C# reader (the viewer's own TypeScript fallback decoder is a readable reference); layers, blocks, units

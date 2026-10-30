@@ -1645,5 +1645,23 @@
   "source": "tools/fixtures/make_fixtures.py",
   "bytes": 1473,
   "sha256": "2de43edb2d852a70f4651b5227e428386212dd82075150f35939a61b2b2fc4b6"
+ },
+ {
+  "file": "synthetic/tessellated.stp",
+  "format": "step",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_step_ap242.py",
+  "bytes": 122041,
+  "sha256": "b0d9350604cc495b0c034a8b6015fb996e8beeb11bd495d10a20458a764428d1"
+ },
+ {
+  "file": "synthetic/mapped.stp",
+  "format": "step",
+  "title": "Hand-made fixture",
+  "license": "CC0-1.0",
+  "source": "tools/fixtures/make_step_ap242.py",
+  "bytes": 17081,
+  "sha256": "d6f66826a121c0d6da731b8ac41b8ebea37893715107cc11c71565b2ec0551c1"
  }
 ]

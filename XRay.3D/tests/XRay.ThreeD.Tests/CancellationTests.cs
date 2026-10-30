@@ -114,6 +114,28 @@ public class CancellationTests
     }
 
     [Fact]
+    public void A_large_tessellated_step_face_stops_promptly()
+    {
+        const int n = 400_000;
+        var sb = new StringBuilder(60_000_000);
+        sb.Append("ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('x'),'2;1');\nFILE_NAME('x','2025-01-01T00:00:00',(''),(''),'','','');\nFILE_SCHEMA(('AP242_MANAGED_MODEL_BASED_3D_ENGINEERING_MIM_LF'));\nENDSEC;\nDATA;\n");
+        sb.Append("#1=COORDINATES_LIST('',").Append(n).Append(",(");
+        for (var i = 0; i < n; i++)
+        {
+            sb.Append(i == 0 ? "" : ",").Append('(').Append(i % 977).Append(".,").Append(i % 613).Append(".,").Append(i % 31).Append(".)");
+        }
+
+        sb.Append("));\n#2=TRIANGULATED_FACE('',#1,").Append(n).Append(",(),$,(),(");
+        for (var i = 1; i + 2 <= n; i++)
+        {
+            sb.Append(i == 1 ? "" : ",").Append('(').Append(i).Append(',').Append(i + 1).Append(',').Append(i + 2).Append(')');
+        }
+
+        sb.Append("));\n#3=TESSELLATED_SOLID('',(#2),$);\nENDSEC;\nEND-ISO-10303-21;\n");
+        StopsPromptly(Encoding.ASCII.GetBytes(sb.ToString()), "big-tessellated.step");
+    }
+
+    [Fact]
     public void A_solidworks_assembly_stops_promptly()
     {
         StopsPromptly(File.ReadAllBytes(DatasetPaths.File("sldasm/nist-mtc-assembly.sldasm")), "nist-mtc-assembly.sldasm");
