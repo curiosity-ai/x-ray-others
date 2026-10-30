@@ -3,7 +3,7 @@
 
     python3 tools/oracle/make_dwg_releases_golden.py <folder with example_2000.dwg/.dxf ...> > tests/XRay.ThreeD.Tests/Corpus/dwg-releases-golden.json
 
-Per release: $INSUNITS, the layer names, the number of entities of each type (model space and blocks together, in the DXF twin) and the sums of the
+Per release: $INSUNITS, the layer names, the number of entities of each type (model space and blocks together, in the DXF twin), a few header variables ($INSUNITS, $LUNITS, $EXTMIN, ... as the twin states them) and the sums of the
 coordinates of its LINE, POINT and CIRCLE entities, which a decoder that is wrong in one bit will not reproduce.
 """
 import collections, json, os, sys
@@ -31,6 +31,7 @@ for release in ('2000', '2004', '2007', '2010', '2013', '2018'):
         'insunits': doc.header.get('$INSUNITS'),
         'layers': [l.dxf.name for l in doc.layers],
         'counts': dict(sorted(counts.items())),
+        'header': {k: (list(v) if isinstance(v, tuple) else v) for k, v in ((k, doc.header.get(k)) for k in ('$INSUNITS', '$LUNITS', '$LUPREC', '$AUNITS', '$AUPREC', '$EXTMIN', '$EXTMAX', '$LTSCALE', '$TDCREATE', '$TEXTSIZE', '$LIMMAX'))},
         'lineSum': round(line_sum, 3), 'pointSum': round(point_sum, 3), 'circleSum': round(circle_sum, 3),
     }
 print(json.dumps(out, indent=1))

@@ -200,14 +200,26 @@ internal sealed partial class DwgDatabase
     // ---- loading --------------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// $INSUNITS from the header variables. The variables are a long, release dependent run of bit coded values; this one is found by its
+    /// $INSUNITS from the header variables, decoded in order (<see cref="DwgHeaderVariables"/>); when the header does not decode it is found by its
     /// neighbours instead of by counting the ~250 before it: it is a bit short followed by $CEPSNTYPE (0 unless a plot style is attached), then, up to
     /// AC1018, the 38 character fingerprint GUID, from AC1021 on the five byte settings of $SORTENTS to $DIMASSOC. The first such place wins (one with the default $SORTENTS of 127 before one without).
     /// </summary>
     private void ReadHeaderUnits()
     {
         var h = _sections.Header;
-        if (h.Length < 40 || _generation < 18)
+        if (h.Length < 40)
+        {
+            return;
+        }
+
+        // The header variables are decoded in order, release by release (DwgHeaderVariables); the neighbour search below is the fallback for a header that does not decode.
+        if (DwgHeaderVariables.Read(h, _generation) is { } variables && variables.Numbers.TryGetValue("InsUnits", out var decoded) && decoded is >= 0 and <= 20)
+        {
+            InsertUnits = decoded > 0 ? (int)decoded : null;
+            return;
+        }
+
+        if (_generation < 18)
         {
             return;
         }

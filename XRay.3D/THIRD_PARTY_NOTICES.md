@@ -82,13 +82,15 @@ SOFTWARE.
 
 The Python port of openskp is LGPL-licensed and was not used.
 
-## ACadSharp (DWG AC1021 literal and match decoder)
+## ACadSharp (DWG AC1021 pages and the ordered header variables)
 
 `src/XRay.ThreeD/Formats/Cad/DwgLz21.cs` decodes the LZ77 variant of AutoCAD 2007 (AC1021) file headers and pages. The opcode layout and the
 per-length literal copy table (pieces of 1 to 16 bytes, reordered) were taken from `DwgLZ77AC21Decompressor` of
 [ACadSharp](https://github.com/DomCR/ACadSharp) (MIT licence), re-implemented here with bounds checks on every read and write. The page and section
 map layout of `DwgContainer.OpenR2007` (Reed-Solomon block interleaving, the 0x110 byte header table, section descriptors) follows that project's
-reader. Checked against the AC1021 example drawing and its DXF twin (`DwgReleaseTests`). The licence:
+reader. `DwgHeaderVariables.cs` is a mechanical conversion of the header reader of the same project (the order of the ~270 header variables and their per-release
+conditions), over this repository's bit reader. Checked against the AC1021 example drawing and its DXF twin and, for the header variables, against the twin of
+every release from AC1015 to AC1032 (`DwgReleaseTests`). The licence:
 
 ```
 MIT License

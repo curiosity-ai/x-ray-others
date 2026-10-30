@@ -156,13 +156,44 @@ public class DwgReleaseTests
         Assert.NotEmpty(model.Meshes);
         Assert.NotEmpty(model.Texts);
         Assert.True(model.Fills.Count >= 0);
-        // $INSUNITS is 4 (millimetres) in the twin of every release, except that AC1015 keeps it among variables this reader does not locate.
-        if (release != "2000")
-        {
-            Assert.Equal(LengthUnit.Millimeter, model.Metadata.Units);
-        }
+        // $INSUNITS is 4 (millimetres) in the twin of every release.
+        Assert.Equal(LengthUnit.Millimeter, model.Metadata.Units);
 
         _ = GlbWriter.ToArray(model);
+    }
+
+    [Theory]
+    [MemberData(nameof(Releases))]
+    public void Header_variables_are_decoded_one_by_one_and_match_the_twin(string release)
+    {
+        if (Sample(release) is not { } path)
+        {
+            return;
+        }
+
+        var header = Golden(release).GetProperty("header");
+        var sections = DwgContainer.Open(File.ReadAllBytes(path), new LoadOptions());
+        var vars = DwgHeaderVariables.Read(sections.Header, sections.Generation);
+        Assert.NotNull(vars);
+        double N(string name) => vars!.Numbers[name];
+        double[] P(string name) => header.GetProperty(name).EnumerateArray().Select(e => e.GetDouble()).ToArray();
+        Assert.Equal(header.GetProperty("$INSUNITS").GetInt32(), (int)N("InsUnits"));
+        Assert.Equal(header.GetProperty("$LUNITS").GetInt32(), (int)N("LinearUnitFormat"));
+        Assert.Equal(header.GetProperty("$LUPREC").GetInt32(), (int)N("LinearUnitPrecision"));
+        Assert.Equal(header.GetProperty("$AUNITS").GetInt32(), (int)N("AngularUnit"));
+        Assert.Equal(header.GetProperty("$AUPREC").GetInt32(), (int)N("AngularUnitPrecision"));
+        Assert.Equal(header.GetProperty("$LTSCALE").GetDouble(), N("LineTypeScale"), 9);
+        Assert.Equal(header.GetProperty("$TEXTSIZE").GetDouble(), N("TextHeightDefault"), 9);
+        Assert.InRange(N("CreateDateTime"), 2_400_000, 2_500_000); // the twin was saved again, so its $TDCREATE differs; the DWG holds the original Julian date
+        var min = P("$EXTMIN");
+        var max = P("$EXTMAX");
+        Assert.Equal(min[0], N("ModelSpaceExtMinX"), 6);
+        Assert.Equal(min[1], N("ModelSpaceExtMinY"), 6);
+        Assert.Equal(max[0], N("ModelSpaceExtMaxX"), 6);
+        Assert.Equal(max[1], N("ModelSpaceExtMaxY"), 6);
+        var limits = P("$LIMMAX");
+        Assert.Equal(limits[0], N("ModelSpaceLimitsMaxX"), 9);
+        Assert.Equal(limits[1], N("ModelSpaceLimitsMaxY"), 9);
     }
 
     [Theory]
